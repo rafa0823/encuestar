@@ -35,7 +35,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Limpiar las que no pasan auditoría telefónica
                             self$respuestas$eliminar_auditoria_telefonica(self$auditoria_telefonica)
                             # Limpiar las que no tienen variables de diseño
-                            self$respuestas$eliminar_faltantes_diseño
+                            self$respuestas$eliminar_faltantes_diseño()
                             return(invisible(self$respuestas))
                           }
 
@@ -85,7 +85,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               print(
                                 glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por tener datos faltantes en las variables de diseño muestral")
                               )
-
+                              return(self$base)
                             }
                           )
 )
@@ -122,7 +122,7 @@ Cuestionario <- R6::R6Class("Cuestionario",
                           },
                           crear_diccionario=function(){
 
-                          }
+                          },
                           aprobar=function(){
                             self$aprobado <- T
                             return(invisible(self))
