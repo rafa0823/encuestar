@@ -1,8 +1,4 @@
-# Por lo pronto no se ha realizado la clase.
-# Se asume que un SurveyToGo es una lista que contiene los siguiente elementos
-# encuesta=base de datos tal como la entrega el sistema de STG
-# diccionario= base de datos con las columnas, nombre, llave
-#
+
 
 analizar_frecuencias <- function(encuesta, pregunta){
   estimacion <-survey::svymean(enquo(pregunta),
