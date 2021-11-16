@@ -7,6 +7,7 @@
 #' @export
 #'
 #' @examples
+#'
 checar_formato_diccionario_surveytogo <- function(encuesta){
   # Checar nombres
   encuesta$diccionario
