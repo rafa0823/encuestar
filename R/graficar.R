@@ -54,6 +54,7 @@ graficar_barras_frecuencia <- function(bd,titulo, tamano_letra = 18,
 #' @param color_etiqueta Color de la letra de las etiquetas de datos
 #' @param nota Si de desea añadir una nota al pie del plot
 #' @param colores Vector de colores del plot
+#' @param orden Vector en el orden que se desean los grupos de las barras
 #'
 #' @return
 #' @export
@@ -65,50 +66,27 @@ graficar_barras_grupos <- function(bd, titulo, tamano_letra = 18,
                                    familia = "Poppins",
                                    color_etiqueta = "#3B3838",
                                    nota = "",
+                                   orden = "",
                                    colores){
 
   transparencia <- .8
   ancho_barras <- .45
-  # verde <- "#7FA389"
-  # rojo <- "#D67278"
-  # gris <- "gray"
-  # amarillo <- "#F0A96C"
-  # rojo_f <- "#D14B4B"
-  # verde_f <- "#518265"
 
-  # c("Muy mala" = rojo_f,
-  #   "Mala" = rojo,
-  #   "Regular" = amarillo,
-  #   "Buena" = verde,
-  #   "Muy buena" = verde_f,
-  #   "Ns/Nc" = gris)
 
   bd %>%
-    ggplot(aes(x  = factor(respuesta, media), fill = grupo, y =media,
-               group = grupo, levels = c("Muy mala",
-                                         "Mala",
-                                         "Regular",
-                                         "Buena",
-                                         "Muy buena",
-                                         "Ns/Nc"))) +
+    ggplot(aes(x  =forcats::fct_reorder(respuesta, media), fill = grupo, y =media,
+               group =factor(grupo,
+                             levels = orden)
+    )) +
     geom_chicklet(stat = "identity", width = .5)+
-    geom_text(aes(label = scales::percent({{n}},accuracy = 1)), family = familia,
+    geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
               position = position_stack(.5,reverse = T), vjust = .5,
               color = color_etiqueta) +
     scale_fill_manual(values = colores)+
     scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
     coord_flip()+
-    labs(title = titulo, x = NULL, y = "", fill = NULL)+
-    theme_minimal()+
-    theme(text = element_text(family = familia, size = tamano_letra),
-          plot.title = element_text(size = tamano_titulo,
-                                    colour = color_titulo,
-                                    hjust = 0),
-          legend.position = "bottom",
-          panel.grid.minor = element_blank(),
-          panel.grid.major.y = element_blank())
+    labs(title = titulo, x = NULL, y = "", fill = NULL)
 }
-
 
 
 
