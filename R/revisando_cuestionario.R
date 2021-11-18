@@ -1,7 +1,4 @@
 
-
-cuestionario <- officer::read_docx("~/Downloads/Encuesta_Plantilla_16Nov.docx")
-
 revisando_cuestionario <- function(base){
   bd <- officer::docx_summary(base) %>%
   filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
@@ -21,4 +18,3 @@ revisando_cuestionario <- function(base){
   return(bd)
 }
 
-revisando_cuestionario(cuestionario)
