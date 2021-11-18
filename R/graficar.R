@@ -78,7 +78,7 @@ graficar_barras_grupos <- function(bd, titulo, tamano_letra = 18,
                group =factor(grupo,
                              levels = orden)
     )) +
-    geom_chicklet(stat = "identity", width = .5)+
+    geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
     geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
               position = position_stack(.5,reverse = T), vjust = .5,
               color = color_etiqueta) +
@@ -88,6 +88,41 @@ graficar_barras_grupos <- function(bd, titulo, tamano_letra = 18,
     labs(title = titulo, x = NULL, y = "", fill = NULL)
 }
 
+#' Title
+#'
+#'  @param bd Debe provenir de la función PENDIENTE
+#' @param titulo Es un parámetro obligatorio para el título de la gráfica
+#' @param grupo1 Es el grupo que saldrá del lado derecho del plot
+#' @param grupo2 Es el grupo que saldrá del lado izquierdo del plot
+#' @param color1 Color de las barras del grupo 1
+#' @param color2 Color de las barras del grupo 2
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
+                                         color1= "#006466", color2= "#4d194d"){
+  transparencia <- .8
+  ancho_barras <- .45
 
+  aux <-bd  %>%
+    mutate( media2 = case_when(respuesta %in% grupo1 ~media*-1, T~media),
+            color = case_when(respuesta %in% grupo1 ~ color1, T~color2))
 
+  aux %>%
+    ggplot(aes(x = forcats::fct_reorder(respuesta, media2),
+               y = media2, fill = color))+
+    ggchicklet::geom_chicklet(stat = "identity",
+                              width = ancho_barras, alpha = transparencia)+
+    coord_flip()+
+    scale_fill_identity()+
+    labs(title = titulo, x = "", y = "", fill = "")+
+    lemon::scale_y_symmetric(labels = function(x){
+      scales::percent(abs(x), accuracy = 1)
+    }  )+
+    ggfittext::geom_bar_text(aes(label=media %>%  scales::percent(accuracy = 1)),
+                             contrast = T, grow = T)+
+    theme(legend.position = "None")
+}
 
