@@ -92,8 +92,8 @@ graficar_barras_grupos <- function(bd, titulo, tamano_letra = 18,
 #'
 #'  @param bd Debe provenir de la función PENDIENTE
 #' @param titulo Es un parámetro obligatorio para el título de la gráfica
-#' @param grupo1 Es el grupo que saldrá del lado derecho del plot
-#' @param grupo2 Es el grupo que saldrá del lado izquierdo del plot
+#' @param grupo1 vector: es el grupo que saldrá del lado derecho del plot
+#' @param grupo2 vector: es el grupo que saldrá del lado izquierdo del plot
 #' @param color1 Color de las barras del grupo 1
 #' @param color2 Color de las barras del grupo 2
 #'
