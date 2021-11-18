@@ -4,9 +4,6 @@
 #'
 #' @param bd Debe provenir de la función de analizar_frecuencias
 #' @param titulo Es un parámetro obligatorio para el título de la gráfica
-#' @param tamano_letra Tamaño de letra de los elementos del plot
-#' @param tamano_titulo Tamaño de letra solamente del título
-#' @param color_titulo Color de la letra del título
 #' @param familia Familia tipográfica de los elementos del plot
 #' @param color_etiqueta Color de la letra de las etiquetas de datos
 #' @param nota Si de desea añadir una nota al pie del plot
@@ -16,9 +13,7 @@
 #' @export
 #'
 #' @examples
-graficar_barras_frecuencia <- function(bd,titulo, tamano_letra = 18,
-                                       tamano_titulo = 20,
-                                       color_titulo = "black",
+graficar_barras_frecuencia <- function(bd,titulo,
                                        familia = "Poppins",
                                        color_etiqueta = "#3B3838",
                                        nota = "",
@@ -47,9 +42,6 @@ graficar_barras_frecuencia <- function(bd,titulo, tamano_letra = 18,
 #'
 #' @param bd Debe provenir de la función PENDIENTE
 #' @param titulo Es un parámetro obligatorio para el título de la gráfica
-#' @param tamano_letra Tamaño de letra de los elementos del plot
-#' @param tamano_titulo Tamaño de letra solamente del título
-#' @param color_titulo Color de la letra del título
 #' @param familia Familia tipográfica de los elementos del plot
 #' @param color_etiqueta Color de la letra de las etiquetas de datos
 #' @param nota Si de desea añadir una nota al pie del plot
@@ -60,9 +52,7 @@ graficar_barras_frecuencia <- function(bd,titulo, tamano_letra = 18,
 #' @export
 #'
 #' @examples
-graficar_barras_grupos <- function(bd, titulo, tamano_letra = 18,
-                                   tamano_titulo = 20,
-                                   color_titulo = "black",
+graficar_barras_grupos <- function(bd, titulo,
                                    familia = "Poppins",
                                    color_etiqueta = "#3B3838",
                                    nota = "",
