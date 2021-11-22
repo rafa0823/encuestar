@@ -92,7 +92,9 @@ graficar_barras_grupos <- function(bd, titulo,
 #'
 #' @examples
 graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
-                                         color1= "#006466", color2= "#4d194d"){
+                                         color1= "#006466", color2= "#4d194d",
+                                         contraste_etiqueta = T,
+                                         color_etiqueta = "#FFFFFF"){
   transparencia <- .8
   ancho_barras <- .45
 
@@ -102,7 +104,7 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
 
   aux %>%
     ggplot(aes(x = forcats::fct_reorder(respuesta, media2),
-               y = media2, fill = color))+
+               y = media2, fill = color, color = NULL))+
     ggchicklet::geom_chicklet(stat = "identity",
                               width = ancho_barras, alpha = transparencia)+
     coord_flip()+
@@ -112,7 +114,8 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
       scales::percent(abs(x), accuracy = 1)
     }  )+
     ggfittext::geom_bar_text(aes(label=media %>%  scales::percent(accuracy = 1)),
-                             contrast = T, grow = T)+
-    theme(legend.position = "None")
+                             show.legend = F, color = color_etiqueta,
+                             contrast = contraste_etiqueta, grow = T)+
+    theme(legend.position = "none")
 }
 
