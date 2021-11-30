@@ -1,5 +1,7 @@
-revisando_cuestionario <- function(base){
-  bd <- officer::docx_summary(cuestionario) %>%
+
+revisando_cuestionario <- function(doc){
+  bd <- officer::docx_summary(doc) %>%
+    as_tibble() %>%
     filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
                                                 "Morant_respuestas_abiertas",
                                                 "Morant_respuestas_numericas",
@@ -7,12 +9,11 @@ revisando_cuestionario <- function(base){
     select(-c(level:row_span)) %>%
     mutate(bloque=ifelse(style_name=="Morant_Bloque", text, NA)) %>%
     fill(bloque,.direction = c("down")) %>%
-    filter(!style_name=="Morant_Bloque") %>%
+    filter(style_name!="Morant_Bloque") %>%
     mutate(pregunta=ifelse(style_name=="Morant_Pregunta", text, NA)) %>%
     fill(pregunta,.direction = c("down")) %>%
     filter(!style_name=="Morant_Pregunta") %>%
-    separate(style_name, c("a", "b", "c"), sep = "_") %>%
-    rename("tipo_pregunta"="c") %>%
+    separate(style_name, c("a", "b", "tipo_pregunta"), sep = "_") %>%
     group_by(bloque, pregunta, tipo_pregunta) %>%
     summarise(respuestas=list(text)) %>%
     ungroup() %>%

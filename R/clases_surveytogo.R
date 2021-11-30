@@ -18,7 +18,8 @@ Encuesta <- R6::R6Class("Encuesta",
                           initialize = function(respuestas = NA,
                                                 diccionario = NA,
                                                 muestra = NA,
-                                                auditoria_telefonica = NA) {
+                                                auditoria_telefonica = NA,
+                                                cuestionario=NA) {
                             self$respuestas <- Respuestas$new(base = respuestas)
                             # Valorar si no es mejor una active binding
                             self$muestra <- Muestra$new(base = muestra)
