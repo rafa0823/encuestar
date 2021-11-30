@@ -64,6 +64,7 @@ segunda_tabla <- officer::docx_summary(base) %>%
   rename("aspecto"="data")
 
 return(segunda_tabla)
+
 }
 
 
