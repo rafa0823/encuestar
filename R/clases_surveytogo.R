@@ -99,15 +99,15 @@ Muestra <- R6::R6Class("Muestra",
                          diseño=NULL,
                          initialize =function(base){
                            self$base=base
-                         },
-                         extraer_diseño=function(respuestas){
-                           diseño=survey::svydesign(
-                             ids=crear_formula_nombre(self$base, "id_"),
-                             # fpc = crear_formula_nombre(self$base, "fpc_"),
-                             data = respuestas
-                           )
-                           return(diseño)
                          }
+                         # extraer_diseño=function(respuestas){
+                         #   diseño=survey::svydesign(
+                         #     ids=crear_formula_nombre(self$base, "id_"),
+                         #     # fpc = crear_formula_nombre(self$base, "fpc_"),
+                         #     data = respuestas
+                         #   )
+                           # return(diseño)
+                         # }
                        ))
 
 #'Esta es la clase cuestionario
