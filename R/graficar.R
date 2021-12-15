@@ -13,26 +13,26 @@
 #' @export
 #'
 #' @examples
-graficar_barras_frecuencia <- function(bd,titulo,
-                                       familia = "Poppins",
-                                       color_etiqueta = "#3B3838",
+                                       
+graficar_barras_frecuencia <- function(bd,
+                                       titulo,
+                                       fill=NULL,
                                        nota = "",
                                        colores){
-  transparencia <- .8
-  ancho_barras <- .45
-
-
-  g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta,40), media),
-                          y  = media, fill =respuesta))+
+  g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta,40),
+                                                   media),
+                          y  = media,
+                          fill="1"))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
-                              alpha= transparencia, width =ancho_barras )+
-    labs(title = titulo, x = NULL, y = NULL, caption = nota)+
+                              alpha= .8,
+                              width =.45)+
+    labs(title = titulo,
+         x = NULL,
+         y = NULL,
+         caption = nota)+
     coord_flip()+
     scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-    scale_fill_manual(values = colores)+
-    geom_text(aes(label=scales::percent(media, accuracy = 1)),
-              position=position_dodge(width=0.9),
-              vjust=0.5)
+    ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)),contrast = T)
   return(g)
 
 }
