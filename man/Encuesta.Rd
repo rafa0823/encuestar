@@ -39,9 +39,9 @@ Create a person
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$new(
   respuestas = NA,
-  diccionario = NA,
   muestra = NA,
-  auditoria_telefonica = NA
+  auditoria_telefonica = NA,
+  cuestionario = NA
 )}\if{html}{\out{</div>}}
 }
 

@@ -101,12 +101,20 @@ Muestra <- R6::R6Class("Muestra",
                            self$base=base
                          },
                          extraer_diseño=function(respuestas){
-                           browser()
-                           diseño=survey::svydesign(
-                             ids=crear_formula_nombre(self$base, "id_"),
-                             # fpc = crear_formula_nombre(self$base, "fpc_"),
+                           warning(glue::glue("Se está haciendo el join entre respuestas y muestra manualmente. Corregir.
+                                                Además, se elimina el cluster_0 de respuestas para que corra, esto es temporal, se debe recalcular el fpc"))
+                           respuestas <- respuestas %>%
+                             inner_join(self$base,
+                                        by=c("CLUSTER"))
+                           diseño<- survey::svydesign(
+                             pps="brewer",
+                             ids=crear_formula_nombre(respuestas, "cluster_"),
+                             fpc = crear_formula_nombre(respuestas, "fpc_"),
+                             strata = crear_formula_nombre(respuestas, "strata_"),
                              data = respuestas
                            )
+
+                         self$diseño<- diseño
                          return(diseño)
                          }
                        ))

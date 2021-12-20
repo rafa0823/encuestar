@@ -16,4 +16,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports: 
     ggchicklet,
+    lemon,
+    dplyr,
     R6
