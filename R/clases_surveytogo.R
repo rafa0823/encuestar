@@ -7,7 +7,7 @@
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
-                          diccionario=NULL,
+                          cuestionario=NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           diseño = NULL,
@@ -16,14 +16,14 @@ Encuesta <- R6::R6Class("Encuesta",
                           #' @param respuestas Name of the person
                           #' @param diccionario Hair colour
                           initialize = function(respuestas = NA,
-                                                diccionario = NA,
                                                 muestra = NA,
-                                                auditoria_telefonica = NA) {
+                                                auditoria_telefonica = NA,
+                                                cuestionario=NA) {
                             self$respuestas <- Respuestas$new(base = respuestas)
                             # Valorar si no es mejor una active binding
                             self$muestra <- Muestra$new(base = muestra)
                             # Valorar active binding
-                            self$diccionario <- diccionario
+                            self$cuestionario <- Cuestionario$new(documento = cuestionario)
                             # Valorar active bindign
                             self$auditoria_telefonica <- auditoria_telefonica
                             # Procesos ####
@@ -35,7 +35,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Limpiar las que no pasan auditoría telefónica
                             self$respuestas$eliminar_auditoria_telefonica(self$auditoria_telefonica)
                             # Limpiar las que no tienen variables de diseño
-                            self$respuestas$eliminar_faltantes_diseño
+                            self$respuestas$eliminar_faltantes_diseño()
                             return(invisible(self$respuestas))
                           }
 
@@ -85,7 +85,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               print(
                                 glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por tener datos faltantes en las variables de diseño muestral")
                               )
-
+                              return(self$base)
                             }
                           )
 )
@@ -101,12 +101,21 @@ Muestra <- R6::R6Class("Muestra",
                            self$base=base
                          },
                          extraer_diseño=function(respuestas){
-                           diseño=survey::svydesign(
-                             ids=crear_formula_nombre(self$base, "id_"),
-                             # fpc = crear_formula_nombre(self$base, "fpc_"),
+                           warning(glue::glue("Se está haciendo el join entre respuestas y muestra manualmente. Corregir.
+                                                Además, se elimina el cluster_0 de respuestas para que corra, esto es temporal, se debe recalcular el fpc"))
+                           respuestas <- respuestas %>%
+                             inner_join(self$base,
+                                        by=c("CLUSTER"))
+                           diseño<- survey::svydesign(
+                             pps="brewer",
+                             ids=crear_formula_nombre(respuestas, "cluster_"),
+                             fpc = crear_formula_nombre(respuestas, "fpc_"),
+                             strata = crear_formula_nombre(respuestas, "strata_"),
                              data = respuestas
                            )
-                           return(diseño)
+
+                         self$diseño<- diseño
+                         return(diseño)
                          }
                        ))
 
@@ -114,20 +123,58 @@ Muestra <- R6::R6Class("Muestra",
 #'@export
 #'
 Cuestionario <- R6::R6Class("Cuestionario",
-                        public=list(
-                          documento=NULL,
-                          aprobado=NULL,
-                          initialize=function(){
+                            public=list(
+                              documento=NULL,
+                              aprobado=NULL,
+                              diccionario=NULL,
+                              initialize=function(documento){
+                                self$documento <- documento
+                                self$diccionario <- private$crear_diccionario()
 
-                          },
-                          crear_diccionario=function(){
+                              },
+                              aprobar=function(){
+                                self$aprobado <- T
+                                return(invisible(self))
+                              },
+                              checar_pregunta=function(pregunta){
+                                pregunta_chr <- rlang::expr_text(ensym(pregunta))
+                                bd <- self$diccionario %>%
+                                  filter(llaves==pregunta_chr)
+                                pertenece <- (nrow(bd)==1)
+                                if(pertenece){
+                                  return(map(bd,~.x))
+                                }
+                                else return(NULL)
+                              })
+                            ,
+                            private=list(
+                              crear_diccionario=function(){
+                                self$diccionario <- officer::docx_summary(self$documento) %>%
+                                  as_tibble() %>%
+                                  filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
+                                                                              "Morant_respuestas_abiertas",
+                                                                              "Morant_respuestas_numericas",
+                                                                              "Morant_respuetas_multiples")) %>%
+                                  select(-c(level:row_span)) %>%
+                                  mutate(bloque=ifelse(style_name=="Morant_Bloque", text, NA)) %>%
+                                  fill(bloque,.direction = c("down")) %>%
+                                  filter(style_name!="Morant_Bloque") %>%
+                                  mutate(pregunta=ifelse(style_name=="Morant_Pregunta", text, NA)) %>%
+                                  fill(pregunta,.direction = c("down")) %>%
+                                  filter(!style_name=="Morant_Pregunta") %>%
+                                  separate(style_name, c("a", "b", "c"), sep = "_") %>%
+                                  rename("tipo_pregunta"="c") %>%
+                                  group_by(bloque, pregunta, tipo_pregunta) %>%
+                                  summarise(respuestas=list(text)) %>%
+                                  ungroup() %>%
+                                  mutate(llaves=stringr::str_extract(pregunta, "(?<=\\{).+?(?=\\})"),
+                                         llaves=stringr::str_squish(llaves),
+                                         pregunta=stringr::str_remove(pregunta, "\\{.+\\}"),
+                                         pregunta=stringr::str_squish(pregunta))
+                                return(self$diccionario)
 
-                          }
-                          aprobar=function(){
-                            self$aprobado <- T
-                            return(invisible(self))
-                          }
-                        ))
+                              })
+)
 
 #'Esta es la clase de pregunta
 #'@export
