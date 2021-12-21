@@ -40,8 +40,11 @@ Create a person
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$new(
   respuestas = NA,
   muestra = NA,
+  postestratificacion = NA,
   auditoria_telefonica = NA,
-  cuestionario = NA
+  cuestionario = NA,
+  shp = NA,
+  mantener = NA
 )}\if{html}{\out{</div>}}
 }
 
