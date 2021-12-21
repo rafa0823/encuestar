@@ -2,24 +2,18 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_barras_frecuencia}
 \alias{graficar_barras_frecuencia}
-\title{Title}
+\title{Para graficar frecuencias simples}
 \usage{
 graficar_barras_frecuencia(bd, titulo, fill = NULL, nota = "", colores)
 }
 \arguments{
-\item{bd}{debe provenir de la función de analizar_frecuencias}
+\item{bd}{Debe provenir de la función de analizar_frecuencias}
 
-\item{titulo}{Es un parámetro obligatorio para}
+\item{titulo}{Es un parámetro obligatorio para el título de la gráfica}
 
 \item{nota}{Si de desea añadir una nota al pie del plot}
 
 \item{colores}{Vector de colores del plot}
-
-\item{tamano_letra}{Tamaño de letra de los elementos del plot}
-
-\item{tamano_titulo}{Tamaño de letra solamente del título}
-
-\item{color_titulo}{Color de la letra del título}
 
 \item{familia}{Familia tipográfica de los elementos del plot}
 
@@ -29,5 +23,5 @@ graficar_barras_frecuencia(bd, titulo, fill = NULL, nota = "", colores)
 
 }
 \description{
-Title
+Para graficar frecuencias simples
 }

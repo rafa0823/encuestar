@@ -12,6 +12,8 @@ Esta es la clase de muestra
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{Muestra$new()}}
+\item \href{#method-recalcular_fpc}{\code{Muestra$recalcular_fpc()}}
+\item \href{#method-extraer_diseño}{\code{Muestra$extraer_diseño()}}
 \item \href{#method-clone}{\code{Muestra$clone()}}
 }
 }
@@ -21,6 +23,24 @@ Esta es la clase de muestra
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$new(base)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-recalcular_fpc"></a>}}
+\if{latex}{\out{\hypertarget{method-recalcular_fpc}{}}}
+\subsection{Method \code{recalcular_fpc()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$recalcular_fpc(respuestas)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-extraer_diseño"></a>}}
+\if{latex}{\out{\hypertarget{method-extraer_diseño}{}}}
+\subsection{Method \code{extraer_diseño()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$extraer_diseño(respuestas, postestratificacion)}\if{html}{\out{</div>}}
 }
 
 }

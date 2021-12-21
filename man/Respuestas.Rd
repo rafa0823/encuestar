@@ -16,6 +16,9 @@ Esta es la clase Respuestas
 \itemize{
 \item \href{#method-new}{\code{Respuestas$new()}}
 \item \href{#method-eliminar_auditoria_telefonica}{\code{Respuestas$eliminar_auditoria_telefonica()}}
+\item \href{#method-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
+\item \href{#method-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
+\item \href{#method-eliminar_fuera_muestra}{\code{Respuestas$eliminar_fuera_muestra()}}
 \item \href{#method-eliminar_faltantes_diseño}{\code{Respuestas$eliminar_faltantes_diseño()}}
 \item \href{#method-clone}{\code{Respuestas$clone()}}
 }
@@ -49,6 +52,33 @@ Crear respuesta
 \subsection{Method \code{eliminar_auditoria_telefonica()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_auditoria_telefonica(auditoria_telefonica)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-eliminar_falta_coordenadas"></a>}}
+\if{latex}{\out{\hypertarget{method-eliminar_falta_coordenadas}{}}}
+\subsection{Method \code{eliminar_falta_coordenadas()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_falta_coordenadas()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-correccion_cluster"></a>}}
+\if{latex}{\out{\hypertarget{method-correccion_cluster}{}}}
+\subsection{Method \code{correccion_cluster()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$correccion_cluster(base, shp, mantener)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-eliminar_fuera_muestra"></a>}}
+\if{latex}{\out{\hypertarget{method-eliminar_fuera_muestra}{}}}
+\subsection{Method \code{eliminar_fuera_muestra()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_fuera_muestra(respuestas, muestra)}\if{html}{\out{</div>}}
 }
 
 }
