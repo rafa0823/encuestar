@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @examples
-                                       
+
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
                                        fill=NULL,
@@ -22,7 +22,7 @@ graficar_barras_frecuencia <- function(bd,
   g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta,40),
                                                    media),
                           y  = media,
-                          fill="1"))+
+                          fill=respuesta))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
                               width =.45)+
