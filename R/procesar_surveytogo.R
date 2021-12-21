@@ -1,9 +1,18 @@
 
 
+#' Title
+#'
+#' @param encuesta
+#' @param pregunta
+#'
+#' @return
+#' @export
+#'
+#' @examples
 analizar_frecuencias <- function(encuesta, pregunta){
 
   estimacion <-survey::svymean(enquo(pregunta),
-                               design = encuesta$diseño) %>%
+                               design = encuesta$diseño, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
     rename(media=2, ee=3) %>%
     mutate(respuesta = stringr::str_replace(
@@ -21,6 +30,16 @@ analizar_frecuencias <- function(encuesta, pregunta){
   estimacion <- estimacion %>% mutate(pregunta = p)
 }
 
+#' Title
+#'
+#' @param encuesta
+#' @param pregunta
+#' @param aspectos
+#'
+#' @return
+#' @export
+#'
+#' @examples
 analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
   p <- rlang::expr_text(ensym(pregunta))
   llaves <- glue::glue("{p}_{aspectos}")
