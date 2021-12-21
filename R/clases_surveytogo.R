@@ -36,7 +36,12 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$mantener <- mantener
                             # Procesos ####
                             self$respuestas <- private$limpiar_respuestas()
-                            self$respuestas$base
+                            # Cambiar variables a tipo numérica
+                            numericas <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "numericas") %>%
+                              pull(llaves)
+
+                            self$respuestas$base <- self$respuestas$base %>%
+                              mutate(across(contains(all_of(numericas)), ~readr::parse_number(.x)))
                             # Recalcular fpc
                             self$muestra <- private$recalcular_fpc()
 
@@ -55,15 +60,18 @@ Encuesta <- R6::R6Class("Encuesta",
                           limpiar_respuestas=function(){
                             # Limpiar las que no pasan auditoría telefónica
                             self$respuestas$eliminar_auditoria_telefonica(self$auditoria_telefonica)
+
                             # Limpiar las respuestas que no tienen coordenadas
                             self$respuestas$eliminar_falta_coordenadas()
+
                             # Eliminar entrevistas cuyo cluster no pertenece a la muestra
-                            # self$respuestas$eliminar_fuera_muestra(self$respuestas$base, self$muestra$base)
+                            self$respuestas$eliminar_fuera_muestra(self$respuestas$base, self$muestra$base)
+
                             # Corregir cluster equivocado
                             self$respuestas$correccion_cluster(self$respuestas$base, self$shp, self$mantener)
 
                             # Limpiar las que no tienen variables de diseño
-                            # self$respuestas$eliminar_faltantes_diseño()
+                            self$respuestas$eliminar_faltantes_diseño()
                             return(invisible(self$respuestas))
                           },
                           recalcular_fpc = function(){
@@ -188,7 +196,6 @@ Muestra <- R6::R6Class("Muestra",
                              strata = crear_formula_nombre(respuestas, "strata_"),
                              data = respuestas
                            )
-
                            pobG <- postestratificacion %>% count(rango, wt = value, name = "Freq")
                            pobS<- postestratificacion %>% count(sexo, wt = value, name = "Freq")
                            diseño <- survey::rake(diseño, list(~rango, ~sexo), list(pobG, pobS))
