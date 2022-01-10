@@ -15,3 +15,6 @@ checar_formato_diccionario_surveytogo(encuesta)
 \description{
 Title
 }
+\examples{
+
+}
