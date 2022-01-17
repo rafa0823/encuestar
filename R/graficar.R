@@ -119,3 +119,53 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
     theme(legend.position = "none")
 }
 
+graficar_stack_frecuencias <- function(bd,   titulo= NULL,
+                                       fill=NULL,
+                                       nota = "",
+                                       grupo_positivo = c("Aprueba mucho",
+                                                          "Aprueba poco"),
+                                       grupo_negativo = c("Desaprueba mucho",
+                                                          "Desaprueba poco"),
+                                       ns_nc = "Ns/Nc",
+                                       colores =  c("Desaprueba mucho" = "#DE6400",
+                                                    "Desaprueba poco" = "#FB8500",
+                                                    "Aprueba poco" = "#126782",
+                                                    "Aprueba mucho" = "#023047",
+                                                    "Ns/Nc" = "gray")){
+
+  transparencia <- .8
+  ancho_barras <- .45
+  familia <- "Poppins"
+  color_etiqueta <- "#3B3838"
+
+
+
+  aux  <-  bd %>%
+    mutate(etiqueta = media,
+           media = case_when(respuesta %in%grupo_negativo~media*-1,
+                             respuesta %in% grupo_positivo~media,
+                             respuesta == ns_nc~media+1))
+
+
+  aux %>%  filter(respuesta != ns_nc) %>%
+    ggplot(aes(x  =forcats::fct_reorder(aspecto, media), fill = respuesta, y =media,
+               group =factor(respuesta, levels = orden) )) +
+    geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
+    geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
+              position = position_stack(.5,reverse = T), vjust = .5,
+              color = color_etiqueta) +
+    scale_fill_manual(values = colores)+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    coord_flip()+
+    labs(title = titulo, x = NULL, y = "", fill = NULL)+
+    geom_segment(data=aux %>%  filter(respuesta== ns_nc),
+                 mapping=aes(x = aspecto, y = 1,
+                             xend=aspecto, yend= media), size = 10,
+                 color = "gray")+
+    geom_text(data=aux %>%  filter(respuesta== ns_nc),
+              aes(label = scales::percent(etiqueta,accuracy = 1)),
+              hjust = 'outside', nudge_x = 0, nudge_y = .025)+
+    tema()
+
+}
+
