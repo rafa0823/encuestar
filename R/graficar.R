@@ -164,8 +164,7 @@ graficar_stack_frecuencias <- function(bd,   titulo= NULL,
                  color = "gray")+
     geom_text(data=aux %>%  filter(respuesta== ns_nc),
               aes(label = scales::percent(etiqueta,accuracy = 1)),
-              hjust = 'outside', nudge_x = 0, nudge_y = .025)+
-    tema()
+              hjust = 'outside', nudge_x = 0, nudge_y = .025)
 
 }
 
@@ -202,7 +201,6 @@ bd %>%
        y = NULL)+
   ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
                            contrast = T)+
-  tema()+
   theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
                                          linetype = "dotted"),
         panel.grid.major.y = element_blank(),
