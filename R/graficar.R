@@ -169,3 +169,25 @@ graficar_stack_frecuencias <- function(bd,   titulo= NULL,
 
 }
 
+graficar_gauge_promedio <- function(bd, color = "#1B3B75", maximo = 10){
+  bd %>%
+    ggplot() +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
+              color = 'white') +
+    geom_text(aes(x = 0, y = media,
+                  label = paste(media %>%  round(1), "\n Promedio")),
+              size = 10, family = familia, nudge_y = 0.25) +
+    scale_fill_manual(values = c('#1DCDBC', '#38C6F4')) +
+    scale_x_continuous(limits = c(0, NA)) +
+    scale_y_continuous(limits = c(0, maximo)) +
+    xlab('') + ylab('') +
+    coord_polar(theta = 'y') +
+    theme_void() +
+    theme(legend.position = 'bottom', axis.text = element_blank())
+}
+
+sustituir <- function(bd, patron, reemplazo = ""){
+  bd %>% mutate(respuesta = gsub(pattern = patron, replacement = reemplazo,
+                          x = respuesta, fixed = T))
+}
+
