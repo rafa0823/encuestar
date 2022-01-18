@@ -191,3 +191,21 @@ sustituir <- function(bd, patron, reemplazo = ""){
                           x = respuesta, fixed = T))
 }
 
+graficar_barras_numerica(bd){
+bd %>%
+  ggplot(aes(y = media, x = reorder(str_wrap(aspecto,40),media))) +
+  geom_chicklet(radius = grid::unit(3, "pt"),
+                alpha= .85,fill = "#1B3B75",
+                width =.75)+ coord_flip()+
+  labs(title = NULL,
+       x = NULL,
+       y = NULL)+
+  ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
+                           contrast = T)+
+  tema()+
+  theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
+                                         linetype = "dotted"),
+        panel.grid.major.y = element_blank(),
+        axis.line.y = element_line(colour = "#E1356D"),
+        axis.line.x = element_blank())
+}
