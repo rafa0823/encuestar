@@ -273,9 +273,9 @@ Cuestionario <- R6::R6Class("Cuestionario",
                                            text=stringr::str_squish(text)
                                     ) %>% mutate(llaves = factor(llaves, unique(llaves))) %>% filter(text != "")
 
-                                  tipo_r <- c("aspectos","multiples","numericas")
                                   tipo_r <- diccionario %>% distinct(tipo_pregunta) %>% pull(1)
-                                  aspectos <- diccionario %>% semi_join(diccionario%>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
+                                  aspectos <- diccionario %>%
+                                    semi_join(diccionario%>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
                                     select(tipo_pregunta, text, pregunta, bloque) %>%
                                     pivot_wider(names_from = tipo_pregunta, values_from = text)
 
