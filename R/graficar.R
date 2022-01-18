@@ -209,3 +209,24 @@ bd %>%
         axis.line.y = element_line(colour = "#E1356D"),
         axis.line.x = element_blank())
 }
+
+
+graficar_barras_palabras <- function(bd, pregunta, n = 10){
+bd %>% unnest_tokens(palabras, prgunta) %>%
+  count(palabras,sort = T) %>%
+  anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
+  slice(1:n) %>%
+  ggplot(aes(x =fct_reorder(palabras, n), y = n))+
+  ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
+                            alpha= .8,
+                            width =.45)+
+  labs(title = titulo,
+       x = NULL,
+       y = NULL,
+       caption = nota)+
+  coord_flip()+
+  scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+  ggfittext::geom_bar_text(aes(label=scales::percent(n, accuracy = 1)),contrast = T)
+}
+
+
