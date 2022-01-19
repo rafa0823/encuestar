@@ -240,7 +240,11 @@ Cuestionario <- R6::R6Class("Cuestionario",
                                   return(map(bd,~.x))
                                 }
                                 else return(NULL)
-                              })
+                              },
+                              resumen = function(){
+                                resumen_cuestionario(self$diccionario)
+                              }
+                              )
                             ,
                             private=list(
                               crear_diccionario=function(){
