@@ -56,6 +56,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             # En las líneas de arriba cambiar las variables PB y P21
 
                             self$diseño <- self$muestra$extraer_diseño(self$respuestas$base, postestratificacion = postestratificacion)
+
                           },
                           exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
                             if(!file.exists(carpeta)) dir.create(carpeta)
@@ -240,7 +241,16 @@ Cuestionario <- R6::R6Class("Cuestionario",
                                   return(map(bd,~.x))
                                 }
                                 else return(NULL)
-                              })
+                              },
+                              resumen = function(){
+
+                                res <- resumen_cuestionario(self$diccionario)
+
+
+                                return(res)
+
+                              }
+                              )
                             ,
                             private=list(
                               crear_diccionario=function(){
@@ -273,9 +283,9 @@ Cuestionario <- R6::R6Class("Cuestionario",
                                            text=stringr::str_squish(text)
                                     ) %>% mutate(llaves = factor(llaves, unique(llaves))) %>% filter(text != "")
 
-                                  tipo_r <- c("aspectos","multiples","numericas")
                                   tipo_r <- diccionario %>% distinct(tipo_pregunta) %>% pull(1)
-                                  aspectos <- diccionario %>% semi_join(diccionario%>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
+                                  aspectos <- diccionario %>%
+                                    semi_join(diccionario%>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
                                     select(tipo_pregunta, text, pregunta, bloque) %>%
                                     pivot_wider(names_from = tipo_pregunta, values_from = text)
 
@@ -313,5 +323,50 @@ Pregunta <- R6::R6Class("Pregunta",
                           aspectos=NULL,
                           opciones=NULL,
                           dependencia=NULL,
-                          tipo=NULL
+                          tipo=NULL,
+                          encuesta = NULL,
+                          graficadas = NULL,
+                          tema = NULL,
+                          initialize = function(encuesta, tema = tema_default){
+                            self$encuesta <- encuesta
+                            self$tema <- tema
+                          },
+                          graficar = function(llave, tipo, aspectos, tit = NULL){
+                            if(tipo == "frecuencia"){
+                              llave_aux <- quo_name(enquo(llave))
+                              if(!(llave_aux %in% self$graficadas)){
+                                if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                                  self$graficadas <- self$graficadas %>% append(llave_aux)
+                                } else{
+                                  stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                }
+                              } else{
+                                warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                              }
+                              g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                                encuestar::graficar_barras_frecuencia(titulo = tit) + self$tema()
+                            }
+                            if(tipo == "aspectos"){
+                              aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
+
+                              if(!all(aspectos_aux %in% self$graficadas)){
+                                if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                  self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                } else{
+                                  stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                }
+                              } else{
+                                warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                              }
+
+                              g <- analizar_frecuencias_aspectos(encuesta_qro,{{llave}},aspectos) %>% rename(grupo=respuesta, respuesta=aspecto)
+                            }
+
+
+                            return(g)
+
+                          },
+                          faltantes = function(){
+                            gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
+                          }
                         ))
