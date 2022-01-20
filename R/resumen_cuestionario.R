@@ -9,7 +9,31 @@
 #' @examples
 resumen_cuestionario <- function(dicc){
 
-# Preguntas por bloque ----------------------------------------------------
+  # Preguntas por bloque ----------------------------------------------------
+
+  a <- rainfall_p(dicc)
+
+  # Aspectos ----------------------------------------------------------------
+
+  b <- aspectos(dicc)
+
+  # Preguntas por tipo ------------------------------------------------------
+
+  c <- gant_p_r(dicc)
+
+
+  return(list(a, b, c))
+}
+
+#' Title
+#'
+#' @param dicc
+#'
+#' @return
+#' @export
+#'
+#' @examples
+rainfall_p <- function(dicc){
 
   bl <- dicc %>% count(bloque) %>%
     mutate(end = cumsum(n)) %>%
@@ -27,9 +51,34 @@ resumen_cuestionario <- function(dicc){
     theme_minimal() +
     labs(x = NULL, y = NULL) +
     theme(axis.text.x = element_text(angle = 20, hjust = 1))
+}
+#' Title
+#'
+#' @param dicc
+#'
+#' @return
+#' @export
+#'
+#' @examples
+aspectos <- function(dicc){
+  c <- dicc %>% filter(str_detect(llaves,"_")) %>% separate(llaves, into = c("aspecto", "pregunta")) %>%
+    group_by(aspecto) %>% summarise(n = n(), preguntas = paste(pregunta, collapse = "\n")) %>%
+    ggplot(aes(x = reorder(aspecto, -n), y = n, label = preguntas)) +
+    geom_col(fill = NA, color = "red") +
+    geom_text(aes(y = 0), vjust = 0, nudge_y = .1) +
+    # theme_minimal() +
+    theme(rect = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
+    geom_label(aes(label = n)) +
+    labs(x = NULL, y = NULL)
+  return(list(c))
+}
 
 
-# Preguntas por tipo ------------------------------------------------------
+gant_p_r <- function(dicc){
+
+  bl <- dicc %>% count(bloque) %>%
+    mutate(end = cumsum(n)) %>%
+    mutate(ini = lag(end,default = 0))
 
   pt <- dicc %>%
     unnest(respuestas) %>%
@@ -41,7 +90,7 @@ resumen_cuestionario <- function(dicc){
   labels_x <- pt %>% group_by(llaves) %>% mutate(ranl = min_rank(respuestas)) %>% filter(ranl == 1)
 
   bl_rect <- bl %>% mutate(ymin = 1, ymax = n_distinct(pt$respuestas))
-  b <- pt %>%
+  c <- pt %>%
     ggplot() +
     geom_rect(data = bl_rect, aes(xmin = ini+.5, xmax = end+.5, ymin = ymin-.5, ymax = ymax+.5, fill = bloque),alpha = .5) +
     geom_tile(aes(x = llaves, y = respuestas, fill = tipo_pregunta)) +
@@ -53,5 +102,6 @@ resumen_cuestionario <- function(dicc){
     scale_x_discrete(expand = expansion(add = c(3,0))) +
     scale_y_discrete(expand = expansion(add = c(5,0)))
 
-  return(list(a, b))
+  return(c)
+
 }
