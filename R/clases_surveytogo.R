@@ -56,6 +56,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             # En las líneas de arriba cambiar las variables PB y P21
 
                             self$diseño <- self$muestra$extraer_diseño(self$respuestas$base, postestratificacion = postestratificacion)
+
                           },
                           exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
                             if(!file.exists(carpeta)) dir.create(carpeta)
