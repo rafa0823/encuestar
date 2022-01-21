@@ -57,14 +57,6 @@ diccionario_cuestionario <- function(doc){
       mutate(text = stringr::str_replace_all(pattern = "_NA|NA_",replacement = "",string = text)) %>%
       left_join(diccionario %>% select(aspectos = text, pregunta, bloque, llaves)) %>%
       rename(tema = aspectos) %>% distinct(.keep_all = T)
-
-    aspectos <- aspectos %>%
-      rowwise() %>%
-      mutate(tipo_pregunta = tr[which(!is.na(c_across(cols = all_of(tr))))]) %>%
-      unite(text, tr) %>%
-      mutate(text = stringr::str_replace_all(pattern = "_NA|NA_",replacement = "",string = text)) %>%
-      left_join(diccionario %>% select(aspectos = text, pregunta, bloque, llaves)) %>%
-      rename(tema = aspectos) %>% distinct(.keep_all = T)
   }
 
 
