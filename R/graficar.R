@@ -133,7 +133,11 @@ graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
                                                     "Desaprueba poco" = "#FB8500",
                                                     "Aprueba poco" = "#126782",
                                                     "Aprueba mucho" = "#023047",
-                                                    "Ns/Nc" = "gray")){
+                                                    "Ns/Nc" = "gray"),
+                                       orden = c("Desaprueba mucho",
+                                                 "Desaprueba poco",
+                                                 "Aprueba poco",
+                                                 "Aprueba mucho")){
 
   transparencia <- .8
   ancho_barras <- .45
@@ -146,11 +150,13 @@ graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
     mutate(etiqueta = media,
            media = case_when(respuesta %in%grupo_negativo~media*-1,
                              respuesta %in% grupo_positivo~media,
-                             respuesta == ns_nc~media+1))
+                             respuesta == ns_nc~media+1),
+           media2 = case_when(respuesta == ns_nc~0, T~media)) %>%
+    group_by(aspecto) %>%  mutate(saldo=sum(media2))
 
 
   aux %>%  filter(respuesta != ns_nc) %>%
-    ggplot(aes(x  =forcats::fct_reorder(aspecto, media), fill = respuesta, y =media,
+    ggplot(aes(x  =forcats::fct_reorder(aspecto, saldo), fill = respuesta, y =media,
                group =factor(respuesta, levels = orden) )) +
     geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
     geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,

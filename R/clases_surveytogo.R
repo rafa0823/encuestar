@@ -4,7 +4,7 @@
 #' @field muestra Base de datos de muestra.
 #' @field dicionario Base de datos de diccionario
 #' @export
-#' @import dplyr ggplot2 tidyr sf purrr stringr
+#' @import dplyr ggplot2 tidyr sf purrr stringr ggchicklet
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
@@ -320,7 +320,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                 warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                               }
 
-                              g <- analizar_frecuencias_aspectos(encuesta_qro,{{llave}},aspectos) %>% rename(grupo=respuesta, respuesta=aspecto)
+                              g <- analizar_frecuencias_aspectos(encuesta_qro,{{llave}},aspectos)
                             }
 
 
