@@ -24,7 +24,7 @@ corregir_cluster <- function(respuestas, shp, mantener) {
 
 
   ja <- st_distance(fuera,shp) %>% as_tibble %>% rowwise() %>% mutate(id = which.min(c_across(everything())))
-  fuera <- fuera %>% mutate(cluster_3 = as.character(aulr$cluster_3[ja$id]))
+  fuera <- fuera %>% mutate(cluster_3 = as.character(shp$cluster_3[ja$id]))
 
   if(!is.na(mantener)){
     fuera_sm <- fuera_sm %>% mutate(cluster_3 = as.character(CLUSTER))
@@ -52,4 +52,32 @@ corregir_cluster <- function(respuestas, shp, mantener) {
   print(glue::glue("Se cambiaron {nuevos %>% count(distinto) %>% pull(n)} clusters ya que la entrevista no está donde se reportó."))
   return(respuestas)
 
+}
+
+#' Title
+#'
+#' @param encuesta_qro
+#'
+#' @return
+#' @export
+#'
+#' @examples
+match_dicc_base <- function(self) {
+  g <- tibble(
+    bd = self$respuestas$base %>% select(-(SbjNum:INT15), -(T_Q_47_1:last_col())) %>% names
+  ) %>% tibble::rownames_to_column() %>% full_join(
+    tibble(
+      diccionario = self$cuestionario$diccionario %>% pull(llaves)
+    ) %>% tibble::rownames_to_column(), by = c("bd" = "diccionario")
+  ) %>% filter(is.na(rowname.x) | is.na(rowname.y)) %>%
+    replace_na(list(rowname.y = "No está en el diccionario",
+                    rowname.x = "No está en la base")) %>%
+    mutate(rowname.x = if_else(str_detect(rowname.x,"No está"), rowname.x, bd) %>%
+             forcats::fct_relevel("No está en la base", after = Inf),
+           rowname.y = if_else(str_detect(rowname.y,"No está"), rowname.y, bd) %>%
+             forcats::fct_relevel("No está en el diccionario", after = Inf)) %>%
+    ggplot() + geom_tile(aes(x = rowname.x, y =rowname.y), fill = "red") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    labs(x = NULL, y = NULL)
+  return(g)
 }
