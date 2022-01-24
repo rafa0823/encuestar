@@ -261,7 +261,6 @@ Cuestionario <- R6::R6Class("Cuestionario",
 
                                 res <- resumen_cuestionario(self$diccionario)
 
-
                                 return(res)
 
                               }
