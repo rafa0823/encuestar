@@ -4,6 +4,7 @@
 #' @field muestra Base de datos de muestra.
 #' @field dicionario Base de datos de diccionario
 #' @export
+#' @import dplyr ggplot2 tidyr sf purrr stringr
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
@@ -41,7 +42,7 @@ Encuesta <- R6::R6Class("Encuesta",
                               pull(llaves)
 
                             self$respuestas$base <- self$respuestas$base %>%
-                              mutate(across(contains(all_of(numericas)), ~readr::parse_number(.x)))
+                              mutate(across(all_of(numericas), ~readr::parse_number(.x)))
                             # Recalcular fpc
                             self$muestra <- private$recalcular_fpc()
 
@@ -55,6 +56,16 @@ Encuesta <- R6::R6Class("Encuesta",
                             # En las líneas de arriba cambiar las variables PB y P21
 
                             self$diseño <- self$muestra$extraer_diseño(self$respuestas$base, postestratificacion = postestratificacion)
+
+                          },
+                          exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
+                            if(!file.exists(carpeta)) dir.create(carpeta)
+                            #Exportar bd
+                            exportar_bd(self, carpeta, agregar, quitar)
+                            # Exportar diccionario
+                            self$cuestionario$diccionario %>% unnest(respuestas) %>%
+                              readr::write_excel_csv(glue::glue("{carpeta}/diccionario.csv"))
+
                           }),
                         private=list(
                           limpiar_respuestas=function(){
@@ -230,32 +241,74 @@ Cuestionario <- R6::R6Class("Cuestionario",
                                   return(map(bd,~.x))
                                 }
                                 else return(NULL)
-                              })
+                              },
+                              resumen = function(){
+
+                                res <- resumen_cuestionario(self$diccionario)
+
+
+                                return(res)
+
+                              }
+                              )
                             ,
                             private=list(
                               crear_diccionario=function(){
-                                self$diccionario <- officer::docx_summary(self$documento) %>%
-                                  as_tibble() %>%
-                                  filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
-                                                                              "Morant_respuestas_abiertas",
-                                                                              "Morant_respuestas_numericas",
-                                                                              "Morant_respuetas_multiples")) %>%
-                                  select(-c(level:row_span)) %>%
-                                  mutate(bloque=ifelse(style_name=="Morant_Bloque", text, NA)) %>%
-                                  fill(bloque,.direction = c("down")) %>%
-                                  filter(style_name!="Morant_Bloque") %>%
-                                  mutate(pregunta=ifelse(style_name=="Morant_Pregunta", text, NA)) %>%
-                                  fill(pregunta,.direction = c("down")) %>%
-                                  filter(!style_name=="Morant_Pregunta") %>%
-                                  separate(style_name, c("a", "b", "c"), sep = "_") %>%
-                                  rename("tipo_pregunta"="c") %>%
-                                  group_by(bloque, pregunta, tipo_pregunta) %>%
-                                  summarise(respuestas=list(text)) %>%
-                                  ungroup() %>%
-                                  mutate(llaves=stringr::str_extract(pregunta, "(?<=\\{).+?(?=\\})"),
-                                         llaves=stringr::str_squish(llaves),
-                                         pregunta=stringr::str_remove(pregunta, "\\{.+\\}"),
-                                         pregunta=stringr::str_squish(pregunta))
+                                diccionario <-
+                                  officer::docx_summary(self$documento) %>%
+                                    as_tibble() %>%
+                                    filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
+                                                                                "Morant_respuestas_aspectos",
+                                                                                "Morant_respuestas_abiertas",
+                                                                                "Morant_respuestas_abiertasMultiples",
+                                                                                "Morant_respuestas_numericas",
+                                                                                "Morant_respuestas_numericasMultiples",
+                                                                                "Morant_respuestas_multiples")) %>%
+                                    select(-c(level:row_span)) %>%
+                                    mutate(bloque=ifelse(style_name=="Morant_Bloque" & text != "", text, NA)) %>%
+                                    fill(bloque,.direction = c("down")) %>%
+                                    filter(style_name!="Morant_Bloque") %>%
+                                    mutate(bloque = factor(bloque,levels = unique(bloque))) %>%
+                                    mutate(pregunta=ifelse(style_name=="Morant_Pregunta", text, NA)) %>%
+                                    fill(pregunta,.direction = c("down")) %>%
+                                    filter(!style_name=="Morant_Pregunta") %>%
+                                    separate(style_name, c("a", "b", "c"), sep = "_") %>%
+                                    rename("tipo_pregunta"="c") %>%
+                                    mutate(llaves=stringr::str_extract(pregunta, "(?<=\\{).+?(?=\\})"),
+                                           pregunta=stringr::str_remove(pregunta, "\\{.+\\}"),
+                                           llaves= if_else(str_detect(pattern = "\\{",string =  text), true = stringr::str_extract(text, "(?<=\\{).+?(?=\\})"), false = llaves),
+                                           text=stringr::str_remove(text, "\\{.+\\}"),
+                                           llaves=stringr::str_squish(llaves),
+                                           pregunta=stringr::str_squish(pregunta),
+                                           text=stringr::str_squish(text)
+                                    ) %>% mutate(llaves = factor(llaves, unique(llaves))) %>% filter(text != "")
+
+                                  tipo_r <- diccionario %>% distinct(tipo_pregunta) %>% pull(1)
+                                  aspectos <- diccionario %>%
+                                    semi_join(diccionario%>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
+                                    select(tipo_pregunta, text, pregunta, bloque) %>%
+                                    pivot_wider(names_from = tipo_pregunta, values_from = text)
+
+                                  for(i in tipo_r){
+                                    aspectos <- aspectos %>% unnest(all_of(i), keep_empty = T)
+                                  }
+                                  tr <- aspectos %>% select(-pregunta,-bloque, -aspectos) %>% names
+                                  aspectos <- aspectos %>%
+                                    rowwise() %>%
+                                    mutate(tipo_pregunta = tr[which(!is.na(c_across(cols = all_of(tr))))]) %>%
+                                    unite(text, tr) %>%
+                                    mutate(text = stringr::str_replace_all(pattern = "_NA|NA_",replacement = "",string = text)) %>%
+                                    left_join(diccionario %>% select(aspectos = text, pregunta, bloque, llaves)) %>%
+                                    rename(tema = aspectos) %>% distinct(.keep_all = T)
+
+                                  self$diccionario <- diccionario %>%
+                                    anti_join(diccionario %>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
+                                    select(bloque, pregunta, tipo_pregunta, llaves, text) %>%
+                                    bind_rows(aspectos) %>%
+                                    group_by(bloque, pregunta, tipo_pregunta, llaves, tema) %>%
+                                    summarise(respuestas=list(text)) %>%
+                                    ungroup() %>% arrange(llaves)
+
                                 return(self$diccionario)
 
                               })
@@ -270,5 +323,50 @@ Pregunta <- R6::R6Class("Pregunta",
                           aspectos=NULL,
                           opciones=NULL,
                           dependencia=NULL,
-                          tipo=NULL
+                          tipo=NULL,
+                          encuesta = NULL,
+                          graficadas = NULL,
+                          tema = NULL,
+                          initialize = function(encuesta, tema = tema_default){
+                            self$encuesta <- encuesta
+                            self$tema <- tema
+                          },
+                          graficar = function(llave, tipo, aspectos, tit = NULL){
+                            if(tipo == "frecuencia"){
+                              llave_aux <- quo_name(enquo(llave))
+                              if(!(llave_aux %in% self$graficadas)){
+                                if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                                  self$graficadas <- self$graficadas %>% append(llave_aux)
+                                } else{
+                                  stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                }
+                              } else{
+                                warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                              }
+                              g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                                encuestar::graficar_barras_frecuencia(titulo = tit) + self$tema()
+                            }
+                            if(tipo == "aspectos"){
+                              aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
+
+                              if(!all(aspectos_aux %in% self$graficadas)){
+                                if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                  self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                } else{
+                                  stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                }
+                              } else{
+                                warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                              }
+
+                              g <- analizar_frecuencias_aspectos(encuesta_qro,{{llave}},aspectos) %>% rename(grupo=respuesta, respuesta=aspecto)
+                            }
+
+
+                            return(g)
+
+                          },
+                          faltantes = function(){
+                            gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
+                          }
                         ))

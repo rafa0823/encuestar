@@ -10,7 +10,6 @@
 #'
 #' @examples
 analizar_frecuencias <- function(encuesta, pregunta){
-
   estimacion <-survey::svymean(enquo(pregunta),
                                design = encuesta$diseño, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
@@ -28,6 +27,7 @@ analizar_frecuencias <- function(encuesta, pregunta){
   p <- encuesta$cuestionario$diccionario %>%
     filter(llaves == p) %>% pull(pregunta)
   estimacion <- estimacion %>% mutate(pregunta = p)
+  return(estimacion)
 }
 
 #' Title
@@ -64,6 +64,6 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
                       })
 
   p <- encuesta$cuestionario$diccionario %>%
-    filter(llaves == p) %>% pull(pregunta)
+    filter(llaves %in% !!llaves) %>% pull(pregunta) %>% unique
   estimaciones <- estimaciones %>% mutate(pregunta = p)
 }

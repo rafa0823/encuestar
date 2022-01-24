@@ -120,6 +120,7 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
 }
 
 
+
 graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
                                        fill=NULL,
                                        nota = "",
@@ -226,6 +227,42 @@ bd %>% unnest_tokens(palabras, prgunta) %>%
   coord_flip()+
   scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
   ggfittext::geom_bar_text(aes(label=scales::percent(n, accuracy = 1)),contrast = T)
+}
+
+
+
+tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF") {
+  (ggthemes::theme_foundation(base_size = base_size,
+                              base_family = base_family)
+   + theme(
+     line = element_line(colour = "#4C5B61"),
+     rect = element_rect(fill = fondo,
+                         linetype = 0,
+                         colour = NA),
+     text = element_text(color = "#2C423F"),
+     axis.title = element_blank(),
+     axis.text = element_text(),
+     axis.ticks = element_blank(),
+     axis.line.x = element_line(colour = "#E1356D"),
+     legend.background = element_rect(),
+     legend.position = "bottom",
+     legend.direction = "horizontal",
+     legend.box = "vertical",
+     panel.grid = element_line(colour = NULL),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x =element_line(colour = "#C5C5C5",
+                                      linetype = "dotted"),
+     panel.grid.minor = element_blank(),
+     plot.title = element_text(hjust = 0,
+                               size = rel(1.5),
+                               face = "bold",
+                               colour = "#4C5B61"),
+     plot.subtitle = element_text(hjust = 0,
+                                  size = rel(1),
+                                  face = "bold",
+                                  colour = "#C5C5C5"),
+     plot.margin = unit(c(1, 1, 1, 1), "lines"),
+     strip.text=element_text(colour ="#2C423F")))
 }
 
 
