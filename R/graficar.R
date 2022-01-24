@@ -190,7 +190,7 @@ sustituir <- function(bd, patron, reemplazo = ""){
                           x = respuesta, fixed = T))
 }
 
-graficar_barras_numerica(bd){
+graficar_barras_numerica<- function(bd){
 bd %>%
   ggplot(aes(y = media, x = reorder(str_wrap(aspecto,40),media))) +
   geom_chicklet(radius = grid::unit(3, "pt"),
