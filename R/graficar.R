@@ -119,7 +119,7 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
     theme(legend.position = "none")
 }
 
-graficar_stack_frecuencias <- function(bd,   titulo= NULL,
+graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
                                        fill=NULL,
                                        nota = "",
                                        grupo_positivo = c("Aprueba mucho",
