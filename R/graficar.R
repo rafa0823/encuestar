@@ -16,23 +16,22 @@
 
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
-                                       fill=NULL,
-                                       nota = "",
-                                       colores){
+                                       nota = "", color = "#B0C429"){
   g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta,40),
                                                    media),
                           y  = media,
-                          fill=respuesta))+
+                          fill=color))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
-                              width =.45)+
+                              width =.45, fill=color)+
     labs(title = titulo,
          x = NULL,
          y = NULL,
          caption = nota)+
     coord_flip()+
     scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-    ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)),contrast = T)
+    ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)),contrast = T)+
+    theme(legend.position = "none")
   return(g)
 
 }
@@ -176,7 +175,7 @@ graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
 
 }
 
-graficar_gauge_promedio <- function(bd, color = "#1B3B75", maximo = 10){
+graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10){
   bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
@@ -202,8 +201,8 @@ graficar_barras_numerica<- function(bd){
 bd %>%
   ggplot(aes(y = media, x = reorder(str_wrap(aspecto,40),media))) +
   geom_chicklet(radius = grid::unit(3, "pt"),
-                alpha= .85,fill = "#1B3B75",
-                width =.75)+ coord_flip()+
+                alpha= .95,fill = "#850D2D",
+                width =.45)+ coord_flip()+
   labs(title = NULL,
        x = NULL,
        y = NULL)+
@@ -233,6 +232,31 @@ bd %>% unnest_tokens(palabras, prgunta) %>%
   coord_flip()+
   scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
   ggfittext::geom_bar_text(aes(label=scales::percent(n, accuracy = 1)),contrast = T)
+}
+
+graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
+                                      color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",
+                                      familia = "Poppins",
+                                      ancho = 600*5, alto =  600*5/1.41){
+pregunta <- bd %>% unnest_tokens(palabras, pregunta) %>% count(palabras,sort = T) %>%
+    anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
+    mutate(colores = case_when(
+      n<=quantile(n,probs=.75)~ color3,
+      n>quantile(n,probs=.75) & n<=quantile(n,probs=.90)~color2,
+      n>quantile(n,probs=.90)~ color1,
+      T~NA_character_),
+    ) %>%
+    slice(1:n) %>%
+    hchart(hcaes(x= palabras, weight =log(n),
+                 color=colores), type= "wordcloud") %>%
+    hc_chart(style=list(fontFamily = familia))
+
+
+  htmlwidgets::saveWidget(widget = pregunta, file = paste0(pregunta,".html"))
+  webshot(url = paste0(pregunta,".html"),
+          file = "plot.png",vwidth = ancho, vheight = alto,
+          delay=3) # delay will ensure that the whole plot appears in the image
+  dev.off()
 }
 
 
