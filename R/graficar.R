@@ -321,7 +321,6 @@ graficar_estratos_frecuencia <- function(bd,
       geom_chicklet(width =.7)+
       coord_flip()+
       scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-      # geom_text(hjust=-.1, vjust=-.8, show.legend = F, check_overlap = T)+
       theme_minimal()+
       theme(panel.grid.minor = element_blank(),
             text = element_text(family = familia),
