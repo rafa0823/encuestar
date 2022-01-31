@@ -121,23 +121,23 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
 
 
 graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
-                                       fill=NULL,
-                                       nota = "",
-                                       grupo_positivo = c("Aprueba mucho",
-                                                          "Aprueba poco"),
-                                       grupo_negativo = c("Desaprueba mucho",
-                                                          "Desaprueba poco"),
-                                       ns_nc = "Ns/Nc",
-                                       colores =  c("Desaprueba mucho" = "#DE6400",
-                                                    "Desaprueba poco" = "#FB8500",
-                                                    "Aprueba poco" = "#126782",
-                                                    "Aprueba mucho" = "#023047",
-                                                    "Ns/Nc" = "gray"),
-                                       orden = c("Desaprueba poco","Desaprueba mucho",
+                                          fill=NULL,
+                                          nota = "",
+                                          grupo_positivo = c("Aprueba mucho",
+                                                             "Aprueba poco"),
+                                          grupo_negativo = c("Desaprueba mucho",
+                                                             "Desaprueba poco"),
+                                          ns_nc = "Ns/Nc",
+                                          colores =  c("Desaprueba mucho" = "#DE6400",
+                                                       "Desaprueba poco" = "#FB8500",
+                                                       "Aprueba poco" = "#126782",
+                                                       "Aprueba mucho" = "#023047",
+                                                       "Ns/Nc" = "gray"),
+                                          orden = c("Desaprueba poco","Desaprueba mucho",
 
-                                                 "Aprueba poco",
-                                                 "Aprueba mucho"),
-                                       familia = "Poppins"){
+                                                    "Aprueba poco",
+                                                    "Aprueba mucho"),
+                                          familia = "Poppins"){
 
   transparencia <- .8
   ancho_barras <- .45
@@ -207,51 +207,51 @@ graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10){
 
 sustituir <- function(bd, patron, reemplazo = ""){
   bd %>% mutate(respuesta = gsub(pattern = patron, replacement = reemplazo,
-                          x = respuesta, fixed = T))
+                                 x = respuesta, fixed = T))
 }
 
 graficar_barras_numerica<- function(bd){
-bd %>%
-  ggplot(aes(y = media, x = reorder(str_wrap(tema,40),media))) +
-  geom_chicklet(radius = grid::unit(3, "pt"),
-                alpha= .95,fill = "#850D2D",
-                width =.45)+ coord_flip()+
-  labs(title = NULL,
-       x = NULL,
-       y = "Promedio")+
-  ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
-                           contrast = T)+
-  theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
-                                         linetype = "dotted"),
-        panel.grid.major.y = element_blank(),
-        axis.line.y = element_line(colour = "#E1356D"),
-        axis.line.x = element_blank())
+  bd %>%
+    ggplot(aes(y = media, x = reorder(str_wrap(tema,40),media))) +
+    geom_chicklet(radius = grid::unit(3, "pt"),
+                  alpha= .95,fill = "#850D2D",
+                  width =.45)+ coord_flip()+
+    labs(title = NULL,
+         x = NULL,
+         y = "Promedio")+
+    ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
+                             contrast = T)+
+    theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
+                                           linetype = "dotted"),
+          panel.grid.major.y = element_blank(),
+          axis.line.y = element_line(colour = "#E1356D"),
+          axis.line.x = element_blank())
 }
 
 
 graficar_barras_palabras <- function(bd, pregunta, n = 10){
-bd %>% unnest_tokens(palabras, prgunta) %>%
-  count(palabras,sort = T) %>%
-  anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
-  slice(1:n) %>%
-  ggplot(aes(x =fct_reorder(palabras, n), y = n))+
-  ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
-                            alpha= .8,
-                            width =.45)+
-  labs(title = titulo,
-       x = NULL,
-       y = NULL,
-       caption = nota)+
-  coord_flip()+
-  scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-  ggfittext::geom_bar_text(aes(label=scales::percent(n, accuracy = 1)),contrast = T)
+  bd %>% unnest_tokens(palabras, prgunta) %>%
+    count(palabras,sort = T) %>%
+    anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
+    slice(1:n) %>%
+    ggplot(aes(x =fct_reorder(palabras, n), y = n))+
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
+                              alpha= .8,
+                              width =.45)+
+    labs(title = titulo,
+         x = NULL,
+         y = NULL,
+         caption = nota)+
+    coord_flip()+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    ggfittext::geom_bar_text(aes(label=scales::percent(n, accuracy = 1)),contrast = T)
 }
 
 graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
                                       color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",
                                       familia = "Poppins",
                                       ancho = 600*5, alto =  600*5/1.41){
-pregunta <- bd %>% unnest_tokens(palabras, pregunta) %>% count(palabras,sort = T) %>%
+  pregunta <- bd %>% unnest_tokens(palabras, pregunta) %>% count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
     mutate(colores = case_when(
       n<=quantile(n,probs=.75)~ color3,
@@ -308,4 +308,60 @@ tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF
      strip.text=element_text(colour ="#2C423F")))
 }
 
+
+graficar_estratos_frecuencia <- function(bd,
+                                         tipo,
+                                         titulo = NULL,
+                                         nota = "", familia = "Poppins"){
+  if(tipo == "barras"){
+    #Agrupada por estratos
+    bd %>%
+      ggplot(aes(x =forcats::fct_reorder(respuesta,pct), y = pct,
+                 fill = respuesta)) +
+      geom_chicklet(width =.7)+
+      coord_flip()+
+      scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+      # geom_text(hjust=-.1, vjust=-.8, show.legend = F, check_overlap = T)+
+      theme_minimal()+
+      theme(panel.grid.minor = element_blank(),
+            text = element_text(family = familia),
+            legend.position = "bottom")+
+      ggfittext::geom_bar_text(aes(label=scales::percent(pct, accuracy = 1)),contrast = T,family = familia )+
+      labs(title = titulo, x = "Estrato", y = NULL, color = NULL)+
+      facet_wrap(~strata_1)
+  }
+  if(tipo == "lineas") {
+    bd %>% mutate(etiqueta = round(pct*100)) %>%
+      ggplot(aes(x = strata_1, y = pct, group = respuesta,
+                 color = respuesta, label = paste0(etiqueta, "%"))) +
+      geom_line(size = 3.5, show.legend = F)+
+      geom_point(size = 5)+
+      scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+      geom_text(hjust=-.1, vjust=-.8, show.legend = F, check_overlap = T)+
+      theme_minimal()+
+      theme(panel.grid.minor = element_blank(),
+            text = element_text(family = familia),
+            legend.position = "bottom")+
+      labs(title = titulo, x = "Estrato", y = NULL, color = NULL)
+
+  }
+
+}
+
+graficar_estratos_grupos <- function(bd, titulo = "", nota = "", familia = "Poppins"){
+  bd %>% ggplot(aes(x = forcats::fct_reorder(grupo,pct), y = pct, fill = grupo) )+
+    geom_chicklet(alpha = .8, width = .7)+
+    coord_flip()+
+    facet_wrap(~strata_1)+
+    coord_flip()+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    ggfittext::geom_bar_text(aes(label=scales::percent(pct, accuracy = 1)),contrast = T,family = familia )+
+    theme_minimal()+
+    theme(panel.grid.minor = element_blank(),
+          panel.grid.major.y = element_blank(),
+          text = element_text(family = familia),
+          legend.position = "none")+
+    labs(title = titulo, x = NULL, y = NULL, fill = NULL)+
+    facet_wrap(~strata_1)
+}
 
