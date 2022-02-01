@@ -168,7 +168,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               self$base <- self$base %>%
                                 inner_join(muestra$base, by = var_n) %>%
-                                mutate(rango = as.character(cut(as.integer(edad),c(17, 24, 59, 200),
+                                mutate(rango_edad = as.character(cut(as.integer(edad),c(17, 24, 59, 200),
                                                                 c("18A24","25A59","60YMAS"))),
                                        sexo = if_else(sexo == "Mujer", "F", "M"))
 
@@ -242,11 +242,11 @@ Muestra <- R6::R6Class("Muestra",
                                P_60YMAS_F, P_60YMAS_M) %>%
                              summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
                              pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
-                             separate(name, into = c("rango", "sexo"))
+                             separate(name, into = c("rango_edad", "sexo"))
 
-                           pobG <- pob %>% count(rango, wt = value, name = "Freq")
+                           pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
                            pobS<- pob %>% count(sexo, wt = value, name = "Freq")
-                           self$diseño <- survey::rake(diseño, list(~rango, ~sexo), list(pobG, pobS))
+                           self$diseño <- survey::rake(diseño, list(~rango_edad, ~sexo), list(pobG, pobS))
                          }
                        ))
 
