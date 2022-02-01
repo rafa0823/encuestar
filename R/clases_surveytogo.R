@@ -116,6 +116,7 @@ Respuestas <- R6::R6Class("Respuestas",
                             eliminar_auditoria_telefonica=function(auditoria_telefonica){
                               if(("SbjNum" %in% names(self$base)) &
                                  ("SbjNum" %in% names(auditoria_telefonica))){
+                                if(is.character(auditoria_telefonica$SbjNum)) auditoria_telefonica <- auditoria_telefonica %>% mutate(SbjNum = readr::parse_double(SbjNum))
                                 # Se eliminan por no pasar la auditoria telefónica
                                 n <- nrow(self$base)
                                 self$base <- self$base %>%
@@ -125,7 +126,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                   glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por auditoría telefónica")
                                 )
                               }
-                              else print("Identificador SbjNum no presente en alguna de las bases")
+                              else cat("Identificador SbjNum no presente en alguna de las bases para eliminar por auditoría telefónica")
                               return(self$base)
                             },
                             eliminar_falta_coordenadas = function(){
