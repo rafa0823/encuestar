@@ -19,9 +19,11 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 
   if(!is.na(mantener)){
     fuera <-  todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))),
-                               !!rlang::sym(glue::glue("{var_n}.x")) %in% mantener)
+                               ! (!!rlang::sym(glue::glue("{var_n}.x")) %in% mantener))
     fuera_sm <-  todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))),
-                                  !!rlang::sym(glue::glue("{var_n}.x")) %in% mantener) # estan cerca de un cluster diferente al planeado
+                                  !!rlang::sym(glue::glue("{var_n}.x")) %in% mantener)
+  } else{
+    fuera <-  todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))))
   }
 
 
@@ -30,8 +32,9 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 
   if(!is.na(mantener)){
     fuera_sm <- fuera_sm %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(glue::glue("{var_n}.y"))))
-    fuera <- bind_rows(fuera, fuera_sm) %>% mutate(distinto = !!rlang::sym(glue::glue("{nivel}")) != !!rlang::sym(glue::glue("{var_n}.x")))
+    fuera <- bind_rows(fuera, fuera_sm)
   }
+  fuera <- fuera %>% mutate(distinto = !!rlang::sym(glue::glue("{nivel}")) != !!rlang::sym(glue::glue("{var_n}.x")))
 
   dentro <-  todas %>%
     filter(!is.na(!!rlang::sym(glue::glue("{var_n}.y")))) %>%
