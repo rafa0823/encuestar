@@ -373,8 +373,8 @@ Auditoria <- R6::R6Class("Auditoria",
 
                              readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseño.rda"))
                              readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
-                             readr::write_excel_csv(encuesta_qro$respuestas$base, glue::glue("{dir}/data/bd.csv"))
-                             readr::write_excel_csv(encuesta_qro$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
+                             readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
+                             readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
 
                              file.copy(
                                from = system.file("inst/app/app.R", package = "encuestar",
