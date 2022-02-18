@@ -14,10 +14,10 @@ diccionario_cuestionario <- function(doc){
     filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
                                                 "Morant_respuestas_aspectos",
                                                 "Morant_respuestas_abiertas",
-                                                "Morant_respuestas_abiertasMultiples",
                                                 "Morant_respuestas_numericas",
-                                                "Morant_respuestas_numericasMultiples",
-                                                "Morant_respuestas_multiples")) %>%
+                                                "Morant_respuestas_multiples",
+                                                "Morant_respuestas_orden"
+                                                )) %>%
     select(-c(level:row_span)) %>%
     mutate(bloque=ifelse(style_name=="Morant_Bloque" & text != "", text, NA)) %>%
     fill(bloque,.direction = c("down")) %>%
