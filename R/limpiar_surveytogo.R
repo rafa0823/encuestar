@@ -77,16 +77,16 @@ match_dicc_base <- function(self) {
       diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%
         append(
           self$cuestionario$documento %>%
-            filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", str_detect(text,"\\{")) %>%
+            filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
             transmute(text = stringr::str_extract(text,"(?<=\\{).+?(?=\\})") %>% stringr::str_squish()) %>% pull(1)
         )
     ) %>% tibble::rownames_to_column(), by = c("bd" = "diccionario")
   ) %>% filter(is.na(rowname.x) | is.na(rowname.y)) %>%
     replace_na(list(rowname.y = "No está en el diccionario",
                     rowname.x = "No está en la base")) %>%
-    mutate(rowname.x = if_else(str_detect(rowname.x,"No está"), rowname.x, bd) %>%
+    mutate(rowname.x = if_else(stringr::str_detect(rowname.x,"No está"), rowname.x, bd) %>%
              forcats::fct_relevel("No está en la base", after = Inf),
-           rowname.y = if_else(str_detect(rowname.y,"No está"), rowname.y, bd) %>%
+           rowname.y = if_else(stringr::str_detect(rowname.y,"No está"), rowname.y, bd) %>%
              forcats::fct_relevel("No está en el diccionario", after = Inf)) %>%
     ggplot() + geom_tile(aes(x = rowname.x, y =rowname.y), fill = "red") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
@@ -107,7 +107,7 @@ var_clave_diccionario <- function(self, diseño){
   post_id <- diseño$cuotas %>% select(-Municipio,-Localidad,-contains("cluster"),-n) %>% names
 
   filtros <- self$cuestionario$documento %>% officer::docx_summary() %>% as_tibble %>%
-    filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", str_detect(text,"\\{")) %>%
+    filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
     transmute(text = stringr::str_extract(text,"(?<=\\{).+?(?=\\})") %>% stringr::str_squish()) %>% pull(1)
 
   if_else(!cluster_id %in% filtros, glue::glue("La variable {cluster_id} no se encuentra en el cuestionario"),"")
