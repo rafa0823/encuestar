@@ -12,8 +12,10 @@ Encuesta <- R6::R6Class("Encuesta",
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           preguntas = NULL,
+                          shp_completo = NULL,
                           shp = NULL,
                           mantener = NULL,
+                          auditoria = NULL,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -33,6 +35,8 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$cuestionario <- Cuestionario$new(documento = cuestionario)
                             # Valorar active binding
                             self$auditoria_telefonica <- auditoria_telefonica
+
+                            self$shp_completo <- shp
 
                             self$shp <- shp$shp %>% purrr::pluck(var_n) %>%
                               inner_join(diseño$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
@@ -63,6 +67,8 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             self$preguntas <- Pregunta$new(encuesta = self)
 
+                            self$auditoria <- Auditoria$new(self)
+
                             return(print(match_dicc_base(self)))
                           },
                           exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
@@ -81,6 +87,7 @@ Encuesta <- R6::R6Class("Encuesta",
 Respuestas <- R6::R6Class("Respuestas",
                           inherit = Encuesta,
                           public = list(
+                            eliminadas = NULL,
                             base = NULL,
                             n=NULL,
                             m=NULL,
@@ -90,6 +97,7 @@ Respuestas <- R6::R6Class("Respuestas",
                             initialize=function(base, auditoria_telefonica, muestra, shp, mantener,
                                                 diccionario,
                                                 nivel, var_n) {
+
                               self$base <- base
 
                               # Limpiar las que no pasan auditoría telefónica
@@ -112,6 +120,8 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               self$base <- self$base %>%
                                 mutate(across(all_of(numericas), ~readr::parse_number(.x)))
+
+                              self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
                             },
                             eliminar_auditoria_telefonica=function(auditoria_telefonica){
                               if(("SbjNum" %in% names(self$base)) &
@@ -350,3 +360,36 @@ Pregunta <- R6::R6Class("Pregunta",
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
                         ))
+
+#' @export
+Auditoria <- R6::R6Class("Auditoria",
+                         public = list(
+                           dir = NULL,
+                           initialize = function(encuesta, dir = "auditoria"){
+                             if(!file.exists(dir)){
+                               dir.create(dir)
+                               dir.create(glue::glue("{dir}/data"))
+                             }
+
+                             readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseño.rda"))
+                             readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
+                             readr::write_excel_csv(encuesta_qro$respuestas$base, glue::glue("{dir}/data/bd.csv"))
+                             readr::write_excel_csv(encuesta_qro$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
+
+                             file.copy(
+                               from = system.file("inst/app/app.R", package = "encuestar",
+                                           mustWork = TRUE),
+                               to = dir
+
+                             )
+                             self$dir <- dir
+                           },
+                          run_app = function(){
+                            shiny::shinyAppDir(
+                              self$dir
+                            )
+                          },
+                          subir_app = function(){
+                            rsconnect::deployApp(self$dir)
+                          }
+                         ))
