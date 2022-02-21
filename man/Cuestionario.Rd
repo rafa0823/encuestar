@@ -14,6 +14,7 @@ Esta es la clase cuestionario
 \item \href{#method-new}{\code{Cuestionario$new()}}
 \item \href{#method-aprobar}{\code{Cuestionario$aprobar()}}
 \item \href{#method-checar_pregunta}{\code{Cuestionario$checar_pregunta()}}
+\item \href{#method-resumen}{\code{Cuestionario$resumen()}}
 \item \href{#method-clone}{\code{Cuestionario$clone()}}
 }
 }
@@ -41,6 +42,15 @@ Esta es la clase cuestionario
 \subsection{Method \code{checar_pregunta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Cuestionario$checar_pregunta(pregunta)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-resumen"></a>}}
+\if{latex}{\out{\hypertarget{method-resumen}{}}}
+\subsection{Method \code{resumen()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Cuestionario$resumen()}\if{html}{\out{</div>}}
 }
 
 }

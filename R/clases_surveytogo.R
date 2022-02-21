@@ -1,5 +1,5 @@
 #' Esta es la clase Encuesta
-#' @description La clase Encuesta contiene todos los métodos, y atributos que puede tener una encuesta.
+#' @description La clase Encuesta contiene todos los metodos, y atributos que puede tener una encuesta.
 #' @field respuestas Base de datos de respuestas
 #' @field muestra Base de datos de muestra.
 #' @field dicionario Base de datos de diccionario
@@ -11,9 +11,11 @@ Encuesta <- R6::R6Class("Encuesta",
                           cuestionario=NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
-                          diseño = NULL,
+                          preguntas = NULL,
+                          shp_completo = NULL,
                           shp = NULL,
                           mantener = NULL,
+                          auditoria = NULL,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -24,51 +26,48 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 cuestionario=NA,
                                                 shp = NA,
                                                 mantener = NA) {
-                            self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum))
-                            # Valorar si no es mejor una active binding
-                            u_nivel <- diseño$niveles %>% filter(nivel == max(nivel)) %>% pull(variable)
-                            self$muestra <- Muestra$new(base = muestra$muestra %>% purrr::pluck(u_nivel))
+                            # Valorar si no es mejor un active binding
+                            un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
+                            nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
+                            var_n <- un %>% pull(variable)
+
                             # Valorar active binding
                             self$cuestionario <- Cuestionario$new(documento = cuestionario)
-                            # Valorar active bindign
+                            # Valorar active binding
                             self$auditoria_telefonica <- auditoria_telefonica
 
-                            self$shp <- shp$shp %>% purrr::pluck(u_nivel) %>%
-                              inner_join(diseño$muestra %>% purrr::pluck(u_nivel) %>% unnest(data) %>%
-                                           distinct(!!rlang::sym(u_nivel) := !!rlang::sym(u_nivel),cluster_3))
+                            self$shp_completo <- shp
+
+                            self$shp <- shp$shp %>% purrr::pluck(var_n) %>%
+                              inner_join(diseno$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
+                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),cluster_3))
                             self$mantener <- mantener
-                            # Procesos ####
-                            self$respuestas <- private$limpiar_respuestas()
-                            # Cambiar variables a tipo numérica
-                            numericas <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "numericas") %>%
-                              pull(llaves)
 
-                            self$respuestas$base <- self$respuestas$base %>%
-                              mutate(across(all_of(numericas), ~readr::parse_number(.x)))
-                            # Recalcular fpc
-                            self$muestra <- private$recalcular_fpc()
+                            # Respuestas
+                            self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
+                                                              auditoria_telefonica = self$auditoria_telefonica,
+                                                              muestra = muestra$muestra %>% purrr::pluck(var_n),
+                                                              shp = self$shp,
+                                                              mantener = self$mantener,
+                                                              diccionario = self$cuestionario$diccionario,
+                                                              nivel = nivel, var_n = var_n
+                            )
 
-                            #Información muestral
+                            # Muestra
+                            self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
+                                                        nivel = nivel, var_n = var_n)
+                            # Informacion muestral
+                            self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n)
+                            # Diseno
 
-                            self$respuestas$base <- self$respuestas$base %>%
-                              inner_join(self$muestra$base, by=c("CLUSTER")) %>%
-                              mutate(rango = as.character(cut(as.integer(PB),c(17,24,59,200),
-                                                              c("18A24","25A59","60YMAS"))),
-                                     sexo = if_else(P21 == "Mujer", "F", "M"))
-                            # En las líneas de arriba cambiar las variables PB y P21
+                            self$muestra$extraer_diseno(respuestas = self$respuestas$base,
+                                                        marco_muestral = self$muestra$muestra$poblacion$marco_muestral)
 
-                            pob <- muestra$poblacion$marco_muestral %>%
-                              transmute(
-                                P_18A24_F,
-                                P_18A24_M,
-                                P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
-                                P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
-                                P_60YMAS_F, P_60YMAS_M) %>%
-                              summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
-                              pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
-                              separate(name, into = c("rango", "sexo"))
+                            #Preguntas
 
-                            self$diseño <- self$muestra$extraer_diseño(self$respuestas$base, postestratificacion = pob)
+                            self$preguntas <- Pregunta$new(encuesta = self)
+
+                            self$auditoria <- Auditoria$new(self)
 
                             return(print(match_dicc_base(self)))
                           },
@@ -79,33 +78,8 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Exportar diccionario
                             self$cuestionario$diccionario %>% unnest(respuestas) %>%
                               readr::write_excel_csv(glue::glue("{carpeta}/diccionario.csv"))
-
                           }),
-                        private=list(
-                          limpiar_respuestas=function(){
-                            # Limpiar las que no pasan auditoría telefónica
-                            self$respuestas$eliminar_auditoria_telefonica(self$auditoria_telefonica)
-
-                            # Limpiar las respuestas que no tienen coordenadas
-                            self$respuestas$eliminar_falta_coordenadas()
-
-                            # Eliminar entrevistas cuyo cluster no pertenece a la muestra
-                            self$respuestas$eliminar_fuera_muestra(self$respuestas$base, self$muestra$base)
-
-                            # Corregir cluster equivocado
-                            self$respuestas$correccion_cluster(self$respuestas$base, self$shp, self$mantener)
-
-                            # Limpiar las que no tienen variables de diseño
-                            self$respuestas$eliminar_faltantes_diseño()
-                            return(invisible(self$respuestas))
-                          },
-                          recalcular_fpc = function(){
-                            self$muestra$recalcular_fpc(respuestas = self$respuestas$base)
-
-                            return(invisible(self$muestra))
-                          }
-
-                        )
+                        private=list()
 )
 
 #' Esta es la clase Respuestas
@@ -113,28 +87,56 @@ Encuesta <- R6::R6Class("Encuesta",
 Respuestas <- R6::R6Class("Respuestas",
                           inherit = Encuesta,
                           public = list(
+                            eliminadas = NULL,
                             base = NULL,
                             n=NULL,
                             m=NULL,
                             #' @description
                             #' Crear respuesta
                             #' @param base Base de datos de respuestas.
-                            initialize=function(base = NA) {
+                            initialize=function(base, auditoria_telefonica, muestra, shp, mantener,
+                                                diccionario,
+                                                nivel, var_n) {
+
                               self$base <- base
+
+                              # Limpiar las que no pasan auditoria telefonica
+                              self$eliminar_auditoria_telefonica(auditoria_telefonica)
+
+                              # Limpiar las respuestas que no tienen coordenadas
+                              self$eliminar_falta_coordenadas()
+
+                              # Eliminar entrevistas cuyo cluster no pertenece a la muestra
+                              self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
+                              # Corregir cluster equivocado
+                              self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
+
+                              # Limpiar las que no tienen variables de diseno
+                              self$eliminar_faltantes_diseno()
+
+                              # Cambiar variables a tipo numerica
+                              numericas <- diccionario %>% filter(tipo_pregunta == "numericas") %>%
+                                pull(llaves)
+
+                              self$base <- self$base %>%
+                                mutate(across(all_of(numericas), ~readr::parse_number(.x)))
+
+                              self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
                             },
                             eliminar_auditoria_telefonica=function(auditoria_telefonica){
                               if(("SbjNum" %in% names(self$base)) &
                                  ("SbjNum" %in% names(auditoria_telefonica))){
-                                # Se eliminan por no pasar la auditoria telefónica
+                                if(is.character(auditoria_telefonica$SbjNum)) auditoria_telefonica <- auditoria_telefonica %>% mutate(SbjNum = readr::parse_double(SbjNum))
+                                # Se eliminan por no pasar la auditoria telefonica
                                 n <- nrow(self$base)
                                 self$base <- self$base %>%
                                   anti_join(auditoria_telefonica, by="SbjNum")
                                 # Mandar mensaje
                                 print(
-                                  glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por auditoría telefónica")
+                                  glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por auditoria telefonica")
                                 )
                               }
-                              else print("Identificador SbjNum no presente en alguna de las bases")
+                              else cat("Identificador SbjNum no presente en alguna de las bases para eliminar por auditoria telefonica")
                               return(self$base)
                             },
                             eliminar_falta_coordenadas = function(){
@@ -148,16 +150,16 @@ Respuestas <- R6::R6Class("Respuestas",
                                 print("No existe la columna Longitude ni Latitude en la base de respuestas")
                               }
                             },
-                            correccion_cluster = function(base, shp, mantener){
-                              self$base <- corregir_cluster(base, shp, mantener)
+                            correccion_cluster = function(base, shp, mantener, nivel, var_n){
+                              self$base <- corregir_cluster(base, shp, mantener, nivel, var_n)
                             },
-                            eliminar_fuera_muestra = function(respuestas, muestra){
+                            eliminar_fuera_muestra = function(respuestas, muestra, nivel, var_n){
                               self$base <- respuestas %>%
-                                semi_join(muestra %>% mutate(cluster_3 = as.character(cluster_3)),
-                                          by = c("CLUSTER" = "cluster_3"))
+                                semi_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
+                                          by = set_names(nivel,var_n))
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
                             },
-                            eliminar_faltantes_diseño=function(){
+                            eliminar_faltantes_diseno=function(){
                               n <- nrow(self$base)
                               self$base <- self$base %>%
                                 filter(
@@ -169,9 +171,25 @@ Respuestas <- R6::R6Class("Respuestas",
                                     .fns = ~ !is.na(.x)
                                   ))
                               print(
-                                glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por tener datos faltantes en las variables de diseño muestral")
+                                glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por tener datos faltantes en las variables de diseno muestral")
                               )
                               return(self$base)
+                            },
+                            vars_diseno = function(muestra, var_n){
+
+                              self$base <- self$base %>%
+                                inner_join(muestra$base, by = var_n) %>%
+                                mutate(rango_edad = as.character(cut(as.integer(edad),c(17, 24, 59, 200),
+                                                                c("18A24","25A59","60YMAS"))),
+                                       sexo = if_else(sexo == "Mujer", "F", "M"))
+
+                              if(sum(grepl("region", muestra$muestra$niveles$variable)) > 0){
+                                var_reg <- muestra$muestra$niveles %>% filter(variable == "region") %>%
+                                  unite("var_reg", c(tipo, nivel)) %>% pull(var_reg)
+                                self$base <- self$base %>%
+                                  inner_join(muestra$muestra$poblacion$marco_muestral %>%
+                                               distinct(across(all_of(var_reg)), region), by = var_reg)
+                              }
                             }
                           )
 )
@@ -181,52 +199,65 @@ Respuestas <- R6::R6Class("Respuestas",
 #'@export
 Muestra <- R6::R6Class("Muestra",
                        public=list(
+                         muestra = NULL,
                          base=NULL,
-                         diseño=NULL,
-                         initialize =function(base){
-                           self$base=base
+                         diseno=NULL,
+                         initialize =function(muestra, respuestas, nivel, var_n){
+                           self$muestra <- muestra
+
+                           self$base <- muestra$muestra %>% purrr::pluck(var_n)
+                           self$recalcular_fpc(respuestas = respuestas, nivel, var_n)
                          },
-                         recalcular_fpc = function(respuestas){
+                         recalcular_fpc = function(respuestas, nivel, var_n){
+
+                           var_pob <- self$muestra$variable_poblacional
+
                            pob <- self$base %>%
                              tidyr::unnest(data) %>%
-                             count(cluster_3, wt=POBTOT, name="poblacion") %>%
-                             mutate(CLUSTER=as.character(cluster_3)) %>%
-                             select(-cluster_3)
+                             count(!!rlang::sym(nivel), wt= !!rlang::sym(var_pob), name="poblacion") %>%
+                             mutate(!!rlang::sym(var_n) := as.character(!!rlang::sym(nivel))) %>%
+                             select(-!!rlang::sym(nivel))
 
                            respuesta_fpc <- respuestas %>%
-                             count(CLUSTER) %>%
-                             left_join(pob, by=c("CLUSTER")) %>%
+                             count(!!rlang::sym(var_n)) %>%
+                             left_join(pob, by= var_n) %>%
                              mutate(fpc_0=n/poblacion) %>%
-                             select(CLUSTER, fpc_0)
-
+                             select(!!rlang::sym(var_n), fpc_0)
 
                            muestra <- self$base %>%
                              mutate(data = map(data,~.x %>% distinct(across(contains("fpc"))))) %>%
                              tidyr::unnest(data) %>%
                              select(-fpc_0) %>%
-                             mutate(CLUSTER=as.character(cluster_3)) %>%
-                             inner_join(respuesta_fpc, by="CLUSTER")
+                             mutate(!!rlang::sym(var_n) := as.character(!!rlang::sym(nivel))) %>%
+                             inner_join(respuesta_fpc, by= var_n)
 
                            self$base <- muestra
 
-                           return(self)
                          },
-                         extraer_diseño=function(respuestas, postestratificacion){
-                           warning(glue::glue("Se está haciendo el join entre respuestas y muestra manualmente. Corregir.
-                                                Además, se elimina el cluster_0 de respuestas para que corra, esto es temporal, se debe recalcular el fpc"))
+                         extraer_diseno=function(respuestas, marco_muestral){
 
-                           diseño<- survey::svydesign(
+                           diseno<- survey::svydesign(
                              pps="brewer",
                              ids=crear_formula_nombre(respuestas, "cluster_"),
                              fpc = crear_formula_nombre(respuestas, "fpc_"),
                              strata = crear_formula_nombre(respuestas, "strata_"),
                              data = respuestas
                            )
-                           pobG <- postestratificacion %>% count(rango, wt = value, name = "Freq")
-                           pobS<- postestratificacion %>% count(sexo, wt = value, name = "Freq")
-                           diseño <- survey::rake(diseño, list(~rango, ~sexo), list(pobG, pobS))
 
-                           return(diseño)
+                           pob <- marco_muestral %>%
+                             transmute(
+                               P_18A24_F,
+                               P_18A24_M,
+                               P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
+                               P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
+                               P_60YMAS_F, P_60YMAS_M) %>%
+                             summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
+                             pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
+                             separate(name, into = c("rango_edad", "sexo"))
+
+                           pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
+                           pobS<- pob %>% count(sexo, wt = value, name = "Freq")
+                           self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
                          }
                        ))
 
@@ -239,9 +270,8 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               aprobado=NULL,
                               diccionario=NULL,
                               initialize=function(documento){
-                                self$documento <- documento
+                                self$documento <- documento %>% officer::docx_summary() %>% as_tibble
                                 self$diccionario <- private$crear_diccionario()
-
                               },
                               aprobar=function(){
                                 self$aprobado <- T
@@ -260,7 +290,6 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               resumen = function(){
 
                                 res <- resumen_cuestionario(self$diccionario)
-
 
                                 return(res)
 
@@ -331,3 +360,36 @@ Pregunta <- R6::R6Class("Pregunta",
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
                         ))
+
+#' @export
+Auditoria <- R6::R6Class("Auditoria",
+                         public = list(
+                           dir = NULL,
+                           initialize = function(encuesta, dir = "auditoria"){
+                             if(!file.exists(dir)){
+                               dir.create(dir)
+                               dir.create(glue::glue("{dir}/data"))
+                             }
+
+                             readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseno.rda"))
+                             readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
+                             readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
+                             readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
+
+                             file.copy(
+                               from = system.file("inst/app/app.R", package = "encuestar",
+                                           mustWork = TRUE),
+                               to = dir
+
+                             )
+                             self$dir <- dir
+                           },
+                          run_app = function(){
+                            shiny::shinyAppDir(
+                              self$dir
+                            )
+                          },
+                          subir_app = function(){
+                            rsconnect::deployApp(self$dir)
+                          }
+                         ))

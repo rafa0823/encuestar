@@ -7,17 +7,21 @@
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("style_name","level","row_span",
+                                                        "text","bloque","tipo_pregunta",
+                                                        "tema"))
+
 diccionario_cuestionario <- function(doc){
-  diccionario <-
-    officer::docx_summary(doc) %>%
-    as_tibble() %>%
+  diccionario <- doc %>%
+    # officer::docx_summary(doc) %>%
+    # as_tibble() %>%
     filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
                                                 "Morant_respuestas_aspectos",
                                                 "Morant_respuestas_abiertas",
-                                                "Morant_respuestas_abiertasMultiples",
                                                 "Morant_respuestas_numericas",
-                                                "Morant_respuestas_numericasMultiples",
-                                                "Morant_respuestas_multiples")) %>%
+                                                "Morant_respuestas_multiples",
+                                                "Morant_respuestas_orden")) %>%
     select(-c(level:row_span)) %>%
     mutate(bloque=ifelse(style_name=="Morant_Bloque" & text != "", text, NA)) %>%
     fill(bloque,.direction = c("down")) %>%
@@ -57,6 +61,7 @@ diccionario_cuestionario <- function(doc){
       mutate(text = stringr::str_replace_all(pattern = "_NA|NA_",replacement = "",string = text)) %>%
       left_join(diccionario %>% select(aspectos = text, pregunta, bloque, llaves)) %>%
       rename(tema = aspectos) %>% distinct(.keep_all = T)
+
   }
 
 
