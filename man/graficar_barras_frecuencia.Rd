@@ -4,7 +4,7 @@
 \alias{graficar_barras_frecuencia}
 \title{Para graficar frecuencias simples}
 \usage{
-graficar_barras_frecuencia(bd, titulo, fill = NULL, nota = "", colores)
+graficar_barras_frecuencia(bd, titulo, nota = "", color = "#B0C429")
 }
 \arguments{
 \item{bd}{Debe provenir de la función de analizar_frecuencias}
@@ -13,11 +13,11 @@ graficar_barras_frecuencia(bd, titulo, fill = NULL, nota = "", colores)
 
 \item{nota}{Si de desea añadir una nota al pie del plot}
 
-\item{colores}{Vector de colores del plot}
-
 \item{familia}{Familia tipográfica de los elementos del plot}
 
 \item{color_etiqueta}{Color de la letra de las etiquetas de datos}
+
+\item{colores}{Vector de colores del plot}
 }
 \value{
 

@@ -10,7 +10,9 @@ resumen_cuestionario(dicc)
 \item{dicc}{}
 }
 \value{
-
+\item{a}{Grafica de cascada para saber cuantas preguntas por bloque hay y en total.}
+\item{b}{Grafica indicando cuales son las etiquetas y cuantos aspectos hay para cada pregunta de aspectos.}
+\item{c}{Grafica gant, se muestra todo el cuestionario con sus respectivas categorias en una sola grafica.}
 }
 \description{
 Title
