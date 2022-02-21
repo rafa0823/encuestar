@@ -27,7 +27,8 @@ Imports:
     glue,
     forcats,
     yesno,
-    officer
+    officer,
+    DescTools
 Suggests: 
     ggchicklet,
     lemon,
