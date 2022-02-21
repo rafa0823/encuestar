@@ -23,6 +23,7 @@ analizar_frecuencias <- function(encuesta, pregunta){
       replacement = "",
       string = respuesta),
       pregunta = rlang::expr_text(ensym(pregunta)),
+      respuesta = stringr::str_replace_all(respuesta, " \\(No leer\\)",""),
       respuesta=forcats::fct_reorder(.f = respuesta,
                                      .x = media,
                                      .fun = max)
