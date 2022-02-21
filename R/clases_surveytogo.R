@@ -1,5 +1,5 @@
 #' Esta es la clase Encuesta
-#' @description La clase Encuesta contiene todos los métodos, y atributos que puede tener una encuesta.
+#' @description La clase Encuesta contiene todos los metodos, y atributos que puede tener una encuesta.
 #' @field respuestas Base de datos de respuestas
 #' @field muestra Base de datos de muestra.
 #' @field dicionario Base de datos de diccionario
@@ -39,7 +39,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$shp_completo <- shp
 
                             self$shp <- shp$shp %>% purrr::pluck(var_n) %>%
-                              inner_join(diseño$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
+                              inner_join(diseno$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
                                            distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),cluster_3))
                             self$mantener <- mantener
 
@@ -56,11 +56,11 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Muestra
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
                                                         nivel = nivel, var_n = var_n)
-                            # Información muestral
-                            self$respuestas$vars_diseño(muestra = self$muestra, var_n = var_n)
-                            # Diseño
+                            # Informacion muestral
+                            self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n)
+                            # Diseno
 
-                            self$muestra$extraer_diseño(respuestas = self$respuestas$base,
+                            self$muestra$extraer_diseno(respuestas = self$respuestas$base,
                                                         marco_muestral = self$muestra$muestra$poblacion$marco_muestral)
 
                             #Preguntas
@@ -100,7 +100,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               self$base <- base
 
-                              # Limpiar las que no pasan auditoría telefónica
+                              # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
 
                               # Limpiar las respuestas que no tienen coordenadas
@@ -111,10 +111,10 @@ Respuestas <- R6::R6Class("Respuestas",
                               # Corregir cluster equivocado
                               self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
 
-                              # Limpiar las que no tienen variables de diseño
-                              self$eliminar_faltantes_diseño()
+                              # Limpiar las que no tienen variables de diseno
+                              self$eliminar_faltantes_diseno()
 
-                              # Cambiar variables a tipo numérica
+                              # Cambiar variables a tipo numerica
                               numericas <- diccionario %>% filter(tipo_pregunta == "numericas") %>%
                                 pull(llaves)
 
@@ -127,16 +127,16 @@ Respuestas <- R6::R6Class("Respuestas",
                               if(("SbjNum" %in% names(self$base)) &
                                  ("SbjNum" %in% names(auditoria_telefonica))){
                                 if(is.character(auditoria_telefonica$SbjNum)) auditoria_telefonica <- auditoria_telefonica %>% mutate(SbjNum = readr::parse_double(SbjNum))
-                                # Se eliminan por no pasar la auditoria telefónica
+                                # Se eliminan por no pasar la auditoria telefonica
                                 n <- nrow(self$base)
                                 self$base <- self$base %>%
                                   anti_join(auditoria_telefonica, by="SbjNum")
                                 # Mandar mensaje
                                 print(
-                                  glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por auditoría telefónica")
+                                  glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por auditoria telefonica")
                                 )
                               }
-                              else cat("Identificador SbjNum no presente en alguna de las bases para eliminar por auditoría telefónica")
+                              else cat("Identificador SbjNum no presente en alguna de las bases para eliminar por auditoria telefonica")
                               return(self$base)
                             },
                             eliminar_falta_coordenadas = function(){
@@ -159,7 +159,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                           by = set_names(nivel,var_n))
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
                             },
-                            eliminar_faltantes_diseño=function(){
+                            eliminar_faltantes_diseno=function(){
                               n <- nrow(self$base)
                               self$base <- self$base %>%
                                 filter(
@@ -171,11 +171,11 @@ Respuestas <- R6::R6Class("Respuestas",
                                     .fns = ~ !is.na(.x)
                                   ))
                               print(
-                                glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por tener datos faltantes en las variables de diseño muestral")
+                                glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por tener datos faltantes en las variables de diseno muestral")
                               )
                               return(self$base)
                             },
-                            vars_diseño = function(muestra, var_n){
+                            vars_diseno = function(muestra, var_n){
 
                               self$base <- self$base %>%
                                 inner_join(muestra$base, by = var_n) %>%
@@ -201,7 +201,7 @@ Muestra <- R6::R6Class("Muestra",
                        public=list(
                          muestra = NULL,
                          base=NULL,
-                         diseño=NULL,
+                         diseno=NULL,
                          initialize =function(muestra, respuestas, nivel, var_n){
                            self$muestra <- muestra
 
@@ -234,9 +234,9 @@ Muestra <- R6::R6Class("Muestra",
                            self$base <- muestra
 
                          },
-                         extraer_diseño=function(respuestas, marco_muestral){
+                         extraer_diseno=function(respuestas, marco_muestral){
 
-                           diseño<- survey::svydesign(
+                           diseno<- survey::svydesign(
                              pps="brewer",
                              ids=crear_formula_nombre(respuestas, "cluster_"),
                              fpc = crear_formula_nombre(respuestas, "fpc_"),
@@ -257,7 +257,7 @@ Muestra <- R6::R6Class("Muestra",
 
                            pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
                            pobS<- pob %>% count(sexo, wt = value, name = "Freq")
-                           self$diseño <- survey::rake(diseño, list(~rango_edad, ~sexo), list(pobG, pobS))
+                           self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
                          }
                        ))
 
@@ -371,7 +371,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                dir.create(glue::glue("{dir}/data"))
                              }
 
-                             readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseño.rda"))
+                             readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseno.rda"))
                              readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
                              readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
