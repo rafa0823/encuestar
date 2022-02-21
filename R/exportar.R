@@ -18,12 +18,12 @@ exportar_bd <- function(self, carpeta, agregar, quitar){
                                             names(compartir)))]
 
   continuar <- yesno::yesno2(glue::glue("Desea eliminar las siguientes variables?: \n {paste(eliminar, collapse = ', ')}"),
-                             yes = "Sí", no = "No")
+                             yes = "Si", no = "No")
 
   if(continuar){
     compartir %>% readr::write_excel_csv(glue::glue("{carpeta}/bd.csv"))
 
   } else{
-    cat("Use el parámetro 'agregar' y haga un vector con las variables que desea agregar. \n O arregle las llaves del cuestionario")
+    cat("Use el parametro 'agregar' y haga un vector con las variables que desea agregar. \n O arregle las llaves del cuestionario")
   }
 }

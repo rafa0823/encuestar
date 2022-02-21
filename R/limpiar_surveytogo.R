@@ -56,7 +56,7 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
                                                             !!rlang::sym(glue::glue("{var_n}")))) %>%
     select(-!!rlang::sym(nivel), -distinto)
 
-  print(glue::glue("Se cambiaron {nuevos %>% count(distinto) %>% pull(n)} clusters ya que la entrevista no está donde se reportó."))
+  print(glue::glue("Se cambiaron {nuevos %>% count(distinto) %>% pull(n)} clusters ya que la entrevista no esta donde se reporto."))
   return(respuestas)
 
 }
@@ -82,12 +82,12 @@ match_dicc_base <- function(self) {
         )
     ) %>% tibble::rownames_to_column(), by = c("bd" = "diccionario")
   ) %>% filter(is.na(rowname.x) | is.na(rowname.y)) %>%
-    replace_na(list(rowname.y = "No está en el diccionario",
-                    rowname.x = "No está en la base")) %>%
-    mutate(rowname.x = if_else(stringr::str_detect(rowname.x,"No está"), rowname.x, bd) %>%
-             forcats::fct_relevel("No está en la base", after = Inf),
-           rowname.y = if_else(stringr::str_detect(rowname.y,"No está"), rowname.y, bd) %>%
-             forcats::fct_relevel("No está en el diccionario", after = Inf)) %>%
+    replace_na(list(rowname.y = "No esta en el diccionario",
+                    rowname.x = "No esta en la base")) %>%
+    mutate(rowname.x = if_else(stringr::str_detect(rowname.x,"No esta"), rowname.x, bd) %>%
+             forcats::fct_relevel("No esta en la base", after = Inf),
+           rowname.y = if_else(stringr::str_detect(rowname.y,"No esta"), rowname.y, bd) %>%
+             forcats::fct_relevel("No esta en el diccionario", after = Inf)) %>%
     ggplot() + geom_tile(aes(x = rowname.x, y =rowname.y), fill = "red") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     labs(x = NULL, y = NULL)
@@ -102,9 +102,9 @@ match_dicc_base <- function(self) {
 #' @export
 #'
 #' @examples
-var_clave_diccionario <- function(self, diseño){
-  cluster_id <- diseño$niveles %>% filter(nivel == diseño$ultimo_nivel) %>% pull(llave)
-  post_id <- diseño$cuotas %>% select(-Municipio,-Localidad,-contains("cluster"),-n) %>% names
+var_clave_diccionario <- function(self, diseno){
+  cluster_id <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel) %>% pull(llave)
+  post_id <- diseno$cuotas %>% select(-Municipio,-Localidad,-contains("cluster"),-n) %>% names
 
   filtros <- self$cuestionario$documento %>% officer::docx_summary() %>% as_tibble %>%
     filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%

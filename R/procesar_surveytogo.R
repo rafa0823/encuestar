@@ -11,7 +11,7 @@
 #' @examples
 analizar_frecuencias <- function(encuesta, pregunta){
   estimacion <-survey::svymean(enquo(pregunta),
-                               design = encuesta$muestra$diseño, na.rm = T) %>%
+                               design = encuesta$muestra$diseno, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
     rename(media=2, ee=3) %>%
     mutate(respuesta = stringr::str_replace(
@@ -49,7 +49,7 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
                         aux <- encuesta$cuestionario$diccionario %>% unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
                         if(length(aux) == 0) aux <- .x
                         survey::svymean(survey::make.formula(.x),
-                                        design = encuesta$muestra$diseño, na.rm = T) %>%
+                                        design = encuesta$muestra$diseno, na.rm = T) %>%
                           tibble::as_tibble(rownames = "respuesta") %>%
                           rename(media=2, ee=3) %>%
                           mutate(
