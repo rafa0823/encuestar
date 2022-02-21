@@ -6,9 +6,13 @@
 #' @param pregunta
 #'
 #' @return
+#' \item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
+
 analizar_frecuencias <- function(encuesta, pregunta){
   estimacion <-survey::svymean(enquo(pregunta),
                                design = encuesta$muestra$diseno, na.rm = T) %>%
@@ -40,6 +44,9 @@ analizar_frecuencias <- function(encuesta, pregunta){
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
+
 analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
   p <- rlang::expr_text(ensym(pregunta))
   llaves <- glue::glue("{p}_{aspectos}")

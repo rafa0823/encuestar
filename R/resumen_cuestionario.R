@@ -4,6 +4,9 @@
 #' @param dicc
 #'
 #' @return
+#' \item{a}{Grafica de cascada para saber cuantas preguntas por bloque hay y en total.}
+#' \item{b}{Grafica indicando cuales son las etiquetas y cuantos aspectos hay para cada pregunta de aspectos.}
+#' \item{c}{Grafica gant, se muestra todo el cuestionario con sus respectivas categorias en una sola grafica.}
 #' @export
 #'
 #' @examples
@@ -33,6 +36,9 @@ resumen_cuestionario <- function(dicc){
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("end","ini"))
+
 rainfall_p <- function(dicc){
 
   bl <- dicc %>% count(bloque) %>%
@@ -60,20 +66,22 @@ rainfall_p <- function(dicc){
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("pregunta", "preguntas"))
+
 aspectos <- function(dicc){
   c <- dicc %>% filter(str_detect(llaves,"_")) %>% separate(llaves, into = c("aspecto", "pregunta")) %>%
     group_by(aspecto) %>% summarise(n = n(), preguntas = paste(pregunta, collapse = "\n")) %>%
-    ggplot(aes(x = reorder(aspecto, -n), y = n, label = preguntas)) +
+    ggplot(aes(x = DescTools::reorder(aspecto, -n), y = n, label = preguntas)) +
     geom_col(fill = NA, color = "red") +
     geom_text(aes(y = 0), vjust = 0, nudge_y = .1) +
-    # theme_minimal() +
     theme(rect = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
     geom_label(aes(label = n)) +
     labs(x = NULL, y = NULL)
   return(list(c))
 }
 
-
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("end", "respuestas","ranl","ini","ymin","ymax"))
 gant_p_r <- function(dicc){
 
   bl <- dicc %>% count(bloque) %>%
