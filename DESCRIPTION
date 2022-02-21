@@ -28,7 +28,8 @@ Imports:
     forcats,
     yesno,
     officer,
-    DescTools
+    DescTools,
+    tidytext
 Suggests: 
     ggchicklet,
     lemon,
