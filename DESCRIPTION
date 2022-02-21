@@ -28,8 +28,10 @@ Imports:
     forcats,
     yesno,
     officer,
-    DescTools,
-    tidytext
+    tidytext,
+    highcharter,
+    webshot,
+    htmlwidgets
 Suggests: 
     ggchicklet,
     lemon,
