@@ -15,7 +15,34 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports: 
+    dplyr,
+    R6,
+    ggplot2,
+    tidyr,
+    sf,
+    purrr,
+    stringr,
+    readr,
+    tibble,
+    glue,
+    forcats,
+    yesno,
+    officer
+Suggests: 
     ggchicklet,
     lemon,
-    dplyr,
-    R6
+    rsconnect,
+    shiny,
+    shinyWidgets,
+    shinydashboard,
+    DT,
+    shinycssloaders,
+    colorRamps,
+    ggfittext,
+    ggthemes,
+    muestreaR,
+    rlang,
+    scales,
+    stopwords,
+    survey,
+    leaflet
