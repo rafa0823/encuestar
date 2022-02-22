@@ -144,6 +144,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("orden", "etiqueta"))
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("saldo","color_saldo","pct","strata_1"))
+
 graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
                                           fill=NULL,
                                           nota = "",
@@ -261,7 +264,7 @@ sustituir <- function(bd, patron, reemplazo = ""){
 #' @examples
 graficar_barras_numerica<- function(bd){
 bd %>%
-  ggplot(aes(y = media, x = DescTools::reorder(str_wrap(aspecto,40),media))) +
+  ggplot(aes(y = media, x = stats::reorder(str_wrap(aspecto,40),media))) +
   ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                 alpha= .95, fill = "#850D2D",
                 width =.45)+ coord_flip()+
@@ -323,6 +326,9 @@ graficar_barras_palabras <- function(bd, pregunta, n = 10){
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("colores"))
+
 graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
                                       color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",
                                       familia = "Poppins",
@@ -342,10 +348,10 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
 
 
   htmlwidgets::saveWidget(widget = pregunta, file = paste0(pregunta,".html"))
-  webshot(url = paste0(pregunta,".html"),
+  webshot::webshot(url = paste0(pregunta,".html"),
           file = "plot.png",vwidth = ancho, vheight = alto,
           delay=3) # delay will ensure that the whole plot appears in the image
-  dev.off()
+  grDevices::dev.off()
 
 }
 
@@ -417,7 +423,7 @@ graficar_estratos_frecuencia <- function(bd,
     plot <- bd %>%
       ggplot(aes(x =forcats::fct_reorder(respuesta,pct), y = pct,
                  fill = respuesta)) +
-      geom_chicklet(width =.5)+
+      ggchicklet::geom_chicklet(width =.5)+
       coord_flip()+
       scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
       theme_minimal()+
@@ -460,7 +466,7 @@ return(plot)
 graficar_estratos_grupos <- function(bd, titulo = "", nota = "", familia = "Poppins"
                                     ){
   bd %>% ggplot(aes(x = forcats::fct_reorder(grupo,pct), y = pct, fill = grupo) )+
-    geom_chicklet(alpha = .8, width = .7)+
+    ggchicklet::geom_chicklet(alpha = .8, width = .7)+
     coord_flip()+
     facet_wrap(~strata_1)+
     coord_flip()+

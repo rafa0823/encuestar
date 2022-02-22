@@ -15,7 +15,7 @@ library(DT)
 library(shinycssloaders)
 library(colorRamps)
 
-diseño <- read_rds("data/diseño.rda")
+diseno <- read_rds("data/diseno.rda")
 shp <- read_rds("data/shp.rda")
 bd <- read_csv("data/bd.csv")
 eliminadas <- read_csv("data/eliminadas.csv")
@@ -24,19 +24,19 @@ bbox_qro <- st_bbox(shp$shp$MUN)
 
 # funciones ---------------------------------------------------------------
 
-unidades_app <- function(diseño, u_nivel) {
+unidades_app <- function(diseno, u_nivel) {
   unidades <- u_nivel %>% pull(variable)
   u_nivel_tipo <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
 
   aulr <- shp$shp[[unidades]] %>%
-    inner_join(diseño$muestra[[diseño$ultimo_nivel]] %>%
+    inner_join(diseno$muestra[[diseno$ultimo_nivel]] %>%
                  unnest(data) %>%
                  distinct(!!rlang::sym(unidades), !!rlang::sym(u_nivel_tipo)))
 }
 
-entrevistas <- function(diseño, enc, u_nivel, u_nivel_tipo){
-  cortes <- diseño$cuotas %>% count(parse_number(rango)-1) %>% pull(1) %>% append(Inf)
-  texto_cortes <- diseño$cuotas %>% distinct(rango) %>% pull(1)
+entrevistas <- function(diseno, enc, u_nivel, u_nivel_tipo){
+  cortes <- diseno$cuotas %>% count(parse_number(rango)-1) %>% pull(1) %>% append(Inf)
+  texto_cortes <- diseno$cuotas %>% distinct(rango) %>% pull(1)
 
   hecho <- enc %>%
     mutate(edad = as.character(cut(as.integer(edad),cortes,
@@ -45,12 +45,12 @@ entrevistas <- function(diseño, enc, u_nivel, u_nivel_tipo){
            cluster = as.numeric(!!rlang::sym(u_nivel$variable))) %>%
     count(cluster, edad, sexo, name = "hecho") %>%
     full_join(
-      diseño$cuotas %>% mutate(sexo = if_else(sexo == "F", "Mujer", "Hombre")) %>%
+      diseno$cuotas %>% mutate(sexo = if_else(sexo == "F", "Mujer", "Hombre")) %>%
         rename(cuota = n, cluster = !!rlang::sym(u_nivel_tipo), edad = rango)
     ) %>% replace_na(list(hecho = 0, faltan = 0)) %>%
-    mutate(faltan = cuota - hecho) %>% filter(cluster %in% diseño$cuotas[[u_nivel_tipo]])
+    mutate(faltan = cuota - hecho) %>% filter(cluster %in% diseno$cuotas[[u_nivel_tipo]])
 
-  por_hacer <- diseño$cuotas %>% mutate(sexo = if_else(sexo == "F", "Mujer", "Hombre")) %>%
+  por_hacer <- diseno$cuotas %>% mutate(sexo = if_else(sexo == "F", "Mujer", "Hombre")) %>%
     rename(cuota = n, cluster = u_nivel_tipo, edad = rango) %>%
     left_join(
       enc %>%
@@ -69,18 +69,18 @@ entrevistas <- function(diseño, enc, u_nivel, u_nivel_tipo){
 
 enc_shp <- bd %>%
   st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
-u_nivel <- diseño$niveles %>% filter(nivel == diseño$ultimo_nivel)
+u_nivel <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel)
 u_nivel_tipo <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
 
-aulr <- unidades_app(diseño, u_nivel)
+aulr <- unidades_app(diseno, u_nivel)
 
 # cuotas ------------------------------------------------------------------
-n_entrevista <- entrevistas(diseño, bd, u_nivel, u_nivel_tipo)
+n_entrevista <- entrevistas(diseno, bd, u_nivel, u_nivel_tipo)
 hecho <- n_entrevista$hecho
 por_hacer <- n_entrevista$por_hacer
 
 ui <-dashboardPage(
-  dashboardHeader(title = diseño$poblacion$nombre),
+  dashboardHeader(title = diseno$poblacion$nombre),
   dashboardSidebar(
     sidebarMenu(
       menuItem(
@@ -105,7 +105,7 @@ ui <-dashboardPage(
                             width = 330, height = "auto",
                             HTML("<button data-toggle='collapse' data-target='#demo'>Min/max</button>"),
                             tags$div(id = 'demo',  class="collapse",
-                                     selectInput("cluster", "Cluster", c("Seleccione..."= "",sort(unique(diseño$muestra[[diseño$ultimo_nivel]][[u_nivel_tipo]])))
+                                     selectInput("cluster", "Cluster", c("Seleccione..."= "",sort(unique(diseno$muestra[[diseno$ultimo_nivel]][[u_nivel_tipo]])))
                                      ),
                                      actionButton("filtrar","Filtrar"),
                                      gt_output("faltantes"),
@@ -120,7 +120,7 @@ ui <-dashboardPage(
               fluidRow(
                 column(12,
                        progressBar(id = "enc_hechas", value = nrow(bd),display_pct = T,striped = T,
-                                   total = (diseño$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseño$n_0,
+                                   total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
                                    status = "success"
                        )
                 )
@@ -164,8 +164,8 @@ server <- function(input, output) {
 
   output$map <- renderLeaflet({
 
-    shp$graficar_mapa(bd = diseño$poblacion$marco_muestral, nivel = "MUN") %>%
-      shp$graficar_mapa(bd = diseño$muestra, nivel = u_nivel %>% pull(variable)) %>%
+    shp$graficar_mapa(bd = diseno$poblacion$marco_muestral, nivel = "MUN") %>%
+      shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
       addCircleMarkers(data = enc_shp %>% mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-")),
                        color = ~color, stroke = F,
                        label = ~label)  %>%
