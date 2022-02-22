@@ -31,7 +31,11 @@ Imports:
     tidytext,
     highcharter,
     webshot,
-    htmlwidgets
+    htmlwidgets,
+    muestreaR,
+    ggchicklet,
+    rlang,
+    survey
 Suggests: 
     lemon,
     rsconnect,
@@ -43,11 +47,10 @@ Suggests:
     colorRamps,
     ggfittext,
     ggthemes,
-    rlang,
     scales,
+    gt,
     stopwords,
-    survey,
     leaflet
 Remotes:
-    morant-consultores/muestreaR
+    morant-consultores/muestreaR,
     hrbrmstr/ggchicklet

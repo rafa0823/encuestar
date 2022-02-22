@@ -1,4 +1,4 @@
-
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
 
 #' Title
 #'
@@ -10,8 +10,6 @@
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
 
 analizar_frecuencias <- function(encuesta, pregunta){
   estimacion <-survey::svymean(enquo(pregunta),
@@ -35,6 +33,8 @@ analizar_frecuencias <- function(encuesta, pregunta){
   return(estimacion)
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
+
 #' Title
 #'
 #' @param encuesta
@@ -45,8 +45,6 @@ analizar_frecuencias <- function(encuesta, pregunta){
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 
 analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
   p <- rlang::expr_text(ensym(pregunta))

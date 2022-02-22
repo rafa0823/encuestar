@@ -1,4 +1,17 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("text", "Date", "Latitude", "Longitude"))
+
+#' Title
+#'
+#' @param self
+#' @param carpeta
+#' @param agregar
+#' @param quitar
+#'
+#' @return
+#' @export
+#'
+#' @examples
+
 exportar_bd <- function(self, carpeta, agregar, quitar){
 
   vars <- self$cuestionario$documento %>%
