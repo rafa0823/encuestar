@@ -33,7 +33,6 @@ Imports:
     webshot,
     htmlwidgets
 Suggests: 
-    ggchicklet,
     lemon,
     rsconnect,
     shiny,
@@ -51,3 +50,4 @@ Suggests:
     leaflet
 Remotes:
     morant-consultores/muestreaR
+    hrbrmstr/ggchicklet
