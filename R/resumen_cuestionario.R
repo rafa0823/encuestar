@@ -72,7 +72,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("pregunta", "preguntas")
 aspectos <- function(dicc){
   c <- dicc %>% filter(str_detect(llaves,"_")) %>% separate(llaves, into = c("aspecto", "pregunta")) %>%
     group_by(aspecto) %>% summarise(n = n(), preguntas = paste(pregunta, collapse = "\n")) %>%
-    ggplot(aes(x = DescTools::reorder(aspecto, -n), y = n, label = preguntas)) +
+    ggplot(aes(x = stats::reorder(aspecto, -n), y = n, label = preguntas)) +
     geom_col(fill = NA, color = "red") +
     geom_text(aes(y = 0), vjust = 0, nudge_y = .1) +
     theme(rect = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
