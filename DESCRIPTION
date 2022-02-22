@@ -31,8 +31,7 @@ Imports:
     tidytext,
     highcharter,
     webshot,
-    htmlwidgets,
-    muestreaR
+    htmlwidgets
 Suggests: 
     ggchicklet,
     lemon,
@@ -50,3 +49,5 @@ Suggests:
     stopwords,
     survey,
     leaflet
+Remotes:
+    morant-consultores/muestreaR
