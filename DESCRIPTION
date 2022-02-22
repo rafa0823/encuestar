@@ -31,7 +31,8 @@ Imports:
     tidytext,
     highcharter,
     webshot,
-    htmlwidgets
+    htmlwidgets,
+    muestreaR
 Suggests: 
     ggchicklet,
     lemon,
@@ -44,7 +45,6 @@ Suggests:
     colorRamps,
     ggfittext,
     ggthemes,
-    muestreaR,
     rlang,
     scales,
     stopwords,
