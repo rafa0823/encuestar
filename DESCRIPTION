@@ -31,10 +31,8 @@ Imports:
     tidytext,
     highcharter,
     webshot,
-    htmlwidgets,
-    muestreaR
+    htmlwidgets
 Suggests: 
-    ggchicklet,
     lemon,
     rsconnect,
     shiny,
@@ -50,3 +48,6 @@ Suggests:
     stopwords,
     survey,
     leaflet
+Remotes:
+    morant-consultores/muestreaR
+    hrbrmstr/ggchicklet
