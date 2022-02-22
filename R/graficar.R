@@ -1,4 +1,4 @@
-
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
 #' Para graficar frecuencias simples
 #'
@@ -36,6 +36,7 @@ graficar_barras_frecuencia <- function(bd,
 
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("media2","color"))
 
 #' Para graficar frecuencias de barras agrupadas
 #'
@@ -51,8 +52,6 @@ graficar_barras_frecuencia <- function(bd,
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
 graficar_barras_grupos <- function(bd, titulo,
                                    familia = "Poppins",
@@ -80,6 +79,8 @@ graficar_barras_grupos <- function(bd, titulo,
     labs(title = titulo, x = NULL, y = "", fill = NULL)
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("orden", "etiqueta"))
+
 #' Title
 #'
 #'  @param bd  Base de datos (ya procesada)
@@ -93,8 +94,6 @@ graficar_barras_grupos <- function(bd, titulo,
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("media2","color"))
 
 graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
                                          color1= "#006466", color2= "#4d194d",
@@ -124,8 +123,7 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
     theme(legend.position = "none")
 }
 
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("orden", "etiqueta"))
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("saldo","color_saldo","pct","strata_1"))
 
 #' Title
 #'
@@ -144,8 +142,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("orden", "etiqueta"))
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("saldo","color_saldo","pct","strata_1"))
 
 graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
                                           fill=NULL,
@@ -218,6 +214,7 @@ graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
 
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
 #' Title
 #'
@@ -229,8 +226,6 @@ graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
 graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10){
   bd %>%
@@ -292,6 +287,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","t
 #' @export
 #'
 #' @examples
+
 graficar_barras_palabras <- function(bd, pregunta, n = 10){
   bd %>% tidytext::unnest_tokens(palabras, pregunta) %>%
     count(palabras,sort = T) %>%
@@ -310,6 +306,8 @@ graficar_barras_palabras <- function(bd, pregunta, n = 10){
     ggfittext::geom_bar_text(aes(label=scales::percent(n, accuracy = 1)),contrast = T)
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("colores"))
+
 #' Title
 #'
 #' @param bd  Base de datos (ya procesada)
@@ -326,8 +324,6 @@ graficar_barras_palabras <- function(bd, pregunta, n = 10){
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("colores"))
 
 graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
                                       color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",

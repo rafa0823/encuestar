@@ -31,7 +31,9 @@ Imports:
     tidytext,
     highcharter,
     webshot,
-    htmlwidgets
+    htmlwidgets,
+    muestreaR,
+    ggchicklet
 Suggests: 
     lemon,
     rsconnect,
@@ -49,5 +51,5 @@ Suggests:
     survey,
     leaflet
 Remotes:
-    morant-consultores/muestreaR
+    morant-consultores/muestreaR,
     hrbrmstr/ggchicklet

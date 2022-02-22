@@ -1,3 +1,4 @@
+if(getRversion() >= "2.15.1")  utils::globalVariables(c(".",":=","distinto","cluster_0"))
 
 #' Title
 #'
@@ -10,7 +11,6 @@
 #'
 #' @examples
 
-if(getRversion() >= "2.15.1")  utils::globalVariables(c(".",":=","distinto","cluster_0"))
 corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
   enc_shp <- respuestas %>%
     st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
@@ -63,6 +63,9 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47_1","rowname.x","rowname.y",
+                                                        "bd"))
+
 #' Title
 #'
 #' @param encuesta_qro
@@ -71,9 +74,6 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47_1","rowname.x","rowname.y",
-                                                        "bd"))
 
 match_dicc_base <- function(self) {
   g <- tibble(
@@ -100,6 +100,8 @@ match_dicc_base <- function(self) {
   return(g)
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("nivel","llave","Municipio","Localidad"))
+
 #' Title
 #'
 #' @param self
@@ -108,8 +110,6 @@ match_dicc_base <- function(self) {
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("nivel","llave","Municipio","Localidad"))
 
 var_clave_diccionario <- function(self, diseno){
   cluster_id <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel) %>% pull(llave)

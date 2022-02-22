@@ -10,6 +10,7 @@
 #' @export
 #'
 #' @examples
+
 resumen_cuestionario <- function(dicc){
 
   # Preguntas por bloque ----------------------------------------------------
@@ -28,6 +29,8 @@ resumen_cuestionario <- function(dicc){
   return(list(a, b, c))
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("end","ini"))
+
 #' Title
 #'
 #' @param dicc
@@ -36,8 +39,6 @@ resumen_cuestionario <- function(dicc){
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("end","ini"))
 
 rainfall_p <- function(dicc){
 
@@ -58,6 +59,9 @@ rainfall_p <- function(dicc){
     labs(x = NULL, y = NULL) +
     theme(axis.text.x = element_text(angle = 20, hjust = 1))
 }
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("pregunta", "preguntas"))
+
 #' Title
 #'
 #' @param dicc
@@ -66,8 +70,6 @@ rainfall_p <- function(dicc){
 #' @export
 #'
 #' @examples
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("pregunta", "preguntas"))
 
 aspectos <- function(dicc){
   c <- dicc %>% filter(str_detect(llaves,"_")) %>% separate(llaves, into = c("aspecto", "pregunta")) %>%
@@ -82,6 +84,16 @@ aspectos <- function(dicc){
 }
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("end", "respuestas","ranl","ini","ymin","ymax"))
+
+#' Title
+#'
+#' @param dicc
+#'
+#' @return
+#' @export
+#'
+#' @examples
+
 gant_p_r <- function(dicc){
 
   bl <- dicc %>% count(bloque) %>%
