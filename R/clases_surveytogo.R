@@ -39,7 +39,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$shp_completo <- shp
 
                             self$shp <- shp$shp %>% purrr::pluck(var_n) %>%
-                              inner_join(diseno$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
+                              inner_join(muestra$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
                                            distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),cluster_3))
                             self$mantener <- mantener
 
