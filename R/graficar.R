@@ -39,7 +39,7 @@ graficar_barras_frecuencia <- function(bd,
 
 #' Para graficar frecuencias de barras agrupadas
 #'
-#' @param bd Debe provenir de la función PENDIENTE
+#' @param bd  Base de datos (ya procesada)
 #' @param titulo Es un parámetro obligatorio para el título de la gráfica
 #' @param familia Familia tipográfica de los elementos del plot
 #' @param color_etiqueta Color de la letra de las etiquetas de datos
@@ -51,6 +51,9 @@ graficar_barras_frecuencia <- function(bd,
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
+
 graficar_barras_grupos <- function(bd, titulo,
                                    familia = "Poppins",
                                    color_etiqueta = "#3B3838",
@@ -67,7 +70,7 @@ graficar_barras_grupos <- function(bd, titulo,
                group =factor(grupo,
                              levels = orden)
     )) +
-    geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
+    ggchicklet::geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
     geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
               position = position_stack(.5,reverse = T), vjust = .5,
               color = color_etiqueta) +
@@ -79,7 +82,7 @@ graficar_barras_grupos <- function(bd, titulo,
 
 #' Title
 #'
-#'  @param bd Debe provenir de la función PENDIENTE
+#'  @param bd  Base de datos (ya procesada)
 #' @param titulo Es un parámetro obligatorio para el título de la gráfica
 #' @param grupo1 vector: es el grupo que saldrá del lado derecho del plot
 #' @param grupo2 vector: es el grupo que saldrá del lado izquierdo del plot
@@ -90,6 +93,9 @@ graficar_barras_grupos <- function(bd, titulo,
 #' @export
 #'
 #' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("media2","color"))
+
 graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
                                          color1= "#006466", color2= "#4d194d",
                                          contraste_etiqueta = T,
@@ -119,7 +125,25 @@ graficar_frecuencia_opuestos <- function(bd,titulo, grupo1, grupo2,
 }
 
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("orden", "etiqueta"))
 
+#' Title
+#'
+#' @param bd  Base de datos (ya procesada)
+#' @param titulo Título de la gráfica
+#' @param fill Variable de color
+#' @param nota Nota opcional
+#' @param grupo_positivo Grupo cuyas barras serán positivas
+#' @param grupo_negativo Grupo que su porcentaje será negativo
+#' @param ns_nc Nombre de las respuestas que corresponden a "No sabe", default: "Ns/Nc"
+#' @param colores Vector de colores con el nombre de las variables
+#' @param orden Orden de la varble de color
+#' @param familia font family
+#'
+#' @return
+#' @export
+#'
+#' @examples
 graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
                                           fill=NULL,
                                           nota = "",
@@ -159,7 +183,10 @@ graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
   aux %>%  filter(respuesta != ns_nc) %>%
     ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta, y =media,
                group =factor(respuesta, levels = orden) )) +
-    geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
+    ggchicklet::geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
+    geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
+              position = position_stack(.5,reverse = T), vjust = .5,
+              color = color_etiqueta) +
     scale_fill_manual(values = colores)+
     scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
     coord_flip()+
@@ -188,6 +215,20 @@ graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
 
 }
 
+
+#' Title
+#'
+#' @param bd  Base de datos (ya procesada)
+#' @param color Color de la barra
+#' @param maximo Número máximo en la escala
+#'
+#' @return
+#' @export
+#'
+#' @examples
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
+
 graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10){
   bd %>%
     ggplot() +
@@ -210,31 +251,50 @@ sustituir <- function(bd, patron, reemplazo = ""){
                                  x = respuesta, fixed = T))
 }
 
+#' Title
+#'
+#' @param bd  Base de datos (ya procesada)
+#'
+#' @return
+#' @export
+#'
+#' @examples
 graficar_barras_numerica<- function(bd){
-  bd %>%
-    ggplot(aes(y = media, x = reorder(str_wrap(tema,40),media))) +
-    geom_chicklet(radius = grid::unit(3, "pt"),
-                  alpha= .95,fill = "#850D2D",
-                  width =.45)+ coord_flip()+
-    labs(title = NULL,
-         x = NULL,
-         y = "Promedio")+
-    ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
-                             contrast = T)+
-    theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
-                                           linetype = "dotted"),
-          panel.grid.major.y = element_blank(),
-          axis.line.y = element_line(colour = "#E1356D"),
-          axis.line.x = element_blank())
+bd %>%
+  ggplot(aes(y = media, x = DescTools::reorder(str_wrap(aspecto,40),media))) +
+  ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
+                alpha= .95, fill = "#850D2D",
+                width =.45)+ coord_flip()+
+  labs(title = NULL,
+       x = NULL,
+       y = "Promedio")+
+  ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
+                           contrast = T)+
+  theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
+                                         linetype = "dotted"),
+        panel.grid.major.y = element_blank(),
+        axis.line.y = element_line(colour = "#E1356D"),
+        axis.line.x = element_blank())
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","titulo","nota"))
 
+#' Title
+#'
+#' @param bd  Base de datos (ya procesada)
+#' @param pregunta columna de caracter a procesar
+#' @param n Número de palabras a mostrar
+#'
+#' @return
+#' @export
+#'
+#' @examples
 graficar_barras_palabras <- function(bd, pregunta, n = 10){
-  bd %>% unnest_tokens(palabras, prgunta) %>%
+  bd %>% tidytext::unnest_tokens(palabras, pregunta) %>%
     count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
     slice(1:n) %>%
-    ggplot(aes(x =fct_reorder(palabras, n), y = n))+
+    ggplot(aes(x = forcats::fct_reorder(palabras, n), y = n))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
                               width =.45)+
@@ -247,11 +307,27 @@ graficar_barras_palabras <- function(bd, pregunta, n = 10){
     ggfittext::geom_bar_text(aes(label=scales::percent(n, accuracy = 1)),contrast = T)
 }
 
+#' Title
+#'
+#' @param bd  Base de datos (ya procesada)
+#' @param pregunta
+#' @param n
+#' @param color1
+#' @param color2
+#' @param color3
+#' @param familia
+#' @param ancho
+#' @param alto
+#'
+#' @return
+#' @export
+#'
+#' @examples
 graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
                                       color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",
                                       familia = "Poppins",
                                       ancho = 600*5, alto =  600*5/1.41){
-  pregunta <- bd %>% unnest_tokens(palabras, pregunta) %>% count(palabras,sort = T) %>%
+  pregunta <- bd %>% tidytext::unnest_tokens(palabras, pregunta) %>% count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
     mutate(colores = case_when(
       n<=quantile(n,probs=.75)~ color3,
@@ -270,10 +346,21 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
           file = "plot.png",vwidth = ancho, vheight = alto,
           delay=3) # delay will ensure that the whole plot appears in the image
   dev.off()
+
 }
 
 
 
+#' Title
+#'
+#' @param base_size
+#' @param base_family
+#' @param fondo
+#'
+#' @return
+#' @export
+#'
+#' @examples
 tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF") {
   (ggthemes::theme_foundation(base_size = base_size,
                               base_family = base_family)
@@ -311,7 +398,8 @@ tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF
 
 #' Title
 #'
-#' @param bd
+
+#' @param bd  Base de datos (ya procesada)
 #' @param tipo
 #' @param titulo
 #' @param nota
@@ -357,6 +445,7 @@ graficar_estratos_frecuencia <- function(bd,
 
   }
 
+
   return(plot)
 }
 
@@ -394,7 +483,21 @@ graficar_estratos_likert <- function(bd, titulo = NULL,
 }
 
 
-graficar_estratos_grupos <- function(bd, titulo = "", nota = "", familia = "Poppins"){
+
+#' Title
+#'
+#' @param bd Base de datos (ya procesada)
+#' @param titulo
+#' @param nota
+#' @param familia
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_estratos_grupos <- function(bd, titulo = "", nota = "", familia = "Poppins"
+                                    ){
+
   bd %>% ggplot(aes(x = forcats::fct_reorder(grupo,pct), y = pct, fill = grupo) )+
     geom_chicklet(alpha = .8, width = .7)+
     coord_flip()+

@@ -19,13 +19,15 @@ Esta es la clase Respuestas
 \item \href{#method-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
 \item \href{#method-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
 \item \href{#method-eliminar_fuera_muestra}{\code{Respuestas$eliminar_fuera_muestra()}}
-\item \href{#method-eliminar_faltantes_diseño}{\code{Respuestas$eliminar_faltantes_diseño()}}
+\item \href{#method-eliminar_faltantes_diseno}{\code{Respuestas$eliminar_faltantes_diseno()}}
+\item \href{#method-vars_diseno}{\code{Respuestas$vars_diseno()}}
 \item \href{#method-clone}{\code{Respuestas$clone()}}
 }
 }
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
+\item \out{<span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="exportar_entregable">}\href{../../encuestar/html/Encuesta.html#method-exportar_entregable}{\code{encuestar::Encuesta$exportar_entregable()}}\out{</span>}
 }
 \out{</details>}
 }
@@ -35,7 +37,16 @@ Esta es la clase Respuestas
 \subsection{Method \code{new()}}{
 Crear respuesta
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(base = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(
+  base,
+  auditoria_telefonica,
+  muestra,
+  shp,
+  mantener,
+  diccionario,
+  nivel,
+  var_n
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -69,7 +80,7 @@ Crear respuesta
 \if{latex}{\out{\hypertarget{method-correccion_cluster}{}}}
 \subsection{Method \code{correccion_cluster()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$correccion_cluster(base, shp, mantener)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$correccion_cluster(base, shp, mantener, nivel, var_n)}\if{html}{\out{</div>}}
 }
 
 }
@@ -78,16 +89,25 @@ Crear respuesta
 \if{latex}{\out{\hypertarget{method-eliminar_fuera_muestra}{}}}
 \subsection{Method \code{eliminar_fuera_muestra()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_fuera_muestra(respuestas, muestra)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_fuera_muestra(respuestas, muestra, nivel, var_n)}\if{html}{\out{</div>}}
 }
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-eliminar_faltantes_diseño"></a>}}
-\if{latex}{\out{\hypertarget{method-eliminar_faltantes_diseño}{}}}
-\subsection{Method \code{eliminar_faltantes_diseño()}}{
+\if{html}{\out{<a id="method-eliminar_faltantes_diseno"></a>}}
+\if{latex}{\out{\hypertarget{method-eliminar_faltantes_diseno}{}}}
+\subsection{Method \code{eliminar_faltantes_diseno()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_faltantes_diseño()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_faltantes_diseno()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-vars_diseno"></a>}}
+\if{latex}{\out{\hypertarget{method-vars_diseno}{}}}
+\subsection{Method \code{vars_diseno()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$vars_diseno(muestra, var_n)}\if{html}{\out{</div>}}
 }
 
 }
