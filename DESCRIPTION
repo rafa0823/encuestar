@@ -33,7 +33,9 @@ Imports:
     webshot,
     htmlwidgets,
     muestreaR,
-    ggchicklet
+    ggchicklet,
+    rlang,
+    survey
 Suggests: 
     lemon,
     rsconnect,
@@ -45,10 +47,9 @@ Suggests:
     colorRamps,
     ggfittext,
     ggthemes,
-    rlang,
     scales,
+    gt,
     stopwords,
-    survey,
     leaflet
 Remotes:
     morant-consultores/muestreaR,

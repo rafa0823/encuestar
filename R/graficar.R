@@ -135,7 +135,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("saldo","color_saldo","p
 #' @param grupo_negativo Grupo que su porcentaje será negativo
 #' @param ns_nc Nombre de las respuestas que corresponden a "No sabe", default: "Ns/Nc"
 #' @param colores Vector de colores con el nombre de las variables
-#' @param orden Orden de la varble de color
+#' @param orden Orden de la variable de color
 #' @param familia font family
 #'
 #' @return
@@ -143,7 +143,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("saldo","color_saldo","p
 #'
 #' @examples
 
-graficar_aspectos_frecuencias <- function(bd,   titulo= NULL,
+graficar_aspectos_frecuencias <- function(bd,
+                                          titulo= NULL,
                                           fill=NULL,
                                           nota = "",
                                           grupo_positivo = c("Aprueba mucho",

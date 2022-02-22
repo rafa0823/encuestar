@@ -5,6 +5,7 @@
 #' @field dicionario Base de datos de diccionario
 #' @export
 #' @import dplyr ggplot2 tidyr sf purrr stringr highcharter
+
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
@@ -385,7 +386,7 @@ Auditoria <- R6::R6Class("Auditoria",
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
 
                              file.copy(
-                               from = system.file("inst/app/app.R", package = "encuestar",
+                               from = system.file("app/app.R", package = "encuestar",
                                            mustWork = TRUE),
                                to = dir
 

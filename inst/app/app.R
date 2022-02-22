@@ -14,6 +14,7 @@ library(shinydashboard)
 library(DT)
 library(shinycssloaders)
 library(colorRamps)
+library(gt)
 
 diseno <- read_rds("data/diseno.rda")
 shp <- read_rds("data/shp.rda")
