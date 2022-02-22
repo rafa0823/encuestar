@@ -309,28 +309,40 @@ tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF
 }
 
 
+#' Title
+#'
+#' @param bd
+#' @param tipo
+#' @param titulo
+#' @param nota
+#' @param familia
+#'
+#' @return
+#' @export
+#'
+#' @examples
 graficar_estratos_frecuencia <- function(bd,
                                          tipo,
                                          titulo = NULL,
                                          nota = "", familia = "Poppins"){
   if(tipo == "barras"){
     #Agrupada por estratos
-    bd %>%
+    plot <-bd %>%
       ggplot(aes(x =forcats::fct_reorder(respuesta,pct), y = pct,
                  fill = respuesta)) +
-      geom_chicklet(width =.7)+
+      geom_chicklet(width =.5, alpha = .85)+
       coord_flip()+
       scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
       theme_minimal()+
       theme(panel.grid.minor = element_blank(),
             text = element_text(family = familia),
-            legend.position = "bottom")+
+            legend.position = "none")+
       ggfittext::geom_bar_text(aes(label=scales::percent(pct, accuracy = 1)),contrast = T,family = familia )+
-      labs(title = titulo, x = "Estrato", y = NULL, color = NULL)+
+      labs(title = titulo, x = "Estrato", y = NULL, fill = NULL)+
       facet_wrap(~strata_1)
   }
   if(tipo == "lineas") {
-    bd %>% mutate(etiqueta = round(pct*100)) %>%
+    plot <-bd %>% mutate(etiqueta = round(pct*100)) %>%
       ggplot(aes(x = strata_1, y = pct, group = respuesta,
                  color = respuesta, label = paste0(etiqueta, "%"))) +
       geom_line(size = 3.5, show.legend = F)+
@@ -345,7 +357,42 @@ graficar_estratos_frecuencia <- function(bd,
 
   }
 
+  return(plot)
 }
+
+graficar_estratos_likert <- function(bd, titulo = NULL,
+                                     grupo_positivo = c("Aprueba mucho",
+                                                        "Aprueba poco"),
+                                     grupo_negativo = c("Desaprueba mucho",
+                                                        "Desaprueba poco"),
+                                     nombre_positivo = "Aprueba",
+                                     nombre_negativo = "Desaprueba",
+                                     color_positivo =  "#023047",
+                                     color_negativo = "#DE6400",
+                                     etiqueta_x = "Aspecto",
+                                     familia = "Poppins"){
+  bd %>%  mutate(grupo = case_when(respuesta %in% grupo_positivo~ nombre_positivo,
+                                   respuesta %in% grupo_negativo~ nombre_negativo),
+                 pct = case_when(grupo == nombre_positivo ~pct,
+                                 grupo == nombre_negativo~pct*-1)) %>%
+    filter(!is.na(grupo)) %>%
+    group_by(strata_1, grupo) %>%  summarise(saldo =sum(pct)) %>%
+    ggplot(aes(x = forcats::fct_reorder(strata_1, saldo), y = saldo, fill = grupo))+
+    ggchicklet::geom_chicklet(width =.5, alpha = .85)+
+    coord_flip()+
+    geom_text(aes(label = scales::percent(saldo,accuracy = 1)),
+              position = position_stack(.8,reverse = T))+
+    scale_fill_manual(values = purrr::set_names(c(color_negativo, color_positivo), c(nombre_negativo, nombre_positivo)))+
+    theme_minimal()+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    theme(panel.grid.minor = element_blank(),
+          text = element_text(family = familia),
+          panel.grid.major.y = element_blank(),
+          legend.position = "bottom")+
+    labs(titulo = titulo, x = "Estrato", y = "Saldo", fill = NULL)
+
+}
+
 
 graficar_estratos_grupos <- function(bd, titulo = "", nota = "", familia = "Poppins"){
   bd %>% ggplot(aes(x = forcats::fct_reorder(grupo,pct), y = pct, fill = grupo) )+
@@ -364,3 +411,34 @@ graficar_estratos_grupos <- function(bd, titulo = "", nota = "", familia = "Popp
     facet_wrap(~strata_1)
 }
 
+graficar_estratos_aspectos <- function(bd, titulo = NULL,
+                                       grupo_positivo = c("Aprueba mucho",
+                                                          "Aprueba poco"),
+                                       grupo_negativo = c("Desaprueba mucho",
+                                                          "Desaprueba poco"),
+                                       nombre_positivo = "Aprueba",
+                                       nombre_negativo = "Desaprueba",
+                                       color_positivo =  "#023047",
+                                       color_negativo = "#DE6400",
+                                       etiqueta_x = "Aspecto",
+                                       familia = "Poppins"){
+  bd %>% mutate(valor = case_when(respuesta %in% grupo_positivo~ nombre_positivo,
+                                  respuesta %in% grupo_negativo~ nombre_negativo),
+                pct2 = case_when(valor == nombre_positivo~pct, valor == nombre_negativo~pct*-1)) %>%
+    filter(!is.na(valor)) %>%
+    group_by(strata_1, grupo, valor) %>%  summarise(saldo =sum(pct2)) %>%
+    ggplot(aes(x =forcats::fct_reorder(grupo, saldo),  y= saldo, fill = valor))+
+    geom_chicklet(width =.4, alpha =.9)+
+    coord_flip()+
+    geom_text(aes(label = scales::percent(saldo,accuracy = 1)),
+              position = position_stack(.8,reverse = T))+
+    facet_wrap(~strata_1)+
+    scale_fill_manual(values = purrr::set_names(c(color_negativo, color_positivo), c(nombre_negativo, nombre_positivo)))+
+    theme_minimal()+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    theme(panel.grid.minor = element_blank(),
+          text = element_text(family = familia),
+          panel.grid.major.y = element_blank(),
+          legend.position = "bottom")+
+    labs(title = titulo, fill = NULL, x = etiqueta_x)
+}
