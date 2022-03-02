@@ -35,22 +35,22 @@ Imports:
     muestreaR,
     ggchicklet,
     rlang,
-    survey
+    shiny,
+    shinydashboard,
+    shinyWidgets,
+    colorRamps,
+    gt,
+    rsconnect,
+    shinycssloaders,
+    DT,
+    survey,
+    leaflet
 Suggests: 
     lemon,
-    rsconnect,
-    shiny,
-    shinyWidgets,
-    shinydashboard,
-    DT,
-    shinycssloaders,
-    colorRamps,
     ggfittext,
     ggthemes,
     scales,
-    gt,
-    stopwords,
-    leaflet
+    stopwords
 Remotes:
     morant-consultores/muestreaR,
     hrbrmstr/ggchicklet
