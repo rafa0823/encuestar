@@ -15,6 +15,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           preguntas = NULL,
                           shp_completo = NULL,
                           shp = NULL,
+                          tipo_encuesta = NULL,
                           mantener = NULL,
                           auditoria = NULL,
                           #' @description
@@ -26,7 +27,10 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 auditoria_telefonica = NA,
                                                 cuestionario=NA,
                                                 shp = NA,
+                                                tipo_encuesta = NA,
                                                 mantener = NA) {
+                            tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
+                            self$tipo_encuesta <- tipo_encuesta
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
@@ -58,17 +62,18 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
                                                         nivel = nivel, var_n = var_n)
                             # Informacion muestral
-                            self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n)
+                            self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n, tipo_encuesta = self$tipo_encuesta)
                             # Diseno
 
                             self$muestra$extraer_diseno(respuestas = self$respuestas$base,
-                                                        marco_muestral = self$muestra$muestra$poblacion$marco_muestral)
+                                                        marco_muestral = self$muestra$muestra$poblacion$marco_muestral,
+                                                        tipo_encuesta = self$tipo_encuesta)
 
                             #Preguntas
 
                             self$preguntas <- Pregunta$new(encuesta = self)
 
-                            self$auditoria <- Auditoria$new(self)
+                            self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
 
                             return(print(match_dicc_base(self)))
                           },
@@ -98,7 +103,6 @@ Respuestas <- R6::R6Class("Respuestas",
                             initialize=function(base, auditoria_telefonica, muestra, shp, mantener,
                                                 diccionario,
                                                 nivel, var_n) {
-
                               self$base <- base
 
                               # Limpiar las que no pasan auditoria telefonica
@@ -176,13 +180,24 @@ Respuestas <- R6::R6Class("Respuestas",
                               )
                               return(self$base)
                             },
-                            vars_diseno = function(muestra, var_n){
+                            vars_diseno = function(muestra, var_n, tipo_encuesta){
 
                               self$base <- self$base %>%
-                                inner_join(muestra$base, by = var_n) %>%
-                                mutate(rango_edad = as.character(cut(as.integer(edad),c(17, 24, 59, 200),
-                                                                c("18A24","25A59","60YMAS"))),
-                                       sexo = if_else(sexo == "Mujer", "F", "M"))
+                                inner_join(muestra$base, by = var_n)
+
+                              if(tipo_encuesta == "inegi"){
+                                self$base <- self$base %>%
+                                  mutate(rango_edad = as.character(cut(as.integer(edad),c(17, 24, 59, 200),
+                                                                       c("18A24","25A59","60YMAS"))),
+                                         sexo = if_else(sexo == "Mujer", "F", "M"))
+                              }
+
+                              if(tipo_encuesta == "ine"){
+                                self$base <- self$base %>%
+                                  mutate(rango_edad = cut(as.numeric(edad), c(17,24,39,59,Inf),
+                                                          labels = c("18A24","25A39","40A60","60YMAS")),
+                                         sexo = if_else(sexo == "Mujer", "F", "M"))
+                              }
 
                               if(sum(grepl("region", muestra$muestra$niveles$variable)) > 0){
                                 var_reg <- muestra$muestra$niveles %>% filter(variable == "region") %>%
@@ -235,7 +250,7 @@ Muestra <- R6::R6Class("Muestra",
                            self$base <- muestra
 
                          },
-                         extraer_diseno=function(respuestas, marco_muestral){
+                         extraer_diseno=function(respuestas, marco_muestral, tipo_encuesta){
 
                            diseno<- survey::svydesign(
                              pps="brewer",
@@ -245,16 +260,27 @@ Muestra <- R6::R6Class("Muestra",
                              data = respuestas
                            )
 
-                           pob <- marco_muestral %>%
-                             transmute(
-                               P_18A24_F,
-                               P_18A24_M,
-                               P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
-                               P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
-                               P_60YMAS_F, P_60YMAS_M) %>%
-                             summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
-                             pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
-                             separate(name, into = c("rango_edad", "sexo"))
+                           if(tipo_encuesta == "inegi"){
+                             pob <- marco_muestral %>%
+                               transmute(
+                                 P_18A24_F,
+                                 P_18A24_M,
+                                 P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
+                                 P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
+                                 P_60YMAS_F, P_60YMAS_M) %>%
+                               summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
+                               pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
+                               separate(name, into = c("rango_edad", "sexo"))
+                           }
+
+                           if(tipo_encuesta == "ine"){
+                             pob <- marco_muestral %>%
+                               select(contains("LN22_")) %>%
+                               summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
+                               pivot_longer(everything()) %>% mutate(name = gsub("LN22_","",name)) %>%
+                               separate(name, into = c("rango_edad", "sexo"))
+                           }
+
 
                            pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
                            pobS<- pob %>% count(sexo, wt = value, name = "Freq")
@@ -374,7 +400,7 @@ Pregunta <- R6::R6Class("Pregunta",
 Auditoria <- R6::R6Class("Auditoria",
                          public = list(
                            dir = NULL,
-                           initialize = function(encuesta, dir = "auditoria"){
+                           initialize = function(encuesta, tipo_encuesta, dir = "auditoria"){
                              if(!file.exists(dir)){
                                dir.create(dir)
                                dir.create(glue::glue("{dir}/data"))
@@ -384,13 +410,24 @@ Auditoria <- R6::R6Class("Auditoria",
                              readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
                              readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
+                             if(tipo_encuesta == "inegi"){
+                               file.copy(
+                                 from = system.file("app_inegi/app.R", package = "encuestar",
+                                                    mustWork = TRUE),
+                                 to = dir
 
-                             file.copy(
-                               from = system.file("app/app.R", package = "encuestar",
-                                           mustWork = TRUE),
-                               to = dir
+                               )
+                             }
 
-                             )
+                             if(tipo_encuesta == "ine"){
+                               file.copy(
+                                 from = system.file("app_ine/app.R", package = "encuestar",
+                                                    mustWork = TRUE),
+                                 to = dir
+
+                               )
+                             }
+
                              self$dir <- dir
                            },
                           run_app = function(){
