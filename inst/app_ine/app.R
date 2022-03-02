@@ -16,6 +16,8 @@ library(shinycssloaders)
 library(colorRamps)
 library(gt)
 
+sf_use_s2(T)
+
 diseno <- read_rds("data/diseno.rda")
 shp <- read_rds("data/shp.rda")
 bd <- read_csv("data/bd.csv")
