@@ -44,6 +44,7 @@ Create a person
   auditoria_telefonica = NA,
   cuestionario = NA,
   shp = NA,
+  tipo_encuesta = NA,
   mantener = NA
 )}\if{html}{\out{</div>}}
 }

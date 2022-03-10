@@ -21,6 +21,7 @@ sf_use_s2(T)
 diseno <- read_rds("data/diseno.rda")
 shp <- read_rds("data/shp.rda")
 bd <- read_csv("data/bd.csv")
+enc_shp <- readr::read_rds("data/enc_shp.rda")
 eliminadas <- read_csv("data/eliminadas.csv")
 
 bbox_qro <- st_bbox(shp$shp$MUN)
@@ -70,8 +71,6 @@ entrevistas <- function(diseno, enc, u_nivel, u_nivel_tipo){
 
 # vars necesarios para app ------------------------------------------------
 
-enc_shp <- bd %>%
-  st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
 u_nivel <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel)
 u_nivel_tipo <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
 

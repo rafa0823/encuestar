@@ -40,7 +40,7 @@ Esta es la clase de muestra
 \if{latex}{\out{\hypertarget{method-extraer_diseno}{}}}
 \subsection{Method \code{extraer_diseno()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Muestra$extraer_diseno(respuestas, marco_muestral)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$extraer_diseno(respuestas, marco_muestral, tipo_encuesta)}\if{html}{\out{</div>}}
 }
 
 }

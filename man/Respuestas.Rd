@@ -107,7 +107,7 @@ Crear respuesta
 \if{latex}{\out{\hypertarget{method-vars_diseno}{}}}
 \subsection{Method \code{vars_diseno()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$vars_diseno(muestra, var_n)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$vars_diseno(muestra, var_n, tipo_encuesta)}\if{html}{\out{</div>}}
 }
 
 }
