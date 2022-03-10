@@ -23,7 +23,7 @@ shp <- read_rds("data/shp.rda")
 bd <- read_csv("data/bd.csv")
 enc_shp <- readr::read_rds("data/enc_shp.rda")
 eliminadas <- read_csv("data/eliminadas.csv")
-
+mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
 
 # funciones ---------------------------------------------------------------
@@ -165,8 +165,11 @@ ui <-dashboardPage(
 server <- function(input, output) {
 
   output$map <- renderLeaflet({
+    pal <- colorFactor(topo.colors(n_distinct(mapa_base$strata_1)), domain = unique(mapa_base$strata_1))
 
-    shp$graficar_mapa(bd = diseno$poblacion$marco_muestral, nivel = "MUNICIPIO") %>%
+    mapa_base %>% leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
+      addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
+      addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
       addCircleMarkers(data = enc_shp %>% mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-")),
                        color = ~color, stroke = F,
