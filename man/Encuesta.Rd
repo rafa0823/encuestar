@@ -4,7 +4,7 @@
 \alias{Encuesta}
 \title{Esta es la clase Encuesta}
 \description{
-La clase Encuesta contiene todos los métodos, y atributos que puede tener una encuesta.
+La clase Encuesta contiene todos los metodos, y atributos que puede tener una encuesta.
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -28,6 +28,7 @@ La clase Encuesta contiene todos los métodos, y atributos que puede tener una e
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{Encuesta$new()}}
+\item \href{#method-exportar_entregable}{\code{Encuesta$exportar_entregable()}}
 \item \href{#method-clone}{\code{Encuesta$clone()}}
 }
 }
@@ -39,9 +40,12 @@ Create a person
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$new(
   respuestas = NA,
-  diccionario = NA,
   muestra = NA,
-  auditoria_telefonica = NA
+  auditoria_telefonica = NA,
+  cuestionario = NA,
+  shp = NA,
+  tipo_encuesta = NA,
+  mantener = NA
 )}\if{html}{\out{</div>}}
 }
 
@@ -54,6 +58,19 @@ Create a person
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-exportar_entregable"></a>}}
+\if{latex}{\out{\hypertarget{method-exportar_entregable}{}}}
+\subsection{Method \code{exportar_entregable()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Encuesta$exportar_entregable(
+  carpeta = "Entregables",
+  agregar = NULL,
+  quitar = NULL
+)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
