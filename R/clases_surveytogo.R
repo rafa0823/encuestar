@@ -411,7 +411,7 @@ Auditoria <- R6::R6Class("Auditoria",
                              readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
                              enc_shp <- encuesta$respuestas$base %>%
                                  st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
-                             readr::write_rds(enc_shp, "data/enc_shp.rda")
+                             readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
                              if(tipo_encuesta == "inegi"){
                                file.copy(
