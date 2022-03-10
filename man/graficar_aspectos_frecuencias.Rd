@@ -35,7 +35,7 @@ graficar_aspectos_frecuencias(
 
 \item{colores}{Vector de colores con el nombre de las variables}
 
-\item{orden}{Orden de la varble de color}
+\item{orden}{Orden de la variable de color}
 
 \item{familia}{font family}
 }
