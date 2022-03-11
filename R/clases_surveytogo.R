@@ -57,7 +57,6 @@ Encuesta <- R6::R6Class("Encuesta",
                                                               diccionario = self$cuestionario$diccionario,
                                                               nivel = nivel, var_n = var_n
                             )
-
                             # Muestra
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
                                                         nivel = nivel, var_n = var_n)
@@ -103,6 +102,7 @@ Respuestas <- R6::R6Class("Respuestas",
                             initialize=function(base, auditoria_telefonica, muestra, shp, mantener,
                                                 diccionario,
                                                 nivel, var_n) {
+
                               self$base <- base
 
                               # Limpiar las que no pasan auditoria telefonica
@@ -181,9 +181,8 @@ Respuestas <- R6::R6Class("Respuestas",
                               return(self$base)
                             },
                             vars_diseno = function(muestra, var_n, tipo_encuesta){
-
                               self$base <- self$base %>%
-                                inner_join(muestra$base, by = var_n)
+                                inner_join(muestra$base)
 
                               if(tipo_encuesta == "inegi"){
                                 self$base <- self$base %>%
@@ -250,14 +249,44 @@ Muestra <- R6::R6Class("Muestra",
                            self$base <- muestra
 
                          },
-                         extraer_diseno=function(respuestas, marco_muestral, tipo_encuesta){
+                         extraer_diseno = function(respuestas, marco_muestral, tipo_encuesta){
+                           r <- try(
+                             survey::svydesign(
+                               pps="brewer",
+                               ids=crear_formula_nombre(respuestas, "cluster_"),
+                               fpc = crear_formula_nombre(respuestas, "fpc_"),
+                               strata = crear_formula_nombre(respuestas, "strata_"),
+                               data = respuestas
+                             )
+                             ,T)
 
-                           diseno<- survey::svydesign(
-                             pps="brewer",
-                             ids=crear_formula_nombre(respuestas, "cluster_"),
-                             fpc = crear_formula_nombre(respuestas, "fpc_"),
-                             strata = crear_formula_nombre(respuestas, "strata_"),
-                             data = respuestas
+                           diseno <- if(class(r) == "try-error"){
+                             # message("Se intenta muestreo estratificado por estrato. Faltan unidades a muestrear.")
+                             out <- survey::svydesign(
+                               pps="brewer",
+                               ids = ~1,
+                               strata = crear_formula_nombre(respuestas, "strata_"),
+                               data = respuestas
+                             )
+                             return(out)
+                           } else{
+                             return(r)
+                           }
+
+
+                           diseno <- tryCatch(
+                             expr = {
+                               survey::svydesign(
+                                 pps="brewer",
+                                 ids=crear_formula_nombre(respuestas, "cluster_"),
+                                 fpc = crear_formula_nombre(respuestas, "fpc_"),
+                                 strata = crear_formula_nombre(respuestas, "strata_"),
+                                 data = respuestas
+                               )
+                             }, error = function(cond){
+
+                               return(diseno)
+                             }
                            )
 
                            if(tipo_encuesta == "inegi"){
@@ -415,7 +444,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                sf::st_buffer(dist = 0)
                              readr::write_rds(mapa_base, glue::glue("{dir}/data/mapa_base.rda"))
                              enc_shp <- encuesta$respuestas$base %>%
-                                 sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
+                               sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
                              if(tipo_encuesta == "inegi"){
@@ -438,12 +467,12 @@ Auditoria <- R6::R6Class("Auditoria",
 
                              self$dir <- dir
                            },
-                          run_app = function(){
-                            shiny::shinyAppDir(
-                              self$dir
-                            )
-                          },
-                          subir_app = function(){
-                            rsconnect::deployApp(self$dir)
-                          }
+                           run_app = function(){
+                             shiny::shinyAppDir(
+                               self$dir
+                             )
+                           },
+                           subir_app = function(){
+                             rsconnect::deployApp(self$dir)
+                           }
                          ))
