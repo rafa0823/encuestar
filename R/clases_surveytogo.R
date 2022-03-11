@@ -63,7 +63,6 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Informacion muestral
                             self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n, tipo_encuesta = self$tipo_encuesta)
                             # Diseno
-
                             self$muestra$extraer_diseno(respuestas = self$respuestas$base,
                                                         marco_muestral = self$muestra$muestra$poblacion$marco_muestral,
                                                         tipo_encuesta = self$tipo_encuesta)
@@ -268,9 +267,9 @@ Muestra <- R6::R6Class("Muestra",
                                strata = crear_formula_nombre(respuestas, "strata_"),
                                data = respuestas
                              )
-                             return(out)
+                             out
                            } else{
-                             return(r)
+                             r
                            }
 
                            if(tipo_encuesta == "inegi"){
