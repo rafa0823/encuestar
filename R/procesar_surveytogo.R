@@ -52,7 +52,7 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
 
   estimaciones <- map_df(llaves,
                       ~{
-                        aux <- encuesta$cuestionario$diccionario %>% unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
+                        aux <- encuesta$cuestionario$diccionario %>% tidyr::unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
                         if(length(aux) == 0) aux <- .x
                         survey::svymean(survey::make.formula(.x),
                                         design = encuesta$muestra$diseno, na.rm = T) %>%
