@@ -17,7 +17,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
                                        nota = "", color = "#B0C429"){
-  g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta,25),
+  g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta,15),
                                                    media),
                           y  = media,
                           fill=respuesta))+
