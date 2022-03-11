@@ -387,8 +387,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               } else{
                                 warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                               }
-
-                              g <- analizar_frecuencias_aspectos(encuesta_qro,{{llave}},aspectos)
+                              g <- analizar_frecuencias_aspectos(self$encuesta,{{llave}},aspectos)
                             }
 
 
