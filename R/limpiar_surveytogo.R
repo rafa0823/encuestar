@@ -76,8 +76,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47
 #' @examples
 
 match_dicc_base <- function(self) {
+  quitar <- match(self$respuestas$base %>% select(contains("T_Q")) %>% select(1) %>% names,names(self$respuestas$base))
   g <- tibble(
-    bd = self$respuestas$base %>% select(-(SbjNum:INT15), -(T_Q_47_1:last_col())) %>% names
+    bd = self$respuestas$base %>% select(-(SbjNum:INT15), -(quitar:last_col())) %>% names
   ) %>% tibble::rownames_to_column() %>% full_join(
     tibble(
       diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%
