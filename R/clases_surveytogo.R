@@ -261,7 +261,7 @@ Muestra <- R6::R6Class("Muestra",
                              ,T)
 
                            diseno <- if(class(r) == "try-error"){
-                             # message("Se intenta muestreo estratificado por estrato. Faltan unidades a muestrear.")
+                             message("Se intenta muestreo estratificado por estrato. Faltan unidades a muestrear.")
                              out <- survey::svydesign(
                                pps="brewer",
                                ids = ~1,
@@ -272,22 +272,6 @@ Muestra <- R6::R6Class("Muestra",
                            } else{
                              return(r)
                            }
-
-
-                           diseno <- tryCatch(
-                             expr = {
-                               survey::svydesign(
-                                 pps="brewer",
-                                 ids=crear_formula_nombre(respuestas, "cluster_"),
-                                 fpc = crear_formula_nombre(respuestas, "fpc_"),
-                                 strata = crear_formula_nombre(respuestas, "strata_"),
-                                 data = respuestas
-                               )
-                             }, error = function(cond){
-
-                               return(diseno)
-                             }
-                           )
 
                            if(tipo_encuesta == "inegi"){
                              pob <- marco_muestral %>%
