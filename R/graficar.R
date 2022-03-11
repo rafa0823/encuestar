@@ -18,6 +18,7 @@ graficar_barras_frecuencia <- function(bd,
                                        titulo,
                                        salto =20,
                                        nota = "", color = "#B0C429"){
+
   g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto),
                                                    media),
                           y  = media,
