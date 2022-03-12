@@ -63,6 +63,58 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 
 }
 
+
+#' Title
+#'
+#' @param base_sf
+#' @param var_n
+#' @param nivel
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dist_poligonos <- function(base_sf, shp, var_n, nivel){
+  base_sf[[var_n]] %>% unique() %>% map_df(~{
+    respuestas <- base_sf %>% filter(!!sym(var_n) == .x)
+    sec <- shp %>% filter(!!rlang::sym(nivel) == .x)
+    dist <- st_distance(respuestas, sec) %>% as_tibble() %>% set_names("distancia")
+    respuestas %>% bind_cols(dist)
+  }) %>% as_tibble %>% select(-geometry)
+}
+
+#' Title
+#'
+#' @param base_sf
+#' @param encuesta
+#' @param muestra
+#' @param var_n
+#' @param nivel
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dist_puntos <- function(base_sf, encuesta, muestra, var_n, nivel){
+  loc <- encuesta$shp_completo$shp[[length(encuesta$shp_completo$shp)]] %>%
+    filter(st_geometry_type(.) == "POINT") %>%
+    inner_join(
+      muestra$muestra[[length(muestra$muestra)]] %>% tidyr::unnest(data)
+    )
+
+  unique(loc[[nivel]]) %>% map_df(~{
+
+    respuestas <- base_sf %>% filter(!!rlang::sym(var_n) == .x)
+    locs <- loc %>% filter(!!rlang::sym(nivel) == .x)
+    respuestas %>% bind_cols(
+      st_distance(respuestas, locs)%>% as_tibble %>% rowwise() %>%
+        mutate(distancia = min(c_across(everything()))) %>% select(distancia)
+    ) %>% as_tibble %>% select(-geometry)
+
+
+  })
+}
+
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47_1","rowname.x","rowname.y",
                                                         "bd"))
 

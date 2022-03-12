@@ -29,6 +29,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 shp = NA,
                                                 tipo_encuesta = NA,
                                                 mantener = NA) {
+                            sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$tipo_encuesta <- tipo_encuesta
                             # Valorar si no es mejor un active binding
@@ -50,14 +51,11 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             # Respuestas
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
-                                                              auditoria_telefonica = self$auditoria_telefonica,
-                                                              muestra = muestra$muestra %>% purrr::pluck(var_n),
-                                                              shp = self$shp,
-                                                              mantener = self$mantener,
-                                                              diccionario = self$cuestionario$diccionario,
+                                                              encuesta = self,
+                                                              muestra_completa = muestra,
                                                               nivel = nivel, var_n = var_n
                             )
-                            # Muestra
+                            # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
                                                         nivel = nivel, var_n = var_n)
                             # Informacion muestral
@@ -98,9 +96,15 @@ Respuestas <- R6::R6Class("Respuestas",
                             #' @description
                             #' Crear respuesta
                             #' @param base Base de datos de respuestas.
-                            initialize=function(base, auditoria_telefonica, muestra, shp, mantener,
-                                                diccionario,
+                            initialize=function(base,
+                                                encuesta,
+                                                muestra_completa,
                                                 nivel, var_n) {
+                              shp <- encuesta$shp
+                              mantener <- encuesta$mantener
+                              diccionario <- encuesta$cuestionario$diccionario
+                              auditoria_telefonica <- encuesta$auditoria_telefonica
+                              muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
 
@@ -114,7 +118,11 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
                               # Corregir cluster equivocado
                               self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
-
+                              # Calcular distancia de la entrevista al cluster correcto
+                              self$calcular_distancia(base = self$base,
+                                                      encuesta = encuesta,
+                                                      muestra = muestra_completa,
+                                                      var_n = var_n, nivel = nivel)
                               # Limpiar las que no tienen variables de diseno
                               self$eliminar_faltantes_diseno()
 
@@ -162,6 +170,20 @@ Respuestas <- R6::R6Class("Respuestas",
                                 semi_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
                                           by = set_names(nivel,var_n))
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
+                            },
+                            calcular_distancia = function(base, encuesta, muestra, var_n, nivel){
+                              aux_sf <- base %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
+
+                              pol <- dist_poligonos(aux_sf, shp = encuesta$shp, var_n, nivel)
+                              puntos <- dist_puntos(aux_sf, encuesta, muestra, var_n, nivel)
+
+                              respuestas <- pol %>%
+                                anti_join(
+                                  puntos %>% as_tibble, by = "SbjNum"
+                                ) %>% bind_rows(
+                                  puntos
+                                )
+                              self$base <- respuestas %>% left_join(base %>% select(SbjNum, Longitude, Latitude), by = "SbjNum")
                             },
                             eliminar_faltantes_diseno=function(){
                               n <- nrow(self$base)
@@ -426,7 +448,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                sf::st_buffer(dist = 0)
                              readr::write_rds(mapa_base, glue::glue("{dir}/data/mapa_base.rda"))
                              enc_shp <- encuesta$respuestas$base %>%
-                               sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
+                               sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
                              if(tipo_encuesta == "inegi"){
