@@ -456,7 +456,7 @@ Auditoria <- R6::R6Class("Auditoria",
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
                              if(tipo_encuesta == "inegi"){
-                               file.copy(
+                               file.copy(overwrite = T,
                                  from = system.file("app_inegi/app.R", package = "encuestar",
                                                     mustWork = TRUE),
                                  to = dir
