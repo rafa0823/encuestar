@@ -476,7 +476,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                self$dir
                              )
                            },
-                           subir_app = function(){
-                             rsconnect::deployApp(self$dir)
+                           subir_app = function(...){
+                             rsconnect::deployApp(self$dir,...)
                            }
                          ))
