@@ -55,6 +55,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                               muestra_completa = muestra,
                                                               nivel = nivel, var_n = var_n
                             )
+
                             # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
                                                         nivel = nivel, var_n = var_n)
@@ -107,7 +108,6 @@ Respuestas <- R6::R6Class("Respuestas",
                               muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
-
                               # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
 
@@ -202,8 +202,9 @@ Respuestas <- R6::R6Class("Respuestas",
                               return(self$base)
                             },
                             vars_diseno = function(muestra, var_n, tipo_encuesta){
+
                               self$base <- self$base %>%
-                                inner_join(muestra$base)
+                                inner_join(muestra$base, by = var_n)
 
                               if(tipo_encuesta == "inegi"){
                                 self$base <- self$base %>%
