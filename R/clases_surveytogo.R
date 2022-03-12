@@ -202,9 +202,12 @@ Respuestas <- R6::R6Class("Respuestas",
                               return(self$base)
                             },
                             vars_diseno = function(muestra, var_n, tipo_encuesta){
+                              vars_join <- c(var_n,
+                                             names(muestra$base)[is.na(match(names(muestra$base), names(self$base)))]
+                              )
 
                               self$base <- self$base %>%
-                                inner_join(muestra$base, by = var_n)
+                                inner_join(muestra$base %>% select(all_of(vars_join)))
 
                               if(tipo_encuesta == "inegi"){
                                 self$base <- self$base %>%
