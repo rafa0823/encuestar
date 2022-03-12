@@ -172,7 +172,8 @@ server <- function(input, output) {
       addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
       addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
-      addCircleMarkers(data = enc_shp %>% mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-")),
+      addCircleMarkers(data = enc_shp %>% mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-")) %>%
+                         arrange(distancia),
                        color = ~pal2(distancia), stroke = F,
                        label = ~label)  %>%
       addLegend(data = enc_shp, position = "bottomright", pal = pal2, values = ~distancia,
@@ -237,7 +238,7 @@ server <- function(input, output) {
   })
 
   output$eliminadas <- renderDT({
-    bd %>% inner_join(eliminadas, by = "SbjNum") %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
+    eliminadas %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
       # bind_rows(
       #   bd %>% filter(is.na(Longitude)) %>% select(SbjNum, Fecha = Date, Encuestador = Srvyr) %>%
       #     mutate(Razón = "GPS apagado")
