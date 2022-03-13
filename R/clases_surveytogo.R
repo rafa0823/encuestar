@@ -465,7 +465,7 @@ Auditoria <- R6::R6Class("Auditoria",
                              }
 
                              if(tipo_encuesta == "ine"){
-                               file.copy(
+                               file.copy(overwrite = T,
                                  from = system.file("app_ine/app.R", package = "encuestar",
                                                     mustWork = TRUE),
                                  to = dir
