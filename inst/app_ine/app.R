@@ -172,7 +172,7 @@ server <- function(input, output) {
       addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
       addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
-      shp$graficar_mapa(bd = diseño_edomex$muestra, nivel = "MANZANA") %>%
+      shp$graficar_mapa(bd = diseño$muestra, nivel = "MANZANA") %>%
       addCircleMarkers(data = enc_shp %>%
                          mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
                                 color = if_else(as.numeric(distancia) == 0, "green", pal2(distancia))) %>%
