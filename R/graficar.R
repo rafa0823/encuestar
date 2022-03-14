@@ -345,12 +345,12 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
     hc_chart(style=list(fontFamily = familia))
 
 
-  htmlwidgets::saveWidget(widget = plot, file = paste0("plot",".html"))
-  webshot::webshot(url = paste0("plot",".html"),
-          file = "Entregables/plot.png",vwidth = ancho, vheight = alto,
-          delay=3) # delay will ensure that the whole plot appears in the image
-  grDevices::dev.off()
-
+  # htmlwidgets::saveWidget(widget = plot, file = paste0("plot",".html"))
+  # webshot::webshot(url = paste0("plot",".html"),
+  #         file = "Entregables/plot.png",vwidth = ancho, vheight = alto,
+  #         delay=3) # delay will ensure that the whole plot appears in the image
+  # grDevices::dev.off()
+return(plot)
 }
 
 
