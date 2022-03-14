@@ -331,7 +331,7 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
                                       color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",
                                       familia = "Poppins",
                                       ancho = 600*5, alto =  600*5/1.41){
-  pregunta <- bd %>% tidytext::unnest_tokens(palabras,{{pregunta}}) %>% count(palabras,sort = T) %>%
+  plot <- bd %>% tidytext::unnest_tokens(palabras,{{pregunta}}) %>% count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
     mutate(colores = case_when(
       n<=quantile(n,probs=.75)~ color3,
@@ -345,9 +345,9 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
     hc_chart(style=list(fontFamily = familia))
 
 
-  htmlwidgets::saveWidget(widget = pregunta, file = paste0(pregunta,".html"))
-  webshot::webshot(url = paste0(pregunta,".html"),
-          file = "plot.png",vwidth = ancho, vheight = alto,
+  htmlwidgets::saveWidget(widget = plot, file = paste0("plot",".html"))
+  webshot::webshot(url = paste0("plot",".html"),
+          file = "Entregables/plot.png",vwidth = ancho, vheight = alto,
           delay=3) # delay will ensure that the whole plot appears in the image
   grDevices::dev.off()
 
