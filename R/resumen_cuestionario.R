@@ -19,7 +19,7 @@ resumen_cuestionario <- function(dicc){
 
   # Aspectos ----------------------------------------------------------------
 
-  b <- aspectos(dicc)
+  b <- aspectos_dicc(dicc)
 
   # Preguntas por tipo ------------------------------------------------------
 
@@ -71,7 +71,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("pregunta", "preguntas")
 #'
 #' @examples
 
-aspectos <- function(dicc){
+aspectos_dicc <- function(dicc){
   c <- dicc %>% filter(str_detect(llaves,"_")) %>% separate(llaves, into = c("aspecto", "pregunta")) %>%
     group_by(aspecto) %>% summarise(n = n(), preguntas = paste(pregunta, collapse = "\n")) %>%
     ggplot(aes(x = stats::reorder(aspecto, -n), y = n, label = preguntas)) +

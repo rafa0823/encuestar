@@ -18,6 +18,7 @@ graficar_barras_frecuencia <- function(bd,
                                        titulo,
                                        salto =20,
                                        nota = "", color = "#B0C429"){
+
   g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto),
                                                    media),
                           y  = media,
@@ -146,7 +147,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("saldo","color_saldo","p
 
 graficar_aspectos_frecuencias <- function(bd,
                                           titulo= NULL,
-                                          fill=NULL,
                                           nota = "",
                                           grupo_positivo = c("Aprueba mucho",
                                                              "Aprueba poco"),
@@ -162,7 +162,7 @@ graficar_aspectos_frecuencias <- function(bd,
 
                                                     "Aprueba poco",
                                                     "Aprueba mucho"),
-                                          familia = "Poppins"){
+                                          familia){
 
   transparencia <- .8
   ancho_barras <- .45
@@ -177,7 +177,7 @@ graficar_aspectos_frecuencias <- function(bd,
                              respuesta == ns_nc~media+1.01),
            media2 = case_when(respuesta == ns_nc~0, T~media)) %>%
     group_by(tema) %>%  mutate(saldo=sum(media2, na.rm = T),
-                               color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
+                 color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
                                                        saldo ==0 ~"gray")) %>%  ungroup()
 
 

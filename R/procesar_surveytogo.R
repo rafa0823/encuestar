@@ -47,12 +47,26 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 #' @examples
 
 analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
-  p <- rlang::expr_text(ensym(pregunta))
-  llaves <- glue::glue("{p}_{aspectos}")
+
+  ja <- try(
+    rlang::expr_text(ensym(pregunta)),T
+  )
+
+  if(class(ja) != "try-error"){
+    p <- rlang::expr_text(ensym(pregunta))
+    llaves <- glue::glue("{p}_{aspectos}")
+  } else{
+    llaves <- aspectos
+  }
+
 
   estimaciones <- map_df(llaves,
                       ~{
+                        if(class(ja) != "try-error"){
                         aux <- encuesta$cuestionario$diccionario %>% tidyr::unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
+                        } else{
+                          aux <- .x
+                        }
                         if(length(aux) == 0) aux <- .x
                         survey::svymean(survey::make.formula(.x),
                                         design = encuesta$muestra$diseno, na.rm = T) %>%

@@ -29,6 +29,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 shp = NA,
                                                 tipo_encuesta = NA,
                                                 mantener = NA) {
+                            sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$tipo_encuesta <- tipo_encuesta
                             # Valorar si no es mejor un active binding
@@ -50,14 +51,12 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             # Respuestas
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
-                                                              auditoria_telefonica = self$auditoria_telefonica,
-                                                              muestra = muestra$muestra %>% purrr::pluck(var_n),
-                                                              shp = self$shp,
-                                                              mantener = self$mantener,
-                                                              diccionario = self$cuestionario$diccionario,
+                                                              encuesta = self,
+                                                              muestra_completa = muestra,
                                                               nivel = nivel, var_n = var_n
                             )
-                            # Muestra
+
+                            # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
                                                         nivel = nivel, var_n = var_n)
                             # Informacion muestral
@@ -98,12 +97,17 @@ Respuestas <- R6::R6Class("Respuestas",
                             #' @description
                             #' Crear respuesta
                             #' @param base Base de datos de respuestas.
-                            initialize=function(base, auditoria_telefonica, muestra, shp, mantener,
-                                                diccionario,
+                            initialize=function(base,
+                                                encuesta,
+                                                muestra_completa,
                                                 nivel, var_n) {
+                              shp <- encuesta$shp
+                              mantener <- encuesta$mantener
+                              diccionario <- encuesta$cuestionario$diccionario
+                              auditoria_telefonica <- encuesta$auditoria_telefonica
+                              muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
-
                               # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
 
@@ -114,7 +118,11 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
                               # Corregir cluster equivocado
                               self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
-
+                              # Calcular distancia de la entrevista al cluster correcto
+                              self$calcular_distancia(base = self$base,
+                                                      encuesta = encuesta,
+                                                      muestra = muestra_completa,
+                                                      var_n = var_n, nivel = nivel)
                               # Limpiar las que no tienen variables de diseno
                               self$eliminar_faltantes_diseno()
 
@@ -163,6 +171,20 @@ Respuestas <- R6::R6Class("Respuestas",
                                           by = set_names(nivel,var_n))
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
                             },
+                            calcular_distancia = function(base, encuesta, muestra, var_n, nivel){
+                              aux_sf <- base %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
+
+                              pol <- dist_poligonos(aux_sf, shp = encuesta$shp, var_n, nivel)
+                              puntos <- dist_puntos(aux_sf, encuesta, muestra, var_n, nivel)
+
+                              respuestas <- pol %>%
+                                anti_join(
+                                  puntos %>% as_tibble, by = "SbjNum"
+                                ) %>% bind_rows(
+                                  puntos
+                                )
+                              self$base <- respuestas %>% left_join(base %>% select(SbjNum, Longitude, Latitude), by = "SbjNum")
+                            },
                             eliminar_faltantes_diseno=function(){
                               n <- nrow(self$base)
                               self$base <- self$base %>%
@@ -180,8 +202,12 @@ Respuestas <- R6::R6Class("Respuestas",
                               return(self$base)
                             },
                             vars_diseno = function(muestra, var_n, tipo_encuesta){
+                              vars_join <- c(var_n,
+                                             names(muestra$base)[is.na(match(names(muestra$base), names(self$base)))]
+                              )
+
                               self$base <- self$base %>%
-                                inner_join(muestra$base)
+                                inner_join(muestra$base %>% select(all_of(vars_join)))
 
                               if(tipo_encuesta == "inegi"){
                                 self$base <- self$base %>%
@@ -360,36 +386,81 @@ Pregunta <- R6::R6Class("Pregunta",
                             self$encuesta <- encuesta
                             self$tema <- tema
                           },
-                          graficar = function(llave, tipo, aspectos, tit = NULL){
+                          graficar = function(llave, tipo, aspectos = NULL, filtro = NULL, parametros = list(tit = "")){
+                            tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube"))
                             if(tipo == "frecuencia"){
-                              llave_aux <- quo_name(enquo(llave))
-                              if(!(llave_aux %in% self$graficadas)){
-                                if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
-                                  self$graficadas <- self$graficadas %>% append(llave_aux)
+                              if(is.null(aspectos)){
+                                llave_aux <- quo_name(enquo(llave))
+                                if(!(llave_aux %in% self$graficadas)){
+                                  if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                                    self$graficadas <- self$graficadas %>% append(llave_aux)
+                                  } else{
+                                    stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                  }
                                 } else{
-                                  stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                  warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                                 }
-                              } else{
-                                warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                              }
-                              g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
-                                encuestar::graficar_barras_frecuencia(titulo = tit) + self$tema()
-                            }
-                            if(tipo == "aspectos"){
-                              aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
+                                v_params <- c("tit")
 
-                              if(!all(aspectos_aux %in% self$graficadas)){
-                                if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
-                                  self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params, collapse= ', ')}"))
+
+                                g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                                  encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
+                              } else{
+                                if(quo_name(enquo(llave)) != "NULL") {
+                                  aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
+                                } else {
+                                  aspectos_aux <- aspectos
+                                }
+
+
+                                if(!all(aspectos_aux %in% self$graficadas)){
+                                  if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                    self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                  } else{
+                                    stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                  }
                                 } else{
-                                  stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                  warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
-                              } else{
-                                warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+
+                                v_params <- c("tit", "nota", "grupo_positivo", "grupo_negativo", "ns_nc", "colores", "orden")
+
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params, collapse= ', ')}"))
+
+                                g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
+
+                                g <- g %>% rename(tema = aspecto) %>%
+                                  graficar_aspectos_frecuencias(
+                                  titulo = parametros$tit,
+                                  nota = parametros$nota,
+                                  grupo_positivo = parametros$grupo_positivo,
+                                  grupo_negativo = parametros$grupo_negativo,
+                                  ns_nc = parametros$ns_nc,
+                                  colores =  parametros$colores,
+                                  orden = parametros$orden,
+                                  familia = self$tema()$text$family
+                                ) + self$tema()
                               }
-                              g <- analizar_frecuencias_aspectos(self$encuesta,{{llave}},aspectos)
+
+                            }
+                            if(tipo == "promedio"){
+                              if(is.null(aspectos)){
+
+                              } else{
+
+                              }
                             }
 
+                            if(stringr::str_detect(string = "texto", tipo)){
+                              if(stringr::str_detect(string = "barras", tipo)){
+
+                              }
+
+                              if(stringr::str_detect(string = "nube", tipo)){
+
+                              }
+                            }
 
                             return(g)
 
@@ -426,23 +497,23 @@ Auditoria <- R6::R6Class("Auditoria",
                                sf::st_buffer(dist = 0)
                              readr::write_rds(mapa_base, glue::glue("{dir}/data/mapa_base.rda"))
                              enc_shp <- encuesta$respuestas$base %>%
-                               sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
+                               sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
                              readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
                              if(tipo_encuesta == "inegi"){
-                               file.copy(
-                                 from = system.file("app_inegi/app.R", package = "encuestar",
-                                                    mustWork = TRUE),
-                                 to = dir
+                               file.copy(overwrite = T,
+                                         from = system.file("app_inegi/app.R", package = "encuestar",
+                                                            mustWork = TRUE),
+                                         to = dir
 
                                )
                              }
 
                              if(tipo_encuesta == "ine"){
-                               file.copy(
-                                 from = system.file("app_ine/app.R", package = "encuestar",
-                                                    mustWork = TRUE),
-                                 to = dir
+                               file.copy(overwrite = T,
+                                         from = system.file("app_ine/app.R", package = "encuestar",
+                                                            mustWork = TRUE),
+                                         to = dir
 
                                )
                              }
@@ -454,7 +525,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                self$dir
                              )
                            },
-                           subir_app = function(){
-                             rsconnect::deployApp(self$dir)
+                           subir_app = function(...){
+                             rsconnect::deployApp(self$dir,...)
                            }
                          ))
