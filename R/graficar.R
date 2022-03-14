@@ -176,7 +176,7 @@ graficar_aspectos_frecuencias <- function(bd,
                              respuesta %in% grupo_positivo~media,
                              respuesta == ns_nc~media+1.01),
            media2 = case_when(respuesta == ns_nc~0, T~media)) %>%
-    group_by(tema) %>%  mutate(saldo=sum(media2),
+    group_by(tema) %>%  mutate(saldo=sum(media2, na.rm = T),
                                color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
                                                        saldo ==0 ~"gray")) %>%  ungroup()
 
