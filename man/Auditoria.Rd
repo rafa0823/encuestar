@@ -50,7 +50,7 @@ Title
 \if{latex}{\out{\hypertarget{method-subir_app}{}}}
 \subsection{Method \code{subir_app()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Auditoria$subir_app()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Auditoria$subir_app(...)}\if{html}{\out{</div>}}
 }
 
 }

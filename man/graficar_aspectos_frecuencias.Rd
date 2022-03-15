@@ -7,7 +7,6 @@
 graficar_aspectos_frecuencias(
   bd,
   titulo = NULL,
-  fill = NULL,
   nota = "",
   grupo_positivo = c("Aprueba mucho", "Aprueba poco"),
   grupo_negativo = c("Desaprueba mucho", "Desaprueba poco"),
@@ -15,15 +14,13 @@ graficar_aspectos_frecuencias(
   colores = c(`Desaprueba mucho` = "#DE6400", `Desaprueba poco` = "#FB8500", `Aprueba
     poco` = "#126782", `Aprueba mucho` = "#023047", `Ns/Nc` = "gray"),
   orden = c("Desaprueba poco", "Desaprueba mucho", "Aprueba poco", "Aprueba mucho"),
-  familia = "Poppins"
+  familia
 )
 }
 \arguments{
 \item{bd}{Base de datos (ya procesada)}
 
 \item{titulo}{Título de la gráfica}
-
-\item{fill}{Variable de color}
 
 \item{nota}{Nota opcional}
 
@@ -38,6 +35,8 @@ graficar_aspectos_frecuencias(
 \item{orden}{Orden de la variable de color}
 
 \item{familia}{font family}
+
+\item{fill}{Variable de color}
 }
 \value{
 
