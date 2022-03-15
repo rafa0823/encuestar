@@ -386,8 +386,10 @@ Pregunta <- R6::R6Class("Pregunta",
                             self$encuesta <- encuesta
                             self$tema <- tema
                           },
-                          graficar = function(llave, tipo, aspectos = NULL, filtro = NULL, parametros = list(tit = "")){
-                            tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube"))
+                          graficar = function(llave, tipo, aspectos = NULL, filtro = NULL, parametros = list(tit = ""),
+                                              llave_partido, llave_conocimiento){
+                            tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
+                                                                "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
                               if(is.null(aspectos)){
                                 llave_aux <- quo_name(enquo(llave))
@@ -402,7 +404,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                 }
                                 v_params <- c("tit")
 
-                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params, collapse= ', ')}"))
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                 g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
                                   encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
@@ -426,7 +428,7 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 v_params <- c("tit", "nota", "grupo_positivo", "grupo_negativo", "ns_nc", "colores", "orden")
 
-                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params, collapse= ', ')}"))
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
 
@@ -444,6 +446,22 @@ Pregunta <- R6::R6Class("Pregunta",
                               }
 
                             }
+
+                            if(stringr::str_detect(pattern = "candidato", tipo)){
+                              if(stringr::str_detect(pattern = "opinion", tipo)){
+
+                              }
+                              if(stringr::str_detect(pattern = "saldo", tipo)){
+
+                              }
+                              if(stringr::str_detect(pattern = "partido", tipo)){
+
+                                g <- analizar_candidato_partido(llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
+                                                                dicc = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
+                                  graficar_candidato_partido()
+                              }
+                            }
+
                             if(tipo == "promedio"){
                               if(is.null(aspectos)){
 
@@ -452,13 +470,29 @@ Pregunta <- R6::R6Class("Pregunta",
                               }
                             }
 
-                            if(stringr::str_detect(string = "texto", tipo)){
-                              if(stringr::str_detect(string = "barras", tipo)){
+                            if(stringr::str_detect(pattern = "texto", tipo)){
+                              if(stringr::str_detect(pattern = "nube", tipo)){
 
+                                v_params <- c("n", "color1", "color2", "color3", "ancho", "alto")
+
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                g <- graficar_nube_frecuencias(bd = self$encuesta$respuestas$base, llave,
+                                                          n = parametros$n,
+                                                          color1 = parametros$color1, color2 = parametros$color2, color3 = parametros$color3,
+                                                          familia = self$tema()$text$family,
+                                                          ancho = parametros$ancho, alto = parametros$alto)
                               }
 
-                              if(stringr::str_detect(string = "nube", tipo)){
+                              if(stringr::str_detect(pattern = "barras", tipo)){
+                                v_params <- c("n", "nota","tit")
 
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                g <- graficar_barras_palabras(bd = self$encuesta$respuestas$base,
+                                                         pregunta = llave, n = parametros$n,
+                                                         nota = parametros$nota,
+                                                         tit = parametros$tit)
                               }
                             }
 
