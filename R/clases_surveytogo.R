@@ -434,15 +434,15 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 g <- g %>% rename(tema = aspecto) %>%
                                   graficar_aspectos_frecuencias(
-                                    titulo = parametros$tit,
-                                    nota = parametros$nota,
-                                    grupo_positivo = parametros$grupo_positivo,
-                                    grupo_negativo = parametros$grupo_negativo,
-                                    ns_nc = parametros$ns_nc,
-                                    colores =  parametros$colores,
-                                    orden = parametros$orden,
-                                    familia = self$tema()$text$family
-                                  ) + self$tema()
+                                  titulo = parametros$tit,
+                                  nota = parametros$nota,
+                                  grupo_positivo = parametros$grupo_positivo,
+                                  grupo_negativo = parametros$grupo_negativo,
+                                  ns_nc = parametros$ns_nc,
+                                  colores =  parametros$colores,
+                                  # orden = parametros$orden,
+                                  familia = self$tema()$text$family
+                                ) + self$tema()
                               }
 
                             }
