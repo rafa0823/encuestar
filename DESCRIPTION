@@ -44,7 +44,8 @@ Imports:
     shinycssloaders,
     DT,
     survey,
-    leaflet
+    leaflet,
+    patchwork
 Suggests: 
     lemon,
     ggfittext,
