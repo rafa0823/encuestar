@@ -4,7 +4,7 @@
 \alias{graficar_barras_palabras}
 \title{Title}
 \usage{
-graficar_barras_palabras(bd, pregunta, n = 10)
+graficar_barras_palabras(bd, pregunta, nota, tit, n = 10)
 }
 \arguments{
 \item{bd}{Base de datos (ya procesada)}

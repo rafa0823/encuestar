@@ -172,8 +172,8 @@ orden <- c(grupo_negativo, grupo_positivo)
                              respuesta %in% grupo_positivo~media,
                              respuesta == ns_nc~media+1.01),
            media2 = case_when(respuesta == ns_nc~0, T~media)) %>%
-    group_by(tema) %>%  mutate(saldo=sum(media2,na.rm = T),
-                               color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
+    group_by(tema) %>%  mutate(saldo=sum(media2, na.rm = T),
+                 color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
                                                        saldo ==0 ~"gray")) %>%  ungroup()
 
 
@@ -202,9 +202,9 @@ orden <- c(grupo_negativo, grupo_positivo)
               family = familia, size = 3.5, hjust = .5,nudge_x = .3,  nudge_y =-0.08, show.legend = F)+
     geom_point(data =  aux %>% filter(respuesta == ns_nc), shape = 18, size = 3,
                aes(x = tema, y=saldo, color = color_saldo), show.legend = F, position = position_nudge(x =.3))+
-    geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
-              position = position_stack(.7,reverse = T),
-              color = color_etiqueta) +
+    # geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
+    #           position = position_stack(.7,reverse = T),
+    #           color = color_etiqueta) +
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     geom_hline(yintercept = 1, color = "#FFFFFF", size = 1.2)+
@@ -286,16 +286,16 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","t
 #'
 #' @examples
 
-graficar_barras_palabras <- function(bd, pregunta, n = 10){
+graficar_barras_palabras <- function(bd, pregunta, nota, tit, n = 10){
   bd %>% tidytext::unnest_tokens(palabras, pregunta) %>%
     count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
-    slice(1:n) %>%
+    slice(seq_len(n)) %>%
     ggplot(aes(x = forcats::fct_reorder(palabras, n), y = n))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
                               width =.45)+
-    labs(title = titulo,
+    labs(title = tit,
          x = NULL,
          y = NULL,
          caption = nota)+
@@ -327,7 +327,7 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
                                       color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",
                                       familia = "Poppins",
                                       ancho = 600*5, alto =  600*5/1.41){
-  pregunta <- bd %>% tidytext::unnest_tokens(palabras, pregunta) %>% count(palabras,sort = T) %>%
+  plot <- bd %>% tidytext::unnest_tokens(palabras,{{pregunta}}) %>% count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
     mutate(colores = case_when(
       n<=quantile(n,probs=.75)~ color3,
@@ -341,11 +341,13 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
     hc_chart(style=list(fontFamily = familia))
 
 
-  htmlwidgets::saveWidget(widget = pregunta, file = paste0(pregunta,".html"))
-  webshot::webshot(url = paste0(pregunta,".html"),
-          file = "plot.png",vwidth = ancho, vheight = alto,
-          delay=3) # delay will ensure that the whole plot appears in the image
-  grDevices::dev.off()
+
+  # htmlwidgets::saveWidget(widget = plot, file = paste0("plot",".html"))
+  # webshot::webshot(url = paste0("plot",".html"),
+  #         file = "Entregables/plot.png",vwidth = ancho, vheight = alto,
+  #         delay=3) # delay will ensure that the whole plot appears in the image
+  # grDevices::dev.off()
+return(plot)
 
 }
 
@@ -544,4 +546,30 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
           panel.grid.major.y = element_blank(),
           legend.position = "bottom")+
     labs(title = titulo, fill = NULL, x = etiqueta_x)
+}
+
+#' Title
+#'
+#' @param bases
+#'
+#' @return
+#' @import patchwork
+#' @export
+#'
+#' @examples
+#'
+graficar_candidato_partido <- function(bases){
+
+  a <- bases$conoce %>% ggplot(aes(y = aspecto, x = media, fill = respuesta)) +
+    geom_col(show.legend = F) + labs(title = "Conocimiento") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+  b <- bases$partido %>% ggplot(aes(y = aspecto, x = media, fill = respuesta)) +
+    geom_col() + labs( y = "", title = "Identificación partidista") +
+    theme_minimal() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank())
+
+  a+ b+ plot_layout(widths = c(.2,.8))
 }
