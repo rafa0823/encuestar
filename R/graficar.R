@@ -158,17 +158,13 @@ graficar_aspectos_frecuencias <- function(bd,
                                                        "Aprueba poco" = "#126782",
                                                        "Aprueba mucho" = "#023047",
                                                        "Ns/Nc" = "gray"),
-                                          orden = c("Desaprueba poco","Desaprueba mucho",
-
-                                                    "Aprueba poco",
-                                                    "Aprueba mucho"),
                                           familia){
 
   transparencia <- .8
   ancho_barras <- .45
   color_etiqueta <- "#3B3838"
 
-
+orden <- c(grupo_negativo, grupo_positivo)
 
   aux  <-  bd %>%
     mutate(etiqueta = media,
@@ -176,8 +172,8 @@ graficar_aspectos_frecuencias <- function(bd,
                              respuesta %in% grupo_positivo~media,
                              respuesta == ns_nc~media+1.01),
            media2 = case_when(respuesta == ns_nc~0, T~media)) %>%
-    group_by(tema) %>%  mutate(saldo=sum(media2,na.rm = T),
-                               color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
+    group_by(tema) %>%  mutate(saldo=sum(media2, na.rm = T),
+                 color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
                                                        saldo ==0 ~"gray")) %>%  ungroup()
 
 
@@ -206,9 +202,9 @@ graficar_aspectos_frecuencias <- function(bd,
               family = familia, size = 3.5, hjust = .5,nudge_x = .3,  nudge_y =-0.08, show.legend = F)+
     geom_point(data =  aux %>% filter(respuesta == ns_nc), shape = 18, size = 3,
                aes(x = tema, y=saldo, color = color_saldo), show.legend = F, position = position_nudge(x =.3))+
-    geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
-              position = position_stack(.7,reverse = T),
-              color = color_etiqueta) +
+    # geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
+    #           position = position_stack(.7,reverse = T),
+    #           color = color_etiqueta) +
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     geom_hline(yintercept = 1, color = "#FFFFFF", size = 1.2)+
@@ -331,7 +327,7 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
                                       color1 = "#5B0A1C", color2 = "#850D2D", color3 = "#961B41",
                                       familia = "Poppins",
                                       ancho = 600*5, alto =  600*5/1.41){
-  pregunta <- bd %>% tidytext::unnest_tokens(palabras, pregunta) %>% count(palabras,sort = T) %>%
+  plot <- bd %>% tidytext::unnest_tokens(palabras,{{pregunta}}) %>% count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
     mutate(colores = case_when(
       n<=quantile(n,probs=.75)~ color3,
@@ -345,12 +341,12 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
     hc_chart(style=list(fontFamily = familia))
 
 
-  htmlwidgets::saveWidget(widget = pregunta, file = paste0(pregunta,".html"))
-  webshot::webshot(url = paste0(pregunta,".html"),
-          file = "plot.png",vwidth = ancho, vheight = alto,
-          delay=3) # delay will ensure that the whole plot appears in the image
-  grDevices::dev.off()
-
+  # htmlwidgets::saveWidget(widget = plot, file = paste0("plot",".html"))
+  # webshot::webshot(url = paste0("plot",".html"),
+  #         file = "Entregables/plot.png",vwidth = ancho, vheight = alto,
+  #         delay=3) # delay will ensure that the whole plot appears in the image
+  # grDevices::dev.off()
+return(plot)
 }
 
 
