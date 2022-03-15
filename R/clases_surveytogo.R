@@ -438,7 +438,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                   grupo_negativo = parametros$grupo_negativo,
                                   ns_nc = parametros$ns_nc,
                                   colores =  parametros$colores,
-                                  orden = parametros$orden,
+                                  # orden = parametros$orden,
                                   familia = self$tema()$text$family
                                 ) + self$tema()
                               }

@@ -158,17 +158,13 @@ graficar_aspectos_frecuencias <- function(bd,
                                                        "Aprueba poco" = "#126782",
                                                        "Aprueba mucho" = "#023047",
                                                        "Ns/Nc" = "gray"),
-                                          orden = c("Desaprueba poco","Desaprueba mucho",
-
-                                                    "Aprueba poco",
-                                                    "Aprueba mucho"),
                                           familia){
 
   transparencia <- .8
   ancho_barras <- .45
   color_etiqueta <- "#3B3838"
 
-
+orden <- c(grupo_negativo, grupo_positivo)
 
   aux  <-  bd %>%
     mutate(etiqueta = media,
