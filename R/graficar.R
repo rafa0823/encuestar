@@ -202,9 +202,9 @@ orden <- c(grupo_negativo, grupo_positivo)
               family = familia, size = 3.5, hjust = .5,nudge_x = .3,  nudge_y =-0.08, show.legend = F)+
     geom_point(data =  aux %>% filter(respuesta == ns_nc), shape = 18, size = 3,
                aes(x = tema, y=saldo, color = color_saldo), show.legend = F, position = position_nudge(x =.3))+
-    geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
-              position = position_stack(.7,reverse = T),
-              color = color_etiqueta) +
+    # geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
+    #           position = position_stack(.7,reverse = T),
+    #           color = color_etiqueta) +
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     geom_hline(yintercept = 1, color = "#FFFFFF", size = 1.2)+
