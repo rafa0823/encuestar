@@ -456,7 +456,8 @@ Pregunta <- R6::R6Class("Pregunta",
                               }
                               if(stringr::str_detect(pattern = "partido", tipo)){
 
-                                g <- analizar_candidato_partido(llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
+                                g <- analizar_candidato_partido(encuesta = self$encuesta,
+                                                                llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
                                                                 dicc = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
                                   graficar_candidato_partido()
                               }
