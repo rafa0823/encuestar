@@ -286,16 +286,16 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","t
 #'
 #' @examples
 
-graficar_barras_palabras <- function(bd, pregunta, n = 10){
+graficar_barras_palabras <- function(bd, pregunta, nota, tit, n = 10){
   bd %>% tidytext::unnest_tokens(palabras, pregunta) %>%
     count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
-    slice(1:n) %>%
+    slice(seq_len(n)) %>%
     ggplot(aes(x = forcats::fct_reorder(palabras, n), y = n))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
                               width =.45)+
-    labs(title = titulo,
+    labs(title = tit,
          x = NULL,
          y = NULL,
          caption = nota)+
@@ -341,12 +341,14 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
     hc_chart(style=list(fontFamily = familia))
 
 
+
   # htmlwidgets::saveWidget(widget = plot, file = paste0("plot",".html"))
   # webshot::webshot(url = paste0("plot",".html"),
   #         file = "Entregables/plot.png",vwidth = ancho, vheight = alto,
   #         delay=3) # delay will ensure that the whole plot appears in the image
   # grDevices::dev.off()
 return(plot)
+
 }
 
 
@@ -546,6 +548,7 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
     labs(title = titulo, fill = NULL, x = etiqueta_x)
 }
 
+
 graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "Regular (No leer)",grupo_positivo= c("Buena", "Muy buena"),
                                        grupo_negativo = c( "Muy mala", "Mala")){
 
@@ -615,4 +618,40 @@ graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "
   library(patchwork)
   final <-a+b+plot_layout(widths = c(.8,.2))
   return(final)
+
+#' Title
+#'
+#' @param bases
+#'
+#' @return
+#' @import patchwork
+#' @export
+#'
+#' @examples
+#'
+graficar_candidato_partido <- function(bases, cliente, colores_partido){
+
+  a <- bases$conoce %>% ggplot(aes(y = aspecto, x = media, fill = respuesta)) +
+    geom_col(show.legend = F) + labs(title = "Conocimiento") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+  b <- bases$partido %>%
+    ggplot() +
+    geom_rect(aes(xmin = inf, xmax = sup,
+                  y = aspecto,
+                  ymin = as.numeric(aspecto) - .45,
+                  ymax = as.numeric(aspecto) + .45,
+                  fill = respuesta)) +
+    geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = aspecto)),
+              aes(x = label, y = as.numeric(aspecto), label = scales::percent(media,accuracy = 1))) +
+    scale_fill_manual(values = colores_partido) +
+    # geom_text(aes(x = 0, y = as.numeric(aspecto), label = aspecto), hjust = 0) +
+    labs( y = "", title = "Identificación partidista") +
+    theme_minimal() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank())
+
+  a+ b+ plot_layout(widths = c(.2,.8))
+
 }

@@ -19,6 +19,7 @@ Esta es la clase Respuestas
 \item \href{#method-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
 \item \href{#method-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
 \item \href{#method-eliminar_fuera_muestra}{\code{Respuestas$eliminar_fuera_muestra()}}
+\item \href{#method-calcular_distancia}{\code{Respuestas$calcular_distancia()}}
 \item \href{#method-eliminar_faltantes_diseno}{\code{Respuestas$eliminar_faltantes_diseno()}}
 \item \href{#method-vars_diseno}{\code{Respuestas$vars_diseno()}}
 \item \href{#method-clone}{\code{Respuestas$clone()}}
@@ -37,16 +38,7 @@ Esta es la clase Respuestas
 \subsection{Method \code{new()}}{
 Crear respuesta
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(
-  base,
-  auditoria_telefonica,
-  muestra,
-  shp,
-  mantener,
-  diccionario,
-  nivel,
-  var_n
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(base, encuesta, muestra_completa, nivel, var_n)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -90,6 +82,15 @@ Crear respuesta
 \subsection{Method \code{eliminar_fuera_muestra()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_fuera_muestra(respuestas, muestra, nivel, var_n)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-calcular_distancia"></a>}}
+\if{latex}{\out{\hypertarget{method-calcular_distancia}{}}}
+\subsection{Method \code{calcular_distancia()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$calcular_distancia(base, encuesta, muestra, var_n, nivel)}\if{html}{\out{</div>}}
 }
 
 }

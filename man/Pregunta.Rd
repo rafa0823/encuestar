@@ -31,7 +31,15 @@ Esta es la clase de pregunta
 \if{latex}{\out{\hypertarget{method-graficar}{}}}
 \subsection{Method \code{graficar()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Pregunta$graficar(llave, tipo, aspectos, tit = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$graficar(
+  llave,
+  tipo,
+  aspectos = NULL,
+  filtro = NULL,
+  parametros = list(tit = ""),
+  llave_partido,
+  llave_conocimiento
+)}\if{html}{\out{</div>}}
 }
 
 }
