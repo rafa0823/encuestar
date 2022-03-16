@@ -548,6 +548,54 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
     labs(title = titulo, fill = NULL, x = etiqueta_x)
 }
 
+
+graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "Regular (No leer)",grupo_positivo= c("Buena", "Muy buena"),
+                                       grupo_negativo = c( "Muy mala", "Mala"),
+                                       familia){
+
+  aux <- bd %>% mutate(Regular = if_else(respuesta == regular, "regular1", as.character(respuesta))) %>%
+    bind_rows(bd %>% filter(respuesta == regular) %>% mutate(Regular = "regular2", media = -media)) %>%
+    mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
+           media = if_else(respuesta %in% grupo_negativo,-1*media,media),
+           media = if_else(respuesta == regular, media/2, media)) %>%
+    mutate(Regular =factor(Regular, levels = c("Mala","Muy mala", "regular1", "regular2", "Buena", "Muy buena"))) %>%
+    group_by(tema) %>%
+    mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
+
+  a <- aux %>%
+    filter(respuesta!= ns_nc) %>%
+    ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta,
+               group = factor(Regular, levels = c( "regular2", "Mala","Muy mala", "regular1", "Buena", "Muy buena")), y =media)) +
+    ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
+    geom_text(aes(label = etiqueta), family = familia,
+              position = position_stack(.5,reverse = T), vjust = .5) +
+    coord_flip()+
+    scale_fill_manual(values = c("Muy mala" = "#FB8500", "Mala" = "#FFB703",
+                                 "Regular (No leer)" = "#E3DEC1",
+                                 # "regular2" = "#E3DEC1",
+                                 "Buena" = "#219EBC" , "Muy buena" = "#0A4C65", "Ns/Nc" = "gray"))+
+    labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
+    geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
+    geom_hline(yintercept = 0, color = "gray", size= .6)+
+    lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
+    theme(legend.position = "bottom")
+
+
+  b<- aux %>%  filter(respuesta == ns_nc) %>%
+    ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = media))+
+    ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
+    coord_flip()+
+    geom_text(aes(label = etiqueta), family = familia,
+              hjust = -.1)+
+    theme_minimal()+
+    theme(axis.text = element_blank(),
+          panel.grid.minor = element_blank())+
+    labs(y = NULL, x = NULL)+
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+
+  final <-a+b+plot_layout(widths = c(.8,.2))
+  return(final)
+}
 #' Title
 #'
 #' @param bases
@@ -560,26 +608,33 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 #'
 graficar_candidato_partido <- function(bases, cliente, colores_partido){
 
-  a <- bases$conoce %>% ggplot(aes(y = aspecto, x = media, fill = respuesta)) +
+  bases$conoce <- bases$conoce %>%
+    mutate(tema = fct_reorder(tema, media, min))
+
+  a <- bases$conoce %>% ggplot(aes(y = tema, x = media, fill = respuesta)) +
     geom_col(show.legend = F) + labs(title = "Conocimiento") +
     theme_minimal() +
     theme(legend.position = "bottom")
 
+  bases$partido <- bases$partido %>%
+    mutate(tema = factor(tema,levels(bases$conoce$tema)))
+
   b <- bases$partido %>%
     ggplot() +
     geom_rect(aes(xmin = inf, xmax = sup,
-                  y = aspecto,
-                  ymin = as.numeric(aspecto) - .45,
-                  ymax = as.numeric(aspecto) + .45,
+                  y = tema,
+                  ymin = as.numeric(tema) - .45,
+                  ymax = as.numeric(tema) + .45,
                   fill = respuesta)) +
-    geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = aspecto)),
-              aes(x = label, y = as.numeric(aspecto), label = scales::percent(media,accuracy = 1))) +
+    geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = tema)),
+              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1))) +
     scale_fill_manual(values = colores_partido) +
-    # geom_text(aes(x = 0, y = as.numeric(aspecto), label = aspecto), hjust = 0) +
+    # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
     labs( y = "", title = "Identificación partidista") +
     theme_minimal() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank())
 
   a+ b+ plot_layout(widths = c(.2,.8))
+
 }
