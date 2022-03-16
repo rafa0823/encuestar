@@ -565,8 +565,16 @@ graficar_candidato_partido <- function(bases){
     theme_minimal() +
     theme(legend.position = "bottom")
 
-  b <- bases$partido %>% ggplot(aes(y = aspecto, x = media, fill = respuesta)) +
-    geom_col() + labs( y = "", title = "Identificación partidista") +
+  b <- bases$partido %>%
+    ggplot() +
+    geom_rect(aes(xmin = inf, xmax = sup,
+                  y = aspecto,
+                  ymin = as.numeric(aspecto)-.45,
+                  ymax = as.numeric(aspecto)+.45,
+                  fill = respuesta)) +
+    geom_text(aes(x = label, y = as.numeric(aspecto), label = scales::percent(media,accuracy = 1))) +
+    # geom_text(aes(x = 0, y = as.numeric(aspecto), label = aspecto), hjust = 0) +
+    labs( y = "", title = "Identificación partidista") +
     theme_minimal() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank())
