@@ -558,7 +558,7 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 #'
 #' @examples
 #'
-graficar_candidato_partido <- function(bases){
+graficar_candidato_partido <- function(bases, cliente, colores_partido){
 
   a <- bases$conoce %>% ggplot(aes(y = aspecto, x = media, fill = respuesta)) +
     geom_col(show.legend = F) + labs(title = "Conocimiento") +
@@ -569,10 +569,12 @@ graficar_candidato_partido <- function(bases){
     ggplot() +
     geom_rect(aes(xmin = inf, xmax = sup,
                   y = aspecto,
-                  ymin = as.numeric(aspecto)-.45,
-                  ymax = as.numeric(aspecto)+.45,
+                  ymin = as.numeric(aspecto) - .45,
+                  ymax = as.numeric(aspecto) + .45,
                   fill = respuesta)) +
-    geom_text(aes(x = label, y = as.numeric(aspecto), label = scales::percent(media,accuracy = 1))) +
+    geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = aspecto)),
+              aes(x = label, y = as.numeric(aspecto), label = scales::percent(media,accuracy = 1))) +
+    scale_fill_manual(values = colores_partido) +
     # geom_text(aes(x = 0, y = as.numeric(aspecto), label = aspecto), hjust = 0) +
     labs( y = "", title = "Identificación partidista") +
     theme_minimal() +

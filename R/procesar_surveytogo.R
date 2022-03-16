@@ -89,13 +89,13 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
 }
 
 
-analizar_candidato_partido <- function(encuesta, llave_partido, llave_conocimiento, diccionario, corte_otro){
+analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, diccionario, corte_otro){
   partido <- dicc %>% filter(grepl(llave_partido,llaves)) %>% pull(llaves) %>% unique %>% as.character()
   conoce <- dicc %>% filter(grepl(llave_conocimiento,llaves)) %>% pull(llaves) %>% unique %>% as.character()
 
   conoce <- purrr::map_df(.x = conoce,.f = ~{
     survey::svymean(survey::make.formula(.x),
-                    design = encuesta$muestra$diseno, na.rm = T) %>%
+                    design = diseno, na.rm = T) %>%
       tibble::as_tibble(rownames = "respuesta") %>%
       rename(media=2, ee=3) %>%
       mutate(
@@ -109,7 +109,7 @@ analizar_candidato_partido <- function(encuesta, llave_partido, llave_conocimien
 
   partido <- purrr::map_df(.x = partido,.f = ~{
     survey::svymean(survey::make.formula(.x),
-                    design = encuesta$muestra$diseno, na.rm = T) %>%
+                    design = diseno, na.rm = T) %>%
       tibble::as_tibble(rownames = "respuesta") %>%
       rename(media=2, ee=3) %>%
       mutate(
