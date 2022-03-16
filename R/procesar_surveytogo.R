@@ -89,7 +89,7 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
 }
 
 
-analizar_candidato_partido <- function(encuesta, llave_partido, llave_conocimiento, diccionario){
+analizar_candidato_partido <- function(encuesta, llave_partido, llave_conocimiento, diccionario, corte_otro){
   partido <- dicc %>% filter(grepl(llave_partido,llaves)) %>% pull(llaves) %>% unique %>% as.character()
   conoce <- dicc %>% filter(grepl(llave_conocimiento,llaves)) %>% pull(llaves) %>% unique %>% as.character()
 
@@ -118,7 +118,7 @@ analizar_candidato_partido <- function(encuesta, llave_partido, llave_conocimien
           pattern = .x,
           replacement = "",
           string = respuesta),
-        respuesta=forcats::fct_lump(respuesta, w = media, prop = .1, other_level = "Otro")) %>%
+        respuesta=forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) %>%
       count(respuesta, aspecto, wt = media, name = "media") %>% arrange(desc(media))
   }) %>%
     mutate(aspecto = factor(aspecto,gsub(llave_conocimiento,llave_partido,x = levels(conoce$aspecto)))) %>%
