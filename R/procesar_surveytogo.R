@@ -88,13 +88,14 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
   estimaciones <- estimaciones %>% mutate(aspecto = as.character(aspecto)) %>% left_join(p)
 }
 
-analizar_candidato_partido <- function(llave_partido, llave_conocimiento, diccionario){
+
+analizar_candidato_partido <- function(encuesta, llave_partido, llave_conocimiento, diccionario, corte_otro){
   partido <- dicc %>% filter(grepl(llave_partido,llaves)) %>% pull(llaves) %>% unique %>% as.character()
   conoce <- dicc %>% filter(grepl(llave_conocimiento,llaves)) %>% pull(llaves) %>% unique %>% as.character()
 
   conoce <- purrr::map_df(.x = conoce,.f = ~{
     survey::svymean(survey::make.formula(.x),
-                    design = encuesta_edomex$muestra$diseno, na.rm = T) %>%
+                    design = encuesta$muestra$diseno, na.rm = T) %>%
       tibble::as_tibble(rownames = "respuesta") %>%
       rename(media=2, ee=3) %>%
       mutate(
@@ -102,14 +103,13 @@ analizar_candidato_partido <- function(llave_partido, llave_conocimiento, diccio
         respuesta = stringr::str_replace(
           pattern = .x,
           replacement = "",
-          string = respuesta),
-        respuesta=forcats::fct_lump(respuesta, w = media, prop = .1, other_level = "Otro")) %>%
-      count(respuesta, aspecto, wt = media, name = "media")
-  }) %>% mutate(aspecto = fct_reorder(aspecto, media, min))
+          string = respuesta))
+  }) %>% filter(respuesta == "Sí lo conoce") %>%
+    mutate(aspecto = fct_reorder(aspecto, media, min))
 
   partido <- purrr::map_df(.x = partido,.f = ~{
     survey::svymean(survey::make.formula(.x),
-                    design = encuesta_edomex$muestra$diseno, na.rm = T) %>%
+                    design = encuesta$muestra$diseno, na.rm = T) %>%
       tibble::as_tibble(rownames = "respuesta") %>%
       rename(media=2, ee=3) %>%
       mutate(
@@ -118,11 +118,15 @@ analizar_candidato_partido <- function(llave_partido, llave_conocimiento, diccio
           pattern = .x,
           replacement = "",
           string = respuesta),
-        respuesta=forcats::fct_lump(respuesta, w = media, prop = .1, other_level = "Otro")) %>%
-      count(respuesta, aspecto, wt = media, name = "media")
+        respuesta=forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) %>%
+      count(respuesta, aspecto, wt = media, name = "media") %>% arrange(desc(media))
   }) %>%
-    mutate(respuesta = fct_reorder(respuesta, media, max),
-           aspecto = factor(aspecto,gsub(llave_conocimiento,llave_partido,x = levels(conoce$aspecto))))
+    mutate(aspecto = factor(aspecto,gsub(llave_conocimiento,llave_partido,x = levels(conoce$aspecto)))) %>%
+    group_by(aspecto) %>% mutate(sup = cumsum(media),
+                                 inf = lag(sup, default = 0),
+                                 label = (inf +sup)/2)
+
+  bases <- list(conoce = conoce, partido =  partido)
 
   return(list(conoce = conoce, partido =  partido))
 }

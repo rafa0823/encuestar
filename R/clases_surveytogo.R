@@ -456,8 +456,14 @@ Pregunta <- R6::R6Class("Pregunta",
                               }
                               if(stringr::str_detect(pattern = "partido", tipo)){
 
-                                g <- analizar_candidato_partido(llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
-                                                                dicc = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
+                                v_params <- c("corte_otro")
+
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                g <- analizar_candidato_partido(encuesta = self$encuesta,
+                                                                llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
+                                                                dicc = self$encuesta$preguntas$encuesta$cuestionario$diccionario,
+                                                                corte_otro = parametros$corte_otro) %>%
                                   graficar_candidato_partido()
                               }
                             }
