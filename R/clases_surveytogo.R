@@ -432,7 +432,10 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
 
-                                g <- g %>% rename(tema = aspecto) %>%
+                                g <- g %>%
+                                  left_join(
+                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                  ) %>%
                                   graficar_aspectos_frecuencias(
                                     titulo = parametros$tit,
                                     nota = parametros$nota,
@@ -455,7 +458,9 @@ Pregunta <- R6::R6Class("Pregunta",
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
-                                  rename(tema = aspecto) %>%
+                                  left_join(
+                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                  ) %>%
                                   graficar_candidato_opinion(ns_nc = parametros$ns_nc,
                                                              regular = parametros$regular,
                                                              grupo_positivo= parametros$grupo_positivo,
@@ -474,8 +479,14 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 g <- analizar_candidato_partido(diseno = self$encuesta$muestra$diseno,
                                                                 llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
-                                                                dicc = self$encuesta$preguntas$encuesta$cuestionario$diccionario,
+                                                                candidatos = aspectos,
                                                                 corte_otro = parametros$corte_otro) %>%
+                                  map(
+                                    ~.x %>%
+                                      left_join(
+                                        self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                      )
+                                  ) %>%
                                   graficar_candidato_partido(cliente = parametros$cliente, colores_partido = parametros$colores_partido)
                               }
                             }

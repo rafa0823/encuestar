@@ -608,22 +608,28 @@ graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "
 #'
 graficar_candidato_partido <- function(bases, cliente, colores_partido){
 
-  a <- bases$conoce %>% ggplot(aes(y = aspecto, x = media, fill = respuesta)) +
+  bases$conoce <- bases$conoce %>%
+    mutate(tema = fct_reorder(tema, media, min))
+
+  a <- bases$conoce %>% ggplot(aes(y = tema, x = media, fill = respuesta)) +
     geom_col(show.legend = F) + labs(title = "Conocimiento") +
     theme_minimal() +
     theme(legend.position = "bottom")
 
+  bases$partido <- bases$partido %>%
+    mutate(tema = factor(tema,levels(bases$conoce$tema)))
+
   b <- bases$partido %>%
     ggplot() +
     geom_rect(aes(xmin = inf, xmax = sup,
-                  y = aspecto,
-                  ymin = as.numeric(aspecto) - .45,
-                  ymax = as.numeric(aspecto) + .45,
+                  y = tema,
+                  ymin = as.numeric(tema) - .45,
+                  ymax = as.numeric(tema) + .45,
                   fill = respuesta)) +
-    geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = aspecto)),
-              aes(x = label, y = as.numeric(aspecto), label = scales::percent(media,accuracy = 1))) +
+    geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = tema)),
+              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1))) +
     scale_fill_manual(values = colores_partido) +
-    # geom_text(aes(x = 0, y = as.numeric(aspecto), label = aspecto), hjust = 0) +
+    # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
     labs( y = "", title = "Identificación partidista") +
     theme_minimal() +
     theme(axis.text.y = element_blank(),
