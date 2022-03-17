@@ -438,9 +438,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
 
                                 g <- g %>%
-                                  left_join(
-                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
-                                  ) %>%
+                                  mutate(tema = names(aspectos[match(aspecto,aspectos)])) %>%
                                   graficar_aspectos_frecuencias(
                                     titulo = parametros$tit,
                                     nota = parametros$nota,
