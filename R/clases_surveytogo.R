@@ -386,8 +386,11 @@ Pregunta <- R6::R6Class("Pregunta",
                             self$encuesta <- encuesta
                             self$tema <- tema
                           },
-                          graficar = function(llave, tipo, aspectos = NULL, filtro = NULL, parametros = list(tit = ""),
-                                              llave_partido, llave_conocimiento){
+                          graficar = function(llave, tipo, aspectos = NULL, filtro = NULL,
+                                              llave_partido, llave_conocimiento,
+                                              llave_opinion,
+                                              llave_xq,
+                                              parametros = list(tit = "")){
                             tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
@@ -469,7 +472,26 @@ Pregunta <- R6::R6Class("Pregunta",
 
                               }
                               if(stringr::str_detect(pattern = "saldo", tipo)){
+                                v_params <- c("grupo_positivo", "grupo_negativo", "tipo_combinacion","n_palabras")
 
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                bd <- analizar_frecuencias_aspectos(self$encuesta, {{llave_opinion}}, aspectos) %>%
+                                  left_join(
+                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                  ) %>%
+                                  organizar_opinion_saldo(llave_opinion, parametros$grupo_positivo, parametros$grupo_negativo)
+
+                                texto <- ordenar_opinion_xq(self$encuesta$respuestas$base,
+                                                            llave_opinion, llave_xq, aspectos,
+                                                            parametros$grupo_positivo, parametros$grupo_negativo) %>%
+                                  pclave_combinaciones_saldo(parametros$tipo_combinacion, parametros$n_palabras)
+
+                                g <- left_join(bd, texto) %>%
+                                  graficar_candidato_saldo(grupo_positivo = parametros$grupo_positivo,
+                                                           grupo_negativo = parametros$grupo_negativo,
+                                                           familia = self$tema()$text$family ) +
+                                  self$tema()
                               }
                               if(stringr::str_detect(pattern = "partido", tipo)){
 
@@ -487,7 +509,9 @@ Pregunta <- R6::R6Class("Pregunta",
                                         self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
                                       )
                                   ) %>%
-                                  graficar_candidato_partido(cliente = parametros$cliente, colores_partido = parametros$colores_partido)
+                                  graficar_candidato_partido(cliente = parametros$cliente,
+                                                             colores_partido = parametros$colores_partido,
+                                                             tema = self$tema)
                               }
                             }
 
