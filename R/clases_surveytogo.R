@@ -412,6 +412,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                 g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
                                   encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
                               } else{
+
+
                                 if(quo_name(enquo(llave)) != "NULL") {
                                   aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
                                 } else {
@@ -460,6 +462,22 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
+                                if(quo_name(enquo(llave)) != "NULL") {
+                                  aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
+                                } else {
+                                  aspectos_aux <- aspectos
+                                }
+
+                                if(!all(aspectos_aux %in% self$graficadas)){
+                                  if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                    self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                  } else{
+                                    stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                  }
+                                } else{
+                                  warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                                }
+
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
                                   left_join(
                                     self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
@@ -472,9 +490,27 @@ Pregunta <- R6::R6Class("Pregunta",
 
                               }
                               if(stringr::str_detect(pattern = "saldo", tipo)){
+
                                 v_params <- c("grupo_positivo", "grupo_negativo", "tipo_combinacion","n_palabras")
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                if(quo_name(enquo(llave)) != "NULL") {
+                                  aspectos_aux <- paste(llave_opinion, aspectos, sep = "_") %>%
+                                    append(paste(llave_xq, aspectos, sep = "_"))
+                                } else {
+                                  aspectos_aux <- aspectos
+                                }
+
+                                if(!all(aspectos_aux %in% self$graficadas)){
+                                  if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                    self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                  } else{
+                                    stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                  }
+                                } else{
+                                  warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                                }
 
                                 bd <- analizar_frecuencias_aspectos(self$encuesta, {{llave_opinion}}, aspectos) %>%
                                   left_join(
@@ -499,8 +535,25 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
+                                if(quo_name(enquo(llave)) != "NULL") {
+                                  aspectos_aux <- paste(llave_partido, aspectos, sep = "_") %>%
+                                    append(paste(llave_conocimiento, aspectos, sep = "_"))
+                                } else {
+                                  aspectos_aux <- aspectos
+                                }
+
+                                if(!all(aspectos_aux %in% self$graficadas)){
+                                  if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                    self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                  } else{
+                                    stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                  }
+                                } else{
+                                  warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                                }
                                 g <- analizar_candidato_partido(diseno = self$encuesta$muestra$diseno,
-                                                                llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
+                                                                llave_partido = llave_partido,
+                                                                llave_conocimiento = llave_conocimiento,
                                                                 candidatos = aspectos,
                                                                 corte_otro = parametros$corte_otro) %>%
                                   map(
