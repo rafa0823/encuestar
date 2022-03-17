@@ -129,3 +129,97 @@ analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento
 
   return(list(conoce = conoce, partido =  partido))
 }
+
+organizar_opinion_saldo <- function(bd, llave_opinion, grupo_positivo, grupo_negativo){
+  bd %>%
+    mutate(!!rlang::sym(llave_opinion) := case_when(respuesta %in% grupo_positivo ~"Positiva",
+                                                    respuesta %in% grupo_negativo ~"Negativa",
+    )) %>% filter(!is.na(!!rlang::sym(llave_opinion))) %>%
+    mutate(persona = stringr::str_replace(aspecto, glue::glue("{llave_opinion}_"), "")) %>%
+    count(persona,tema, grupo = !!rlang::sym(llave_opinion), wt = media, name = "saldo") %>%
+    mutate(saldo = if_else(grupo == "Negativa", -saldo, saldo))
+}
+
+ordenar_opinion_xq <- function(base, llave_opinion, llave_xq, aspectos, grupo_positivo, grupo_negativo){
+  opiniones <- paste(llave_opinion, aspectos, sep = "_")
+  xqs <- paste(llave_xq, aspectos, sep = "_")
+
+  base %>%
+    select(SbjNum, all_of(c(opiniones, xqs))) %>%
+    pivot_longer(-SbjNum) %>% separate(name, c("llave", "persona")) %>%
+    mutate(llave = stringr::str_replace(string = llave, replacement = "texto",pattern = llave_xq)) %>%
+    pivot_wider(names_from = llave, values_from = value) %>%
+    filter_all(all_vars(!is.na(.))) %>%
+    mutate(grupo = case_when(!!rlang::sym(llave_opinion) %in% grupo_positivo ~"Positiva",
+                             !!rlang::sym(llave_opinion) %in% grupo_negativo ~"Negativa",
+    )) %>% filter(!is.na((grupo)))
+}
+
+#cada opinion entre candidatos
+combinaciones_opiniones <- function(bd_texto, n_palabras){
+  opinion <- bd_texto %>% split(.$grupo) %>% map_df(~{
+    data_corpus <- corpus(.x, text_field = "texto") %>%
+      tokens( remove_punct = TRUE) %>%
+      tokens_remove(stopwords("spanish")) %>% tokens_group(groups = persona) %>%
+      dfm()
+
+    .x$persona %>% unique %>% map_df(~{
+      textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(persona = .x) %>%
+        slice(seq_len(n_palabras))
+    }) %>% mutate(grupo = unique(.x$grupo))
+  }) %>% group_by(persona, grupo) %>% summarise(p_calve = paste(feature, collapse = "\n"))
+}
+
+#cada opinion por candidatos
+combinaciones_candidatos <- function(bd_texto, n_palabras){
+  opinion <- bd_texto %>% split(.$persona) %>% map_df(~{
+    data_corpus <- corpus(.x, text_field = "texto") %>%
+      tokens( remove_punct = TRUE) %>%
+      tokens_remove(stopwords("spanish")) %>% tokens_group(groups = grupo) %>%
+      dfm()
+
+    .x$grupo %>% unique %>% map_df(~{
+      textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x) %>%
+        slice(seq_len(n_palabras))
+    }) %>% mutate(persona = unique(.x$persona))
+  }) %>% group_by(persona, grupo) %>% summarise(p_calve = paste(feature, collapse = "\n"))
+}
+
+#todas las combinaciones
+combinaciones_todas <- function(bd_texto, n_palabras){
+  aux_junto <- bd_texto %>% unite(junto,persona,grupo)
+
+  data_corpus <- corpus(aux_junto, text_field = "texto") %>%
+    tokens( remove_punct = TRUE) %>%
+    tokens_remove(stopwords("spanish")) %>% tokens_group(groups = junto) %>%
+    dfm()
+
+  aux_junto$junto %>% unique %>% map_df(~{
+    textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x) %>%
+      slice(seq_len(n_palabras))
+  }) %>% group_by(grupo)%>% summarise(p_calve = paste(feature, collapse = "\n")) %>%
+    separate(grupo, into = c("persona","grupo"))
+}
+
+#' Title
+#'
+#' @param bd_texto
+#' @param tipo
+#' @param n_palabras
+#'
+#' @return
+#' @export
+#' @import quanteda quanteda.textstats
+#' @examples
+pclave_combinaciones_saldo <- function(bd_texto, tipo, n_palabras){
+  if(tipo == "opiniones"){
+    res <- combinaciones_opiniones(bd_texto, n_palabras)
+  }
+  if(tipo == "candidatos"){
+    res <- combinaciones_candidatos(bd_texto, n_palabras)
+  }
+  if(tipo == "todas"){
+    res <- combinaciones_todas(bd_texto, n_palabras)
+  }
+  return(res)
+}
