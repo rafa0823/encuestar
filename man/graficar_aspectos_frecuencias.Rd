@@ -13,7 +13,6 @@ graficar_aspectos_frecuencias(
   ns_nc = "Ns/Nc",
   colores = c(`Desaprueba mucho` = "#DE6400", `Desaprueba poco` = "#FB8500", `Aprueba
     poco` = "#126782", `Aprueba mucho` = "#023047", `Ns/Nc` = "gray"),
-  orden = c("Desaprueba poco", "Desaprueba mucho", "Aprueba poco", "Aprueba mucho"),
   familia
 )
 }
@@ -32,11 +31,11 @@ graficar_aspectos_frecuencias(
 
 \item{colores}{Vector de colores con el nombre de las variables}
 
-\item{orden}{Orden de la variable de color}
-
 \item{familia}{font family}
 
 \item{fill}{Variable de color}
+
+\item{orden}{Orden de la variable de color}
 }
 \value{
 
