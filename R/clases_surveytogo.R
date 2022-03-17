@@ -432,23 +432,40 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
 
-                                g <- g %>% rename(tema = aspecto) %>%
+                                g <- g %>%
+                                  left_join(
+                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                  ) %>%
                                   graficar_aspectos_frecuencias(
-                                  titulo = parametros$tit,
-                                  nota = parametros$nota,
-                                  grupo_positivo = parametros$grupo_positivo,
-                                  grupo_negativo = parametros$grupo_negativo,
-                                  ns_nc = parametros$ns_nc,
-                                  colores =  parametros$colores,
-                                  # orden = parametros$orden,
-                                  familia = self$tema()$text$family
-                                ) + self$tema()
+                                    titulo = parametros$tit,
+                                    nota = parametros$nota,
+                                    grupo_positivo = parametros$grupo_positivo,
+                                    grupo_negativo = parametros$grupo_negativo,
+                                    ns_nc = parametros$ns_nc,
+                                    colores =  parametros$colores,
+                                    # orden = parametros$orden,
+                                    familia = self$tema()$text$family
+                                  ) + self$tema()
                               }
 
                             }
 
                             if(stringr::str_detect(pattern = "candidato", tipo)){
                               if(stringr::str_detect(pattern = "opinion", tipo)){
+
+                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo")
+
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
+                                  left_join(
+                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                  ) %>%
+                                  graficar_candidato_opinion(ns_nc = parametros$ns_nc,
+                                                             regular = parametros$regular,
+                                                             grupo_positivo= parametros$grupo_positivo,
+                                                             grupo_negativo = parametros$grupo_negativo,
+                                                             familia = self$tema()$text$family) + self$tema()
 
                               }
                               if(stringr::str_detect(pattern = "saldo", tipo)){
@@ -462,8 +479,14 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                 g <- analizar_candidato_partido(diseno = self$encuesta$muestra$diseno,
                                                                 llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
-                                                                dicc = self$encuesta$preguntas$encuesta$cuestionario$diccionario,
+                                                                candidatos = aspectos,
                                                                 corte_otro = parametros$corte_otro) %>%
+                                  map(
+                                    ~.x %>%
+                                      left_join(
+                                        self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                      )
+                                  ) %>%
                                   graficar_candidato_partido(cliente = parametros$cliente, colores_partido = parametros$colores_partido)
                               }
                             }
@@ -484,10 +507,10 @@ Pregunta <- R6::R6Class("Pregunta",
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                 g <- graficar_nube_frecuencias(bd = self$encuesta$respuestas$base, llave,
-                                                          n = parametros$n,
-                                                          color1 = parametros$color1, color2 = parametros$color2, color3 = parametros$color3,
-                                                          familia = self$tema()$text$family,
-                                                          ancho = parametros$ancho, alto = parametros$alto)
+                                                               n = parametros$n,
+                                                               color1 = parametros$color1, color2 = parametros$color2, color3 = parametros$color3,
+                                                               familia = self$tema()$text$family,
+                                                               ancho = parametros$ancho, alto = parametros$alto)
                               }
 
                               if(stringr::str_detect(pattern = "barras", tipo)){
@@ -496,9 +519,9 @@ Pregunta <- R6::R6Class("Pregunta",
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                 g <- graficar_barras_palabras(bd = self$encuesta$respuestas$base,
-                                                         pregunta = llave, n = parametros$n,
-                                                         nota = parametros$nota,
-                                                         tit = parametros$tit)
+                                                              pregunta = llave, n = parametros$n,
+                                                              nota = parametros$nota,
+                                                              tit = parametros$tit)
                               }
                             }
 
