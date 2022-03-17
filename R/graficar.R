@@ -541,7 +541,7 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
     facet_wrap(~strata_1)+
     scale_fill_manual(values = purrr::set_names(c(color_negativo, color_positivo), c(nombre_negativo, nombre_positivo)))+
     theme_minimal()+
-    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1)) %+replace%
     theme(panel.grid.minor = element_blank(),
           text = element_text(family = familia),
           panel.grid.major.y = element_blank(),
@@ -640,7 +640,8 @@ graficar_candidato_partido <- function(bases,tema, cliente, colores_partido){
     labs( y = "", title = "Identificación partidista", x= NULL) +
     theme_minimal() +
     theme(axis.text.y = element_blank(),
-          axis.ticks.y = element_blank())
+          axis.ticks.y = element_blank(),
+          panel.grid = element_blank())
 
   a+ b+ plot_layout(widths = c(.2,.8))
 
