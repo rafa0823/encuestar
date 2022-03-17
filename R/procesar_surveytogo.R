@@ -89,9 +89,9 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
 }
 
 
-analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, diccionario, corte_otro){
-  partido <- dicc %>% filter(grepl(llave_partido,llaves)) %>% pull(llaves) %>% unique %>% as.character()
-  conoce <- dicc %>% filter(grepl(llave_conocimiento,llaves)) %>% pull(llaves) %>% unique %>% as.character()
+analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, candidatos, corte_otro){
+  partido <- paste0(llave_partido,candidatos)
+  conoce <- paste0(llave_conocimiento,candidatos)
 
   conoce <- purrr::map_df(.x = conoce,.f = ~{
     survey::svymean(survey::make.formula(.x),
@@ -104,8 +104,7 @@ analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento
           pattern = .x,
           replacement = "",
           string = respuesta))
-  }) %>% filter(respuesta == "Sí lo conoce") %>%
-    mutate(aspecto = fct_reorder(aspecto, media, min))
+  }) %>% filter(respuesta == "Sí lo conoce")
 
   partido <- purrr::map_df(.x = partido,.f = ~{
     survey::svymean(survey::make.formula(.x),
@@ -121,7 +120,7 @@ analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento
         respuesta=forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) %>%
       count(respuesta, aspecto, wt = media, name = "media") %>% arrange(desc(media))
   }) %>%
-    mutate(aspecto = factor(aspecto,gsub(llave_conocimiento,llave_partido,x = levels(conoce$aspecto)))) %>%
+
     group_by(aspecto) %>% mutate(sup = cumsum(media),
                                  inf = lag(sup, default = 0),
                                  label = (inf +sup)/2)
