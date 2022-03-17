@@ -510,7 +510,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                       )
                                   ) %>%
                                   graficar_candidato_partido(cliente = parametros$cliente,
-                                                             colores_partido = parametros$colores_partido)
+                                                             colores_partido = parametros$colores_partido,
+                                                             tema = self$tema)
                               }
                             }
 

@@ -609,18 +609,18 @@ graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "
 #'
 #' @examples
 #'
-graficar_candidato_partido <- function(bases,tema, cliente, colores_partido){
+graficar_candidato_partido <- function(bases, cliente, colores_partido,tema){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
 
-  a <- bases$conoce %>% ggplot(aes(y = tema, x = media, fill = respuesta)) +
-    geom_col(show.legend = F) +
+  a <- bases$conoce %>% ggplot(aes(x = tema, y = media)) +
+    # geom_col(show.legend = F) +
     ggchicklet::geom_chicklet(width = .6, alpha =.5, fill = "#126782")+
     labs(title = "Conocimiento", y = NULL,x = NULL ) +
-    theme_minimal() +
+    coord_flip() +
     scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
-    theme(legend.position = "bottom")+ tema()
+    tema()
 
   bases$partido <- bases$partido %>%
     mutate(tema = factor(tema,levels(bases$conoce$tema)))
@@ -635,10 +635,10 @@ graficar_candidato_partido <- function(bases,tema, cliente, colores_partido){
     geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = tema)),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1))) +
     scale_fill_manual(values = colores_partido) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
     labs( y = "", title = "Identificación partidista", x= NULL) +
-    theme_minimal() +
+    tema() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
