@@ -290,7 +290,7 @@ graficar_barras_palabras <- function(bd, pregunta, nota, tit, n = 10){
   bd %>% tidytext::unnest_tokens(palabras, pregunta) %>%
     count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
-    slice(seq_len(n)) %>%
+    head(n) %>%
     ggplot(aes(x = forcats::fct_reorder(palabras, n), y = n))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
@@ -618,6 +618,8 @@ graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "
   library(patchwork)
   final <-a+b+plot_layout(widths = c(.8,.2))
   return(final)
+}
+
 
 #' Title
 #'
@@ -655,3 +657,49 @@ graficar_candidato_partido <- function(bases, cliente, colores_partido){
   a+ b+ plot_layout(widths = c(.2,.8))
 
 }
+
+graficar_candidato_saldo <- function(bd, bd_texto, grupo_positivo = c("Buena", "Muy buena"),
+                                     grupo_negativo = c("Mala", "Muy mala")){
+
+  opinion <- bd_texto %>% split(.$grupo) %>% map_df(~{
+    data_corpus <- corpus(.x, text_field = "texto") %>%
+      tokens( remove_punct = TRUE) %>%
+      tokens_remove(stopwords("spanish")) %>% tokens_group(groups = persona) %>%
+      dfm()
+
+    .x$persona %>% unique %>% map_df(~{
+      textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(persona = .x) %>%
+        slice(1:2)
+    }) %>% mutate(grupo = unique(.x$grupo))
+  }) %>% group_by(persona, grupo) %>% summarise(p_calve = paste(feature, collapse = "\n"))
+
+  aux <-bd %>%  mutate(media = case_when(respuesta %in%grupo_negativo~media*-1,
+                                         respuesta %in% grupo_positivo~media),
+                       grupo = case_when(respuesta %in%grupo_negativo~"Negativa",
+                                         respuesta %in% grupo_positivo~"Positiva") ) %>%
+    filter(!is.na(grupo)) %>%  group_by(tema, grupo) %>%
+    summarise(saldo = sum(media)) %>% separate(tema, c("preg", "persona"), sep = "_") %>%
+    left_join(opinion, by = c("persona", "grupo"))
+
+  aux %>% ggplot(aes(x  =forcats::fct_reorder(persona, saldo), fill = grupo,
+                     y = ifelse(test = grupo == "Positiva",  yes = saldo, no = saldo),
+                     # y =saldo
+  )) +
+    ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
+    coord_flip()+
+    scale_fill_manual(values = c("Negativa" = "#FB8500",
+                                 "Positiva" = "#126782"))+
+    geom_text(aes(label = scales::percent(saldo,accuracy = 1)), family = familia,
+              position = position_stack(.5,reverse = T), vjust = .5)+
+    # geom_text(data = aux, aes(label = p_calve), family = familia, size = 3, position = position_dodge()) +
+    geom_text(data = aux, aes(label = p_calve),
+              hjust=ifelse(test = aux$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050") +
+    lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
+    theme_minimal()+
+    theme(legend.position = "bottom",
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_blank())+
+    labs(y = "Saldo", x = NULL, fill = NULL)
+
+}
+
