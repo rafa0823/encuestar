@@ -289,7 +289,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","t
 graficar_barras_palabras <- function(bd, pregunta, nota, tit, n = 10){
   bd %>% tidytext::unnest_tokens(palabras, pregunta) %>%
     count(palabras,sort = T) %>%
-    anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc"))) %>%
+    anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc", "no", "leer", "Ns/Nc"))) %>%
     head(n) %>%
     ggplot(aes(x = forcats::fct_reorder(palabras, n), y = n))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
@@ -541,7 +541,7 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
     facet_wrap(~strata_1)+
     scale_fill_manual(values = purrr::set_names(c(color_negativo, color_positivo), c(nombre_negativo, nombre_positivo)))+
     theme_minimal()+
-    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1)) %+replace%
     theme(panel.grid.minor = element_blank(),
           text = element_text(family = familia),
           panel.grid.major.y = element_blank(),
@@ -609,15 +609,18 @@ graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "
 #'
 #' @examples
 #'
-graficar_candidato_partido <- function(bases, cliente, colores_partido){
+graficar_candidato_partido <- function(bases,tema, cliente, colores_partido){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = fct_reorder(tema, media, min))
 
   a <- bases$conoce %>% ggplot(aes(y = tema, x = media, fill = respuesta)) +
-    geom_col(show.legend = F) + labs(title = "Conocimiento") +
+    geom_col(show.legend = F) +
+    ggchicklet::geom_chicklet(width = .6, alpha =.5, fill = "#126782")+
+    labs(title = "Conocimiento", y = NULL,x = NULL ) +
     theme_minimal() +
-    theme(legend.position = "bottom")
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+    theme(legend.position = "bottom")+ tema()
 
   bases$partido <- bases$partido %>%
     mutate(tema = factor(tema,levels(bases$conoce$tema)))
@@ -626,17 +629,19 @@ graficar_candidato_partido <- function(bases, cliente, colores_partido){
     ggplot() +
     geom_rect(aes(xmin = inf, xmax = sup,
                   y = tema,
-                  ymin = as.numeric(tema) - .45,
-                  ymax = as.numeric(tema) + .45,
+                  ymin = as.numeric(tema) - .2,
+                  ymax = as.numeric(tema) + .2,
                   fill = respuesta)) +
     geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = tema)),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1))) +
     scale_fill_manual(values = colores_partido) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
-    labs( y = "", title = "Identificación partidista") +
+    labs( y = "", title = "Identificación partidista", x= NULL) +
     theme_minimal() +
     theme(axis.text.y = element_blank(),
-          axis.ticks.y = element_blank())
+          axis.ticks.y = element_blank(),
+          panel.grid = element_blank())
 
   a+ b+ plot_layout(widths = c(.2,.8))
 
