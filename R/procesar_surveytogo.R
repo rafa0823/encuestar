@@ -90,8 +90,8 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
 
 
 analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, candidatos, corte_otro){
-  partido <- paste0(llave_partido,candidatos)
-  conoce <- paste0(llave_conocimiento,candidatos)
+  partido <- paste(llave_partido,candidatos,sep = "_")
+  conoce <- paste(llave_conocimiento,candidatos, sep = "_")
 
   conoce <- purrr::map_df(.x = conoce,.f = ~{
     survey::svymean(survey::make.formula(.x),
