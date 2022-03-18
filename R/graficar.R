@@ -225,7 +225,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10){
+graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia){
   bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
@@ -257,7 +257,7 @@ sustituir <- function(bd, patron, reemplazo = ""){
 #' @examples
 graficar_barras_numerica<- function(bd){
 bd %>%
-  ggplot(aes(y = media, x = stats::reorder(str_wrap(aspecto,40),media))) +
+  ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
   ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                 alpha= .95, fill = "#850D2D",
                 width =.45)+ coord_flip()+
@@ -265,12 +265,7 @@ bd %>%
        x = NULL,
        y = "Promedio")+
   ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
-                           contrast = T)+
-  theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
-                                         linetype = "dotted"),
-        panel.grid.major.y = element_blank(),
-        axis.line.y = element_line(colour = "#E1356D"),
-        axis.line.x = element_blank())
+                           contrast = T)
 }
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","titulo","nota"))
