@@ -431,24 +431,35 @@ Pregunta <- R6::R6Class("Pregunta",
                                   warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
 
-                                v_params <- c("tit", "nota", "grupo_positivo", "grupo_negativo", "ns_nc", "colores", "orden")
 
-                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
 
-                                g <- g %>%
-                                  mutate(tema = names(aspectos[match(aspecto,aspectos)])) %>%
-                                  graficar_aspectos_frecuencias(
-                                    titulo = parametros$tit,
-                                    nota = parametros$nota,
-                                    grupo_positivo = parametros$grupo_positivo,
-                                    grupo_negativo = parametros$grupo_negativo,
-                                    ns_nc = parametros$ns_nc,
-                                    colores =  parametros$colores,
-                                    # orden = parametros$orden,
-                                    familia = self$tema()$text$family
-                                  ) + self$tema()
+                                if(!is.na(filtro)) {
+                                  v_params <- c("tit")
+                                  if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+                                   g <- g %>% filter(eval(rlang::parse_expr(filtro))) %>%
+                                    mutate(tema = names(aspectos[match(gsub(pattern = glue::glue("{quo_name(enquo(llave))}_"),replacement = "",x = aspecto),aspectos)])) %>%
+                                    select(-respuesta) %>%
+                                    rename(respuesta = tema) %>%
+                                    encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
+                                } else{
+                                  v_params <- c("tit", "nota", "grupo_positivo", "grupo_negativo", "ns_nc", "colores", "orden")
+                                  if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+                                  g <- g %>%
+                                    mutate(tema = names(aspectos[match(aspecto,aspectos)])) %>%
+                                    graficar_aspectos_frecuencias(
+                                      titulo = parametros$tit,
+                                      nota = parametros$nota,
+                                      grupo_positivo = parametros$grupo_positivo,
+                                      grupo_negativo = parametros$grupo_negativo,
+                                      ns_nc = parametros$ns_nc,
+                                      colores =  parametros$colores,
+                                      # orden = parametros$orden,
+                                      familia = self$tema()$text$family
+                                    ) + self$tema()
+                                }
+
                               }
 
                             }
