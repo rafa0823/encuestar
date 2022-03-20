@@ -545,49 +545,46 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 }
 
 
-graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "Regular (No leer)",grupo_positivo= c("Buena", "Muy buena"),
-                                       grupo_negativo = c( "Muy mala", "Mala"),
-                                       familia){
+graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
+                                       grupo_negativo,
+                                       colores,
+                                       tema){
 
   aux <- bd %>% mutate(Regular = if_else(respuesta == regular, "regular1", as.character(respuesta))) %>%
     bind_rows(bd %>% filter(respuesta == regular) %>% mutate(Regular = "regular2", media = -media)) %>%
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
            media = if_else(respuesta %in% grupo_negativo,-1*media,media),
            media = if_else(respuesta == regular, media/2, media)) %>%
-    mutate(Regular =factor(Regular, levels = c("Mala","Muy mala", "regular1", "regular2", "Buena", "Muy buena"))) %>%
+    # mutate(Regular =factor(Regular, levels = c(grupo_negativo, "regular1", "regular2",grupo_positivo))) %>%
     group_by(tema) %>%
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
   a <- aux %>%
     filter(respuesta!= ns_nc) %>%
     ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta,
-               group = factor(Regular, levels = c( "regular2", "Mala","Muy mala", "regular1", "Buena", "Muy buena")), y =media)) +
+               group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
-    geom_text(aes(label = etiqueta), family = familia,
+    geom_text(aes(label = etiqueta), family = tema()$text$family,
               position = position_stack(.5,reverse = T), vjust = .5) +
     coord_flip()+
-    scale_fill_manual(values = c("Muy mala" = "#FB8500", "Mala" = "#FFB703",
-                                 "Regular (No leer)" = "#E3DEC1",
-                                 # "regular2" = "#E3DEC1",
-                                 "Buena" = "#219EBC" , "Muy buena" = "#0A4C65", "Ns/Nc" = "gray"))+
+    scale_fill_manual(values = colores)+
     labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom") %+replace% tema()
 
 
   b<- aux %>%  filter(respuesta == ns_nc) %>%
     ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = media))+
     ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
     coord_flip()+
-    geom_text(aes(label = etiqueta), family = familia,
+    ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
               hjust = -.1)+
-    theme_minimal()+
-    theme(axis.text = element_blank(),
-          panel.grid.minor = element_blank())+
     labs(y = NULL, x = NULL)+
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    tema() +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 
   final <-a+b+plot_layout(widths = c(.8,.2))
   return(final)
@@ -612,9 +609,10 @@ graficar_candidato_partido <- function(bases, cliente, colores_partido,tema){
   a <- bases$conoce %>% ggplot(aes(x = tema, y = media)) +
     # geom_col(show.legend = F) +
     ggchicklet::geom_chicklet(width = .6, alpha =.5, fill = "#126782")+
+    ggfittext::geom_bar_text(aes(label = scales::percent(media,1))) +
     labs(title = "Conocimiento", y = NULL,x = NULL ) +
     coord_flip() +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
     tema()
 
   bases$partido <- bases$partido %>%
