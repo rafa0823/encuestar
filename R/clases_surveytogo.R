@@ -81,7 +81,7 @@ Encuesta <- R6::R6Class("Encuesta",
                               aux <- aux %>% filter(!grepl(quitar_patron, x = llaves))
                             }
 
-                            aux <- aux %>% mutate(n = map_int(respuestas,~length(.x))) %>% filter(n > 2)
+                            aux <- aux %>% mutate(n = map_int(respuestas,~length(.x)))
                             aux <- aux %>%
                               pull(llaves) %>% map_df(~{
                                 # nas <- self$respuestas$base %>% summarise(any(is.na(c_across(.x)))) %>% pull(1)
