@@ -607,7 +607,7 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
     mutate(tema = forcats::fct_reorder(tema, media, min))
   if(tipo_conoce == "intervalos"){
     a <- bases$conoce %>% ggplot(aes(tema, media, ymin = inf, ymax = sup, color = tema)) +
-      geom_pointrange() +
+      geom_pointrange(show.legend = F) +
       scale_color_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
@@ -616,7 +616,7 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
   } else{
     a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
       # geom_col(show.legend = F) +
-      ggchicklet::geom_chicklet(width = .6, alpha =.5)+
+      ggchicklet::geom_chicklet(width = .6, alpha =.5, show.legend = F)+
       ggfittext::geom_bar_text(aes(label = scales::percent(media,1))) +
       scale_fill_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
