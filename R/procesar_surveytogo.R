@@ -94,10 +94,15 @@ analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento
   conoce <- paste(llave_conocimiento,candidatos, sep = "_")
 
   conoce <- purrr::map_df(.x = conoce,.f = ~{
-    survey::svymean(survey::make.formula(.x),
-                    design = diseno, na.rm = T) %>%
+    aux <- survey::svymean(survey::make.formula(.x),
+                           design = diseno, na.rm = T)
+    int <- aux %>% confint()
+    aux %>%
       tibble::as_tibble(rownames = "respuesta") %>%
       rename(media=2, ee=3) %>%
+      left_join(
+        int %>% tibble::as_tibble(rownames = "respuesta") %>% rename(inf = 2, sup = 3)
+      ) %>%
       mutate(
         aspecto = .x,
         respuesta = stringr::str_replace(
