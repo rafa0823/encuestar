@@ -74,6 +74,51 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             return(print(match_dicc_base(self)))
                           },
+                          error_muestral_maximo = function(quitar_patron = NULL){
+                            aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiples")
+                            if(!is.null(quitar_patron)) {
+                              quitar_patron <- paste(quitar_patron, collapse = "|")
+                              aux <- aux %>% filter(!grepl(quitar_patron, x = llaves))
+                            }
+
+                            aux <- aux %>% mutate(n = map_int(respuestas,~length(.x))) %>% filter(n > 2)
+                            aux <- aux %>%
+                              pull(llaves) %>% map_df(~{
+                                # nas <- self$respuestas$base %>% summarise(any(is.na(c_across(.x)))) %>% pull(1)
+                                survey::svymean(survey::make.formula(.x), design = self$muestra$diseno, na.rm = T) %>%
+                                  tibble::as_tibble(rownames = "respuesta") %>%
+                                  # rename(SE = 3) %>%
+                                  mutate(pregunta = .x,
+                                         # tiene_na = !!nas,
+                                         # respuesta = stringr::str_replace(string = respuesta,
+                                         #                                  pattern = as.character(.x),
+                                         #                                  replacement = "")
+                                  ) %>% select(respuesta, mean, SE)
+                              }) %>% mutate(SE = qnorm(.95)*SE)
+
+                            labels <- aux %>% summarise(inf = quantile(SE,.25,na.rm = T),
+                                                        mid = quantile(SE,.5,na.rm = T),
+                                                        sup = quantile(SE,.75,na.rm = T),
+                                                        max = max(SE,na.rm = T)
+                            ) %>% mutate(iqr_min = inf-1.5*(sup-inf),
+                                         iqr_max = sup + 1.5*(sup-inf)) %>%
+                              pivot_longer(everything(), names_to = "stat", values_to = "valor")
+
+                            a <- aux %>%
+                              ggplot() +
+                              geom_boxplot(aes(x = 0, y = SE)) +
+                              geom_label(data = labels, aes(x = 0, y = valor, label = scales::percent(valor)),
+                                         hjust = 0, vjust = 0, nudge_x = .01) + labs(x = NULL) +
+                              scale_y_continuous(labels = scales::percent_format(1))
+
+                            b <- aux %>% filter(SE >= labels %>% filter(stat == "sup") %>% pull(valor)) %>%
+                              ggplot() + geom_col(aes(y = reorder(respuesta, SE), x = SE)) +
+                              geom_vline(xintercept = labels %>% filter(stat == "sup") %>% pull(valor))+
+                              labs(y = NULL)+
+                              scale_x_continuous(labels = scales::percent_format(1))
+
+                            a + b
+                          },
                           exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
                             if(!file.exists(carpeta)) dir.create(carpeta)
                             #Exportar bd
