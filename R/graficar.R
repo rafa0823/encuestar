@@ -200,8 +200,8 @@ orden <- c(grupo_negativo, grupo_positivo)
               aes(color = color_saldo, y=saldo,
                   label =paste("Saldo: ",scales::percent(saldo, accuracy = 1))),
               family = familia, size = 3.5, hjust = .5,nudge_x = .3,  nudge_y =-0.08, show.legend = F)+
-    geom_point(data =  aux %>% filter(respuesta == ns_nc), shape = 18, size = 3,
-               aes(x = tema, y=saldo, color = color_saldo), show.legend = F, position = position_nudge(x =.3))+
+    # geom_point(data =  aux %>% filter(respuesta == ns_nc), shape = 18, size = 3,
+    #            aes(x = tema, y=saldo, color = color_saldo), show.legend = F, position = position_nudge(x =.3))+
     # geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
     #           position = position_stack(.7,reverse = T),
     #           color = color_etiqueta) +
@@ -239,7 +239,8 @@ graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia)
     xlab('') + ylab('') +
     coord_polar(theta = 'y') +
     theme_void() +
-    theme(legend.position = 'bottom', axis.text = element_blank())
+    theme(legend.position = 'bottom', axis.text = element_blank(),
+          text = element_text(size = 15, family = familia))
 }
 
 sustituir <- function(bd, patron, reemplazo = ""){
