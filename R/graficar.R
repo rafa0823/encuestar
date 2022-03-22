@@ -601,19 +601,30 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
 #'
 #' @examples
 #'
-graficar_candidato_partido <- function(bases, cliente, colores_partido,tema){
+graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, colores_partido,tema){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
+  if(tipo_conoce == "intervalos"){
+    a <- bases$conoce %>% ggplot(aes(tema, media, ymin = inf, ymax = sup, color = tema)) +
+      geom_pointrange() +
+      scale_color_manual(values = colores_candidato) +
+      labs(title = "Conocimiento", y = NULL,x = NULL ) +
+      coord_flip() +
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      tema()
+  } else{
+    a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
+      # geom_col(show.legend = F) +
+      ggchicklet::geom_chicklet(width = .6, alpha =.5)+
+      ggfittext::geom_bar_text(aes(label = scales::percent(media,1))) +
+      scale_fill_manual(values = colores_candidato) +
+      labs(title = "Conocimiento", y = NULL,x = NULL ) +
+      coord_flip() +
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      tema()
+  }
 
-  a <- bases$conoce %>% ggplot(aes(x = tema, y = media)) +
-    # geom_col(show.legend = F) +
-    ggchicklet::geom_chicklet(width = .6, alpha =.5, fill = "#126782")+
-    ggfittext::geom_bar_text(aes(label = scales::percent(media,1))) +
-    labs(title = "Conocimiento", y = NULL,x = NULL ) +
-    coord_flip() +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-    tema()
 
   bases$partido <- bases$partido %>%
     mutate(tema = factor(tema,levels(bases$conoce$tema)))
