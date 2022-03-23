@@ -692,13 +692,13 @@ Pregunta <- R6::R6Class("Pregunta",
                             analisis_correspondencia(var1, var2, legenda1, legenda2, diseno = self$encuesta$muestra$diseno, colores)
                           },
                           mapa = function(var){
-                            formula <- survey::make.formula(c("region", var))
+                            formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
 
                             self$regiones %>% left_join(
                               survey::svytable(formula, design = encuesta_edomex$muestra$diseno) %>% as_tibble %>%
                                 group_by(region) %>% filter(n == max(n))
                             ) %>%
-                              ggplot() + geom_sf(aes(fill = region), size = 0) +
+                              ggplot() + geom_sf(aes(fill = {{var}}), size = 0) +
                               theme_minimal() +
                               theme(axis.line = element_blank(),
                                     axis.ticks = element_blank(),
@@ -707,8 +707,19 @@ Pregunta <- R6::R6Class("Pregunta",
                                     panel.grid.major.x = element_line(colour = "#C5C5C5",linetype = "dotted"),
                                     panel.grid.major.y = element_line(colour = "#C5C5C5",linetype = "dotted"))
                           },
-                          sankey = function(){
+                          sankey = function(var1, var2){
+                            aux <- survey::svytable(survey::make.formula(c(var1,var2)),
+                                            design = self$encuesta$muestra$diseno) %>%
+                              tibble::as_tibble %>% ggsankey::make_long(-n, value = n)
 
+
+                            ggplot(aux, aes(x = x,
+                                            value = value,
+                                            next_x = next_x,
+                                            node = node,
+                                            next_node = next_node,
+                                            fill = factor(node))) +
+                              ggsankey::geom_sankey()
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
