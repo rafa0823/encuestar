@@ -119,8 +119,8 @@ gant_p_r <- function(dicc){
     theme(rect = element_blank(),axis.text = element_blank(), axis.ticks = element_blank(),
           legend.position = "bottom") +
     labs(x = NULL, y = NULL) +
-    scale_x_discrete(expand = expansion(add = c(3,0))) +
-    scale_y_discrete(expand = expansion(add = c(5,0)))
+    scale_x_discrete(expand = expansion(mult = c(.1,0))) +
+    scale_y_discrete(expand = expansion(mult = c(.15,0)))
 
   return(c)
 

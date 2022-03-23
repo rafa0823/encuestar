@@ -225,7 +225,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10){
+graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia){
   bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
@@ -258,7 +258,7 @@ sustituir <- function(bd, patron, reemplazo = ""){
 #' @examples
 graficar_barras_numerica<- function(bd){
 bd %>%
-  ggplot(aes(y = media, x = stats::reorder(str_wrap(aspecto,40),media))) +
+  ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
   ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                 alpha= .95, fill = "#850D2D",
                 width =.45)+ coord_flip()+
@@ -266,12 +266,19 @@ bd %>%
        x = NULL,
        y = "Promedio")+
   ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
-                           contrast = T)+
-  theme(panel.grid.major.x =element_line(colour = "#C5C5C5",
-                                         linetype = "dotted"),
-        panel.grid.major.y = element_blank(),
-        axis.line.y = element_line(colour = "#E1356D"),
-        axis.line.x = element_blank())
+                           contrast = T)
+}
+
+graficar_intervalo_numerica<- function(bd){
+  bd %>%
+    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
+    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D") +
+    coord_flip()+
+    labs(title = NULL,
+         x = NULL,
+         y = "Promedio")+
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3)
+
 }
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","titulo","nota"))
@@ -292,7 +299,7 @@ graficar_barras_palabras <- function(bd, pregunta, nota, tit, n = 10){
     count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc", "no", "leer", "Ns/Nc"))) %>%
     head(n) %>%
-    ggplot(aes(x = forcats::fct_reorder(palabras, n), y = n))+
+    ggplot(aes(x = forcats::fct_reorder(stringr::str_to_title(palabras), n), y = n))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
                               width =.45,
@@ -551,49 +558,45 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 }
 
 
-graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "Regular (No leer)",grupo_positivo= c("Buena", "Muy buena"),
-                                       grupo_negativo = c( "Muy mala", "Mala"),
-                                       familia){
+graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
+                                       grupo_negativo,
+                                       colores,
+                                       tema){
 
   aux <- bd %>% mutate(Regular = if_else(respuesta == regular, "regular1", as.character(respuesta))) %>%
     bind_rows(bd %>% filter(respuesta == regular) %>% mutate(Regular = "regular2", media = -media)) %>%
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
            media = if_else(respuesta %in% grupo_negativo,-1*media,media),
            media = if_else(respuesta == regular, media/2, media)) %>%
-    mutate(Regular =factor(Regular, levels = c("Mala","Muy mala", "regular1", "regular2", "Buena", "Muy buena"))) %>%
+    # mutate(Regular =factor(Regular, levels = c(grupo_negativo, "regular1", "regular2",grupo_positivo))) %>%
     group_by(tema) %>%
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
   a <- aux %>%
     filter(respuesta!= ns_nc) %>%
     ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta,
-               group = factor(Regular, levels = c( "regular2", "Mala","Muy mala", "regular1", "Buena", "Muy buena")), y =media)) +
+               group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
-    geom_text(aes(label = etiqueta), family = familia, color = "white", fontface = "bold",
-              position = position_stack(.5,reverse = T), vjust = .5) +
+    geom_text(aes(label = etiqueta), family = tema()$text$family, position = position_stack(.5,reverse = T), vjust = .5) +
     coord_flip()+
-    scale_fill_manual(values = c("Muy mala" = "#FB8500", "Mala" = "#FFB703",
-                                 "Regular (No leer)" = "#E3DEC1",
-                                 # "regular2" = "#E3DEC1",
-                                 "Buena" = "#219EBC" , "Muy buena" = "#0A4C65", "Ns/Nc" = "gray"))+
+    scale_fill_manual(values = colores)+
     labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
-    theme(legend.position = "bottom")
+    theme(legend.position = "bottom") %+replace% tema()
 
 
   b<- aux %>%  filter(respuesta == ns_nc) %>%
     ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = media))+
     ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
     coord_flip()+
-    geom_text(aes(label = etiqueta), family = familia,
+    ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
               hjust = -.1)+
-    theme_minimal()+
-    theme(axis.text = element_blank(),
-          panel.grid.minor = element_blank())+
     labs(y = NULL, x = NULL)+
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    tema() +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 
   final <-a+b+plot_layout(widths = c(.8,.2))
   return(final)
@@ -610,18 +613,30 @@ graficar_candidato_opinion <- function(bd, ns_nc ="Ns/Nc (No leer)", regular = "
 #'
 #' @examples
 #'
-graficar_candidato_partido <- function(bases,tema, cliente, colores_partido){
+graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, colores_partido,tema){
 
   bases$conoce <- bases$conoce %>%
-    mutate(tema = fct_reorder(tema, media, min))
+    mutate(tema = forcats::fct_reorder(tema, media, min))
+  if(tipo_conoce == "intervalos"){
+    a <- bases$conoce %>% ggplot(aes(tema, media, ymin = inf, ymax = sup, color = tema)) +
+      geom_pointrange(show.legend = F) +
+      scale_color_manual(values = colores_candidato) +
+      labs(title = "Conocimiento", y = NULL,x = NULL ) +
+      coord_flip() +
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      tema()
+  } else{
+    a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
+      # geom_col(show.legend = F) +
+      ggchicklet::geom_chicklet(width = .6, alpha =.5, show.legend = F)+
+      ggfittext::geom_bar_text(aes(label = scales::percent(media,1))) +
+      scale_fill_manual(values = colores_candidato) +
+      labs(title = "Conocimiento", y = NULL,x = NULL ) +
+      coord_flip() +
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      tema()
+  }
 
-  a <- bases$conoce %>% ggplot(aes(y = tema, x = media, fill = respuesta)) +
-    geom_col(show.legend = F) +
-    ggchicklet::geom_chicklet(width = .6, alpha =.5, fill = "#126782")+
-    labs(title = "Conocimiento", y = NULL,x = NULL ) +
-    theme_minimal() +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
-    theme(legend.position = "bottom")+ tema()
 
   bases$partido <- bases$partido %>%
     mutate(tema = factor(tema,levels(bases$conoce$tema)))
@@ -637,10 +652,10 @@ graficar_candidato_partido <- function(bases,tema, cliente, colores_partido){
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
               color = "white", fontface = "bold") +
     scale_fill_manual(values = colores_partido) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+    scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
     labs( y = "", title = "Identificación partidista", x= NULL) +
-    theme_minimal() +
+    tema() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
@@ -649,32 +664,11 @@ graficar_candidato_partido <- function(bases,tema, cliente, colores_partido){
 
 }
 
-graficar_candidato_saldo <- function(bd, bd_texto, grupo_positivo = c("Buena", "Muy buena"),
-                                     grupo_negativo = c("Mala", "Muy mala")){
+graficar_candidato_saldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"),
+                                     grupo_negativo = c("Mala", "Muy mala"), familia){
 
-  opinion <- bd_texto %>% split(.$grupo) %>% map_df(~{
-    data_corpus <- corpus(.x, text_field = "texto") %>%
-      tokens( remove_punct = TRUE) %>%
-      tokens_remove(stopwords("spanish")) %>% tokens_group(groups = persona) %>%
-      dfm()
-
-    .x$persona %>% unique %>% map_df(~{
-      textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(persona = .x) %>%
-        slice(1:2)
-    }) %>% mutate(grupo = unique(.x$grupo))
-  }) %>% group_by(persona, grupo) %>% summarise(p_calve = paste(feature, collapse = "\n"))
-
-  aux <-bd %>%  mutate(media = case_when(respuesta %in%grupo_negativo~media*-1,
-                                         respuesta %in% grupo_positivo~media),
-                       grupo = case_when(respuesta %in%grupo_negativo~"Negativa",
-                                         respuesta %in% grupo_positivo~"Positiva") ) %>%
-    filter(!is.na(grupo)) %>%  group_by(tema, grupo) %>%
-    summarise(saldo = sum(media)) %>% separate(tema, c("preg", "persona"), sep = "_") %>%
-    left_join(opinion, by = c("persona", "grupo"))
-
-  aux %>% ggplot(aes(x  =forcats::fct_reorder(persona, saldo), fill = grupo,
-                     y = ifelse(test = grupo == "Positiva",  yes = saldo, no = saldo),
-                     # y =saldo
+  bd %>% ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = grupo,
+                    y =saldo
   )) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
     coord_flip()+
@@ -682,9 +676,8 @@ graficar_candidato_saldo <- function(bd, bd_texto, grupo_positivo = c("Buena", "
                                  "Positiva" = "#126782"))+
     geom_text(aes(label = scales::percent(saldo,accuracy = 1)), family = familia,
               position = position_stack(.5,reverse = T), vjust = .5)+
-    # geom_text(data = aux, aes(label = p_calve), family = familia, size = 3, position = position_dodge()) +
-    geom_text(data = aux, aes(label = p_calve),
-              hjust=ifelse(test = aux$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050") +
+    geom_text(aes(label = p_calve),
+              hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050") +
     lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
     theme_minimal()+
     theme(legend.position = "bottom",
@@ -694,3 +687,42 @@ graficar_candidato_saldo <- function(bd, bd_texto, grupo_positivo = c("Buena", "
 
 }
 
+analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, diseno, colores =NULL){
+  if(is.null(legenda1)) legenda1 <- var1
+  if(is.null(legenda2)) legenda2 <- var2
+  if(is.null(colores)) colores <- c("#DE6400","#023047")
+
+  formula <- survey::make.formula(c(var1,var2))
+  aux <- survey::svytable(formula, design = diseno) %>% tibble::as_tibble() %>%
+    tidyr::pivot_wider(names_from = var2, values_from = "n") %>% tibble::column_to_rownames(var = var1)
+
+
+  # chisq.test(aux)
+  res.ca <- FactoMineR::CA(aux, graph = F)
+  eig <- factoextra::get_eigenvalue(res.ca)[, 2]
+
+  res.ca$col$coord %>% as_tibble(rownames = "respuesta") %>% janitor::clean_names() %>%
+    select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda2) %>%
+    bind_rows(
+      res.ca$row$coord %>% as_tibble(rownames = "respuesta") %>%
+        janitor::clean_names() %>%
+        select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda1)
+    ) %>% ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable",
+                            label = "respuesta", repel = T) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(x = scales::percent(eig[1]/100,accuracy = .1),
+         y = scales::percent(eig[2]/100,accuracy = .1),
+         color = ""
+    ) +
+    scale_color_manual(values = colores) +
+    lemon::scale_x_symmetric() +
+    lemon::scale_y_symmetric() +
+    theme(axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          panel.grid.major.x = element_line(colour = "#C5C5C5",linetype = "dotted"),
+          panel.grid.major.y = element_line(colour = "#C5C5C5",linetype = "dotted"))
+
+}

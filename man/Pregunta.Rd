@@ -36,9 +36,11 @@ Esta es la clase de pregunta
   tipo,
   aspectos = NULL,
   filtro = NULL,
-  parametros = list(tit = ""),
   llave_partido,
-  llave_conocimiento
+  llave_conocimiento,
+  llave_opinion,
+  llave_xq,
+  parametros = list(tit = "")
 )}\if{html}{\out{</div>}}
 }
 
