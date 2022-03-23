@@ -49,7 +49,10 @@ Imports:
     lemon,
     stopwords,
     quanteda,
-    quanteda.textstats
+    quanteda.textstats,
+    FactoMineR,
+    factoextra,
+    ggpubr
 Suggests: 
     ggfittext,
     ggthemes,
