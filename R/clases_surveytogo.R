@@ -461,12 +461,13 @@ Pregunta <- R6::R6Class("Pregunta",
                                   } else{
                                     warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                                   }
-                                  v_params <- c("tit")
+                                  v_params <- c("tit", "salto")
 
                                   if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                   g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
-                                    encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
+                                    encuestar::graficar_barras_frecuencia(titulo = parametros$tit,
+                                                                          salto = parametros$salt) + self$tema()
                                 }
                               } else{
                                 if(quo_name(enquo(llave)) != "NULL") {
