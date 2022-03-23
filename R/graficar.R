@@ -383,8 +383,8 @@ tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF
                                       linetype = "dotted"),
      panel.grid.minor = element_blank(),
      plot.title = element_text(hjust = 0,
-                               size = rel(1.5),
-                               face = "bold",
+                               size = rel(1.1),
+                               # face = "bold",
                                colour = "#4C5B61"),
      plot.subtitle = element_text(hjust = 0,
                                   size = rel(1),
@@ -634,11 +634,11 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
     ggplot() +
     geom_rect(aes(xmin = inf, xmax = sup,
                   y = tema,
-                  ymin = as.numeric(tema) - .2,
-                  ymax = as.numeric(tema) + .2,
+                  ymin = as.numeric(tema) - .3,
+                  ymax = as.numeric(tema) + .3,
                   fill = respuesta)) +
     geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = tema)),
-              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1))) +
+              aes(x = label, y = as.numeric(tema),color = "white", label = scales::percent(media,accuracy = 1))) +
     scale_fill_manual(values = colores_partido) +
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
