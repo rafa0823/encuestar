@@ -53,7 +53,8 @@ Imports:
     FactoMineR,
     factoextra,
     ggpubr,
-    ggsankey
+    ggsankey,
+    janitor
 Suggests: 
     ggfittext,
     ggthemes,
