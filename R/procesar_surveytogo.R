@@ -68,10 +68,16 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
                           aux <- .x
                         }
                         if(length(aux) == 0) aux <- .x
-                        survey::svymean(survey::make.formula(.x),
-                                        design = encuesta$muestra$diseno, na.rm = T) %>%
+                        prev <- survey::svymean(survey::make.formula(.x),
+                                        design = encuesta$muestra$diseno, na.rm = T)
+
+                        prev %>%
                           tibble::as_tibble(rownames = "respuesta") %>%
                           rename(media=2, ee=3) %>%
+                          left_join(
+                            prev %>% confint() %>% tibble::as_tibble(rownames = "respuesta") %>%
+                            rename(inf=2, sup=3)
+                          ) %>%
                           mutate(
                             aspecto = aux,
                             respuesta = stringr::str_replace(

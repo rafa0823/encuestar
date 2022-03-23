@@ -478,13 +478,24 @@ Pregunta <- R6::R6Class("Pregunta",
                                 } else {
                                   aspectos_aux <- aspectos
                                 }
+
+                                v_params <- c("tipo_numerica")
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
                                 tipo_p <- encuesta_edomex$cuestionario$diccionario %>%
                                   filter(llaves %in% aspectos_aux) %>% pull(tipo_pregunta)
                                 if("numericas" %in% tipo_p){
                                   g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
                                     left_join(
                                       self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
-                                    ) %>% graficar_barras_numerica() + self$tema()
+                                    )
+                                  if(parametros$tipo_numerica == "intervalos"){
+                                    g <- g %>% graficar_intervalo_numerica() + self$tema()
+                                  }
+                                  if(parametros$tipo_numerica == "barras"){
+                                  g <- g %>% graficar_barras_numerica() + self$tema()
+                                  }
+
 
                                 } else{
                                   if(!all(aspectos_aux %in% self$graficadas)){
