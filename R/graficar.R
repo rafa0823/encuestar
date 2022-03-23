@@ -577,8 +577,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
-    geom_text(aes(label = etiqueta), family = tema()$text$family,
-              position = position_stack(.5,reverse = T), vjust = .5) +
+    geom_text(aes(label = etiqueta), family = tema()$text$family, position = position_stack(.5,reverse = T), vjust = .5) +
     coord_flip()+
     scale_fill_manual(values = colores)+
     labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
@@ -650,7 +649,8 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
                   ymax = as.numeric(tema) + .3,
                   fill = respuesta)) +
     geom_text(data = bases$partido %>% filter(grepl(pattern = cliente,x = tema)),
-              aes(x = label, y = as.numeric(tema),color = "white", label = scales::percent(media,accuracy = 1))) +
+              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
+              color = "white", fontface = "bold") +
     scale_fill_manual(values = colores_partido) +
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
