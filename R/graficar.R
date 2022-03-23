@@ -269,6 +269,18 @@ bd %>%
                            contrast = T)
 }
 
+graficar_intervalo_numerica<- function(bd){
+  bd %>%
+    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
+    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D") +
+    coord_flip()+
+    labs(title = NULL,
+         x = NULL,
+         y = "Promedio")+
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3)
+
+}
+
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("palabras","pregunta","titulo","nota"))
 
 #' Title
