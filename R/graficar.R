@@ -287,7 +287,7 @@ graficar_barras_palabras <- function(bd, pregunta, nota, tit, n = 10){
     count(palabras,sort = T) %>%
     anti_join(tibble(palabras = c(stopwords::stopwords("es"),"ns","nc", "no", "leer", "Ns/Nc"))) %>%
     head(n) %>%
-    ggplot(aes(x = forcats::fct_reorder(palabras, n), y = n))+
+    ggplot(aes(x = forcats::fct_reorder(stringr::str_to_title(palabras), n), y = n))+
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
                               alpha= .8,
                               width =.45,

@@ -669,7 +669,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                 g <- graficar_barras_palabras(bd = self$encuesta$respuestas$base,
                                                               pregunta = llave, n = parametros$n,
                                                               nota = parametros$nota,
-                                                              tit = parametros$tit)
+                                                              tit = parametros$tit) + self$tema()
                               }
                             }
 
