@@ -74,6 +74,51 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             return(print(match_dicc_base(self)))
                           },
+                          error_muestral_maximo = function(quitar_patron = NULL){
+                            aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiples")
+                            if(!is.null(quitar_patron)) {
+                              quitar_patron <- paste(quitar_patron, collapse = "|")
+                              aux <- aux %>% filter(!grepl(quitar_patron, x = llaves))
+                            }
+
+                            aux <- aux %>% mutate(n = map_int(respuestas,~length(.x)))
+                            aux <- aux %>%
+                              pull(llaves) %>% map_df(~{
+                                # nas <- self$respuestas$base %>% summarise(any(is.na(c_across(.x)))) %>% pull(1)
+                                survey::svymean(survey::make.formula(.x), design = self$muestra$diseno, na.rm = T) %>%
+                                  tibble::as_tibble(rownames = "respuesta") %>%
+                                  # rename(SE = 3) %>%
+                                  mutate(pregunta = .x,
+                                         # tiene_na = !!nas,
+                                         # respuesta = stringr::str_replace(string = respuesta,
+                                         #                                  pattern = as.character(.x),
+                                         #                                  replacement = "")
+                                  ) %>% select(respuesta, mean, SE)
+                              }) %>% mutate(SE = qnorm(.95)*SE)
+
+                            labels <- aux %>% summarise(inf = quantile(SE,.25,na.rm = T),
+                                                        mid = quantile(SE,.5,na.rm = T),
+                                                        sup = quantile(SE,.75,na.rm = T),
+                                                        max = max(SE,na.rm = T)
+                            ) %>% mutate(iqr_min = inf-1.5*(sup-inf),
+                                         iqr_max = sup + 1.5*(sup-inf)) %>%
+                              pivot_longer(everything(), names_to = "stat", values_to = "valor")
+
+                            a <- aux %>%
+                              ggplot() +
+                              geom_boxplot(aes(x = 0, y = SE)) +
+                              geom_label(data = labels, aes(x = 0, y = valor, label = scales::percent(valor)),
+                                         hjust = 0, vjust = 0, nudge_x = .01) + labs(x = NULL) +
+                              scale_y_continuous(labels = scales::percent_format(1))
+
+                            b <- aux %>% filter(SE >= labels %>% filter(stat == "sup") %>% pull(valor)) %>%
+                              ggplot() + geom_col(aes(y = reorder(respuesta, SE), x = SE)) +
+                              geom_vline(xintercept = labels %>% filter(stat == "sup") %>% pull(valor))+
+                              labs(y = NULL)+
+                              scale_x_continuous(labels = scales::percent_format(1))
+
+                            a + b
+                          },
                           exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
                             if(!file.exists(carpeta)) dir.create(carpeta)
                             #Exportar bd
@@ -373,6 +418,7 @@ Cuestionario <- R6::R6Class("Cuestionario",
 #'@export
 Pregunta <- R6::R6Class("Pregunta",
                         public=list(
+                          regiones = NULL,
                           texto_completo=NULL,
                           llave=NULL,
                           aspectos=NULL,
@@ -385,29 +431,47 @@ Pregunta <- R6::R6Class("Pregunta",
                           initialize = function(encuesta, tema = tema_default){
                             self$encuesta <- encuesta
                             self$tema <- tema
+                            self$regiones_shp()
+
                           },
-                          graficar = function(llave, tipo, aspectos = NULL, filtro = NULL, parametros = list(tit = ""),
-                                              llave_partido, llave_conocimiento){
+                          graficar = function(llave, tipo, aspectos = NULL, filtro = NULL,
+                                              llave_partido, llave_conocimiento,
+                                              llave_opinion,
+                                              llave_xq,
+                                              parametros = list(tit = "")){
                             tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
                               if(is.null(aspectos)){
-                                llave_aux <- quo_name(enquo(llave))
-                                if(!(llave_aux %in% self$graficadas)){
-                                  if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
-                                    self$graficadas <- self$graficadas %>% append(llave_aux)
-                                  } else{
-                                    stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                  }
+                                tipo_p <- encuesta_edomex$cuestionario$diccionario %>%
+                                  filter(llaves == quo_name(enquo(llave))) %>% pull(tipo_pregunta)
+
+                                if("numericas" == tipo_p){
+                                  v_params <- c("color", "maximo")
+
+                                  if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+                                  g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                                    graficar_gauge_promedio(color = parametros$color, maximo = parametros$maximo,
+                                                            familia = self$tema()$text$family)
                                 } else{
-                                  warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                                  llave_aux <- quo_name(enquo(llave))
+                                  if(!(llave_aux %in% self$graficadas)){
+                                    if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                                      self$graficadas <- self$graficadas %>% append(llave_aux)
+                                    } else{
+                                      stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                    }
+                                  } else{
+                                    warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                                  }
+                                  v_params <- c("tit", "salto")
+
+                                  if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                  g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                                    encuestar::graficar_barras_frecuencia(titulo = parametros$tit,
+                                                                          salto = parametros$salt) + self$tema()
                                 }
-                                v_params <- c("tit")
-
-                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
-
-                                g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
-                                  encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
                               } else{
                                 if(quo_name(enquo(llave)) != "NULL") {
                                   aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
@@ -415,6 +479,84 @@ Pregunta <- R6::R6Class("Pregunta",
                                   aspectos_aux <- aspectos
                                 }
 
+                                v_params <- c("tipo_numerica")
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                tipo_p <- encuesta_edomex$cuestionario$diccionario %>%
+                                  filter(llaves %in% aspectos_aux) %>% pull(tipo_pregunta)
+                                if("numericas" %in% tipo_p){
+                                  g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
+                                    left_join(
+                                      self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                    )
+                                  if(parametros$tipo_numerica == "intervalos"){
+                                    g <- g %>% graficar_intervalo_numerica() + self$tema()
+                                  }
+                                  if(parametros$tipo_numerica == "barras"){
+                                  g <- g %>% graficar_barras_numerica() + self$tema()
+                                  }
+
+
+                                } else{
+                                  if(!all(aspectos_aux %in% self$graficadas)){
+                                    if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                      self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                    } else{
+                                      stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                    }
+                                  } else{
+                                    warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                                  }
+
+                                  g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
+
+                                  if(!is.null(filtro)) {
+                                    v_params <- c("tit")
+                                    if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+                                    g <- g %>% filter(eval(rlang::parse_expr(filtro)))%>%
+                                      mutate(tema = names(aspectos[match(gsub(pattern = glue::glue("{quo_name(enquo(llave))}_"),
+                                                                              replacement = "",x = aspecto),aspectos)])) %>%
+                                      select(-respuesta) %>%
+                                      rename(respuesta = tema) %>%
+                                      encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
+                                  } else{
+                                    v_params <- c("tit", "nota", "grupo_positivo", "grupo_negativo", "ns_nc", "colores", "orden")
+                                    if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+                                    if(quo_name(enquo(llave)) != "NULL"){
+                                      g <- g %>% left_join(
+                                        self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                      )
+                                    }else{
+                                      g <- g %>% mutate(tema = names(aspectos[match(aspecto,aspectos)]))
+                                    }
+                                    g <- g %>%
+                                      graficar_aspectos_frecuencias(
+                                        titulo = parametros$tit,
+                                        nota = parametros$nota,
+                                        grupo_positivo = parametros$grupo_positivo,
+                                        grupo_negativo = parametros$grupo_negativo,
+                                        ns_nc = parametros$ns_nc,
+                                        colores =  parametros$colores,
+                                        familia = self$tema()$text$family
+                                      ) + self$tema()
+                                  }
+                                }
+                              }
+
+                            }
+
+                            if(stringr::str_detect(pattern = "candidato", tipo)){
+                              if(stringr::str_detect(pattern = "opinion", tipo)){
+
+                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo", "colores")
+
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                if(quo_name(enquo(llave)) != "NULL") {
+                                  aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
+                                } else {
+                                  aspectos_aux <- aspectos
+                                }
 
                                 if(!all(aspectos_aux %in% self$graficadas)){
                                   if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
@@ -426,37 +568,6 @@ Pregunta <- R6::R6Class("Pregunta",
                                   warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
 
-                                v_params <- c("tit", "nota", "grupo_positivo", "grupo_negativo", "ns_nc", "colores", "orden")
-
-                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
-
-                                g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos)
-
-                                g <- g %>%
-                                  left_join(
-                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
-                                  ) %>%
-                                  graficar_aspectos_frecuencias(
-                                    titulo = parametros$tit,
-                                    nota = parametros$nota,
-                                    grupo_positivo = parametros$grupo_positivo,
-                                    grupo_negativo = parametros$grupo_negativo,
-                                    ns_nc = parametros$ns_nc,
-                                    colores =  parametros$colores,
-                                    # orden = parametros$orden,
-                                    familia = self$tema()$text$family
-                                  ) + self$tema()
-                              }
-
-                            }
-
-                            if(stringr::str_detect(pattern = "candidato", tipo)){
-                              if(stringr::str_detect(pattern = "opinion", tipo)){
-
-                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo")
-
-                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
-
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
                                   left_join(
                                     self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
@@ -465,20 +576,75 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              regular = parametros$regular,
                                                              grupo_positivo= parametros$grupo_positivo,
                                                              grupo_negativo = parametros$grupo_negativo,
-                                                             familia = self$tema()$text$family) + self$tema()
+                                                             colores = parametros$colores,
+                                                             tema = self$tema)
 
                               }
                               if(stringr::str_detect(pattern = "saldo", tipo)){
 
-                              }
-                              if(stringr::str_detect(pattern = "partido", tipo)){
-
-                                v_params <- c("corte_otro", "cliente","colores_partido")
+                                v_params <- c("grupo_positivo", "grupo_negativo", "tipo_combinacion","n_palabras")
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
+                                if(quo_name(enquo(llave)) != "NULL") {
+                                  aspectos_aux <- paste(llave_opinion, aspectos, sep = "_") %>%
+                                    append(paste(llave_xq, aspectos, sep = "_"))
+                                } else {
+                                  aspectos_aux <- aspectos
+                                }
+
+                                if(!all(aspectos_aux %in% self$graficadas)){
+                                  if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                    self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                  } else{
+                                    stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                  }
+                                } else{
+                                  warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                                }
+
+                                bd <- analizar_frecuencias_aspectos(self$encuesta, {{llave_opinion}}, aspectos) %>%
+                                  left_join(
+                                    self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                  ) %>%
+                                  organizar_opinion_saldo(llave_opinion, parametros$grupo_positivo, parametros$grupo_negativo)
+
+                                texto <- ordenar_opinion_xq(self$encuesta$respuestas$base,
+                                                            llave_opinion, llave_xq, aspectos,
+                                                            parametros$grupo_positivo, parametros$grupo_negativo) %>%
+                                  pclave_combinaciones_saldo(parametros$tipo_combinacion, parametros$n_palabras)
+
+                                g <- left_join(bd, texto) %>%
+                                  graficar_candidato_saldo(grupo_positivo = parametros$grupo_positivo,
+                                                           grupo_negativo = parametros$grupo_negativo,
+                                                           familia = self$tema()$text$family ) +
+                                  self$tema()
+                              }
+                              if(stringr::str_detect(pattern = "partido", tipo)){
+
+                                v_params <- c("corte_otro", "cliente", "tipo_conoce", "colores_candidato","colores_partido")
+
+                                if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+
+                                if(quo_name(enquo(llave)) != "NULL") {
+                                  aspectos_aux <- paste(llave_partido, aspectos, sep = "_") %>%
+                                    append(paste(llave_conocimiento, aspectos, sep = "_"))
+                                } else {
+                                  aspectos_aux <- aspectos
+                                }
+
+                                if(!all(aspectos_aux %in% self$graficadas)){
+                                  if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
+                                    self$graficadas <- self$graficadas %>% append(aspectos_aux)
+                                  } else{
+                                    stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
+                                  }
+                                } else{
+                                  warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
+                                }
                                 g <- analizar_candidato_partido(diseno = self$encuesta$muestra$diseno,
-                                                                llave_partido = llave_partido, llave_conocimiento = llave_conocimiento,
+                                                                llave_partido = llave_partido,
+                                                                llave_conocimiento = llave_conocimiento,
                                                                 candidatos = aspectos,
                                                                 corte_otro = parametros$corte_otro) %>%
                                   map(
@@ -487,15 +653,11 @@ Pregunta <- R6::R6Class("Pregunta",
                                         self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
                                       )
                                   ) %>%
-                                  graficar_candidato_partido(cliente = parametros$cliente, colores_partido = parametros$colores_partido)
-                              }
-                            }
-
-                            if(tipo == "promedio"){
-                              if(is.null(aspectos)){
-
-                              } else{
-
+                                  graficar_candidato_partido(cliente = parametros$cliente,
+                                                             tipo_conoce = parametros$tipo_conoce,
+                                                             colores_candidato = parametros$colores_candidato,
+                                                             colores_partido = parametros$colores_partido,
+                                                             tema = self$tema)
                               }
                             }
 
@@ -521,12 +683,54 @@ Pregunta <- R6::R6Class("Pregunta",
                                 g <- graficar_barras_palabras(bd = self$encuesta$respuestas$base,
                                                               pregunta = llave, n = parametros$n,
                                                               nota = parametros$nota,
-                                                              tit = parametros$tit)
+                                                              tit = parametros$tit) + self$tema()
                               }
                             }
 
                             return(g)
 
+                          },
+                          regiones_shp = function(){
+                            self$regiones <- self$encuesta$shp_completo$shp$MUNICIPIO %>%
+                              left_join(
+                                self$encuesta$muestra$muestra$poblacion$marco_muestral %>% distinct(region, MUNICIPIO), by = "MUNICIPIO"
+                              ) %>% split(.$region) %>% map_df(~{
+                                r <- .x$region %>% unique
+                                .x  %>% st_union() %>% st_as_sf %>% mutate(region = r)
+                              })
+                          },
+                          correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
+                            analisis_correspondencia(var1, var2, legenda1, legenda2, diseno = self$encuesta$muestra$diseno, colores)
+                          },
+                          mapa = function(var){
+                            formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
+
+                            self$regiones %>% left_join(
+                              survey::svytable(formula, design = encuesta_edomex$muestra$diseno) %>% as_tibble %>%
+                                group_by(region) %>% filter(n == max(n))
+                            ) %>%
+                              ggplot() + geom_sf(aes(fill = {{var}}), size = 0) +
+                              theme_minimal() +
+                              theme(axis.line = element_blank(),
+                                    axis.ticks = element_blank(),
+                                    axis.text.x = element_blank(),
+                                    axis.text.y = element_blank(),
+                                    panel.grid.major.x = element_line(colour = "#C5C5C5",linetype = "dotted"),
+                                    panel.grid.major.y = element_line(colour = "#C5C5C5",linetype = "dotted"))
+                          },
+                          sankey = function(var1, var2){
+                            aux <- survey::svytable(survey::make.formula(c(var1,var2)),
+                                            design = self$encuesta$muestra$diseno) %>%
+                              tibble::as_tibble %>% ggsankey::make_long(-n, value = n)
+
+
+                            ggplot(aux, aes(x = x,
+                                            value = value,
+                                            next_x = next_x,
+                                            node = node,
+                                            next_node = next_node,
+                                            fill = factor(node))) +
+                              ggsankey::geom_sankey()
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))

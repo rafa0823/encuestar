@@ -45,13 +45,20 @@ Imports:
     DT,
     survey,
     leaflet,
-    patchwork
-Suggests: 
+    patchwork,
     lemon,
+    stopwords,
+    quanteda,
+    quanteda.textstats,
+    FactoMineR,
+    factoextra,
+    ggpubr,
+    ggsankey,
+    janitor
+Suggests: 
     ggfittext,
     ggthemes,
-    scales,
-    stopwords
+    scales
 Remotes:
     morant-consultores/muestreaR,
     hrbrmstr/ggchicklet
