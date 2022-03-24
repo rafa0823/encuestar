@@ -182,6 +182,7 @@ orden <- c(grupo_negativo, grupo_positivo)
                group =factor(respuesta, levels = orden) )) +
     ggchicklet::geom_chicklet(stat = "identity", width = ancho_barras, alpha = transparencia)+
     geom_text(aes(label = scales::percent(media,accuracy = 1)), family = familia,
+              color = "white", fontface = "bold",
               position = position_stack(.5,reverse = T), vjust = .5,
               color = color_etiqueta) +
     scale_fill_manual(values = colores)+
