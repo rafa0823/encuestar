@@ -721,7 +721,7 @@ Pregunta <- R6::R6Class("Pregunta",
                           sankey = function(var1, var2){
                             aux <- survey::svytable(survey::make.formula(c(var1,var2)),
                                             design = self$encuesta$muestra$diseno) %>%
-                              tibble::as_tibble %>% ggsankey::make_long(-n, value = n)
+                              tibble::as_tibble() %>% ggsankey::make_long(-n, value = n)
 
 
                             ggplot(aux, aes(x = x,
@@ -730,7 +730,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                             node = node,
                                             next_node = next_node,
                                             fill = factor(node))) +
-                              ggsankey::geom_sankey()
+                              ggsankey::geom_sankey() + self$tema()
                           },
                           prcomp = function(variables){
                             pc <- survey::svyprcomp(survey::make.formula(variables),
