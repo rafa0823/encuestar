@@ -732,6 +732,13 @@ Pregunta <- R6::R6Class("Pregunta",
                                             fill = factor(node))) +
                               ggsankey::geom_sankey()
                           },
+                          prcomp = function(variables){
+                            pc <- survey::svyprcomp(survey::make.formula(variables),
+                                            design= self$encuesta$muestra$diseno,
+                                            scale=TRUE,scores=TRUE)
+                            fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T
+                            )
+                          },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
