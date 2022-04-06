@@ -727,3 +727,30 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
           panel.grid.major.y = element_line(colour = "#C5C5C5",linetype = "dotted"))
 
 }
+
+#' Title
+#'
+#' @param bd
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_conocimiento_region <- function(bd){
+  bd %>% ggplot(aes(x = region, y = tema, fill = pct)) +
+    geom_tile()
+}
+
+#' Title
+#'
+#' @param bd
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_saldo_region <- function(bd){
+  bd %>%
+    ggplot(aes(x = region, y = tema, fill = saldo)) + geom_tile() +
+    scale_fill_gradient2(low = "orange", mid = "white", high = "blue")
+}
