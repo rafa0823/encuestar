@@ -718,6 +718,13 @@ Pregunta <- R6::R6Class("Pregunta",
                                     panel.grid.major.x = element_line(colour = "#C5C5C5",linetype = "dotted"),
                                     panel.grid.major.y = element_line(colour = "#C5C5C5",linetype = "dotted"))
                           },
+                          conocimiento_region = function(llave_conocimiento, candidatos, respuesta){
+                            analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
+                                                         self$encuesta$muestra$diseno,
+                                                         self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
+                              graficar_conocimiento_region()
+
+                          },
                           sankey = function(var1, var2){
                             aux <- survey::svytable(survey::make.formula(c(var1,var2)),
                                             design = self$encuesta$muestra$diseno) %>%
@@ -736,8 +743,7 @@ Pregunta <- R6::R6Class("Pregunta",
                             pc <- survey::svyprcomp(survey::make.formula(variables),
                                             design= self$encuesta$muestra$diseno,
                                             scale=TRUE,scores=TRUE)
-                            fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T
-                            )
+                            fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))

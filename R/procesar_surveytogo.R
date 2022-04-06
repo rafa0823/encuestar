@@ -234,3 +234,29 @@ pclave_combinaciones_saldo <- function(bd_texto, tipo, n_palabras){
   }
   return(res)
 }
+
+#' Title
+#'
+#' @param llave
+#' @param variable
+#' @param respuesta
+#' @param diseno
+#' @param diccionario
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, diccionario){
+  junto <- paste(llave, variable, sep = "_")
+
+  junto %>%
+    map_df(~{
+      svytable(make.formula(c(.x,"region")), design = diseno) %>%
+        as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n))%>% mutate(aspecto = .x) %>%
+        filter(!!rlang::sym(.x) == respuesta) %>% select(-1)
+    }) %>%
+    left_join(
+      diccionario %>% select(aspecto = llaves, tema)
+    )
+}
