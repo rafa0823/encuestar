@@ -298,3 +298,37 @@ analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo
   }
   return(res)
 }
+
+#' Title
+#'
+#' @param var
+#' @param diseno
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_ganador_region <- function(regiones, var, diseno){
+  formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
+
+  regiones %>% left_join(
+    survey::svytable(formula, design = diseno) %>% as_tibble %>%
+      group_by(region) %>% filter(n == max(n))
+  )
+}
+#' Title
+#'
+#' @param var
+#' @param diseno
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_promedio_region <- function(regiones, var, diseno){
+  formula <- survey::make.formula(rlang::expr_text(ensym(var)))
+  regiones %>% left_join(
+    survey::svyby(formula, ~region, design = diseno,FUN = svymean, na.rm  = T) %>%
+      as_tibble()
+  )
+}
