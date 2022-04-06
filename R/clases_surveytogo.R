@@ -702,6 +702,7 @@ Pregunta <- R6::R6Class("Pregunta",
                           correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
                             analisis_correspondencia(var1, var2, legenda1, legenda2, diseno = self$encuesta$muestra$diseno, colores)
                           },
+<<<<<<< HEAD
                           mapa = function(var){
                             formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
 
@@ -722,6 +723,17 @@ Pregunta <- R6::R6Class("Pregunta",
                                                               # face = "bold",
                                                               colour = "#4C5B61"),
                                     text = element_text(family = "Poppins", size=14))
+=======
+                          mapa_ganador = function(var){
+                            analizar_ganador_region(regiones = self$regiones, {{var}},
+                                                    diseno = self$encuesta$muestra$diseno) %>%
+                              graficar_mapa_region({{var}})
+                          },
+                          mapa_numerico = function(var){
+                            analizar_promedio_region(regiones = self$regiones, var = {{var}},
+                                                     diseno = self$encuesta$muestra$diseno) %>%
+                              graficar_mapa_region({{var}})
+>>>>>>> upstream/dev
                           },
                           conocimiento_region = function(llave_conocimiento, candidatos, respuesta){
                             analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
@@ -730,7 +742,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               graficar_conocimiento_region()
 
                           },
-                          saldo_region = function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo){
+                          saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_positivo){
                             analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo,
                                                   diseno = self$encuesta$muestra$diseno,
                                                   diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
