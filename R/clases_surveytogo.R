@@ -719,12 +719,15 @@ Pregunta <- R6::R6Class("Pregunta",
                               graficar_conocimiento_region()
 
                           },
-                          saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_positivo){
-                            analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo,
+                          saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo){
+                            analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
                                                   diseno = self$encuesta$muestra$diseno,
                                                   diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
                               graficar_saldo_region()
 
+                          },
+                          pclave_region = function(var){
+                            analizar_pclave_region(bd = self$encuesta$respuestas$base, var)
                           },
                           sankey = function(var1, var2){
                             aux <- survey::svytable(survey::make.formula(c(var1,var2)),
