@@ -790,7 +790,7 @@ graficar_saldo_region <- function(bd){
 #'
 #' @examples
 graficar_mapa_region <- function(bd, var){
-  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .7, alpha = .8) +
+  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .5, alpha = .8, color = "white") +
     theme_minimal() +
     theme(axis.line = element_blank(),
           axis.ticks = element_blank(),
