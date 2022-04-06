@@ -326,7 +326,7 @@ analizar_ganador_region <- function(regiones, var, diseno){
 analizar_promedio_region <- function(regiones, var, diseno){
   formula <- survey::make.formula(rlang::expr_text(ensym(var)))
   regiones %>% left_join(
-    survey::svyby(formula, ~region, design = diseno,FUN = svymean, na.rm  = T) %>%
+    survey::svyby(formula, ~region, design = diseno,FUN = survey::svymean, na.rm  = T) %>%
       as_tibble()
   )
 }
