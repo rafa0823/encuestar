@@ -282,8 +282,7 @@ analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo
       as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>%
       filter(!!rlang::sym(.x) != !!ns_nc) %>%
       ungroup %>%
-      mutate(pct = if_else(!!rlang::sym(.x) %in% cat_negativo, -pct,pct),
-             grupo = if_else(!!rlang::sym(.x) %in% cat_positivo, "Positivo", "Negativo")
+      mutate(pct = if_else(!!rlang::sym(.x) %in% cat_negativo, -pct,pct))
       ) %>%
       count(region, wt = pct,name = "saldo") %>% mutate(aspecto = .x)
   })
