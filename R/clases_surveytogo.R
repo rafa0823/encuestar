@@ -702,25 +702,15 @@ Pregunta <- R6::R6Class("Pregunta",
                           correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
                             analisis_correspondencia(var1, var2, legenda1, legenda2, diseno = self$encuesta$muestra$diseno, colores)
                           },
-                          mapa = function(var){
-                            formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
-
-                            self$regiones %>% left_join(
-                              survey::svytable(formula, design = encuesta_edomex$muestra$diseno) %>% as_tibble %>%
-                                group_by(region) %>% filter(n == max(n))
-                            ) %>%
-                              ggplot() + geom_sf(aes(fill = {{var}}), size = .7, alpha = .8) +
-                              theme_minimal() +
-                              theme(axis.line = element_blank(),
-                                    axis.ticks = element_blank(),
-                                    panel.grid = element_blank(),
-                                    legend.position = "bottom",
-                                    axis.text = element_blank(),
-                                    plot.title = element_text(hjust = 0,
-                                                              size = rel(1.1),
-                                                              # face = "bold",
-                                                              colour = "#4C5B61"),
-                                    text = element_text(family = "Poppins", size=14))
+                          mapa_ganador = function(var){
+                            analizar_ganador_region(regiones = self$regiones, {{var}},
+                                                    diseno = self$encuesta$muestra$diseno) %>%
+                              graficar_mapa_region({{var}})
+                          },
+                          mapa_numerico = function(var){
+                            analizar_promedio_region(regiones = self$regiones, var = {{var}},
+                                                     diseno = self$encuesta$muestra$diseno) %>%
+                              graficar_mapa_region({{var}})
                           },
                           conocimiento_region = function(llave_conocimiento, candidatos, respuesta){
                             analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
