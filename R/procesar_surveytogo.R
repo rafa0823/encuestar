@@ -274,17 +274,15 @@ analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, dic
 #' @export
 #'
 #' @examples
-analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo, diseno, diccionario){
+analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo, diseno, diccionario){
   if(llave_opinion ==  "") llaves <- candidatos else llaves <- paste(llave_opinion, candidatos,sep = "_")
 
   res <- llaves %>% map_df(~{
     survey::svytable(survey::make.formula(c(.x,"region")), design = diseno) %>%
       as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>%
-      filter(!!rlang::sym(.x) != !!ns_nc) %>%
+      filter(! (!!rlang::sym(.x) %in% c(ns_nc, cat_regular))) %>%
       ungroup %>%
-      mutate(pct = if_else(!!rlang::sym(.x) %in% cat_negativo, -pct,pct),
-             grupo = if_else(!!rlang::sym(.x) %in% cat_positivo, "Positivo", "Negativo")
-      ) %>%
+      mutate(pct = if_else(!!rlang::sym(.x) %in% cat_negativo, -pct,pct)) %>%
       count(region, wt = pct,name = "saldo") %>% mutate(aspecto = .x)
   })
 
@@ -331,4 +329,25 @@ analizar_promedio_region <- function(regiones, var, diseno){
     survey::svyby(formula, ~region, design = diseno,FUN = svymean, na.rm  = T) %>%
       as_tibble()
   )
+}
+
+#' Title
+#'
+#' @param bd
+#' @param var
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_pclave_region <- function(bd, var){
+
+  data_corpus <- corpus(bd, text_field = var) %>%
+    tokens( remove_punct = TRUE) %>%
+    tokens_remove(stopwords("spanish")) %>% tokens_group(groups = region) %>%
+    dfm()
+
+  bd$region %>% unique %>% map_df(~{
+    textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x)
+  }) %>% group_by(grupo) %>% summarise(pclave = paste(feature,collapse = ", "))
 }
