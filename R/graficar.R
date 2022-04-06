@@ -740,3 +740,17 @@ graficar_conocimiento_region <- function(bd){
   bd %>% ggplot(aes(x = region, y = tema, fill = pct)) +
     geom_tile()
 }
+
+#' Title
+#'
+#' @param bd
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_saldo_region <- function(bd){
+  bd %>%
+    ggplot(aes(x = region, y = tema, fill = saldo)) + geom_tile() +
+    scale_fill_gradient2(low = "orange", mid = "white", high = "blue")
+}

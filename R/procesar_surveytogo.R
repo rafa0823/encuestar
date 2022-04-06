@@ -260,3 +260,34 @@ analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, dic
       diccionario %>% select(aspecto = llaves, tema)
     )
 }
+
+#' Title
+#'
+#' @param llave_opinion
+#' @param candidatos
+#' @param diseno
+#' @param ns_nc
+#' @param cat_negativo
+#' @param cat_positivo
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo, diseno, diccionario){
+  llaves <- paste(llave_opinion, candidatos,sep = "_")
+
+  llaves %>% map_df(~{
+    svytable(make.formula(c(.x,"region")), design = diseno) %>%
+      as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>%
+      filter(!!rlang::sym(.x) != !!ns_nc) %>%
+      ungroup %>%
+      mutate(pct = if_else(!!rlang::sym(.x) %in% cat_negativo, -pct,pct),
+             grupo = if_else(!!rlang::sym(.x) %in% cat_positivo, "Positivo", "Negativo")
+      ) %>%
+      count(region, wt = pct,name = "saldo") %>% mutate(aspecto = .x)
+  }) %>%
+    left_join(
+      diccionario %>% select(aspecto = llaves, tema)
+    )
+}
