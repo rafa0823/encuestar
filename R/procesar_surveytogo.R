@@ -234,3 +234,60 @@ pclave_combinaciones_saldo <- function(bd_texto, tipo, n_palabras){
   }
   return(res)
 }
+
+#' Title
+#'
+#' @param llave
+#' @param variable
+#' @param respuesta
+#' @param diseno
+#' @param diccionario
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, diccionario){
+  junto <- paste(llave, variable, sep = "_")
+
+  junto %>%
+    map_df(~{
+      svytable(make.formula(c(.x,"region")), design = diseno) %>%
+        as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n))%>% mutate(aspecto = .x) %>%
+        filter(!!rlang::sym(.x) == respuesta) %>% select(-1)
+    }) %>%
+    left_join(
+      diccionario %>% select(aspecto = llaves, tema)
+    )
+}
+
+#' Title
+#'
+#' @param llave_opinion
+#' @param candidatos
+#' @param diseno
+#' @param ns_nc
+#' @param cat_negativo
+#' @param cat_positivo
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo, diseno, diccionario){
+  llaves <- paste(llave_opinion, candidatos,sep = "_")
+
+  llaves %>% map_df(~{
+    svytable(make.formula(c(.x,"region")), design = diseno) %>%
+      as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>%
+      filter(!!rlang::sym(.x) != !!ns_nc) %>%
+      ungroup %>%
+      mutate(pct = if_else(!!rlang::sym(.x) %in% cat_negativo, -pct,pct),
+             grupo = if_else(!!rlang::sym(.x) %in% cat_positivo, "Positivo", "Negativo")
+      ) %>%
+      count(region, wt = pct,name = "saldo") %>% mutate(aspecto = .x)
+  }) %>%
+    left_join(
+      diccionario %>% select(aspecto = llaves, tema)
+    )
+}
