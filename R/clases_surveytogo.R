@@ -726,6 +726,9 @@ Pregunta <- R6::R6Class("Pregunta",
                               graficar_saldo_region()
 
                           },
+                          pclave_region = function(var){
+                            analizar_pclave_region(bd = self$encuesta$respuestas$base, var)
+                          },
                           sankey = function(var1, var2){
                             aux <- survey::svytable(survey::make.formula(c(var1,var2)),
                                             design = self$encuesta$muestra$diseno) %>%
