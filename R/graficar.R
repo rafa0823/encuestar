@@ -164,7 +164,7 @@ graficar_aspectos_frecuencias <- function(bd,
   ancho_barras <- .45
   color_etiqueta <- "#3B3838"
 
-orden <- c(grupo_negativo, grupo_positivo)
+  orden <- c(grupo_negativo, grupo_positivo)
 
   aux  <-  bd %>%
     mutate(etiqueta = media,
@@ -173,7 +173,7 @@ orden <- c(grupo_negativo, grupo_positivo)
                              respuesta == ns_nc~media+1.01),
            media2 = case_when(respuesta == ns_nc~0, T~media)) %>%
     group_by(tema) %>%  mutate(saldo=sum(media2, na.rm = T),
-                 color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
+                               color_saldo = case_when(saldo>0~"#fb8500", saldo<0~"#126782",
                                                        saldo ==0 ~"gray")) %>%  ungroup()
 
 
@@ -258,16 +258,16 @@ sustituir <- function(bd, patron, reemplazo = ""){
 #'
 #' @examples
 graficar_barras_numerica<- function(bd){
-bd %>%
-  ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
-  ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
-                alpha= .95, fill = "#850D2D",
-                width =.45)+ coord_flip()+
-  labs(title = NULL,
-       x = NULL,
-       y = "Promedio")+
-  ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
-                           contrast = T)
+  bd %>%
+    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
+                              alpha= .95, fill = "#850D2D",
+                              width =.45)+ coord_flip()+
+    labs(title = NULL,
+         x = NULL,
+         y = "Promedio")+
+    ggfittext::geom_bar_text(aes(label= round(media,digits = 1)),
+                             contrast = T)
 }
 
 graficar_intervalo_numerica<- function(bd){
@@ -357,7 +357,7 @@ graficar_nube_frecuencias <- function(bd,pregunta, n = 100,
   #         file = "Entregables/plot.png",vwidth = ancho, vheight = alto,
   #         delay=3) # delay will ensure that the whole plot appears in the image
   # grDevices::dev.off()
-return(plot)
+  return(plot)
 
 }
 
@@ -508,7 +508,7 @@ graficar_estratos_likert <- function(bd, titulo = NULL,
 #'
 #' @examples
 graficar_estratos_grupos <- function(bd, titulo = "", nota = "", familia = "Poppins"
-                                    ){
+){
 
   bd %>% ggplot(aes(x = forcats::fct_reorder(grupo,pct), y = pct, fill = grupo) )+
     ggchicklet::geom_chicklet(alpha = .8, width = .7)+
@@ -593,7 +593,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
     coord_flip()+
     ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
-              hjust = -.1)+
+                             hjust = -.1)+
     labs(y = NULL, x = NULL)+
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
     tema() +
@@ -754,3 +754,29 @@ graficar_saldo_region <- function(bd){
     ggplot(aes(x = region, y = tema, fill = saldo)) + geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")
 }
+
+
+#' Title
+#'
+#' @param bd
+#' @param var
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_mapa_region <- function(bd, var){
+  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .7, alpha = .8) +
+    theme_minimal() +
+    theme(axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          panel.grid = element_blank(),
+          legend.position = "bottom",
+          axis.text = element_blank(),
+          plot.title = element_text(hjust = 0,
+                                    size = rel(1.1),
+                                    # face = "bold",
+                                    colour = "#4C5B61"),
+          text = element_text(family = "Poppins", size=14))
+}
+
