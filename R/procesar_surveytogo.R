@@ -25,7 +25,7 @@ analizar_frecuencias <- function(encuesta, pregunta){
       respuesta=forcats::fct_reorder(.f = respuesta,
                                      .x = media,
                                      .fun = max)
-      )
+    )
   p <- estimacion %>% pull(pregunta) %>% unique
   p <- encuesta$cuestionario$diccionario %>%
     filter(llaves == p) %>% pull(pregunta)
@@ -61,33 +61,33 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
 
 
   estimaciones <- map_df(llaves,
-                      ~{
-                        if(class(ja) != "try-error"){
-                        aux <- encuesta$cuestionario$diccionario %>% tidyr::unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
-                        } else{
-                          aux <- .x
-                        }
-                        if(length(aux) == 0) aux <- .x
-                        prev <- survey::svymean(survey::make.formula(.x),
-                                        design = encuesta$muestra$diseno, na.rm = T)
+                         ~{
+                           if(class(ja) != "try-error"){
+                             aux <- encuesta$cuestionario$diccionario %>% tidyr::unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
+                           } else{
+                             aux <- .x
+                           }
+                           if(length(aux) == 0) aux <- .x
+                           prev <- survey::svymean(survey::make.formula(.x),
+                                                   design = encuesta$muestra$diseno, na.rm = T)
 
-                        prev %>%
-                          tibble::as_tibble(rownames = "respuesta") %>%
-                          rename(media=2, ee=3) %>%
-                          left_join(
-                            prev %>% confint() %>% tibble::as_tibble(rownames = "respuesta") %>%
-                            rename(inf=2, sup=3)
-                          ) %>%
-                          mutate(
-                            aspecto = aux,
-                            respuesta = stringr::str_replace(
-                            pattern = .x,
-                            replacement = "",
-                            string = respuesta),
-                            respuesta=forcats::fct_reorder(.f = respuesta,
-                                                           .x = media,
-                                                           .fun = max))
-                      })
+                           prev %>%
+                             tibble::as_tibble(rownames = "respuesta") %>%
+                             rename(media=2, ee=3) %>%
+                             left_join(
+                               prev %>% confint() %>% tibble::as_tibble(rownames = "respuesta") %>%
+                                 rename(inf=2, sup=3)
+                             ) %>%
+                             mutate(
+                               aspecto = aux,
+                               respuesta = stringr::str_replace(
+                                 pattern = .x,
+                                 replacement = "",
+                                 string = respuesta),
+                               respuesta=forcats::fct_reorder(.f = respuesta,
+                                                              .x = media,
+                                                              .fun = max))
+                         })
 
   p <- encuesta$cuestionario$diccionario %>%
     filter(llaves %in% !!llaves) %>% transmute(pregunta, aspecto = as.character(llaves))
@@ -252,7 +252,7 @@ analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, dic
 
   junto %>%
     map_df(~{
-      svytable(make.formula(c(.x,"region")), design = diseno) %>%
+      survey::svytable(survey::make.formula(c(.x,"region")), design = diseno) %>%
         as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n))%>% mutate(aspecto = .x) %>%
         filter(!!rlang::sym(.x) == respuesta) %>% select(-1)
     }) %>%
@@ -275,10 +275,10 @@ analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, dic
 #'
 #' @examples
 analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo, diseno, diccionario){
-  llaves <- paste(llave_opinion, candidatos,sep = "_")
+  if(llave_opinion ==  "") llaves <- candidatos else llaves <- paste(llave_opinion, candidatos,sep = "_")
 
-  llaves %>% map_df(~{
-    svytable(make.formula(c(.x,"region")), design = diseno) %>%
+  res <- llaves %>% map_df(~{
+    survey::svytable(survey::make.formula(c(.x,"region")), design = diseno) %>%
       as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>%
       filter(!!rlang::sym(.x) != !!ns_nc) %>%
       ungroup %>%
@@ -286,8 +286,15 @@ analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo
              grupo = if_else(!!rlang::sym(.x) %in% cat_positivo, "Positivo", "Negativo")
       ) %>%
       count(region, wt = pct,name = "saldo") %>% mutate(aspecto = .x)
-  }) %>%
-    left_join(
-      diccionario %>% select(aspecto = llaves, tema)
-    )
+  })
+
+  if(is.null(names(candidatos))){
+    res <- res %>%
+      left_join(
+        diccionario %>% select(aspecto = llaves, tema)
+      )
+  } else{
+    res <- res %>% mutate(tema = names(candidatos[match(aspecto, candidatos)]))
+  }
+  return(res)
 }

@@ -729,7 +729,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               graficar_conocimiento_region()
 
                           },
-                          saldo_region = function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo){
+                          saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_positivo){
                             analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_positivo,
                                                   diseno = self$encuesta$muestra$diseno,
                                                   diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
