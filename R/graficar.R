@@ -737,7 +737,7 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 #'
 #' @examples
 graficar_conocimiento_region <- function(bd){
-  bd %>% ggplot(aes(x = region, y = tema, fill = pct)) +
+  bd %>% ggplot(aes(x = region, y =forcats::fct_reorder(tema %>%  str_wrap(4), pct), fill = pct)) +
     geom_tile()
 }
 

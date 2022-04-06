@@ -709,12 +709,13 @@ Pregunta <- R6::R6Class("Pregunta",
                               survey::svytable(formula, design = encuesta_edomex$muestra$diseno) %>% as_tibble %>%
                                 group_by(region) %>% filter(n == max(n))
                             ) %>%
-                              ggplot() + geom_sf(aes(fill = {{var}}), size = .7, alpha = .8) +
+                              ggplot() + geom_sf(aes(fill = {{var}}), size = .3,
+                                                 color= "white", alpha = .8) +
                               theme_minimal() +
                               theme(axis.line = element_blank(),
                                     axis.ticks = element_blank(),
                                     panel.grid = element_blank(),
-                                    legend.position = "bottom",
+                                    # legend.position = "bottom",
                                     axis.text = element_blank(),
                                     plot.title = element_text(hjust = 0,
                                                               size = rel(1.1),
