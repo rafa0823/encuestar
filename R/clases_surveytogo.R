@@ -709,14 +709,18 @@ Pregunta <- R6::R6Class("Pregunta",
                               survey::svytable(formula, design = encuesta_edomex$muestra$diseno) %>% as_tibble %>%
                                 group_by(region) %>% filter(n == max(n))
                             ) %>%
-                              ggplot() + geom_sf(aes(fill = {{var}}), size = 0) +
+                              ggplot() + geom_sf(aes(fill = {{var}}), size = .7, alpha = .8) +
                               theme_minimal() +
                               theme(axis.line = element_blank(),
                                     axis.ticks = element_blank(),
-                                    axis.text.x = element_blank(),
-                                    axis.text.y = element_blank(),
-                                    panel.grid.major.x = element_line(colour = "#C5C5C5",linetype = "dotted"),
-                                    panel.grid.major.y = element_line(colour = "#C5C5C5",linetype = "dotted"))
+                                    panel.grid = element_blank(),
+                                    legend.position = "bottom",
+                                    axis.text = element_blank(),
+                                    plot.title = element_text(hjust = 0,
+                                                              size = rel(1.1),
+                                                              # face = "bold",
+                                                              colour = "#4C5B61"),
+                                    text = element_text(family = "Poppins", size=14))
                           },
                           sankey = function(var1, var2){
                             aux <- survey::svytable(survey::make.formula(c(var1,var2)),
