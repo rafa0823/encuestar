@@ -54,7 +54,8 @@ Imports:
     factoextra,
     ggpubr,
     ggsankey,
-    janitor
+    janitor,
+    basicspace
 Suggests: 
     ggfittext,
     ggthemes,

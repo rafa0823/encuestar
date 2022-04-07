@@ -737,7 +737,7 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 #'
 #' @examples
 graficar_conocimiento_region <- function(bd){
-  bd %>% ggplot(aes(x = region, y =forcats::fct_reorder(tema %>%  str_wrap(4), pct), fill = pct)) +
+  bd %>% ggplot(aes(x = region%>%  str_wrap(5), y =forcats::fct_reorder(tema %>%  str_wrap(20), pct), fill = pct)) +
     geom_tile()+
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
@@ -763,8 +763,20 @@ graficar_conocimiento_region <- function(bd){
 #' @examples
 graficar_saldo_region <- function(bd){
   bd %>%
-    ggplot(aes(x = region, y = tema, fill = saldo)) + geom_tile() +
-    scale_fill_gradient2(low = "orange", mid = "white", high = "blue")
+    ggplot(aes(x = region%>% stringr::str_wrap(4), y =forcats::fct_reorder(tema %>% stringr::str_wrap(10),saldo), fill = saldo)) + geom_tile() +
+    scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
+    labs(y = NULL, x= NULL, fill = "Saldo")+
+    theme_minimal()+
+    theme(panel.grid = element_blank(),
+          axis.ticks = element_blank(),
+          # axis.text.x = element_text(angle = 45),
+          text = element_text(family = "Poppins", size=14))+
+    scale_x_discrete(position = "top") +
+    scale_fill_gradient2(high ="#046B9F", low= "#DE6400", mid = "white",
+                         labels = scales::percent_format(accuracy = 1) )+
+    # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
+    ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
+                              aes(label =saldo %>%  scales::percent(accuracy = 1)))
 }
 
 
@@ -778,7 +790,7 @@ graficar_saldo_region <- function(bd){
 #'
 #' @examples
 graficar_mapa_region <- function(bd, var){
-  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .7, alpha = .8) +
+  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .3, alpha = .8, color = "white") +
     theme_minimal() +
     theme(axis.line = element_blank(),
           axis.ticks = element_blank(),
@@ -792,3 +804,19 @@ graficar_mapa_region <- function(bd, var){
           text = element_text(family = "Poppins", size=14))
 }
 
+#' Title
+#'
+#' @param lst
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_blackbox_1d <- function(lst){
+  print(lst$stimuli)
+  print(lst$slf)
+
+  lst$individuals %>% ggplot(aes(x = c1)) +
+    geom_density() + facet_wrap(~stimuli) + geom_vline(xintercept = 0, linetype = "dashed") +
+    labs(title = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))
+}

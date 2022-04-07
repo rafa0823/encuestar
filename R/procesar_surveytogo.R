@@ -326,7 +326,7 @@ analizar_ganador_region <- function(regiones, var, diseno){
 analizar_promedio_region <- function(regiones, var, diseno){
   formula <- survey::make.formula(rlang::expr_text(ensym(var)))
   regiones %>% left_join(
-    survey::svyby(formula, ~region, design = diseno,FUN = svymean, na.rm  = T) %>%
+    survey::svyby(formula, ~region, design = diseno,FUN = survey::svymean, na.rm  = T) %>%
       as_tibble()
   )
 }
@@ -350,4 +350,38 @@ analizar_pclave_region <- function(bd, var){
   bd$region %>% unique %>% map_df(~{
     textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x)
   }) %>% group_by(grupo) %>% summarise(pclave = paste(feature,collapse = ", "))
+}
+
+#' Title
+#'
+#' @param bd
+#' @param vars
+#' @param stimuli
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_blackbox_1d <- function(bd, vars, stimuli){
+  stmli <- bd %>% select(stimuli =all_of(stimuli))
+  basic <- bd %>% select(all_of(vars))
+  nas <- basic %>% mutate(across(everything(), ~if_else(is.na(.x), 9999,.x)))
+
+  issue <- basicspace::blackbox(nas, missing=c(9999),verbose=FALSE,dims=1,minscale=ncol(jaja)/2+1)
+
+  individuals <- issue$individuals %>% pluck(1) %>% as_tibble %>%
+    bind_cols(stmli)
+
+  orden <- individuals %>% group_by(stimuli = all_of(stimuli)) %>%
+    summarise(media = mean(c1,na.rm = T)) %>% arrange(desc(media))
+
+  individuals <- individuals %>% mutate(stimuli = factor(x = stimuli,levels =  orden %>% pull(stimuli)))
+  return(
+    list(
+      stimuli = issue$stimuli %>% pluck(1),
+      fits = issue$fits,
+      individuals = individuals,
+      slf = orden
+    )
+  )
 }
