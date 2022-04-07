@@ -737,7 +737,7 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 #'
 #' @examples
 graficar_conocimiento_region <- function(bd){
-  bd %>% ggplot(aes(x = region%>%  str_wrap(4), y =forcats::fct_reorder(tema %>%  str_wrap(10), pct), fill = pct)) +
+  bd %>% ggplot(aes(x = region%>%  str_wrap(4), y =forcats::fct_reorder(tema %>%  str_wrap(20), pct), fill = pct)) +
     geom_tile()+
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
@@ -790,7 +790,7 @@ graficar_saldo_region <- function(bd){
 #'
 #' @examples
 graficar_mapa_region <- function(bd, var){
-  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .5, alpha = .8, color = "white") +
+  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .3, alpha = .8, color = "white") +
     theme_minimal() +
     theme(axis.line = element_blank(),
           axis.ticks = element_blank(),
