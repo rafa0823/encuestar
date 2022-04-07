@@ -351,3 +351,30 @@ analizar_pclave_region <- function(bd, var){
     textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x)
   }) %>% group_by(grupo) %>% summarise(pclave = paste(feature,collapse = ", "))
 }
+
+#' Title
+#'
+#' @param bd
+#' @param vars
+#' @param stimuli
+#'
+#' @return
+#' @export
+#'
+#' @examples
+analizar_blackbox_1d <- function(bd, vars, stimuli){
+  stmli <- bd %>% select(stimuli =all_of(stimuli))
+  basic <- bd %>% select(all_of(vars))
+  nas <- basic %>% mutate(across(everything(), ~if_else(is.na(.x), 9999,.x)))
+
+  issue <- basicspace::blackbox(nas, missing=c(9999),verbose=FALSE,dims=1,minscale=ncol(jaja)/2+1)
+
+  return(
+    list(
+      stimuli = issue$stimuli %>% pluck(1),
+      fits = issue$fits,
+      individuals = issue$individuals %>% pluck(1) %>% as_tibble %>%
+        bind_cols(stmli)
+    )
+  )
+}

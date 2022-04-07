@@ -780,3 +780,18 @@ graficar_mapa_region <- function(bd, var){
           text = element_text(family = "Poppins", size=14))
 }
 
+#' Title
+#'
+#' @param lst
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_blackbox_1d <- function(lst){
+  print(lst$stimuli)
+
+  lst$individuals %>% ggplot(aes(x = c1)) +
+    geom_density() + facet_wrap(~stimuli) + geom_vline(xintercept = 0, linetype = "dashed") +
+    labs(title = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))
+}
