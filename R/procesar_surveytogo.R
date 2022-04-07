@@ -306,12 +306,13 @@ analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo
 #' @export
 #'
 #' @examples
-analizar_ganador_region <- function(regiones, var, diseno){
+
+analizar_ganador_region <- function(regiones, var, lugar, diseno){
   formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
 
   regiones %>% left_join(
     survey::svytable(formula, design = diseno) %>% as_tibble %>%
-      group_by(region) %>% filter(n == max(n))
+      group_by(region) %>% filter(dense_rank(-n) == lugar)
   )
 }
 #' Title
