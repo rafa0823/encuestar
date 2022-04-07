@@ -367,7 +367,7 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
   basic <- bd %>% select(all_of(vars))
   nas <- basic %>% mutate(across(everything(), ~if_else(is.na(.x), 9999,.x)))
 
-  issue <- basicspace::blackbox(nas, missing=c(9999),verbose=FALSE,dims=1,minscale=ncol(jaja)/2+1)
+  issue <- basicspace::blackbox(nas, missing=c(9999),verbose=FALSE,dims=1,minscale=ncol(nas)/2+1)
 
   individuals <- issue$individuals %>% pluck(1) %>% as_tibble %>%
     bind_cols(stmli)
