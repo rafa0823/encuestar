@@ -691,11 +691,13 @@ Pregunta <- R6::R6Class("Pregunta",
 
                           },
                           regiones_shp = function(){
+                            sf_use_s2(T)
                             self$regiones <- self$encuesta$shp_completo$shp$MUNICIPIO %>%
                               left_join(
                                 self$encuesta$muestra$muestra$poblacion$marco_muestral %>% distinct(region, MUNICIPIO), by = "MUNICIPIO"
                               ) %>% group_by(region) %>% summarise(n()) %>%
                               sf::st_buffer(dist = 0)
+                            sf_use_s2(F)
                           },
                           correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
                             analisis_correspondencia(var1, var2, legenda1, legenda2, diseno = self$encuesta$muestra$diseno, colores)
