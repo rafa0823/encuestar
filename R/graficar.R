@@ -737,7 +737,7 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 #'
 #' @examples
 graficar_conocimiento_region <- function(bd){
-  bd %>% ggplot(aes(x = region%>%  str_wrap(4), y =forcats::fct_reorder(tema %>%  str_wrap(20), pct), fill = pct)) +
+  bd %>% ggplot(aes(x = region%>%  str_wrap(5), y =forcats::fct_reorder(tema %>%  str_wrap(20), pct), fill = pct)) +
     geom_tile()+
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
