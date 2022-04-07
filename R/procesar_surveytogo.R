@@ -369,12 +369,19 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
 
   issue <- basicspace::blackbox(nas, missing=c(9999),verbose=FALSE,dims=1,minscale=ncol(jaja)/2+1)
 
+  individuals <- issue$individuals %>% pluck(1) %>% as_tibble %>%
+    bind_cols(stmli)
+
+  orden <- individuals %>% group_by(stimuli = all_of(stimuli)) %>%
+    summarise(media = mean(c1,na.rm = T)) %>% arrange(desc(media))
+
+  individuals <- individuals %>% mutate(stimuli = factor(x = stimuli,levels =  orden %>% pull(stimuli)))
   return(
     list(
       stimuli = issue$stimuli %>% pluck(1),
       fits = issue$fits,
-      individuals = issue$individuals %>% pluck(1) %>% as_tibble %>%
-        bind_cols(stmli)
+      individuals = individuals,
+      slf = orden
     )
   )
 }

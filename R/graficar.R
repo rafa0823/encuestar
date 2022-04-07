@@ -790,6 +790,7 @@ graficar_mapa_region <- function(bd, var){
 #' @examples
 graficar_blackbox_1d <- function(lst){
   print(lst$stimuli)
+  print(lst$slf)
 
   lst$individuals %>% ggplot(aes(x = c1)) +
     geom_density() + facet_wrap(~stimuli) + geom_vline(xintercept = 0, linetype = "dashed") +

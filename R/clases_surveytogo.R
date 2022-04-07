@@ -752,7 +752,7 @@ Pregunta <- R6::R6Class("Pregunta",
                           blackbox_1d = function(vars, stimuli){
                             self$encuesta$respuestas$base %>% analizar_blackbox_1d(vars,stimuli) %>%
                               graficar_blackbox_1d()
-                          }
+                          },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
