@@ -817,6 +817,15 @@ graficar_blackbox_1d <- function(lst){
   print(lst$slf)
 
   lst$individuals %>% ggplot(aes(x = c1)) +
-    geom_density() + facet_wrap(~stimuli) + geom_vline(xintercept = 0, linetype = "dashed") +
-    labs(title = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))
+    geom_density(color = "#871938") +
+    facet_wrap(~stimuli) + geom_vline(xintercept = 0, linetype = "dashed", color = "gray") +
+    labs(subtitle = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))+
+    theme_minimal()+
+    theme(   # legend.position = "bottom",
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      strip.text = element_text(color  = "#A0B12F"),
+      panel.grid.major.y = element_line(linetype = "dotted"),
+      # axis.text = element_blank(),
+      text = element_text(family = "Poppins", size=14))
 }
