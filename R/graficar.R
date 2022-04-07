@@ -763,7 +763,7 @@ graficar_conocimiento_region <- function(bd){
 #' @examples
 graficar_saldo_region <- function(bd){
   bd %>%
-    ggplot(aes(x = region%>% stringr::str_wrap(4), y =forcats::fct_reorder(tema %>% stringr::str_wrap(10),saldo), fill = saldo)) + geom_tile() +
+    ggplot(aes(x = region%>% stringr::str_wrap(6), y =forcats::fct_reorder(tema %>% stringr::str_wrap(20),saldo), fill = saldo)) + geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
     labs(y = NULL, x= NULL, fill = "Saldo")+
     theme_minimal()+
