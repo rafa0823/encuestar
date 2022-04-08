@@ -15,7 +15,7 @@ graficar_barras_grupos(
 )
 }
 \arguments{
-\item{bd}{Debe provenir de la función PENDIENTE}
+\item{bd}{Base de datos (ya procesada)}
 
 \item{titulo}{Es un parámetro obligatorio para el título de la gráfica}
 

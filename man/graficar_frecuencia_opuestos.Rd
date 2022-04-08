@@ -30,5 +30,5 @@ graficar_frecuencia_opuestos(
 
 }
 \description{
-@param bd Debe provenir de la función PENDIENTE
+@param bd  Base de datos (ya procesada)
 }

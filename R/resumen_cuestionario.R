@@ -4,9 +4,13 @@
 #' @param dicc
 #'
 #' @return
+#' \item{a}{Grafica de cascada para saber cuantas preguntas por bloque hay y en total.}
+#' \item{b}{Grafica indicando cuales son las etiquetas y cuantos aspectos hay para cada pregunta de aspectos.}
+#' \item{c}{Grafica gant, se muestra todo el cuestionario con sus respectivas categorias en una sola grafica.}
 #' @export
 #'
 #' @examples
+
 resumen_cuestionario <- function(dicc){
 
   # Preguntas por bloque ----------------------------------------------------
@@ -15,7 +19,7 @@ resumen_cuestionario <- function(dicc){
 
   # Aspectos ----------------------------------------------------------------
 
-  b <- aspectos(dicc)
+  b <- aspectos_dicc(dicc)
 
   # Preguntas por tipo ------------------------------------------------------
 
@@ -25,6 +29,8 @@ resumen_cuestionario <- function(dicc){
   return(list(a, b, c))
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("end","ini"))
+
 #' Title
 #'
 #' @param dicc
@@ -33,6 +39,7 @@ resumen_cuestionario <- function(dicc){
 #' @export
 #'
 #' @examples
+
 rainfall_p <- function(dicc){
 
   bl <- dicc %>% count(bloque) %>%
@@ -52,6 +59,9 @@ rainfall_p <- function(dicc){
     labs(x = NULL, y = NULL) +
     theme(axis.text.x = element_text(angle = 20, hjust = 1))
 }
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("pregunta", "preguntas"))
+
 #' Title
 #'
 #' @param dicc
@@ -60,19 +70,29 @@ rainfall_p <- function(dicc){
 #' @export
 #'
 #' @examples
-aspectos <- function(dicc){
+
+aspectos_dicc <- function(dicc){
   c <- dicc %>% filter(str_detect(llaves,"_")) %>% separate(llaves, into = c("aspecto", "pregunta")) %>%
     group_by(aspecto) %>% summarise(n = n(), preguntas = paste(pregunta, collapse = "\n")) %>%
-    ggplot(aes(x = reorder(aspecto, -n), y = n, label = preguntas)) +
+    ggplot(aes(x = stats::reorder(aspecto, -n), y = n, label = preguntas)) +
     geom_col(fill = NA, color = "red") +
     geom_text(aes(y = 0), vjust = 0, nudge_y = .1) +
-    # theme_minimal() +
     theme(rect = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
     geom_label(aes(label = n)) +
     labs(x = NULL, y = NULL)
   return(list(c))
 }
 
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("end", "respuestas","ranl","ini","ymin","ymax"))
+
+#' Title
+#'
+#' @param dicc
+#'
+#' @return
+#' @export
+#'
+#' @examples
 
 gant_p_r <- function(dicc){
 
@@ -99,8 +119,8 @@ gant_p_r <- function(dicc){
     theme(rect = element_blank(),axis.text = element_blank(), axis.ticks = element_blank(),
           legend.position = "bottom") +
     labs(x = NULL, y = NULL) +
-    scale_x_discrete(expand = expansion(add = c(3,0))) +
-    scale_y_discrete(expand = expansion(add = c(5,0)))
+    scale_x_discrete(expand = expansion(mult = c(.1,0))) +
+    scale_y_discrete(expand = expansion(mult = c(.15,0)))
 
   return(c)
 

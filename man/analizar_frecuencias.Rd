@@ -10,7 +10,7 @@ analizar_frecuencias(encuesta, pregunta)
 \item{pregunta}{}
 }
 \value{
-
+\item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
 }
 \description{
 Title

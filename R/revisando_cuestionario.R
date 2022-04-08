@@ -1,4 +1,6 @@
-
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("style_name","level","row_span",
+                                                        "text","bloque","tipo_pregunta",
+                                                        "tema"))
 #' Title
 #'
 #' @param doc
@@ -7,6 +9,7 @@
 #' @export
 #'
 #' @examples
+
 diccionario_cuestionario <- function(doc){
   diccionario <- doc %>%
     # officer::docx_summary(doc) %>%
@@ -74,5 +77,3 @@ diccionario_cuestionario <- function(doc){
 
   return(diccionario)
 }
-
-

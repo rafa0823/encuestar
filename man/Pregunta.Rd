@@ -11,8 +11,48 @@ Esta es la clase de pregunta
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
+\item \href{#method-new}{\code{Pregunta$new()}}
+\item \href{#method-graficar}{\code{Pregunta$graficar()}}
+\item \href{#method-faltantes}{\code{Pregunta$faltantes()}}
 \item \href{#method-clone}{\code{Pregunta$clone()}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$new(encuesta, tema = tema_default)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-graficar"></a>}}
+\if{latex}{\out{\hypertarget{method-graficar}{}}}
+\subsection{Method \code{graficar()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$graficar(
+  llave,
+  tipo,
+  aspectos = NULL,
+  filtro = NULL,
+  llave_partido,
+  llave_conocimiento,
+  llave_opinion,
+  llave_xq,
+  parametros = list(tit = "")
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-faltantes"></a>}}
+\if{latex}{\out{\hypertarget{method-faltantes}{}}}
+\subsection{Method \code{faltantes()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$faltantes()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}

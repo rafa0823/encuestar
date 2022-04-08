@@ -1,3 +1,4 @@
+if(getRversion() >= "2.15.1")  utils::globalVariables(c(".",":=","distinto","cluster_0"))
 
 #' Title
 #'
@@ -9,6 +10,7 @@
 #' @export
 #'
 #' @examples
+
 corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
   enc_shp <- respuestas %>%
     st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
@@ -56,10 +58,65 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
                                                             !!rlang::sym(glue::glue("{var_n}")))) %>%
     select(-!!rlang::sym(nivel), -distinto)
 
-  print(glue::glue("Se cambiaron {nuevos %>% count(distinto) %>% pull(n)} clusters ya que la entrevista no está donde se reportó."))
+  print(glue::glue("Se cambiaron {nuevos %>% count(distinto) %>% pull(n)} clusters ya que la entrevista no esta donde se reporto."))
   return(respuestas)
 
 }
+
+
+#' Title
+#'
+#' @param base_sf
+#' @param var_n
+#' @param nivel
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dist_poligonos <- function(base_sf, shp, var_n, nivel){
+  base_sf[[var_n]] %>% unique() %>% map_df(~{
+    respuestas <- base_sf %>% filter(!!sym(var_n) == .x)
+    sec <- shp %>% filter(!!rlang::sym(nivel) == .x)
+    dist <- st_distance(respuestas, sec) %>% as_tibble() %>% set_names("distancia")
+    respuestas %>% bind_cols(dist)
+  }) %>% as_tibble %>% select(-geometry)
+}
+
+#' Title
+#'
+#' @param base_sf
+#' @param encuesta
+#' @param muestra
+#' @param var_n
+#' @param nivel
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dist_puntos <- function(base_sf, encuesta, muestra, var_n, nivel){
+  loc <- encuesta$shp_completo$shp[[length(encuesta$shp_completo$shp)]] %>%
+    filter(st_geometry_type(.) == "POINT") %>%
+    inner_join(
+      muestra$muestra[[length(muestra$muestra)]] %>% tidyr::unnest(data)
+    )
+
+  unique(loc[[nivel]]) %>% map_df(~{
+
+    respuestas <- base_sf %>% filter(!!rlang::sym(var_n) == .x)
+    locs <- loc %>% filter(!!rlang::sym(nivel) == .x)
+    respuestas %>% bind_cols(
+      st_distance(respuestas, locs)%>% as_tibble %>% rowwise() %>%
+        mutate(distancia = min(c_across(everything()))) %>% select(distancia)
+    ) %>% as_tibble %>% select(-geometry)
+
+
+  })
+}
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47_1","rowname.x","rowname.y",
+                                                        "bd"))
 
 #' Title
 #'
@@ -69,9 +126,11 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 #' @export
 #'
 #' @examples
+
 match_dicc_base <- function(self) {
+  quitar <- match(self$respuestas$base %>% select(contains("T_Q")) %>% select(1) %>% names,names(self$respuestas$base))
   g <- tibble(
-    bd = self$respuestas$base %>% select(-(SbjNum:INT15), -(T_Q_47_1:last_col())) %>% names
+    bd = self$respuestas$base %>% select(-(SbjNum:INT15), -(quitar:last_col())) %>% names
   ) %>% tibble::rownames_to_column() %>% full_join(
     tibble(
       diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%
@@ -82,17 +141,19 @@ match_dicc_base <- function(self) {
         )
     ) %>% tibble::rownames_to_column(), by = c("bd" = "diccionario")
   ) %>% filter(is.na(rowname.x) | is.na(rowname.y)) %>%
-    replace_na(list(rowname.y = "No está en el diccionario",
-                    rowname.x = "No está en la base")) %>%
-    mutate(rowname.x = if_else(stringr::str_detect(rowname.x,"No está"), rowname.x, bd) %>%
-             forcats::fct_relevel("No está en la base", after = Inf),
-           rowname.y = if_else(stringr::str_detect(rowname.y,"No está"), rowname.y, bd) %>%
-             forcats::fct_relevel("No está en el diccionario", after = Inf)) %>%
+    replace_na(list(rowname.y = "No esta en el diccionario",
+                    rowname.x = "No esta en la base")) %>%
+    mutate(rowname.x = if_else(stringr::str_detect(rowname.x,"No esta"), rowname.x, bd) %>%
+             forcats::fct_relevel("No esta en la base", after = Inf),
+           rowname.y = if_else(stringr::str_detect(rowname.y,"No esta"), rowname.y, bd) %>%
+             forcats::fct_relevel("No esta en el diccionario", after = Inf)) %>%
     ggplot() + geom_tile(aes(x = rowname.x, y =rowname.y), fill = "red") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     labs(x = NULL, y = NULL)
   return(g)
 }
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("nivel","llave","Municipio","Localidad"))
 
 #' Title
 #'
@@ -102,9 +163,10 @@ match_dicc_base <- function(self) {
 #' @export
 #'
 #' @examples
-var_clave_diccionario <- function(self, diseño){
-  cluster_id <- diseño$niveles %>% filter(nivel == diseño$ultimo_nivel) %>% pull(llave)
-  post_id <- diseño$cuotas %>% select(-Municipio,-Localidad,-contains("cluster"),-n) %>% names
+
+var_clave_diccionario <- function(self, diseno){
+  cluster_id <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel) %>% pull(llave)
+  post_id <- diseno$cuotas %>% select(-Municipio,-Localidad,-contains("cluster"),-n) %>% names
 
   filtros <- self$cuestionario$documento %>% officer::docx_summary() %>% as_tibble %>%
     filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
