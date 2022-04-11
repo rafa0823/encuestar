@@ -30,10 +30,7 @@ export(match_dicc_base)
 export(pclave_combinaciones_saldo)
 export(rainfall_p)
 export(resumen_cuestionario)
-<<<<<<< HEAD
-=======
 export(tema_default)
->>>>>>> 452cb2eca8d12dab9649ef2f5a96e5fe9d0d1d79
 export(var_clave_diccionario)
 import(dplyr)
 import(ggplot2)
