@@ -816,7 +816,7 @@ graficar_blackbox_1d <- function(lst){
   print(lst$stimuli)
   print(lst$slf)
 
-  lst$individuals %>% ggplot(aes(x = c1)) +
+  lst$individuals  %>%  ggplot(aes(x = c1*-1)) +
     geom_density(color = "#871938") +
     facet_wrap(~stimuli) + geom_vline(xintercept = 0, linetype = "dashed", color = "gray") +
     labs(subtitle = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))+
