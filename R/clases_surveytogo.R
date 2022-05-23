@@ -137,6 +137,7 @@ Respuestas <- R6::R6Class("Respuestas",
                           public = list(
                             eliminadas = NULL,
                             base = NULL,
+                            discrepancia = NA,
                             n=NULL,
                             m=NULL,
                             #' @description
@@ -156,6 +157,9 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               # Parar si nombres de respuestas no coinciden con diccionario
                               self$nombres(self$base, diccionario)
+
+                              # Parar si opciones de respuesta no coinciden con diccionario
+                              self$categorias(self$base, diccionario)
 
                               # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
@@ -189,6 +193,30 @@ Respuestas <- R6::R6Class("Respuestas",
                               if(!all(!faltantes)){
                                 stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(diccionario$llaves[faltantes], collapse = ', ')}"))
                               }
+                            },
+                            categorias = function(bd, diccionario){
+
+                              discrepancia <- diccionario %>% filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) %>% pull(llaves) %>%
+                                map_df(~{
+
+                                res <- bd %>% count(across(all_of(.x))) %>% na.omit %>% pull(1)
+                                m <- match(
+                                  res,
+                                  diccionario %>% filter(llaves == .x) %>% unnest(respuestas) %>% pull(respuestas)
+                                )
+
+                                tibble(
+                                  llave = .x,
+                                  faltantes = res[is.na(m)]
+                                )
+
+                              })
+
+                              if(nrow(discrepancia)>0){
+                                print(discrepancia)
+                                stop("Revisar la base impresa arriba pues hay respuestas que no se contemplaron en el diccionario.")
+                              }
+
                             },
                             eliminar_auditoria_telefonica=function(auditoria_telefonica){
                               if(("SbjNum" %in% names(self$base)) &
