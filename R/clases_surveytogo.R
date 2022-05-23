@@ -153,6 +153,10 @@ Respuestas <- R6::R6Class("Respuestas",
                               muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
+
+                              # Parar si nombres de respuestas no coinciden con diccionario
+                              self$nombres(self$base, diccionario)
+
                               # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
 
@@ -179,6 +183,12 @@ Respuestas <- R6::R6Class("Respuestas",
                                 mutate(across(all_of(numericas), ~readr::parse_number(.x)))
 
                               self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
+                            },
+                            nombres = function(bd, diccionario){
+                              faltantes <- is.na(match(diccionario$llaves, names(bd)))
+                              if(!all(!faltantes)){
+                                stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(diccionario$llaves[faltantes], collapse = ', ')}"))
+                              }
                             },
                             eliminar_auditoria_telefonica=function(auditoria_telefonica){
                               if(("SbjNum" %in% names(self$base)) &
