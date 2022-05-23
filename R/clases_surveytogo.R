@@ -18,6 +18,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           tipo_encuesta = NULL,
                           mantener = NULL,
                           auditoria = NULL,
+                          patron = NA,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -28,17 +29,19 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 cuestionario=NA,
                                                 shp = NA,
                                                 tipo_encuesta = NA,
-                                                mantener = NA) {
+                                                mantener = NA,
+                                                patron = NA) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$tipo_encuesta <- tipo_encuesta
+                            self$patron <- patron
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
                             var_n <- un %>% pull(variable)
 
                             # Valorar active binding
-                            self$cuestionario <- Cuestionario$new(documento = cuestionario)
+                            self$cuestionario <- Cuestionario$new(documento = cuestionario, patron)
                             # Valorar active binding
                             self$auditoria_telefonica <- auditoria_telefonica
 
@@ -53,6 +56,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
                                                               muestra_completa = muestra,
+                                                              patron = patron,
                                                               nivel = nivel, var_n = var_n
                             )
 
@@ -137,7 +141,6 @@ Respuestas <- R6::R6Class("Respuestas",
                           public = list(
                             eliminadas = NULL,
                             base = NULL,
-                            discrepancia = NA,
                             n=NULL,
                             m=NULL,
                             #' @description
@@ -146,6 +149,7 @@ Respuestas <- R6::R6Class("Respuestas",
                             initialize=function(base,
                                                 encuesta,
                                                 muestra_completa,
+                                                patron,
                                                 nivel, var_n) {
                               shp <- encuesta$shp
                               mantener <- encuesta$mantener
@@ -157,6 +161,10 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               # Parar si nombres de respuestas no coinciden con diccionario
                               self$nombres(self$base, diccionario)
+
+                              #Quitar patrones a respuestas
+
+                              self$q_patron(self$base, diccionario, patron)
 
                               # Parar si opciones de respuesta no coinciden con diccionario
                               self$categorias(self$base, diccionario)
@@ -192,6 +200,14 @@ Respuestas <- R6::R6Class("Respuestas",
                               faltantes <- is.na(match(diccionario$llaves, names(bd)))
                               if(!all(!faltantes)){
                                 stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(diccionario$llaves[faltantes], collapse = ', ')}"))
+                              }
+                            },
+                            q_patron = function(bd, dicc, patron){
+                              if(!is.na(patron)){
+                                aux <- bd %>%
+                                  mutate(across(c(all_of(dicc$llaves),where(is.character)),
+                                                ~stringr::str_squish(gsub(x = .x,pattern = patron, ""))))
+                                self$base <- aux
                               }
                             },
                             categorias = function(bd, diccionario){
@@ -417,9 +433,9 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               documento=NULL,
                               aprobado=NULL,
                               diccionario=NULL,
-                              initialize=function(documento){
+                              initialize=function(documento, patron){
                                 self$documento <- documento %>% officer::docx_summary() %>% as_tibble
-                                self$diccionario <- private$crear_diccionario()
+                                self$diccionario <- private$crear_diccionario(patron)
                               },
                               aprobar=function(){
                                 self$aprobado <- T
@@ -445,8 +461,8 @@ Cuestionario <- R6::R6Class("Cuestionario",
                             )
                             ,
                             private=list(
-                              crear_diccionario=function(){
-                                diccionario <- diccionario_cuestionario(self$documento)
+                              crear_diccionario=function(patron){
+                                diccionario <- diccionario_cuestionario(self$documento, patron)
                                 return(diccionario)
 
                               })
