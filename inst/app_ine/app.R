@@ -16,12 +16,12 @@ library(shinycssloaders)
 library(colorRamps)
 library(gt)
 
-
-diseno <- read_rds("data/diseno.rda")
-shp <- read_rds("data/shp.rda")
-bd <- read_csv("data/bd.csv")
+preguntas <- read_rds("data/clase_pregunta.rda")
+diseno <- preguntas$encuesta$muestra$muestra
+shp <- preguntas$encuesta$shp_completo
+bd <- preguntas$encuesta$respuestas$base
 enc_shp <- readr::read_rds("data/enc_shp.rda")
-eliminadas <- read_csv("data/eliminadas.csv")
+eliminadas <- preguntas$encuesta$respuestas$eliminadas
 mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
 
