@@ -16,8 +16,6 @@ library(shinycssloaders)
 library(colorRamps)
 library(gt)
 
-sf_use_s2(T)
-
 preguntas <- read_rds("data/clase_pregunta.rda")
 diseno <- preguntas$encuesta$muestra$muestra
 shp <- preguntas$encuesta$shp_completo
@@ -72,8 +70,6 @@ entrevistas <- function(diseno, enc, u_nivel, u_nivel_tipo){
 
 # vars necesarios para app ------------------------------------------------
 
-enc_shp <- bd %>%
-  st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326") %>% mutate(color = "green")
 u_nivel <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel)
 u_nivel_tipo <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
 
@@ -168,14 +164,26 @@ ui <-dashboardPage(
 server <- function(input, output) {
 
   output$map <- renderLeaflet({
+    pal <- colorFactor(topo.colors(n_distinct(mapa_base$strata_1)), domain = unique(mapa_base$strata_1))
+    pal2 <- leaflet::colorBin(palette = c("blue", "yellow", "orange"),
+                              domain = unique(enc_shp %>% filter(as.numeric(distancia) != 0) %>% pull(distancia)), bins = 5)
 
-    shp$graficar_mapa(bd = diseno$poblacion$marco_muestral, nivel = "MUN") %>%
+    mapa_base %>% leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
+      addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
+      addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
-      addCircleMarkers(data = enc_shp %>% mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-")),
+      shp$graficar_mapa(bd = diseno$muestra, nivel = "MANZANA") %>%
+      addCircleMarkers(data = enc_shp %>%
+                         mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
+                                color = if_else(as.numeric(distancia) == 0, "green", pal2(distancia))) %>%
+                         arrange(distancia),
                        color = ~color, stroke = F,
                        label = ~label)  %>%
-      addLegend(position = "bottomright", colors = c("green", "black"), labels = c("dentro", "fuera"),
-                title = "Entrevistas")
+      addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster") %>%
+      addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
+                position = "bottomright", pal = pal2, values = ~distancia,
+                title = "Distancia (m)")
+
   })
 
   proxy <- leafletProxy("map")
@@ -236,7 +244,7 @@ server <- function(input, output) {
   })
 
   output$eliminadas <- renderDT({
-    bd %>% inner_join(eliminadas, by = "SbjNum") %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
+    eliminadas %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
       # bind_rows(
       #   bd %>% filter(is.na(Longitude)) %>% select(SbjNum, Fecha = Date, Encuestador = Srvyr) %>%
       #     mutate(Razón = "GPS apagado")
