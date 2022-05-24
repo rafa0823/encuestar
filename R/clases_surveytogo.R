@@ -830,9 +830,10 @@ Auditoria <- R6::R6Class("Auditoria",
                                dir.create(dir)
                                dir.create(glue::glue("{dir}/data"))
                              }
-                             readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseno.rda"))
-                             readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
-                             readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
+                             readr::write_rds(encuesta$preguntas, glue::glue("{dir}/data/clase_pregunta.rda"))
+                             # readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseno.rda"))
+                             # readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
+                             # readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
                              sf_use_s2(T)
                              mapa_base <- encuesta$shp_completo$shp$MUNICIPIO %>%
                                left_join(encuesta$muestra$muestra$poblacion$marco_muestral %>% distinct(MUNICIPIO,strata_1)) %>%
@@ -842,7 +843,7 @@ Auditoria <- R6::R6Class("Auditoria",
                              enc_shp <- encuesta$respuestas$base %>%
                                sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
-                             readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
+                             # readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
                              if(tipo_encuesta == "inegi"){
                                file.copy(overwrite = T,
                                          from = system.file("app_inegi/app.R", package = "encuestar",
