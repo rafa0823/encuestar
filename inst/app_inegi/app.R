@@ -15,7 +15,9 @@ library(DT)
 library(shinycssloaders)
 library(colorRamps)
 library(gt)
+library(shinyjs)
 
+options(survey.lonely.psu="remove")
 preguntas <- read_rds("data/clase_pregunta.rda")
 diseno <- preguntas$encuesta$muestra$muestra
 shp <- preguntas$encuesta$shp_completo
@@ -96,6 +98,7 @@ ui <-dashboardPage(
     )
   ),
   dashboardBody(
+    useShinyjs(),
     tabItems(
       tabItem("mapa",
               leafletOutput(outputId = "map", height = 600),
@@ -152,8 +155,14 @@ ui <-dashboardPage(
               DTOutput("eliminadas")
       ),
       tabItem("auditoria",
-              passwordInput("psw","Contraseña"),
-              uiOutput("graficas")
+              fluidRow(
+                column(6, passwordInput(inputId = "psw",label = "Contraseña")),
+                column(6, hidden(selectInput("vars", "Variable", choices = c("Cargando..." = ""))))
+              ),
+              # uiOutput("au")
+              fluidRow(
+                plotOutput("grafica",height = 600)
+              )
       )
     )
   )
@@ -161,7 +170,7 @@ ui <-dashboardPage(
 
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
   output$map <- renderLeaflet({
     pal <- colorFactor(topo.colors(n_distinct(mapa_base$strata_1)), domain = unique(mapa_base$strata_1))
@@ -252,6 +261,39 @@ server <- function(input, output) {
       arrange(desc(Fecha))
   }, options = list(dom = "ltpi",
                     language = list(url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json")))
+
+  # observeEvent(input$psw,{
+
+
+  # output$au <- renderUI({
+  #   fluidPage(
+  #     fluidRow(
+  #       column()
+  #     )
+  #   )
+  # })
+
+
+  # })
+
+  observeEvent(input$psw,{
+
+    if(input$psw == "hola"){
+      updateSelectInput(session, "vars", choices = preguntas$encuesta$auditar)
+      shinyjs::show(id = "vars")
+    } else{
+      shinyjs::hide(id = "vars")
+    }
+
+  })
+
+  output$grafica <- renderPlot({
+    validate(
+      need(input$psw == "hola" & (input$vars != ""), message = "Escriba la contraseña")
+    )
+
+    preguntas$graficar(llave = !!rlang::sym(input$vars), "frecuencia", parametros = list(salto = 10, tit = ""))
+  })
 }
 
 # Run the application
