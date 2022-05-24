@@ -46,7 +46,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Valorar active binding
                             self$cuestionario <- Cuestionario$new(documento = cuestionario, patron)
                             # Valorar active binding
-                            self$auditoria_telefonica <- auditoria_telefonica
+                            self$auditoria_telefonica <- auditoria_telefonica %>% distinct(SbjNum, .keep_all = T)
 
                             self$shp_completo <- shp
 
@@ -54,7 +54,6 @@ Encuesta <- R6::R6Class("Encuesta",
                               inner_join(muestra$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
                                            distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),cluster_3))
                             self$mantener <- mantener
-
                             # Respuestas
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
@@ -188,7 +187,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                                       muestra = muestra_completa,
                                                       var_n = var_n, nivel = nivel)
                               # Limpiar las que no tienen variables de diseno
-                              self$eliminar_faltantes_diseno()
+                              # self$eliminar_faltantes_diseno() # no entiendo por qué
 
                               # Cambiar variables a tipo numerica
                               numericas <- diccionario %>% filter(tipo_pregunta == "numericas") %>%
@@ -197,7 +196,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$base <- self$base %>%
                                 mutate(across(all_of(numericas), ~readr::parse_number(.x)))
 
-                              self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
+                              # self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
                             },
                             nombres = function(bd, diccionario){
                               faltantes <- is.na(match(diccionario$llaves, names(bd)))
@@ -218,18 +217,18 @@ Respuestas <- R6::R6Class("Respuestas",
                               discrepancia <- diccionario %>% filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) %>% pull(llaves) %>%
                                 map_df(~{
 
-                                res <- bd %>% count(across(all_of(.x))) %>% na.omit %>% pull(1)
-                                m <- match(
-                                  res,
-                                  diccionario %>% filter(llaves == .x) %>% unnest(respuestas) %>% pull(respuestas)
-                                )
+                                  res <- bd %>% count(across(all_of(.x))) %>% na.omit %>% pull(1)
+                                  m <- match(
+                                    res,
+                                    diccionario %>% filter(llaves == .x) %>% unnest(respuestas) %>% pull(respuestas)
+                                  )
 
-                                tibble(
-                                  llave = .x,
-                                  faltantes = res[is.na(m)]
-                                )
+                                  tibble(
+                                    llave = .x,
+                                    faltantes = res[is.na(m)]
+                                  )
 
-                              })
+                                })
 
                               if(nrow(discrepancia)>0){
                                 print(discrepancia)
@@ -243,6 +242,9 @@ Respuestas <- R6::R6Class("Respuestas",
                                 if(is.character(auditoria_telefonica$SbjNum)) auditoria_telefonica <- auditoria_telefonica %>% mutate(SbjNum = readr::parse_double(SbjNum))
                                 # Se eliminan por no pasar la auditoria telefonica
                                 n <- nrow(self$base)
+
+                                self$eliminadas <- self$base %>% inner_join(auditoria_telefonica, by = "SbjNum")
+
                                 self$base <- self$base %>%
                                   anti_join(auditoria_telefonica, by="SbjNum")
                                 # Mandar mensaje
@@ -257,6 +259,9 @@ Respuestas <- R6::R6Class("Respuestas",
                               if("Longitude" %in% names(self$base) & "Latitude" %in% names(self$base)){
                                 n <- nrow(self$base)
                                 self$base <- self$base %>% filter(!is.na(Longitude) | !is.na(Latitude))
+                                self$eliminadas <- self$eliminadas %>% bind_rows(
+                                  self$base %>% filter(is.na(Longitude) | is.na(Latitude)) %>% mutate(razon = "Sin coordenadas")
+                                )
                                 print(
                                   glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por falta de coordenadas")
                                 )
@@ -271,6 +276,13 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$base <- respuestas %>%
                                 semi_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
                                           by = set_names(nivel,var_n))
+
+                              self$eliminadas <- self$eliminadas %>% bind_rows(
+                                respuestas %>%
+                                  anti_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
+                                             by = set_names(nivel,var_n)) %>%
+                                  mutate(razon = "Cluster no existente")
+                              )
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
                             },
                             calcular_distancia = function(base, encuesta, muestra, var_n, nivel){
@@ -289,6 +301,7 @@ Respuestas <- R6::R6Class("Respuestas",
                             },
                             eliminar_faltantes_diseno=function(){
                               n <- nrow(self$base)
+
                               self$base <- self$base %>%
                                 filter(
                                   across(
@@ -550,7 +563,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                     g <- g %>% graficar_intervalo_numerica() + self$tema()
                                   }
                                   if(parametros$tipo_numerica == "barras"){
-                                  g <- g %>% graficar_barras_numerica() + self$tema()
+                                    g <- g %>% graficar_barras_numerica() + self$tema()
                                   }
 
 
@@ -789,7 +802,7 @@ Pregunta <- R6::R6Class("Pregunta",
                           },
                           sankey = function(var1, var2){
                             aux <- survey::svytable(survey::make.formula(c(var1,var2)),
-                                            design = self$encuesta$muestra$diseno) %>%
+                                                    design = self$encuesta$muestra$diseno) %>%
                               tibble::as_tibble() %>% ggsankey::make_long(-n, value = n)
 
 
@@ -803,8 +816,8 @@ Pregunta <- R6::R6Class("Pregunta",
                           },
                           prcomp = function(variables){
                             pc <- survey::svyprcomp(survey::make.formula(variables),
-                                            design= self$encuesta$muestra$diseno,
-                                            scale=TRUE,scores=TRUE)
+                                                    design= self$encuesta$muestra$diseno,
+                                                    scale=TRUE,scores=TRUE)
                             fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
                           },
                           blackbox_1d = function(vars, stimuli){
