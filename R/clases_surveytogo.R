@@ -19,6 +19,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           mantener = NULL,
                           auditoria = NULL,
                           patron = NA,
+                          auditar = NA,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -30,11 +31,13 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 shp = NA,
                                                 tipo_encuesta = NA,
                                                 mantener = NA,
-                                                patron = NA) {
+                                                patron = NA,
+                                                auditar = NA) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
+                            self$auditar <- auditar
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
@@ -230,7 +233,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               if(nrow(discrepancia)>0){
                                 print(discrepancia)
-                                stop("Revisar la base impresa arriba pues hay respuestas que no se contemplaron en el diccionario.")
+                                warning("Revisar la base impresa arriba pues hay respuestas que no se contemplaron en el diccionario.")
                               }
 
                             },
