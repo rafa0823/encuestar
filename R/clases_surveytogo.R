@@ -156,6 +156,8 @@ Respuestas <- R6::R6Class("Respuestas",
                               shp <- encuesta$shp
                               mantener <- encuesta$mantener
                               diccionario <- encuesta$cuestionario$diccionario
+
+                              if(!identical(names(encuesta$auditoria_telefonica), c("SbjNum", "razon"))) stop("Los nombres de las columnas de la base de datos de auditoría telefónica deben ser: 'Sbjnum, razon'")
                               auditoria_telefonica <- encuesta$auditoria_telefonica
                               muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
