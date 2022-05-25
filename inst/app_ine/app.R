@@ -152,7 +152,15 @@ ui <-dashboardPage(
                 )
               ),
               h2("Eliminadas"),
-              DTOutput("eliminadas")
+              fluidRow(
+                column(6,
+                       plotOutput("razon_el",height = 400)
+                ),
+                column(6,
+                       DTOutput("eliminadas")
+                )
+              )
+
       ),
       tabItem("auditoria",
               fluidRow(
@@ -252,6 +260,13 @@ server <- function(input, output, session) {
       labs(fill = "Entrevistas \n por hacer", y = NULL, x = NULL) + theme_minimal()
   })
 
+  output$razon_el <- renderPlot({
+    preguntas$encuesta$respuestas$eliminadas %>% count(razon) %>% mutate(pct = n/sum(n)) %>%
+      ggplot(aes(y = reorder(razon,n), x = n)) + geom_col(fill = "#C3423F") +
+      geom_text(aes(label = scales::percent(pct,1)), size = 3, hjust = 1, color = "black") + theme_minimal() +
+      labs(y = "Razón", x = "Entrvistas eliminadas")
+  })
+
   output$eliminadas <- renderDT({
     eliminadas %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
       # bind_rows(
@@ -261,20 +276,6 @@ server <- function(input, output, session) {
       arrange(desc(Fecha))
   }, options = list(dom = "ltpi",
                     language = list(url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json")))
-
-  # observeEvent(input$psw,{
-
-
-  # output$au <- renderUI({
-  #   fluidPage(
-  #     fluidRow(
-  #       column()
-  #     )
-  #   )
-  # })
-
-
-  # })
 
   observeEvent(input$psw,{
 
