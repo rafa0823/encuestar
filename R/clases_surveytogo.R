@@ -234,7 +234,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               if(nrow(discrepancia)>0){
                                 print(discrepancia)
-                                warning("Revisar la base impresa arriba pues hay respuestas que no se contemplaron en el diccionario.")
+                                stop("Revisar la base impresa arriba pues hay respuestas que no se contemplaron en el diccionario.")
                               }
 
                             },
