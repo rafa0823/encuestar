@@ -24,6 +24,7 @@ shp <- preguntas$encuesta$shp_completo
 bd <- preguntas$encuesta$respuestas$base
 enc_shp <- readr::read_rds("data/enc_shp.rda")
 eliminadas <- preguntas$encuesta$respuestas$eliminadas
+eliminadas_shp <- eliminadas %>% filter(!is.na(Longitude)) %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
 mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
 
@@ -185,6 +186,7 @@ server <- function(input, output, session) {
     pal2 <- leaflet::colorBin(palette = c("blue", "yellow", "orange"),
                               domain = unique(enc_shp %>% filter(as.numeric(distancia) != 0) %>% pull(distancia)), bins = 5)
 
+
     mapa_base %>% leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
       addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
       addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
@@ -195,11 +197,13 @@ server <- function(input, output, session) {
                                 color = if_else(as.numeric(distancia) == 0, "green", pal2(distancia))) %>%
                          arrange(distancia),
                        color = ~color, stroke = F,
-                       label = ~label)  %>%
+                       label = ~label, group = "Entrevistas")  %>%
+      addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
+                       label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster") %>%
       addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
                 position = "bottomright", pal = pal2, values = ~distancia,
-                title = "Distancia (m)")
+                title = "Distancia (m)") %>% addLayersControl(baseGroups = c("Entrevistas", "Eliminadas"))
 
   })
 
@@ -262,9 +266,9 @@ server <- function(input, output, session) {
 
   output$razon_el <- renderPlot({
     preguntas$encuesta$respuestas$eliminadas %>% count(razon) %>% mutate(pct = n/sum(n)) %>%
-      ggplot(aes(y = reorder(razon,n), x = n)) + geom_col(fill = "#C3423F") +
+      ggplot(aes(y = reorder(razon,n), x = n)) + geom_col(fill = "#FF715B") +
       geom_text(aes(label = scales::percent(pct,1)), size = 3, hjust = 1, color = "black") + theme_minimal() +
-      labs(y = "Razón", x = "Entrvistas eliminadas")
+      labs(y = "Razón", x = "Entervistas eliminadas")
   })
 
   output$eliminadas <- renderDT({
