@@ -142,6 +142,7 @@ Respuestas <- R6::R6Class("Respuestas",
                           inherit = Encuesta,
                           public = list(
                             eliminadas = NULL,
+                            cluster_corregido = NULL,
                             base = NULL,
                             n=NULL,
                             m=NULL,
@@ -272,7 +273,15 @@ Respuestas <- R6::R6Class("Respuestas",
                               }
                             },
                             correccion_cluster = function(base, shp, mantener, nivel, var_n){
-                              self$base <- corregir_cluster(base, shp, mantener, nivel, var_n)
+                              aux <- corregir_cluster(base, shp, mantener, nivel, var_n)
+
+                              self$cluster_corregido <- self$base %>% select(all_of(c("SbjNum", "Srvyr", "Date", "Longitude", "Latitude", var_n))) %>%
+                                anti_join(aux, by = c("SbjNum", var_n)) %>%
+                                left_join(
+                                  aux %>% select(all_of(c("SbjNum", var_n))), by = "SbjNum"
+                                ) %>% rename(anterior = 6, nueva = 7)
+
+                              self$base <- aux
                             },
                             eliminar_fuera_muestra = function(respuestas, muestra, nivel, var_n){
                               self$base <- respuestas %>%
