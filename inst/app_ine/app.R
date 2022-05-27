@@ -25,6 +25,8 @@ bd <- preguntas$encuesta$respuestas$base
 enc_shp <- readr::read_rds("data/enc_shp.rda")
 eliminadas <- preguntas$encuesta$respuestas$eliminadas
 eliminadas_shp <- eliminadas %>% filter(!is.na(Longitude)) %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
+
+corregidas_shp <- preguntas$encuesta$respuestas$cluster_corregido %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
 mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
 
@@ -200,10 +202,12 @@ server <- function(input, output, session) {
                        label = ~label, group = "Entrevistas")  %>%
       addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
                        label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
+      addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
+                       label = ~glue::glue("{SbjNum} - {Srvyr} - {Date} cluster reportado: {anterior}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster") %>%
       addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
                 position = "bottomright", pal = pal2, values = ~distancia,
-                title = "Distancia (m)") %>% addLayersControl(baseGroups = c("Entrevistas", "Eliminadas"))
+                title = "Distancia (m)") %>% addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"))
 
   })
 
