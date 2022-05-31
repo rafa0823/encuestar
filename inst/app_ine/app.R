@@ -85,6 +85,9 @@ n_entrevista <- entrevistas(diseno, bd, u_nivel, u_nivel_tipo)
 hecho <- n_entrevista$hecho
 por_hacer <- n_entrevista$por_hacer
 
+faltan_shp <- aulr %>%
+  left_join(hecho %>% count(!!rlang::sym(paste("cluster",u_nivel$nivel, sep = "_")) := cluster,
+                            wt =  faltan))
 ui <-dashboardPage(
   dashboardHeader(title = diseno$poblacion$nombre),
   dashboardSidebar(
@@ -188,12 +191,19 @@ server <- function(input, output, session) {
     pal2 <- leaflet::colorBin(palette = c("blue", "yellow", "orange"),
                               domain = unique(enc_shp %>% filter(as.numeric(distancia) != 0) %>% pull(distancia)), bins = 5)
 
+    pal_n <- leaflet::colorNumeric(colorRampPalette(c("red","white","blue"))(3),
+                                   domain = faltan_shp$n)
+
 
     mapa_base %>% leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
       addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
       addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = "MANZANA") %>%
+      addPolygons(data = faltan_shp, fillColor = ~pal_n(n), fillOpacity = 1,stroke = F,
+                  label = ~glue::glue("Encuestas faltantes: {n}"), group = "Encuestas faltantes") %>%
+      addLegend(pal = pal_n, values = faltan_shp$n, title = "Encuestas faltantes",
+                group = "Encuestas faltantes",position = "bottomleft") %>%
       addCircleMarkers(data = enc_shp %>%
                          mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
                                 color = if_else(as.numeric(distancia) == 0, "green", pal2(distancia))) %>%
@@ -203,11 +213,14 @@ server <- function(input, output, session) {
       addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
                        label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
       addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
-                       label = ~glue::glue("{SbjNum} - {Srvyr} - {Date} cluster reportado: {anterior}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
+                       popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster") %>%
       addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
                 position = "bottomright", pal = pal2, values = ~distancia,
-                title = "Distancia (m)") %>% addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"))
+                title = "Distancia (m)") %>%
+      addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"),
+                       overlayGroups = c("Encuestas faltantes"),options = layersControlOptions()) %>%
+      hideGroup("Encuestas faltantes")
 
   })
 
