@@ -763,7 +763,7 @@ graficar_conocimiento_region <- function(bd){
 #' @examples
 graficar_saldo_region <- function(bd){
   bd %>%
-    ggplot(aes(x = region%>% stringr::str_wrap(4), y =forcats::fct_reorder(tema %>% stringr::str_wrap(10),saldo), fill = saldo)) + geom_tile() +
+    ggplot(aes(x = region%>% stringr::str_wrap(6), y =forcats::fct_reorder(tema %>% stringr::str_wrap(20),saldo), fill = saldo)) + geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
     labs(y = NULL, x= NULL, fill = "Saldo")+
     theme_minimal()+
@@ -773,10 +773,10 @@ graficar_saldo_region <- function(bd){
           text = element_text(family = "Poppins", size=14))+
     scale_x_discrete(position = "top") +
     scale_fill_gradient2(high ="#046B9F", low= "#DE6400", mid = "white",
-                         labels = scales::percent_format(accuracy = 1) )+
+                         labels = scales::percent_format(accuracy = 1) )
     # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
-    ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
-                              aes(label =saldo %>%  scales::percent(accuracy = 1)))
+    # ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
+    #                           aes(label =saldo %>%  scales::percent(accuracy = 1)))
 }
 
 
@@ -816,7 +816,17 @@ graficar_blackbox_1d <- function(lst){
   print(lst$stimuli)
   print(lst$slf)
 
-  lst$individuals %>% ggplot(aes(x = c1)) +
-    geom_density() + facet_wrap(~stimuli) + geom_vline(xintercept = 0, linetype = "dashed") +
-    labs(title = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))
+  lst$individuals %>% mutate(c1 =c1*-1) %>%  ggplot(aes(x = c1)) +
+    geom_density(color = "#871938") +
+    facet_wrap(~stimuli) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray") +
+    labs(subtitle = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))+
+    theme_minimal()+
+    theme(   # legend.position = "bottom",
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      strip.text = element_text(color  = "#A0B12F"),
+      panel.grid.major.y = element_line(linetype = "dotted"),
+      # axis.text = element_blank(),
+      text = element_text(family = "Poppins", size=14))
 }
