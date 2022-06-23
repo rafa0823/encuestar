@@ -376,7 +376,7 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
   orden <- individuals %>% group_by(stimuli = all_of(stimuli)) %>%
     summarise(media = mean(c1,na.rm = T)) %>% arrange(desc(media))
 
-  individuals <- individuals %>% mutate(stimuli = factor(x = stimuli,levels =  orden %>% pull(stimuli)))
+  individuals <- individuals %>% mutate(stimuli = factor(x = stimuli,levels =  orden %>% pull(stimuli)), stimuli*-1)
   return(
     list(
       stimuli = issue$stimuli %>% pluck(1),
