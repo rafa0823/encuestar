@@ -15,13 +15,18 @@ library(DT)
 library(shinycssloaders)
 library(colorRamps)
 library(gt)
+library(shinyjs)
 
-
-diseno <- read_rds("data/diseno.rda")
-shp <- read_rds("data/shp.rda")
-bd <- read_csv("data/bd.csv")
+options(survey.lonely.psu="remove")
+preguntas <- read_rds("data/clase_pregunta.rda")
+diseno <- preguntas$encuesta$muestra$muestra
+shp <- preguntas$encuesta$shp_completo
+bd <- preguntas$encuesta$respuestas$base
 enc_shp <- readr::read_rds("data/enc_shp.rda")
-eliminadas <- read_csv("data/eliminadas.csv")
+eliminadas <- preguntas$encuesta$respuestas$eliminadas
+eliminadas_shp <- eliminadas %>% filter(!is.na(Longitude)) %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
+
+corregidas_shp <- preguntas$encuesta$respuestas$cluster_corregido %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
 mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
 
@@ -80,6 +85,9 @@ n_entrevista <- entrevistas(diseno, bd, u_nivel, u_nivel_tipo)
 hecho <- n_entrevista$hecho
 por_hacer <- n_entrevista$por_hacer
 
+faltan_shp <- aulr %>%
+  left_join(hecho %>% count(!!rlang::sym(paste("cluster",u_nivel$nivel, sep = "_")) := cluster,
+                            wt =  faltan))
 ui <-dashboardPage(
   dashboardHeader(title = diseno$poblacion$nombre),
   dashboardSidebar(
@@ -96,6 +104,7 @@ ui <-dashboardPage(
     )
   ),
   dashboardBody(
+    useShinyjs(),
     tabItems(
       tabItem("mapa",
               leafletOutput(outputId = "map", height = 600),
@@ -149,11 +158,25 @@ ui <-dashboardPage(
                 )
               ),
               h2("Eliminadas"),
-              DTOutput("eliminadas")
+              fluidRow(
+                column(6,
+                       plotOutput("razon_el",height = 400)
+                ),
+                column(6,
+                       DTOutput("eliminadas")
+                )
+              )
+
       ),
       tabItem("auditoria",
-              passwordInput("psw","Contraseña"),
-              uiOutput("graficas")
+              fluidRow(
+                column(6, passwordInput(inputId = "psw",label = "Contraseña")),
+                column(6, hidden(selectInput("vars", "Variable", choices = c("Cargando..." = ""))))
+              ),
+              # uiOutput("au")
+              fluidRow(
+                plotOutput("grafica",height = 600)
+              )
       )
     )
   )
@@ -161,28 +184,43 @@ ui <-dashboardPage(
 
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
   output$map <- renderLeaflet({
     pal <- colorFactor(topo.colors(n_distinct(mapa_base$strata_1)), domain = unique(mapa_base$strata_1))
     pal2 <- leaflet::colorBin(palette = c("blue", "yellow", "orange"),
                               domain = unique(enc_shp %>% filter(as.numeric(distancia) != 0) %>% pull(distancia)), bins = 5)
 
+    pal_n <- leaflet::colorNumeric(colorRampPalette(c("red","white","blue"))(3),
+                                   domain = faltan_shp$n)
+
+
     mapa_base %>% leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
       addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
       addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = "MANZANA") %>%
+      addPolygons(data = faltan_shp, fillColor = ~pal_n(n), fillOpacity = 1,stroke = F,
+                  label = ~glue::glue("Encuestas faltantes: {n}"), group = "Encuestas faltantes") %>%
+      addLegend(pal = pal_n, values = faltan_shp$n, title = "Encuestas faltantes",
+                group = "Encuestas faltantes",position = "bottomleft") %>%
       addCircleMarkers(data = enc_shp %>%
                          mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
                                 color = if_else(as.numeric(distancia) == 0, "green", pal2(distancia))) %>%
                          arrange(distancia),
                        color = ~color, stroke = F,
-                       label = ~label)  %>%
+                       label = ~label, group = "Entrevistas")  %>%
+      addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
+                       label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
+      addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
+                       popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster") %>%
       addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
                 position = "bottomright", pal = pal2, values = ~distancia,
-                title = "Distancia (m)")
+                title = "Distancia (m)") %>%
+      addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"),
+                       overlayGroups = c("Encuestas faltantes"),options = layersControlOptions()) %>%
+      hideGroup("Encuestas faltantes")
 
   })
 
@@ -243,6 +281,13 @@ server <- function(input, output) {
       labs(fill = "Entrevistas \n por hacer", y = NULL, x = NULL) + theme_minimal()
   })
 
+  output$razon_el <- renderPlot({
+    preguntas$encuesta$respuestas$eliminadas %>% count(razon) %>% mutate(pct = n/sum(n)) %>%
+      ggplot(aes(y = reorder(razon,n), x = n)) + geom_col(fill = "#FF715B") +
+      geom_text(aes(label = scales::percent(pct,1)), size = 3, hjust = 1, color = "black") + theme_minimal() +
+      labs(y = "Razón", x = "Entervistas eliminadas")
+  })
+
   output$eliminadas <- renderDT({
     eliminadas %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
       # bind_rows(
@@ -252,6 +297,25 @@ server <- function(input, output) {
       arrange(desc(Fecha))
   }, options = list(dom = "ltpi",
                     language = list(url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json")))
+
+  observeEvent(input$psw,{
+
+    if(input$psw == "hola"){
+      updateSelectInput(session, "vars", choices = preguntas$encuesta$auditar)
+      shinyjs::show(id = "vars")
+    } else{
+      shinyjs::hide(id = "vars")
+    }
+
+  })
+
+  output$grafica <- renderPlot({
+    validate(
+      need(input$psw == "hola" & (input$vars != ""), message = "Escriba la contraseña")
+    )
+
+    preguntas$graficar(llave = !!rlang::sym(input$vars), "frecuencia", parametros = list(salto = 10, tit = ""))
+  })
 }
 
 # Run the application
