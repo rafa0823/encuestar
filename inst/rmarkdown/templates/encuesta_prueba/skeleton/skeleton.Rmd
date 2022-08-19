@@ -1,0 +1,91 @@
+---
+title: "Presentación ejemplo de encuesta"
+author: "Morant"
+output:
+  powerpoint_presentation:
+    reference_doc: ppt_base.pptx
+    slide_level: 3
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(dplyr)
+library(lemon)
+
+
+
+knitr::opts_chunk$set(
+  fig.width=8, fig.height=3.5, fig.retina=3,
+  out.width = "100%",
+  cache = FALSE,
+  echo = FALSE,
+  message = FALSE, 
+  warning = FALSE,
+  hiline = TRUE
+)
+
+
+devtools::load_all()
+devtools::load_all("~/Documents/Git/temario/")
+
+#Base de datos de respuestas
+base_encuesta <- readr::read_csv(file = "../../../../../datar/bd.csv")
+
+#Entrevistas eliminadas de auditoría
+auditoria_telefonica <- readr::read_csv(file = "../../../../../datar/eliminar.csv")
+
+#Información muestral
+info <- sf::st_read("../../../../../datar/shp/mza_select9.shp") %>% tibble::as_tibble()
+#Declaración del objeto encuesta
+encuesta <- Encuesta$new(respuestas = base_encuesta,
+                         auditoria_telefonica = auditoria_telefonica,
+                         muestra = info
+)
+
+
+
+```
+
+
+```{r, include=FALSE}
+p1 <- analizar_frecuencias(encuesta, P1)
+
+verde <- "#7FA389"
+rojo <- "#D67278"
+gris <- "gray"
+
+coloresp1 <-c("Confianza" = verde,
+              "Alegría" = verde,
+              "Desilusión" = rojo,
+              "Enojo" = rojo,
+              "Esperanza" = verde,
+              "Felicidad" = verde,
+              "Preocupación" = rojo,
+              "Tristeza" = rojo,
+              "Otro" = gris,
+              "Ns/Nc" = gris)
+```
+
+
+### Pregunta 1
+```{r}
+
+graficar_barras_frecuencia(bd = p1, titulo = " Pregunta 1", colores = coloresp1)+
+  theme_morant(fondo = "#FFFFFF")
+
+```
+
+
+### Pregunta 2
+```{r}
+
+graficar_frecuencia_opuestos(bd = p1,
+                             titulo = "Barras opuestas",
+                             grupo2 = c("Alegría", "Felicidad",
+                                                 "Confianza", "Esperanza",
+                                                 "Otro", "Ns/Nc"),
+                             grupo1 = c( "Preocupación", "Tristeza", 
+                                         "Desilusión", "Enojo"), color1 = "#C8E3D3",
+                             color2 = "#FEC5BB")+
+  theme_morant_obscuro()
+```

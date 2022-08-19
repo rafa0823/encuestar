@@ -10,7 +10,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("style_name","level","ro
 #'
 #' @examples
 
-diccionario_cuestionario <- function(doc){
+diccionario_cuestionario <- function(doc, patron){
   diccionario <- doc %>%
     # officer::docx_summary(doc) %>%
     # as_tibble() %>%
@@ -63,7 +63,6 @@ diccionario_cuestionario <- function(doc){
   }
 
 
-
   diccionario <- diccionario %>%
     anti_join(diccionario %>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
     select(bloque, pregunta, tipo_pregunta, llaves, text) %>%
@@ -71,6 +70,11 @@ diccionario_cuestionario <- function(doc){
       group_by(.,bloque, pregunta, tipo_pregunta, llaves, tema)
     } else {
       group_by(.,bloque, pregunta, tipo_pregunta, llaves)
+    }} %>%
+    { if(!is.na(patron)){
+      mutate(., text = stringr::str_squish(gsub(x = text, pattern = patron,"")))
+    } else{
+      .
     }} %>%
     summarise(respuestas=list(text)) %>%
     ungroup() %>% arrange(llaves)

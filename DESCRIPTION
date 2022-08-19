@@ -55,7 +55,8 @@ Imports:
     ggpubr,
     ggsankey,
     janitor,
-    basicspace
+    basicspace,
+    shinyjs
 Suggests: 
     ggfittext,
     ggthemes,

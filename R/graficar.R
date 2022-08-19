@@ -574,7 +574,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
   a <- aux %>%
-    filter(respuesta!= ns_nc) %>%
+    {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
     ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
@@ -587,7 +587,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
     theme(legend.position = "bottom") %+replace% tema()
 
-
+if(!is.null(ns_nc)){
   b<- aux %>%  filter(respuesta == ns_nc) %>%
     ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = media))+
     ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
@@ -600,6 +600,10 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 
   final <-a+b+plot_layout(widths = c(.8,.2))
+} else{
+  final <- a
+}
+
   return(final)
 }
 
@@ -668,7 +672,7 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
 graficar_candidato_saldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"),
                                      grupo_negativo = c("Mala", "Muy mala"), familia){
 
-  bd %>% ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = grupo,
+  g <- bd %>% ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = grupo,
                     y =saldo
   )) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
@@ -676,9 +680,12 @@ graficar_candidato_saldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"
     scale_fill_manual(values = c("Negativa" = "#FB8500",
                                  "Positiva" = "#126782"))+
     geom_text(aes(label = scales::percent(saldo,accuracy = 1)), family = familia,
-              position = position_stack(.5,reverse = T), vjust = .5)+
-    geom_text(aes(label = p_calve),
-              hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050") +
+              position = position_stack(.5,reverse = T), vjust = .5)
+
+  if("p_calve" %in% names(bd)) g <- g + geom_text(aes(label = p_calve),
+                                                 hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
+
+  g +
     lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
     theme_minimal()+
     theme(legend.position = "bottom",
@@ -816,7 +823,8 @@ graficar_blackbox_1d <- function(lst){
   print(lst$stimuli)
   print(lst$slf)
 
-  lst$individuals %>% mutate(c1 =c1*-1) %>%  ggplot(aes(x = c1)) +
+  lst$individuals %>%# mutate(c1 =c1*-1) %>%
+    ggplot(aes(x = c1)) +
     geom_density(color = "#871938") +
     facet_wrap(~stimuli) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray") +
