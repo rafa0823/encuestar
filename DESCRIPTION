@@ -56,7 +56,8 @@ Imports:
     ggsankey,
     janitor,
     basicspace,
-    shinyjs
+    shinyjs,
+    lwgeom
 Suggests: 
     ggfittext,
     ggthemes,
