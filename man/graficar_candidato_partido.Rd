@@ -4,7 +4,14 @@
 \alias{graficar_candidato_partido}
 \title{Title}
 \usage{
-graficar_candidato_partido(bases, cliente, colores_partido)
+graficar_candidato_partido(
+  bases,
+  cliente,
+  tipo_conoce,
+  colores_candidato,
+  colores_partido,
+  tema
+)
 }
 \arguments{
 \item{bases}{}

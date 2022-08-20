@@ -28,6 +28,7 @@ La clase Encuesta contiene todos los metodos, y atributos que puede tener una en
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{Encuesta$new()}}
+\item \href{#method-error_muestral_maximo}{\code{Encuesta$error_muestral_maximo()}}
 \item \href{#method-exportar_entregable}{\code{Encuesta$exportar_entregable()}}
 \item \href{#method-clone}{\code{Encuesta$clone()}}
 }
@@ -45,7 +46,9 @@ Create a person
   cuestionario = NA,
   shp = NA,
   tipo_encuesta = NA,
-  mantener = NA
+  mantener = NA,
+  patron = NA,
+  auditar = NA
 )}\if{html}{\out{</div>}}
 }
 
@@ -58,6 +61,15 @@ Create a person
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-error_muestral_maximo"></a>}}
+\if{latex}{\out{\hypertarget{method-error_muestral_maximo}{}}}
+\subsection{Method \code{error_muestral_maximo()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Encuesta$error_muestral_maximo(quitar_patron = NULL)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-exportar_entregable"></a>}}

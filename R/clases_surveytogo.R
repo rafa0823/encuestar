@@ -731,7 +731,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                 g <- analizar_candidato_partido(diseno = self$encuesta$muestra$diseno,
                                                                 llave_partido = llave_partido,
                                                                 llave_conocimiento = llave_conocimiento,
-                                                                respuesta_conoce = respuesta_conoce,
+                                                                respuesta_conoce = parametros$respuesta_conoce,
                                                                 candidatos = aspectos,
                                                                 corte_otro = parametros$corte_otro) %>%
                                   map(
@@ -840,6 +840,10 @@ Pregunta <- R6::R6Class("Pregunta",
                           blackbox_1d = function(vars, stimuli){
                             self$encuesta$respuestas$base %>% analizar_blackbox_1d(vars,stimuli) %>%
                               graficar_blackbox_1d()
+                          },
+                          morena = function(personajes, atributos, labels){
+                            analizar_morena(self$encuesta$preguntas, personajes, atributos) %>%
+                              graficar_morena(atributos)
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))

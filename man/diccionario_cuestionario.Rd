@@ -4,7 +4,7 @@
 \alias{diccionario_cuestionario}
 \title{Title}
 \usage{
-diccionario_cuestionario(doc)
+diccionario_cuestionario(doc, patron)
 }
 \arguments{
 \item{doc}{}

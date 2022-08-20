@@ -23,7 +23,7 @@ Esta es la clase cuestionario
 \if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cuestionario$new(documento)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Cuestionario$new(documento, patron)}\if{html}{\out{</div>}}
 }
 
 }
