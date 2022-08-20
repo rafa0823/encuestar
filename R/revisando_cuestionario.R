@@ -13,7 +13,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("style_name","level","ro
 diccionario_cuestionario <- function(doc, patron){
   diccionario <- doc %>%
     # officer::docx_summary(doc) %>%
-    # as_tibble() %>%
+    as_tibble() %>%
     filter(!is.na(style_name),style_name %in% c("Morant_Bloque","Morant_Pregunta",
                                                 "Morant_respuestas_aspectos",
                                                 "Morant_respuestas_abiertas",
@@ -39,7 +39,10 @@ diccionario_cuestionario <- function(doc, patron){
            text=stringr::str_squish(text)
     ) %>% mutate(llaves = factor(llaves, unique(llaves))) %>% filter(text != "")
 
-  tipo_r <- diccionario %>% distinct(tipo_pregunta) %>% pull(1)
+  tipo_r <- diccionario %>%
+    semi_join(diccionario%>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
+    distinct(tipo_pregunta) %>% pull(1)
+
   aspectos <- diccionario %>%
     semi_join(diccionario%>% filter(tipo_pregunta == "aspectos"), by = "pregunta") %>%
     select(tipo_pregunta, text, pregunta, bloque) %>%
@@ -48,7 +51,7 @@ diccionario_cuestionario <- function(doc, patron){
 
   if(nrow(aspectos)>0){
     for(i in tipo_r){
-      aspectos <- aspectos %>% unnest(all_of(i), keep_empty = T)
+      aspectos <- aspectos %>% unnest(any_of(i), keep_empty = T)
     }
     tr <- aspectos %>% select(-pregunta,-bloque, -aspectos) %>% names
 
