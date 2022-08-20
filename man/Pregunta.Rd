@@ -13,6 +13,16 @@ Esta es la clase de pregunta
 \itemize{
 \item \href{#method-new}{\code{Pregunta$new()}}
 \item \href{#method-graficar}{\code{Pregunta$graficar()}}
+\item \href{#method-regiones_shp}{\code{Pregunta$regiones_shp()}}
+\item \href{#method-correspondencia}{\code{Pregunta$correspondencia()}}
+\item \href{#method-mapa_ganador}{\code{Pregunta$mapa_ganador()}}
+\item \href{#method-mapa_numerico}{\code{Pregunta$mapa_numerico()}}
+\item \href{#method-conocimiento_region}{\code{Pregunta$conocimiento_region()}}
+\item \href{#method-saldo_region}{\code{Pregunta$saldo_region()}}
+\item \href{#method-pclave_region}{\code{Pregunta$pclave_region()}}
+\item \href{#method-sankey}{\code{Pregunta$sankey()}}
+\item \href{#method-prcomp}{\code{Pregunta$prcomp()}}
+\item \href{#method-blackbox_1d}{\code{Pregunta$blackbox_1d()}}
 \item \href{#method-faltantes}{\code{Pregunta$faltantes()}}
 \item \href{#method-clone}{\code{Pregunta$clone()}}
 }
@@ -42,6 +52,109 @@ Esta es la clase de pregunta
   llave_xq,
   parametros = list(tit = "")
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-regiones_shp"></a>}}
+\if{latex}{\out{\hypertarget{method-regiones_shp}{}}}
+\subsection{Method \code{regiones_shp()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$regiones_shp()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-correspondencia"></a>}}
+\if{latex}{\out{\hypertarget{method-correspondencia}{}}}
+\subsection{Method \code{correspondencia()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$correspondencia(
+  var1,
+  var2,
+  legenda1 = NULL,
+  legenda2 = NULL,
+  colores = NULL
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-mapa_ganador"></a>}}
+\if{latex}{\out{\hypertarget{method-mapa_ganador}{}}}
+\subsection{Method \code{mapa_ganador()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$mapa_ganador(var, lugar = 1)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-mapa_numerico"></a>}}
+\if{latex}{\out{\hypertarget{method-mapa_numerico}{}}}
+\subsection{Method \code{mapa_numerico()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$mapa_numerico(var)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-conocimiento_region"></a>}}
+\if{latex}{\out{\hypertarget{method-conocimiento_region}{}}}
+\subsection{Method \code{conocimiento_region()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$conocimiento_region(llave_conocimiento, candidatos, respuesta)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-saldo_region"></a>}}
+\if{latex}{\out{\hypertarget{method-saldo_region}{}}}
+\subsection{Method \code{saldo_region()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$saldo_region(
+  llave_opinion = "",
+  candidatos,
+  ns_nc,
+  cat_negativo,
+  cat_regular,
+  cat_positivo
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-pclave_region"></a>}}
+\if{latex}{\out{\hypertarget{method-pclave_region}{}}}
+\subsection{Method \code{pclave_region()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$pclave_region(var)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-sankey"></a>}}
+\if{latex}{\out{\hypertarget{method-sankey}{}}}
+\subsection{Method \code{sankey()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$sankey(var1, var2)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-prcomp"></a>}}
+\if{latex}{\out{\hypertarget{method-prcomp}{}}}
+\subsection{Method \code{prcomp()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$prcomp(variables)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-blackbox_1d"></a>}}
+\if{latex}{\out{\hypertarget{method-blackbox_1d}{}}}
+\subsection{Method \code{blackbox_1d()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$blackbox_1d(vars, stimuli)}\if{html}{\out{</div>}}
 }
 
 }

@@ -4,7 +4,7 @@
 \alias{graficar_gauge_promedio}
 \title{Title}
 \usage{
-graficar_gauge_promedio(bd, color = "#850D2D", maximo = 10)
+graficar_gauge_promedio(bd, color = "#850D2D", maximo = 10, familia)
 }
 \arguments{
 \item{bd}{Base de datos (ya procesada)}

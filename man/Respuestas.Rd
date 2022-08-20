@@ -15,6 +15,9 @@ Esta es la clase Respuestas
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-new}{\code{Respuestas$new()}}
+\item \href{#method-nombres}{\code{Respuestas$nombres()}}
+\item \href{#method-q_patron}{\code{Respuestas$q_patron()}}
+\item \href{#method-categorias}{\code{Respuestas$categorias()}}
 \item \href{#method-eliminar_auditoria_telefonica}{\code{Respuestas$eliminar_auditoria_telefonica()}}
 \item \href{#method-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
 \item \href{#method-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
@@ -28,6 +31,7 @@ Esta es la clase Respuestas
 \if{html}{
 \out{<details open ><summary>Inherited methods</summary>}
 \itemize{
+\item \out{<span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="error_muestral_maximo">}\href{../../encuestar/html/Encuesta.html#method-error_muestral_maximo}{\code{encuestar::Encuesta$error_muestral_maximo()}}\out{</span>}
 \item \out{<span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="exportar_entregable">}\href{../../encuestar/html/Encuesta.html#method-exportar_entregable}{\code{encuestar::Encuesta$exportar_entregable()}}\out{</span>}
 }
 \out{</details>}
@@ -38,7 +42,7 @@ Esta es la clase Respuestas
 \subsection{Method \code{new()}}{
 Crear respuesta
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(base, encuesta, muestra_completa, nivel, var_n)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(base, encuesta, muestra_completa, patron, nivel, var_n)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -48,6 +52,33 @@ Crear respuesta
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-nombres"></a>}}
+\if{latex}{\out{\hypertarget{method-nombres}{}}}
+\subsection{Method \code{nombres()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$nombres(bd, diccionario)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-q_patron"></a>}}
+\if{latex}{\out{\hypertarget{method-q_patron}{}}}
+\subsection{Method \code{q_patron()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$q_patron(bd, dicc, patron)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-categorias"></a>}}
+\if{latex}{\out{\hypertarget{method-categorias}{}}}
+\subsection{Method \code{categorias()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$categorias(bd, diccionario)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-eliminar_auditoria_telefonica"></a>}}
