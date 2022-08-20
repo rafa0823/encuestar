@@ -95,7 +95,7 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
 }
 
 
-analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, candidatos, corte_otro){
+analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
   partido <- paste(llave_partido,candidatos,sep = "_")
   conoce <- paste(llave_conocimiento,candidatos, sep = "_")
 
@@ -115,7 +115,7 @@ analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento
           pattern = .x,
           replacement = "",
           string = respuesta))
-  }) %>% filter(respuesta == "Sí lo conoce")
+  }) %>% filter(respuesta == respuesta_conoce)
 
   partido <- purrr::map_df(.x = partido,.f = ~{
     survey::svymean(survey::make.formula(.x),
