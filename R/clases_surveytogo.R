@@ -77,7 +77,6 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$preguntas <- Pregunta$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
-
                             return(print(match_dicc_base(self)))
                           },
                           error_muestral_maximo = function(quitar_patron = NULL){
@@ -185,6 +184,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               # Corregir cluster equivocado
                               self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
                               # Calcular distancia de la entrevista al cluster correcto
+
                               self$calcular_distancia(base = self$base,
                                                       encuesta = encuesta,
                                                       muestra = muestra_completa,
@@ -302,12 +302,17 @@ Respuestas <- R6::R6Class("Respuestas",
                               pol <- dist_poligonos(aux_sf, shp = encuesta$shp, var_n, nivel)
                               puntos <- dist_puntos(aux_sf, encuesta, muestra, var_n, nivel)
 
-                              respuestas <- pol %>%
-                                anti_join(
-                                  puntos %>% as_tibble, by = "SbjNum"
-                                ) %>% bind_rows(
-                                  puntos
-                                )
+                              if(nrow(puntos) > 0){
+                                respuestas <- pol %>%
+                                  anti_join(
+                                    puntos %>% as_tibble, by = "SbjNum"
+                                  ) %>% bind_rows(
+                                    puntos
+                                  )
+                              } else{
+                                respuestas <- pol
+                              }
+
                               self$base <- respuestas %>% left_join(base %>% select(SbjNum, Longitude, Latitude), by = "SbjNum")
                             },
                             eliminar_faltantes_diseno=function(){
@@ -524,7 +529,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
                               if(is.null(aspectos)){
-                                tipo_p <- encuesta_edomex$cuestionario$diccionario %>%
+                                tipo_p <- self$encuesta$cuestionario$diccionario %>%
                                   filter(llaves == quo_name(enquo(llave))) %>% pull(tipo_pregunta)
 
                                 if("numericas" == tipo_p){
@@ -563,7 +568,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                 v_params <- c("tipo_numerica")
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
-                                tipo_p <- encuesta_edomex$cuestionario$diccionario %>%
+                                tipo_p <- self$encuesta$cuestionario$diccionario %>%
                                   filter(llaves %in% aspectos_aux) %>% pull(tipo_pregunta)
                                 if("numericas" %in% tipo_p){
                                   g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
@@ -853,6 +858,7 @@ Auditoria <- R6::R6Class("Auditoria",
                          public = list(
                            dir = NULL,
                            initialize = function(encuesta, tipo_encuesta, dir = "auditoria"){
+
                              if(!file.exists(dir)){
                                dir.create(dir)
                                dir.create(glue::glue("{dir}/data"))
@@ -867,6 +873,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                group_by(strata_1) %>% summarise(n()) %>%
                                sf::st_buffer(dist = 0)
                              readr::write_rds(mapa_base, glue::glue("{dir}/data/mapa_base.rda"))
+
                              enc_shp <- encuesta$respuestas$base %>%
                                sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
