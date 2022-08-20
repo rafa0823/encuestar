@@ -58,9 +58,9 @@ Imports:
     basicspace,
     shinyjs,
     lwgeom,
-    ggfittext
+    ggfittext,
+    ggthemes
 Suggests: 
-    ggthemes,
     scales
 Remotes:
     morant-consultores/muestreaR,
