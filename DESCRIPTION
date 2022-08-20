@@ -57,9 +57,9 @@ Imports:
     janitor,
     basicspace,
     shinyjs,
-    lwgeom
+    lwgeom,
+    ggfittext
 Suggests: 
-    ggfittext,
     ggthemes,
     scales
 Remotes:
