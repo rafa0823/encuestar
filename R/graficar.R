@@ -838,3 +838,17 @@ graficar_blackbox_1d <- function(lst){
       # axis.text = element_blank(),
       text = element_text(family = "Poppins", size=14))
 }
+
+graficar_morena <- function(atr, atributos){
+  atr %>% ggplot(aes(x = atributo,y = fct_reorder(tema,puntos,sum), fill = media,
+                     label = scales::percent(media,.1)
+  )) + geom_tile() +
+    ggfittext::geom_fit_text(contrast = T) +
+    geom_label(data = atr %>% filter(puntos!=0), aes(label = puntos),
+               color = "black", vjust = 0, nudge_y = -.5, fill = "white") +
+    theme(legend.position = "bottom") +
+    geom_text(data = atr %>% count(tema, wt = puntos),
+              aes(label = n, x  ="Puntaje", y = tema), inherit.aes = F) +
+    scale_fill_continuous(labels = scales::percent) +
+    labs(x = NULL, y = NULL, fill = "Porcentaje")
+}
