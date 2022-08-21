@@ -575,6 +575,9 @@ Pregunta <- R6::R6Class("Pregunta",
                                     left_join(
                                       self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
                                     )
+                                  if(all(is.na(g$tema))){
+                                    g <- g %>% mutate(tema = aspecto)
+                                  }
                                   if(parametros$tipo_numerica == "intervalos"){
                                     g <- g %>% graficar_intervalo_numerica() + self$tema()
                                   }
