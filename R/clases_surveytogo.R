@@ -416,7 +416,7 @@ Muestra <- R6::R6Class("Muestra",
                              )
                              ,T)
 
-                           diseno <- if(class(r) == "try-error"){
+                           diseno <- if("try-error" %in% class(r)){
                              message("Se intenta muestreo estratificado por estrato. Faltan unidades a muestrear.")
                              out <- survey::svydesign(
                                pps="brewer",
