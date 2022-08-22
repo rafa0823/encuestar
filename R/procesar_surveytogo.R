@@ -420,7 +420,7 @@ analizar_morena <- function(encuesta, personajes, atributos){
 
   #preferencia
   pref <- analizar_frecuencias(encuesta$encuesta, prefiere) %>%
-    filter(tema != "Ns/Nc") %>%
+    filter(respuesta != "Ns/Nc") %>%
     mutate(ganador = media == max(media),
            puntos = if_else(ganador, 2.75, 0)) %>%
     transmute(atributo = "preferencia", tema = respuesta, media, ganador, puntos)
