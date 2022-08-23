@@ -618,7 +618,7 @@ if(!is.null(ns_nc)){
 #'
 #' @examples
 #'
-graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, colores_partido,tema){
+graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos, colores_partido,tema){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
@@ -645,6 +645,23 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
 
   bases$partido <- bases$partido %>%
     mutate(tema = factor(tema,levels(bases$conoce$tema)))
+
+  opciones <- bases$partido %>% pull(respuesta) %>% unique %>% as.character()
+  orden <- match(opciones, names(colores_partido))
+
+  if(sum(is.na(orden))>0){
+    stop(glue::glue("Por favor indique colores para: {paste(opciones[is.na(orden)], collapse = ', ')}"))
+  }
+
+  if(solo_respondidos){
+
+    colores_partido_filter <- colores_partido[!is.na(match(names(colores_partido), opciones))]
+
+    if(length(colores_partido_filter) < length(colores_partido)){
+      warning(glue::glue("Las siguientes respuestas se omitirán: {paste(names(colores_partido)[is.na(match(names(colores_partido), opciones))], collapse = ', ')}"))
+    }
+    colores_partido <- colores_partido_filter
+  }
 
   b <- bases$partido %>%
     ggplot() +

@@ -711,7 +711,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               }
                               if(stringr::str_detect(pattern = "partido", tipo)){
 
-                                v_params <- c("corte_otro", "cliente", "tipo_conoce", "colores_candidato","colores_partido", "respuesta_conoce")
+                                v_params <- c("corte_otro", "cliente", "tipo_conoce", "colores_candidato","colores_partido", "respuesta_conoce", "solo_respondidos")
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
@@ -747,6 +747,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              tipo_conoce = parametros$tipo_conoce,
                                                              colores_candidato = parametros$colores_candidato,
                                                              colores_partido = parametros$colores_partido,
+                                                             solo_respondidos = parametros$solo_respondidos,
                                                              tema = self$tema)
                               }
                             }
