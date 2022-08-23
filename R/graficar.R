@@ -884,7 +884,15 @@ graficar_blackbox_1d <- function(lst){
 }
 
 graficar_morena <- function(atr, atributos){
-  atr %>% ggplot(aes(x = atributo,y = fct_reorder(tema,puntos,sum), fill = media,
+
+  orden <- atr %>% distinct(tema, atributo, puntos, .keep_all = T) %>% select(-aspecto,-ganador,-puntos,-personaje) %>%
+    pivot_wider(names_from = atributo, values_from = media) %>%
+    left_join(
+      atr %>% count(tema, wt = puntos)
+    ) %>%
+    arrange(n, preferencia, votaria) %>% pull(tema)
+
+  atr %>% ggplot(aes(x = atributo,y = factor(tema, orden), fill = media,
                      label = scales::percent(media,.1)
   )) + geom_tile() +
     ggfittext::geom_fit_text(contrast = T) +
