@@ -656,7 +656,6 @@ Pregunta <- R6::R6Class("Pregunta",
                                 } else{
                                   warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
-                                browser()
                                 if(!is.na(parametros$llave_burbuja)){
                                   burbuja <- analizar_frecuencias_aspectos(self$encuesta,
                                                                            !!rlang::sym(parametros$llave_burbuja),
