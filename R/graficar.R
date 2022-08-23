@@ -566,7 +566,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                                        color_burbuja,
                                        tema){
 
-  bd <- bd %>% group_by(aspecto) %>% complete(respuesta = "Ns/Nc", fill = list(media = 0)) %>% ungroup
+  bd <- bd %>% group_by(tema) %>% complete(respuesta = "Ns/Nc", fill = list(media = 0)) %>% ungroup
   aux <- bd %>% mutate(Regular = if_else(respuesta == regular, "regular1", as.character(respuesta))) %>%
     bind_rows(bd %>% filter(respuesta == regular) %>% mutate(Regular = "regular2", media = -media)) %>%
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
@@ -576,10 +576,23 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     group_by(tema) %>%
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
+  orden <- aux %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit
+
+  if(!all(is.na(burbuja))){
+    burbuja <- burbuja %>% mutate(escala = media/max(media), tema = forcats::fct_reorder(tema, media))
+    orden <- burbuja$tema %>% levels
+    a.1 <-  burbuja %>%
+      ggplot(aes(y = tema,
+                 x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja) +
+      geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
+      tema() +
+      theme(legend.position = "none", panel.grid.major.x = element_blank(),
+            axis.text = element_blank(),axis.line.x = element_blank())
+  }
 
   a <- aux %>%
     {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
-    ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta,
+    ggplot(aes(x  = factor(tema, orden), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
     scale_fill_manual(values = colores)+
@@ -592,19 +605,9 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
     theme(legend.position = "bottom") %+replace% tema()
 
-  if(!all(is.na(burbuja))){
-    a.1 <- burbuja %>% mutate(escala = media/max(media)) %>%
-      ggplot(aes(y =factor(tema,aux %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit),
-                 x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja) +
-      geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
-      tema() +
-      theme(legend.position = "none", panel.grid.major.x = element_blank(),
-            axis.text = element_blank(),axis.line.x = element_blank())
-  }
-
   if(!is.null(ns_nc)){
     b<- aux %>%  filter(respuesta == ns_nc) %>%
-      ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = media))+
+      ggplot(aes(x = factor(tema, orden), y = media))+
       ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
       coord_flip()+
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
