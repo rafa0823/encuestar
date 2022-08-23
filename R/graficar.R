@@ -562,8 +562,11 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                                        grupo_negativo,
                                        colores,
+                                       burbuja,
+                                       color_burbuja,
                                        tema){
 
+  bd <- bd %>% group_by(aspecto) %>% complete(respuesta = "Ns/Nc", fill = list(media = 0)) %>% ungroup
   aux <- bd %>% mutate(Regular = if_else(respuesta == regular, "regular1", as.character(respuesta))) %>%
     bind_rows(bd %>% filter(respuesta == regular) %>% mutate(Regular = "regular2", media = -media)) %>%
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
@@ -573,36 +576,57 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     group_by(tema) %>%
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
+
   a <- aux %>%
     {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
     ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
-    geom_text(aes(label = etiqueta), family = tema()$text$family, position = position_stack(.5,reverse = T), vjust = .5) +
-    coord_flip()+
     scale_fill_manual(values = colores)+
+    ggfittext::geom_fit_text(aes(label = etiqueta), family = tema()$text$family,
+                             position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
+    coord_flip()+
     labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
     theme(legend.position = "bottom") %+replace% tema()
 
-if(!is.null(ns_nc)){
-  b<- aux %>%  filter(respuesta == ns_nc) %>%
-    ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = media))+
-    ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
-    coord_flip()+
-    ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
-                             hjust = -.1)+
-    labs(y = NULL, x = NULL)+
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-    tema() +
-    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+  if(!all(is.na(burbuja))){
+    a.1 <- burbuja %>% mutate(escala = media/max(media)) %>%
+      ggplot(aes(y =factor(tema,aux %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit),
+                 x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja) +
+      geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
+      tema() +
+      theme(legend.position = "none", panel.grid.major.x = element_blank(),
+            axis.text = element_blank(),axis.line.x = element_blank())
+  }
 
-  final <-a+b+plot_layout(widths = c(.8,.2))
-} else{
-  final <- a
-}
+  if(!is.null(ns_nc)){
+    b<- aux %>%  filter(respuesta == ns_nc) %>%
+      ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = media))+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
+      coord_flip()+
+      ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
+                               hjust = -.1)+
+      labs(y = NULL, x = NULL)+
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      tema() +
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+
+    if(!all(is.na(burbuja))){
+      final <-a + a.1 + b + plot_layout(widths = c(.75,.1,.15), ncol= 3)
+    } else{
+      final <-a + b + plot_layout(widths = c(.8, .2))
+    }
+
+  } else{
+    if(!all(is.na(burbuja))){
+      final <- a + a.1 + plot_layout(widths = c(.8,.2))
+    } else{
+      final <- a
+    }
+  }
 
   return(final)
 }
@@ -690,7 +714,7 @@ graficar_candidato_saldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"
                                      grupo_negativo = c("Mala", "Muy mala"), familia){
 
   g <- bd %>% ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = grupo,
-                    y =saldo
+                         y =saldo
   )) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
     coord_flip()+
@@ -700,7 +724,7 @@ graficar_candidato_saldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"
               position = position_stack(.5,reverse = T), vjust = .5)
 
   if("p_calve" %in% names(bd)) g <- g + geom_text(aes(label = p_calve),
-                                                 hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
+                                                  hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
 
   g +
     lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
@@ -798,9 +822,9 @@ graficar_saldo_region <- function(bd){
     scale_x_discrete(position = "top") +
     scale_fill_gradient2(high ="#046B9F", low= "#DE6400", mid = "white",
                          labels = scales::percent_format(accuracy = 1) )
-    # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
-    # ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
-    #                           aes(label =saldo %>%  scales::percent(accuracy = 1)))
+  # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
+  # ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
+  #                           aes(label =saldo %>%  scales::percent(accuracy = 1)))
 }
 
 

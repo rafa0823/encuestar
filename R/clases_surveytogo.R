@@ -637,7 +637,7 @@ Pregunta <- R6::R6Class("Pregunta",
                             if(stringr::str_detect(pattern = "candidato", tipo)){
                               if(stringr::str_detect(pattern = "opinion", tipo)){
 
-                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo", "colores")
+                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo", "colores", "llave_burbuja", "filtro_burbuja", "color_burbuja")
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
@@ -656,6 +656,16 @@ Pregunta <- R6::R6Class("Pregunta",
                                 } else{
                                   warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
+                                browser()
+                                if(!is.na(parametros$llave_burbuja)){
+                                  burbuja <- analizar_frecuencias_aspectos(self$encuesta,
+                                                                           !!rlang::sym(parametros$llave_burbuja),
+                                                                           aspectos) %>%
+                                    filter(eval(rlang::parse_expr(parametros$filtro_burbuja))) %>%
+                                    left_join(
+                                      self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                    )
+                                }
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
                                   left_join(
@@ -666,6 +676,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              grupo_positivo= parametros$grupo_positivo,
                                                              grupo_negativo = parametros$grupo_negativo,
                                                              colores = parametros$colores,
+                                                             burbuja = burbuja,
+                                                             color_burbuja = parametros$color_burbuja,
                                                              tema = self$tema)
 
                               }
