@@ -16,6 +16,7 @@ library(shinycssloaders)
 library(colorRamps)
 library(gt)
 library(shinyjs)
+library(encuestar)
 
 options(survey.lonely.psu="remove")
 preguntas <- read_rds("data/clase_pregunta.rda")

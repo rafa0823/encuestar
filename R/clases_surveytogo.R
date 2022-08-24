@@ -850,7 +850,7 @@ Pregunta <- R6::R6Class("Pregunta",
                             pc <- survey::svyprcomp(survey::make.formula(variables),
                                                     design= self$encuesta$muestra$diseno,
                                                     scale=TRUE,scores=TRUE)
-                            fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
+                            factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
                           },
                           blackbox_1d = function(vars, stimuli){
                             self$encuesta$respuestas$base %>% analizar_blackbox_1d(vars,stimuli) %>%
