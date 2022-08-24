@@ -618,7 +618,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 
     if(!all(is.na(burbuja))){
-      final <-a + a.1 + b + plot_layout(widths = c(.75,.1,.15), ncol= 3)
+      final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
     } else{
       final <-a + b + plot_layout(widths = c(.8, .2))
     }
