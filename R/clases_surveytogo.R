@@ -579,7 +579,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                     g <- g %>% mutate(tema = aspecto)
                                   }
                                   if(parametros$tipo_numerica == "intervalos"){
-                                    g <- g %>% graficar_intervalo_numerica() + self$tema()
+                                    g <- g %>% graficar_intervalo_numerica(tema = self$tema) + self$tema()
                                   }
                                   if(parametros$tipo_numerica == "barras"){
                                     g <- g %>% graficar_barras_numerica() + self$tema()
@@ -607,7 +607,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                               replacement = "",x = aspecto),aspectos)])) %>%
                                       select(-respuesta) %>%
                                       rename(respuesta = tema) %>%
-                                      encuestar::graficar_barras_frecuencia(titulo = parametros$tit) + self$tema()
+                                      encuestar::graficar_barras_frecuencia(titulo = parametros$tit, tema = self$tema) + self$tema()
                                   } else{
                                     v_params <- c("tit", "nota", "grupo_positivo", "grupo_negativo", "ns_nc", "colores", "orden")
                                     if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
