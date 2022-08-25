@@ -598,6 +598,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
     scale_fill_manual(values = colores)+
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema()$text$family,
+                             min.size = 8,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
     coord_flip()+
     labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
@@ -884,7 +885,7 @@ graficar_blackbox_1d <- function(lst){
       text = element_text(family = "Poppins", size=14))
 }
 
-graficar_morena <- function(atr, atributos){
+graficar_morena <- function(atr, atributos, p, thm){
 
   orden <- atr %>% distinct(tema, atributo, puntos, .keep_all = T) %>% select(-aspecto,-ganador,-puntos,-personaje) %>%
     pivot_wider(names_from = atributo, values_from = media) %>%
@@ -894,14 +895,14 @@ graficar_morena <- function(atr, atributos){
     arrange(n, preferencia, votaria) %>% pull(tema)
 
   atr %>% ggplot(aes(x = atributo,y = factor(tema, orden), fill = media,
-                     label = scales::percent(media,.1)
+                     label = scales::percent(media, p)
   )) + geom_tile() +
-    ggfittext::geom_fit_text(contrast = T) +
+    ggfittext::geom_fit_text(contrast = T, family = thm()$text$family) +
     geom_label(data = atr %>% filter(puntos!=0), aes(label = puntos),
-               color = "black", vjust = 0, nudge_y = -.5, fill = "white") +
+               color = "black", vjust = 0, nudge_y = -.5, fill = "white", family = thm()$text$family) +
     theme(legend.position = "bottom") +
     geom_text(data = atr %>% count(tema, wt = puntos),
-              aes(label = n, x  ="Puntaje", y = tema), inherit.aes = F) +
+              aes(label = n, x  ="Puntaje", y = tema), inherit.aes = F, family = thm()$text$family) +
     scale_fill_continuous(labels = scales::percent) +
     labs(x = NULL, y = NULL, fill = "Porcentaje")
 }
