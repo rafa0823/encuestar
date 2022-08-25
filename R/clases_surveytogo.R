@@ -856,9 +856,9 @@ Pregunta <- R6::R6Class("Pregunta",
                             self$encuesta$respuestas$base %>% analizar_blackbox_1d(vars,stimuli) %>%
                               graficar_blackbox_1d()
                           },
-                          morena = function(personajes, atributos, labels){
+                          morena = function(personajes, atributos, labels, p){
                             analizar_morena(self$encuesta$preguntas, personajes, atributos) %>%
-                              graficar_morena(atributos)
+                              graficar_morena(atributos, p, thm = self$tema)
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
