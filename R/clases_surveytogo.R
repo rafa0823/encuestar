@@ -556,7 +556,7 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                   g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
                                     encuestar::graficar_barras_frecuencia(titulo = parametros$tit,
-                                                                          salto = parametros$salt) + self$tema()
+                                                                          salto = parametros$salt, tema = self$tema) + self$tema()
                                 }
                               } else{
                                 if(quo_name(enquo(llave)) != "NULL") {
