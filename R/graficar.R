@@ -17,7 +17,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
                                        salto =20,
-                                       nota = "", color = "#B0C429"){
+                                       nota = "", color = "#B0C429",
+                                       tema){
 
   g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto),
                                                    media),
@@ -32,7 +33,7 @@ graficar_barras_frecuencia <- function(bd,
          caption = nota)+
     coord_flip()+
     scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-    ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)),contrast = T)+
+    ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)),contrast = T, family = tema()$text$family)+
     theme(legend.position = "none")
   return(g)
 
@@ -270,7 +271,7 @@ graficar_barras_numerica<- function(bd){
                              contrast = T)
 }
 
-graficar_intervalo_numerica<- function(bd){
+graficar_intervalo_numerica<- function(bd, tema){
   bd %>%
     ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
     geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D") +
@@ -278,7 +279,7 @@ graficar_intervalo_numerica<- function(bd){
     labs(title = NULL,
          x = NULL,
          y = "Promedio")+
-    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3)
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, family = tema()$text$family)
 
 }
 
