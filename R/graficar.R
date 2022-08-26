@@ -657,7 +657,7 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
       scale_color_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
-      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = seq(0,max(bases$conoce$media), by = .1)) +
       tema()
   } else{
     a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
