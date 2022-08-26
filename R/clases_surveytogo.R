@@ -20,6 +20,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           auditoria = NULL,
                           patron = NA,
                           auditar = NA,
+                          sin_peso <- NA,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -32,9 +33,12 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 tipo_encuesta = NA,
                                                 mantener = NA,
                                                 patron = NA,
-                                                auditar = NA) {
+                                                auditar = NA,
+                                                sin_peso = F
+                                                ) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
+                            self$sin_peso <- sin_peso
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
                             self$auditar <- auditar
@@ -70,7 +74,8 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Diseno
                             self$muestra$extraer_diseno(respuestas = self$respuestas$base,
                                                         marco_muestral = self$muestra$muestra$poblacion$marco_muestral,
-                                                        tipo_encuesta = self$tipo_encuesta)
+                                                        tipo_encuesta = self$tipo_encuesta,
+                                                        sin_peso = self$sin_peso)
 
                             #Preguntas
 
@@ -405,55 +410,63 @@ Muestra <- R6::R6Class("Muestra",
                            self$base <- muestra
 
                          },
-                         extraer_diseno = function(respuestas, marco_muestral, tipo_encuesta){
-                           r <- try(
-                             survey::svydesign(
-                               pps="brewer",
-                               ids=crear_formula_nombre(respuestas, "cluster_"),
-                               fpc = crear_formula_nombre(respuestas, "fpc_"),
-                               strata = crear_formula_nombre(respuestas, "strata_"),
+                         extraer_diseno = function(respuestas, marco_muestral, tipo_encuesta, sin_peso){
+                           if(sin_peso){
+                             self$diseno <- survey::svydesign(
+                               ids=~1
                                data = respuestas
                              )
-                             ,T)
-
-                           diseno <- if("try-error" %in% class(r)){
-                             message("Se intenta muestreo estratificado por estrato. Faltan unidades a muestrear.")
-                             out <- survey::svydesign(
-                               pps="brewer",
-                               ids = ~1,
-                               strata = crear_formula_nombre(respuestas, "strata_"),
-                               data = respuestas
-                             )
-                             out
                            } else{
-                             r
+                             r <- try(
+                               survey::svydesign(
+                                 pps="brewer",
+                                 ids=crear_formula_nombre(respuestas, "cluster_"),
+                                 fpc = crear_formula_nombre(respuestas, "fpc_"),
+                                 strata = crear_formula_nombre(respuestas, "strata_"),
+                                 data = respuestas
+                               )
+                               ,T)
+
+                             diseno <- if("try-error" %in% class(r)){
+                               message("Se intenta muestreo estratificado por estrato. Faltan unidades a muestrear.")
+                               out <- survey::svydesign(
+                                 pps="brewer",
+                                 ids = ~1,
+                                 strata = crear_formula_nombre(respuestas, "strata_"),
+                                 data = respuestas
+                               )
+                               out
+                             } else{
+                               r
+                             }
+
+                             if(tipo_encuesta == "inegi"){
+                               pob <- marco_muestral %>%
+                                 transmute(
+                                   P_18A24_F,
+                                   P_18A24_M,
+                                   P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
+                                   P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
+                                   P_60YMAS_F, P_60YMAS_M) %>%
+                                 summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
+                                 pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
+                                 separate(name, into = c("rango_edad", "sexo"))
+                             }
+
+                             if(tipo_encuesta == "ine"){
+                               pob <- marco_muestral %>%
+                                 select(contains("LN22_")) %>%
+                                 summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
+                                 pivot_longer(everything()) %>% mutate(name = gsub("LN22_","",name)) %>%
+                                 separate(name, into = c("rango_edad", "sexo"))
+                             }
+
+
+                             pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
+                             pobS<- pob %>% count(sexo, wt = value, name = "Freq")
+                             self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
                            }
 
-                           if(tipo_encuesta == "inegi"){
-                             pob <- marco_muestral %>%
-                               transmute(
-                                 P_18A24_F,
-                                 P_18A24_M,
-                                 P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
-                                 P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
-                                 P_60YMAS_F, P_60YMAS_M) %>%
-                               summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
-                               pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
-                               separate(name, into = c("rango_edad", "sexo"))
-                           }
-
-                           if(tipo_encuesta == "ine"){
-                             pob <- marco_muestral %>%
-                               select(contains("LN22_")) %>%
-                               summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
-                               pivot_longer(everything()) %>% mutate(name = gsub("LN22_","",name)) %>%
-                               separate(name, into = c("rango_edad", "sexo"))
-                           }
-
-
-                           pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
-                           pobS<- pob %>% count(sexo, wt = value, name = "Freq")
-                           self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
                          }
                        ))
 
