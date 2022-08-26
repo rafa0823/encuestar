@@ -20,7 +20,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           auditoria = NULL,
                           patron = NA,
                           auditar = NA,
-                          sin_peso <- NA,
+                          sin_peso = NA,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -413,7 +413,7 @@ Muestra <- R6::R6Class("Muestra",
                          extraer_diseno = function(respuestas, marco_muestral, tipo_encuesta, sin_peso){
                            if(sin_peso){
                              self$diseno <- survey::svydesign(
-                               ids=~1
+                               ids=~1,
                                data = respuestas
                              )
                            } else{
