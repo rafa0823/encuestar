@@ -654,7 +654,7 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
   if(tipo_conoce == "intervalos"){
     a <- bases$conoce %>% ggplot(aes(tema, media, ymin = inf, ymax = sup, color = tema)) +
       geom_pointrange(show.legend = F) +
-      geom_text(aes(label = scales::percent(media,1)), vjust = 0) +
+      geom_text(aes(label = scales::percent(media,1)), vjust = 0, nudge_x = .3) +
       scale_color_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
