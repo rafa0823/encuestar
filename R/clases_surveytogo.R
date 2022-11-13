@@ -21,6 +21,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           patron = NA,
                           auditar = NA,
                           sin_peso = NA,
+                          rake = NA,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -34,11 +35,13 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 mantener = NA,
                                                 patron = NA,
                                                 auditar = NA,
-                                                sin_peso = F
+                                                sin_peso = F,
+                                                rake = T,
                                                 ) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$sin_peso <- sin_peso
+                            self$rake <- rake
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
                             self$auditar <- auditar
@@ -75,7 +78,8 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$muestra$extraer_diseno(respuestas = self$respuestas$base,
                                                         marco_muestral = self$muestra$muestra$poblacion$marco_muestral,
                                                         tipo_encuesta = self$tipo_encuesta,
-                                                        sin_peso = self$sin_peso)
+                                                        sin_peso = self$sin_peso,
+                                                        rake = self$rake)
 
                             #Preguntas
 
@@ -410,7 +414,7 @@ Muestra <- R6::R6Class("Muestra",
                            self$base <- muestra
 
                          },
-                         extraer_diseno = function(respuestas, marco_muestral, tipo_encuesta, sin_peso){
+                         extraer_diseno = function(respuestas, marco_muestral, tipo_encuesta, sin_peso, rake){
                            if(sin_peso){
                              self$diseno <- survey::svydesign(
                                ids=~1,
@@ -440,31 +444,33 @@ Muestra <- R6::R6Class("Muestra",
                                r
                              }
 
-                             if(tipo_encuesta == "inegi"){
-                               pob <- marco_muestral %>%
-                                 transmute(
-                                   P_18A24_F,
-                                   P_18A24_M,
-                                   P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
-                                   P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
-                                   P_60YMAS_F, P_60YMAS_M) %>%
-                                 summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
-                                 pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
-                                 separate(name, into = c("rango_edad", "sexo"))
+                             if(rake){
+                               if(tipo_encuesta == "inegi"){
+                                 pob <- marco_muestral %>%
+                                   transmute(
+                                     P_18A24_F,
+                                     P_18A24_M,
+                                     P_25A59_F = P_18YMAS_F - P_18A24_F - P_60YMAS_F,
+                                     P_25A59_M = P_18YMAS_M - P_18A24_M - P_60YMAS_M,
+                                     P_60YMAS_F, P_60YMAS_M) %>%
+                                   summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
+                                   pivot_longer(everything()) %>% mutate(name = gsub("P_","",name)) %>%
+                                   separate(name, into = c("rango_edad", "sexo"))
+                               }
+
+                               if(tipo_encuesta == "ine"){
+                                 pob <- marco_muestral %>%
+                                   select(contains("LN22_")) %>%
+                                   summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
+                                   pivot_longer(everything()) %>% mutate(name = gsub("LN22_","",name)) %>%
+                                   separate(name, into = c("rango_edad", "sexo"))
+                               }
+
+
+                               pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
+                               pobS<- pob %>% count(sexo, wt = value, name = "Freq")
+                               self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
                              }
-
-                             if(tipo_encuesta == "ine"){
-                               pob <- marco_muestral %>%
-                                 select(contains("LN22_")) %>%
-                                 summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
-                                 pivot_longer(everything()) %>% mutate(name = gsub("LN22_","",name)) %>%
-                                 separate(name, into = c("rango_edad", "sexo"))
-                             }
-
-
-                             pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
-                             pobS<- pob %>% count(sexo, wt = value, name = "Freq")
-                             self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
                            }
 
                          }
