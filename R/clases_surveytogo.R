@@ -36,7 +36,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 patron = NA,
                                                 auditar = NA,
                                                 sin_peso = F,
-                                                rake = T,
+                                                rake = T
                                                 ) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
