@@ -56,7 +56,7 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             self$shp <- shp$shp %>% purrr::pluck(var_n) %>%
                               inner_join(muestra$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
-                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),cluster_3))
+                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n), !!rlang::sym(nivel)))
                             self$mantener <- mantener
                             # Respuestas
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
