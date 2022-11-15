@@ -19,6 +19,7 @@ diccionario_cuestionario <- function(doc, patron){
                                                 "Morant_respuestas_abiertas",
                                                 "Morant_respuestas_numericas",
                                                 "Morant_respuestas_multiples",
+                                                "Morant_respuestas_multirespuestas",
                                                 "Morant_respuestas_orden")) %>%
     select(-c(level:row_span)) %>%
     mutate(bloque=ifelse(style_name=="Morant_Bloque" & text != "", text, NA)) %>%
@@ -58,6 +59,8 @@ diccionario_cuestionario <- function(doc, patron){
     aspectos <- aspectos %>%
       rowwise() %>%
       mutate(tipo_pregunta = tr[which(!is.na(c_across(cols = all_of(tr))))]) %>%
+      # unnest(tipo_pregunta) %>%
+      mutate(tipo_pregunta = if_else(is.na(tipo_pregunta), "multirespuesta", tipo_pregunta)) %>%
       unite(text, tr) %>%
       mutate(text = stringr::str_replace_all(pattern = "_NA|NA_",replacement = "",string = text)) %>%
       left_join(diccionario %>% select(aspectos = text, pregunta, bloque, llaves)) %>%
