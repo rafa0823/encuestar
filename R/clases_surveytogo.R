@@ -473,6 +473,8 @@ Muestra <- R6::R6Class("Muestra",
                                pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
                                pobS<- pob %>% count(sexo, wt = value, name = "Freq")
                                self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
+                             } else{
+                               self$diseno <- diseno
                              }
                            }
 
