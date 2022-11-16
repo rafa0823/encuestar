@@ -9,6 +9,7 @@
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
+                          quitar_vars = NULL,
                           cuestionario=NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
@@ -27,6 +28,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           #' @param respuestas Name of the person
                           #' @param diccionario Hair colour
                           initialize = function(respuestas = NA,
+                                                quitar_vars = NA,
                                                 muestra = NA,
                                                 auditoria_telefonica = NA,
                                                 cuestionario=NA,
@@ -41,6 +43,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$sin_peso <- sin_peso
+                            self$quitar_vars <- quitar_vars
                             self$rake <- rake
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
@@ -86,7 +89,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$preguntas <- Pregunta$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
-                            return(print(match_dicc_base(self)))
+                            return(print(match_dicc_base(self, self$quitar_vars)))
                           },
                           error_muestral_maximo = function(quitar_patron = NULL){
                             aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiples")
