@@ -20,6 +20,7 @@ diccionario_cuestionario <- function(doc, patron){
                                                 "Morant_respuestas_numericas",
                                                 "Morant_respuestas_multiples",
                                                 "Morant_respuestas_multirespuestas",
+                                                "Morant_respuestas_multitabla",
                                                 "Morant_respuestas_orden")) %>%
     select(-c(level:row_span)) %>%
     mutate(bloque=ifelse(style_name=="Morant_Bloque" & text != "", text, NA)) %>%
