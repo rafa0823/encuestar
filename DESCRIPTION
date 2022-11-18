@@ -29,7 +29,6 @@ Imports:
     yesno,
     officer,
     tidytext,
-    highcharter,
     webshot,
     htmlwidgets,
     muestreaR,
