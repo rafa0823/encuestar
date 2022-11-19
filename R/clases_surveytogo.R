@@ -39,7 +39,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 auditar = NA,
                                                 sin_peso = F,
                                                 rake = T
-                                                ) {
+                          ) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$sin_peso <- sin_peso
@@ -303,7 +303,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$eliminadas <- self$eliminadas %>% bind_rows(
                                 respuestas %>%
                                   anti_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
-                                             by = set_names(nivel,var_n)) %>%
+                                            by = set_names(nivel,var_n)) %>%
                                   mutate(razon = "Cluster no existente")
                               )
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
@@ -817,6 +817,19 @@ Pregunta <- R6::R6Class("Pregunta",
 
                             return(g)
 
+                          },
+                          categorica_gauge = function(llave, filtro, color){
+                            g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                              filter(eval(rlang::parse_expr(filtro))) %>%
+                              mutate(media = media*100) %>%
+                              graficar_gauge_promedio(color = color, maximo = 100, texto = "%",
+                                                      familia = self$tema()$text$family)
+                            return(g)
+                          },
+                          multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
+                            g <-  analizar_frecuencia_multirespuesta(self$encuesta, patron_inicial) %>%
+                              graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) + self$tema()
+                            return(g)
                           },
                           regiones_shp = function(){
                             sf_use_s2(T)
