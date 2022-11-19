@@ -432,3 +432,23 @@ analizar_morena <- function(encuesta, personajes, atributos){
     bind_rows(pref)
   return(atr)
 }
+
+analizar_frecuencia_multirespuesta <- function(encuesta, patron_inicial){
+  aux <- encuesta$muestra$diseno$variables %>%
+    select(starts_with(patron_inicial)) %>% as_tibble %>%
+    rownames_to_column() %>%
+    mutate(weight = weights(encuesta$muestra$diseno)) %>%
+    pivot_longer(-c(rowname, weight)) %>%
+    filter(!is.na(value)) %>%
+    mutate(seleccion = 1) %>%
+    select(-name) %>%
+    pivot_wider(names_from = value, values_from  = seleccion, values_fill = 0) %>%
+    select(-rowname) %>% summarise(across(-weight, ~sum(.x*weight))) %>%
+    pivot_longer(everything(), names_to = "respuesta", values_to = "value") %>%
+    mutate(media = value/sum(weights(encuesta_edomex$muestra$diseno)),
+           respuesta=forcats::fct_reorder(.f = respuesta,
+                                          .x = media,
+                                          .fun = max)
+    )
+  return(aux)
+}
