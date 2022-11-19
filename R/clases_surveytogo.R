@@ -688,6 +688,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                     left_join(
                                       self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
                                     )
+                                } else{
+                                  burbuja <- NA
                                 }
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%

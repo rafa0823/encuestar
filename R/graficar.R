@@ -567,7 +567,10 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                                        color_burbuja,
                                        tema){
 
-  bd <- bd %>% group_by(tema) %>% complete(respuesta = "Ns/Nc", fill = list(media = 0)) %>% ungroup
+  if(!is.null(ns_nc)){
+    bd <- bd %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
+  }
+
   aux <- bd %>% mutate(Regular = if_else(respuesta == regular, "regular1", as.character(respuesta))) %>%
     bind_rows(bd %>% filter(respuesta == regular) %>% mutate(Regular = "regular2", media = -media)) %>%
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
