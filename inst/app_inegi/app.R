@@ -265,13 +265,13 @@ server <- function(input, output, session) {
   })
 
   output$hechas <- renderPlot({
-    encuesta_edomex$preguntas$encuesta$muestra$diseno$variables %>% as_tibble %>%
+    bd %>% as_tibble %>%
       count(fecha = lubridate::floor_date(Date, "day")) %>% ggplot(aes(x = fecha, y = n)) +
       # geom_col() +
       geom_point() + geom_line()+
       scale_x_datetime(date_breaks = "1 day", date_labels = "%d %b") +
       labs(y = "encuestas") +
-      geom_text(aes(label = n), vjust = -1) + encuesta_edomex$preguntas$tema()
+      geom_text(aes(label = n), vjust = -1) + theme_minimal()
   })
 
   output$por_hacer <- renderPlot({
