@@ -9,6 +9,7 @@ graficar_candidato_partido(
   cliente,
   tipo_conoce,
   colores_candidato,
+  solo_respondidos,
   colores_partido,
   tema
 )

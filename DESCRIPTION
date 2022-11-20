@@ -2,65 +2,53 @@ Package: encuestar
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
-           role = c("aut", "cre"),
-           email = "first.last@example.com",
+    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
+Imports: 
+    basicspace,
+    dplyr,
+    factoextra,
+    FactoMineR,
+    forcats,
+    ggchicklet,
+    ggfittext,
+    ggplot2,
+    ggpubr,
+    ggsankey,
+    ggthemes,
+    glue,
+    grid,
+    highcharter,
+    janitor,
+    lemon,
+    lubridate,
+    officer,
+    patchwork,
+    purrr,
+    quanteda,
+    quanteda.textstats,
+    R6,
+    readr,
+    rlang,
+    rsconnect,
+    scales,
+    sf,
+    shiny,
+    stats,
+    stopwords,
+    stringr,
+    survey,
+    tibble,
+    tidyr,
+    tidytext,
+    utils,
+    yesno
+Remotes:
+    hrbrmstr/ggchicklet
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
-Imports: 
-    dplyr,
-    R6,
-    ggplot2,
-    tidyr,
-    sf,
-    purrr,
-    stringr,
-    readr,
-    tibble,
-    glue,
-    forcats,
-    yesno,
-    officer,
-    tidytext,
-    webshot,
-    htmlwidgets,
-    muestreaR,
-    ggchicklet,
-    rlang,
-    shiny,
-    shinydashboard,
-    shinyWidgets,
-    colorRamps,
-    gt,
-    rsconnect,
-    shinycssloaders,
-    DT,
-    survey,
-    leaflet,
-    patchwork,
-    lemon,
-    stopwords,
-    quanteda,
-    quanteda.textstats,
-    FactoMineR,
-    factoextra,
-    ggpubr,
-    ggsankey,
-    janitor,
-    basicspace,
-    shinyjs,
-    lwgeom,
-    ggfittext,
-    ggthemes
-Suggests: 
-    scales
-Remotes:
-    morant-consultores/muestreaR,
-    hrbrmstr/ggchicklet
