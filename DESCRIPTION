@@ -21,7 +21,6 @@ Imports:
     ggthemes,
     glue,
     grid,
-    highcharter,
     janitor,
     lemon,
     lubridate,
