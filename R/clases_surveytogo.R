@@ -4,7 +4,7 @@
 #' @field muestra Base de datos de muestra.
 #' @field dicionario Base de datos de diccionario
 #' @export
-#' @import dplyr ggplot2 tidyr sf purrr stringr highcharter
+#' @import dplyr ggplot2 tidyr sf purrr stringr
 
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
