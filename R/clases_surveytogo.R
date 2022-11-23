@@ -661,7 +661,7 @@ Pregunta <- R6::R6Class("Pregunta",
                             if(stringr::str_detect(pattern = "candidato", tipo)){
                               if(stringr::str_detect(pattern = "opinion", tipo)){
 
-                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo", "colores", "llave_burbuja", "filtro_burbuja", "color_burbuja")
+                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo", "colores", "llave_burbuja", "filtro_burbuja", "color_burbuja", "salto")
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
@@ -702,6 +702,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              grupo_negativo = parametros$grupo_negativo,
                                                              colores = parametros$colores,
                                                              burbuja = burbuja,
+                                                             salto = parametros$salto,
                                                              color_burbuja = parametros$color_burbuja,
                                                              tema = self$tema)
 

@@ -565,6 +565,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                                        colores,
                                        burbuja,
                                        color_burbuja,
+                                       salto = 200,
                                        tema){
 
   if(!is.null(ns_nc)){
@@ -608,7 +609,8 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
-    theme(legend.position = "bottom") %+replace% tema()
+    theme(legend.position = "bottom") %+replace% tema() +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
     b<- aux %>%  filter(respuesta == ns_nc) %>%
