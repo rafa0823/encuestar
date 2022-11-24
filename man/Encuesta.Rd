@@ -41,6 +41,7 @@ Create a person
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$new(
   respuestas = NA,
+  quitar_vars = NA,
   muestra = NA,
   auditoria_telefonica = NA,
   cuestionario = NA,
@@ -48,7 +49,9 @@ Create a person
   tipo_encuesta = NA,
   mantener = NA,
   patron = NA,
-  auditar = NA
+  auditar = NA,
+  sin_peso = F,
+  rake = T
 )}\if{html}{\out{</div>}}
 }
 

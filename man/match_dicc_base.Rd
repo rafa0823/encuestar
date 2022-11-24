@@ -4,7 +4,7 @@
 \alias{match_dicc_base}
 \title{Title}
 \usage{
-match_dicc_base(self)
+match_dicc_base(self, quitar)
 }
 \arguments{
 \item{encuesta_qro}{}

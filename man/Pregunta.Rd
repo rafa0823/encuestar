@@ -13,6 +13,8 @@ Esta es la clase de pregunta
 \itemize{
 \item \href{#method-new}{\code{Pregunta$new()}}
 \item \href{#method-graficar}{\code{Pregunta$graficar()}}
+\item \href{#method-categorica_gauge}{\code{Pregunta$categorica_gauge()}}
+\item \href{#method-multirespuesta}{\code{Pregunta$multirespuesta()}}
 \item \href{#method-regiones_shp}{\code{Pregunta$regiones_shp()}}
 \item \href{#method-correspondencia}{\code{Pregunta$correspondencia()}}
 \item \href{#method-mapa_ganador}{\code{Pregunta$mapa_ganador()}}
@@ -23,6 +25,7 @@ Esta es la clase de pregunta
 \item \href{#method-sankey}{\code{Pregunta$sankey()}}
 \item \href{#method-prcomp}{\code{Pregunta$prcomp()}}
 \item \href{#method-blackbox_1d}{\code{Pregunta$blackbox_1d()}}
+\item \href{#method-morena}{\code{Pregunta$morena()}}
 \item \href{#method-faltantes}{\code{Pregunta$faltantes()}}
 \item \href{#method-clone}{\code{Pregunta$clone()}}
 }
@@ -52,6 +55,24 @@ Esta es la clase de pregunta
   llave_xq,
   parametros = list(tit = "")
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-categorica_gauge"></a>}}
+\if{latex}{\out{\hypertarget{method-categorica_gauge}{}}}
+\subsection{Method \code{categorica_gauge()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$categorica_gauge(llave, filtro, color)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-multirespuesta"></a>}}
+\if{latex}{\out{\hypertarget{method-multirespuesta}{}}}
+\subsection{Method \code{multirespuesta()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$multirespuesta(patron_inicial, tit = "", salto = 100, nota = "")}\if{html}{\out{</div>}}
 }
 
 }
@@ -155,6 +176,15 @@ Esta es la clase de pregunta
 \subsection{Method \code{blackbox_1d()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Pregunta$blackbox_1d(vars, stimuli)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-morena"></a>}}
+\if{latex}{\out{\hypertarget{method-morena}{}}}
+\subsection{Method \code{morena()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$morena(personajes, atributos, labels, p)}\if{html}{\out{</div>}}
 }
 
 }

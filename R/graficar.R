@@ -17,7 +17,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
                                        salto =20,
-                                       nota = "", color = "#B0C429",
+                                       nota = "",
                                        tema){
 
   g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto),
@@ -227,13 +227,13 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia){
+graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia, texto = "\n Promedio"){
   bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
-              color = 'white') +
+              color = 'gray50') +
     geom_text(aes(x = 0, y = media,
-                  label = paste(media %>%  round(1), "\n Promedio")),
+                  label = paste(media %>%  round(1), texto)),
               size = 10, family = familia, nudge_y = 0.25) +
     scale_fill_manual(values = c('#1DCDBC', '#38C6F4')) +
     scale_x_continuous(limits = c(0, NA)) +
@@ -565,9 +565,13 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                                        colores,
                                        burbuja,
                                        color_burbuja,
+                                       salto = 200,
                                        tema){
 
-  bd <- bd %>% group_by(tema) %>% complete(respuesta = "Ns/Nc", fill = list(media = 0)) %>% ungroup
+  if(!is.null(ns_nc)){
+    bd <- bd %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
+  }
+
   aux <- bd %>% mutate(Regular = if_else(respuesta == regular, "regular1", as.character(respuesta))) %>%
     bind_rows(bd %>% filter(respuesta == regular) %>% mutate(Regular = "regular2", media = -media)) %>%
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
@@ -605,7 +609,8 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
-    theme(legend.position = "bottom") %+replace% tema()
+    theme(legend.position = "bottom") %+replace% tema() +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
     b<- aux %>%  filter(respuesta == ns_nc) %>%

@@ -4,11 +4,12 @@
 #' @field muestra Base de datos de muestra.
 #' @field dicionario Base de datos de diccionario
 #' @export
-#' @import dplyr ggplot2 tidyr sf purrr stringr highcharter
+#' @import dplyr ggplot2 tidyr sf purrr stringr
 
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
+                          quitar_vars = NULL,
                           cuestionario=NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
@@ -27,6 +28,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           #' @param respuestas Name of the person
                           #' @param diccionario Hair colour
                           initialize = function(respuestas = NA,
+                                                quitar_vars = NA,
                                                 muestra = NA,
                                                 auditoria_telefonica = NA,
                                                 cuestionario=NA,
@@ -37,10 +39,11 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 auditar = NA,
                                                 sin_peso = F,
                                                 rake = T
-                                                ) {
+                          ) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
                             self$sin_peso <- sin_peso
+                            self$quitar_vars <- quitar_vars
                             self$rake <- rake
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
@@ -86,7 +89,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$preguntas <- Pregunta$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
-                            return(print(match_dicc_base(self)))
+                            return(print(match_dicc_base(self, self$quitar_vars)))
                           },
                           error_muestral_maximo = function(quitar_patron = NULL){
                             aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiples")
@@ -300,7 +303,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$eliminadas <- self$eliminadas %>% bind_rows(
                                 respuestas %>%
                                   anti_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
-                                             by = set_names(nivel,var_n)) %>%
+                                            by = set_names(nivel,var_n)) %>%
                                   mutate(razon = "Cluster no existente")
                               )
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
@@ -470,6 +473,8 @@ Muestra <- R6::R6Class("Muestra",
                                pobG <- pob %>% count(rango_edad, wt = value, name = "Freq")
                                pobS<- pob %>% count(sexo, wt = value, name = "Freq")
                                self$diseno <- survey::rake(diseno, list(~rango_edad, ~sexo), list(pobG, pobS))
+                             } else{
+                               self$diseno <- diseno
                              }
                            }
 
@@ -683,6 +688,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                     left_join(
                                       self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
                                     )
+                                } else{
+                                  burbuja <- NA
                                 }
 
                                 g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
@@ -695,6 +702,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              grupo_negativo = parametros$grupo_negativo,
                                                              colores = parametros$colores,
                                                              burbuja = burbuja,
+                                                             salto = parametros$salto,
                                                              color_burbuja = parametros$color_burbuja,
                                                              tema = self$tema)
 
@@ -810,6 +818,19 @@ Pregunta <- R6::R6Class("Pregunta",
 
                             return(g)
 
+                          },
+                          categorica_gauge = function(llave, filtro, color){
+                            g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                              filter(eval(rlang::parse_expr(filtro))) %>%
+                              mutate(media = media*100) %>%
+                              graficar_gauge_promedio(color = color, maximo = 100, texto = "%",
+                                                      familia = self$tema()$text$family)
+                            return(g)
+                          },
+                          multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
+                            g <-  analizar_frecuencia_multirespuesta(self$encuesta, patron_inicial) %>%
+                              graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) + self$tema()
+                            return(g)
                           },
                           regiones_shp = function(){
                             sf_use_s2(T)

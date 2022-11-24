@@ -149,6 +149,12 @@ ui <-dashboardPage(
                          icon = icon("times")
                 )
               ),
+              fluidRow(
+                column(12,
+                       plotOutput("hechas", height = 400)
+                )
+
+              ),
               h2("Entrevitas por hacer"),
               fluidRow(
                 column(6,
@@ -256,6 +262,16 @@ server <- function(input, output, session) {
       pivot_wider(names_from = sexo,values_from = faltan) %>%
       replace_na(list(Mujer = 0, Hombre = 0)) %>% gt() %>%
       tab_header(title = "Faltantes",subtitle = glue("Cluster: {input$cluster}"))
+  })
+
+  output$hechas <- renderPlot({
+    bd %>% as_tibble %>%
+      count(fecha = lubridate::floor_date(Date, "day")) %>% ggplot(aes(x = fecha, y = n)) +
+      # geom_col() +
+      geom_point() + geom_line()+
+      scale_x_datetime(date_breaks = "1 day", date_labels = "%d %b") +
+      labs(y = "encuestas") +
+      geom_text(aes(label = n), vjust = -1) + theme_minimal()
   })
 
   output$por_hacer <- renderPlot({
