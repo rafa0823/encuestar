@@ -231,7 +231,7 @@ graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia,
   bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
-              color = 'white') +
+              color = 'gray50') +
     geom_text(aes(x = 0, y = media,
                   label = paste(media %>%  round(1), texto)),
               size = 10, family = familia, nudge_y = 0.25) +
