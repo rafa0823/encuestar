@@ -229,7 +229,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
 graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia, texto = "\n Promedio"){
   bd %>% ggplot() + geom_rect(aes(xmin = 2, xmax = 3, ymin = 0,
-                                  ymax = media), fill = color, color = "white") +
+                                  ymax = media), fill = color,  color = "white") +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = media,
                   ymax = maximo), fill = "grey90", color = "white") +
     geom_text(aes(x = 0,
