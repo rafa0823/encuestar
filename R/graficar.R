@@ -228,20 +228,18 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #' @examples
 
 graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia, texto = "\n Promedio"){
-  bd %>%
-    ggplot() +
-    geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
-              color = 'white') +
-    geom_text(aes(x = 0, y = media,
-                  label = paste(media %>%  round(1), texto)),
-              size = 10, family = familia, nudge_y = 0.25) +
-    scale_fill_manual(values = c('#1DCDBC', '#38C6F4')) +
+  bd %>% ggplot() + geom_rect(aes(xmin = 2, xmax = 3, ymin = 0,
+                                  ymax = media), fill = color, color = "white") +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = media,
+                  ymax = maximo), fill = "grey90", color = "white") +
+    geom_text(aes(x = 0,
+                  y = media, label = paste(media %>% round(1), texto)),
+              size = 10, family = familia, nudge_y = 0.25) + scale_fill_manual(values = c("#1DCDBC",
+                                                                                          "#38C6F4")) +
     scale_x_continuous(limits = c(0, NA)) +
-    scale_y_continuous(limits = c(0, maximo)) +
-    xlab('') + ylab('') +
-    coord_polar(theta = 'y') +
-    theme_void() +
-    theme(legend.position = 'bottom', axis.text = element_blank(),
+    scale_y_continuous(limits = c(0, maximo)) + xlab("") +
+    ylab("") + coord_polar(theta = "y") + theme_void() +
+    theme(legend.position = "bottom", axis.text = element_blank(),
           text = element_text(size = 15, family = familia))
 }
 
