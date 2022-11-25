@@ -235,6 +235,14 @@ pclave_combinaciones_saldo <- function(bd_texto, tipo, n_palabras){
   return(res)
 }
 
+analizar_frecuencia_region <- function(variable, diseno, diccionario){
+  survey::svytable(survey::make.formula(c(variable,"region")), design = diseno) %>%
+    as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>% mutate(llaves = .x) %>%
+    left_join(
+      diccionario %>% select(llaves, pregunta)
+    )
+}
+
 #' Title
 #'
 #' @param llave

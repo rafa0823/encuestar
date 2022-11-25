@@ -855,6 +855,11 @@ Pregunta <- R6::R6Class("Pregunta",
                                                      diseno = self$encuesta$muestra$diseno) %>%
                               graficar_mapa_region({{var}})
                           },
+                          frecuencia_region = function(variable){
+                            analizar_frecuencia_region(variable,
+                                                       diseno = self$encuesta$muestra$diseno,
+                                                       diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario)
+                          },
                           conocimiento_region = function(llave_conocimiento, candidatos, respuesta){
                             analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
                                                          self$encuesta$muestra$diseno,
