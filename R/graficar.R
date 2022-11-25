@@ -586,7 +586,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     orden <- burbuja$tema %>% levels
     a.1 <-  burbuja %>%
       ggplot(aes(y = tema,
-                 x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja) +
+                 x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
       tema() +
       theme(legend.position = "none", panel.grid.major.x = element_blank(),
@@ -606,7 +606,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
-    lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
+    lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema() +
     scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
@@ -618,9 +618,10 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
                                hjust = -.1)+
       labs(y = NULL, x = NULL)+
-      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      scale_y_continuous(n.breaks = 2) +
       tema() +
-      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+            axis.text.x = element_blank(), axis.line.x = element_blank())
 
     if(!all(is.na(burbuja))){
       final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
