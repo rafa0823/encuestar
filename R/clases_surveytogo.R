@@ -384,6 +384,8 @@ Muestra <- R6::R6Class("Muestra",
                        public=list(
                          muestra = NULL,
                          base=NULL,
+                         diseno_completo = NULL,
+                         region = NULL,
                          diseno=NULL,
                          initialize =function(muestra, respuestas, nivel, var_n){
                            self$muestra <- muestra
@@ -478,6 +480,19 @@ Muestra <- R6::R6Class("Muestra",
                              }
                            }
 
+                         },
+                         diseno_region = function(seleccion){
+                           self$region <- seleccion
+
+                           if(is.null(self$diseno_completo)){
+                             self$diseno_completo <- self$diseno
+                           }
+
+                           self$diseno <- subset(self$diseno_completo, region == self$region)
+                         },
+                         regresar_diseno_completo = function(){
+                           self$region <- NULL
+                           self$diseno_completo -> self$diseno
                          }
                        ))
 
@@ -873,6 +888,15 @@ Pregunta <- R6::R6Class("Pregunta",
                                                   diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
                               graficar_saldo_region()
 
+                          },
+                          resaltar_region = function(color){
+                            if(is.null(self$encuesta$muestra$region)){
+                              stop("Correr clase$muestra$diseno_region para indicar la region seleccionada")
+                            }
+                            self$encuesta$preguntas$regiones %>%
+                              mutate(color = if_else(region == self$encuesta$muestra$region, color, "gray70")) %>%
+                              ggplot(aes(fill = color)) + geom_sf(color = "black") +scale_fill_identity() +
+                              theme_void() + labs(tit = self$encuesta$muestra$region)
                           },
                           pclave_region = function(var){
                             analizar_pclave_region(bd = self$encuesta$respuestas$base, var)
