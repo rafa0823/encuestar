@@ -314,6 +314,7 @@ server <- function(input, output, session) {
                  fill = factor(faltan))) +
       geom_tile() +
       geom_text(aes(label = faltan ), alpha = .5) +
+      scale_x_discrete(labels = function(x) stringr::str_wrap(x, 6)) +
       scale_fill_manual(values = c(dos, "white", uno)) +
       labs(fill = "Entrevistas \n por hacer", y = NULL, x = NULL) + theme_minimal()
   })
