@@ -23,6 +23,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           auditar = NA,
                           sin_peso = NA,
                           rake = NA,
+                          mantener_falta_coordenadas = NULL,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -38,7 +39,8 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 patron = NA,
                                                 auditar = NA,
                                                 sin_peso = F,
-                                                rake = T
+                                                rake = T,
+                                                mantener_falta_coordenadas = F
                           ) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
@@ -48,6 +50,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
                             self$auditar <- auditar
+                            self$mantener_falta_coordenadas = mantener_falta_coordenadas
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
@@ -67,6 +70,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Respuestas
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
+                                                              mantener_falta_coordenadas = self$mantener_falta_coordenadas,
                                                               muestra_completa = muestra,
                                                               patron = patron,
                                                               nivel = nivel, var_n = var_n
@@ -134,7 +138,8 @@ Encuesta <- R6::R6Class("Encuesta",
                               labs(y = NULL)+
                               scale_x_continuous(labels = scales::percent_format(1))
 
-                            a + b
+                            print(a + b)
+                            return(aux)
                           },
                           exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
                             if(!file.exists(carpeta)) dir.create(carpeta)
@@ -157,12 +162,15 @@ Respuestas <- R6::R6Class("Respuestas",
                             base = NULL,
                             n=NULL,
                             m=NULL,
+                            sin_coordenadas = NULL,
+                            mantener_falta_coordenadas = NULL,
                             #' @description
                             #' Crear respuesta
                             #' @param base Base de datos de respuestas.
                             initialize=function(base,
                                                 encuesta,
                                                 muestra_completa,
+                                                mantener_falta_coordenadas,
                                                 patron,
                                                 nivel, var_n) {
                               shp <- encuesta$shp
@@ -188,8 +196,15 @@ Respuestas <- R6::R6Class("Respuestas",
                               # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
 
-                              # Limpiar las respuestas que no tienen coordenadas
-                              self$eliminar_falta_coordenadas()
+                              # Mantener respuestas que no tienen coordenadas
+
+                              if(mantener_falta_coordenadas){
+                                self$coordenadas_faltantes()
+                              } else{
+                                # Limpiar las respuestas que no tienen coordenadas
+                                self$eliminar_falta_coordenadas()
+                              }
+
 
                               # Eliminar entrevistas cuyo cluster no pertenece a la muestra
                               self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
@@ -203,6 +218,12 @@ Respuestas <- R6::R6Class("Respuestas",
                                                       var_n = var_n, nivel = nivel)
                               # Limpiar las que no tienen variables de diseno
                               # self$eliminar_faltantes_diseno() # no entiendo por qué
+
+                              if(mantener_falta_coordenadas){
+                                self$base <- self$base %>% bind_rows(
+                                  self$sin_coordenadas
+                                )
+                              }
 
                               # Cambiar variables a tipo numerica
                               numericas <- diccionario %>% filter(tipo_pregunta == "numericas") %>%
@@ -269,6 +290,10 @@ Respuestas <- R6::R6Class("Respuestas",
                               }
                               else cat("Identificador SbjNum no presente en alguna de las bases para eliminar por auditoria telefonica")
                               return(self$base)
+                            },
+                            coordenadas_faltantes = function(){
+                              self$sin_coordenadas <- self$base %>% filter(is.na(Longitude) | is.na(Latitude))
+                              self$base <- self$base %>% filter(!is.na(Longitude) | !is.na(Latitude))
                             },
                             eliminar_falta_coordenadas = function(){
                               if("Longitude" %in% names(self$base) & "Latitude" %in% names(self$base)){
@@ -981,7 +1006,6 @@ Auditoria <- R6::R6Class("Auditoria",
                          public = list(
                            dir = NULL,
                            initialize = function(encuesta, tipo_encuesta, dir = "auditoria"){
-
                              if(!file.exists(dir)){
                                dir.create(dir)
                                dir.create(glue::glue("{dir}/data"))
@@ -998,6 +1022,7 @@ Auditoria <- R6::R6Class("Auditoria",
                              readr::write_rds(mapa_base, glue::glue("{dir}/data/mapa_base.rda"))
 
                              enc_shp <- encuesta$respuestas$base %>%
+                               filter(!is.na(Longitude) | !is.na(Latitude)) %>%
                                sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
                              # readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
