@@ -158,10 +158,19 @@ ui <-dashboardPage(
               h2("Entrevitas por hacer"),
               fluidRow(
                 column(6,
-                       withSpinner(plotOutput("por_hacer",height = 600)),
+                       withSpinner(plotOutput("por_hacer",height = 1200)),
                 ),
                 column(6,
-                       withSpinner(plotOutput("por_hacer_cuotas",height = 600))
+                       withSpinner(plotOutput("por_hacer_cuotas",height = 1200))
+                )
+              ),
+              h2("Distribución sexo vs rango de edad"),
+              fluidRow(
+                column(6,
+                       withSpinner(plotOutput("sexo",height = 1200)),
+                ),
+                column(6,
+                       withSpinner(plotOutput("rango_edad",height = 1200))
                 )
               ),
               h2("Eliminadas"),
@@ -307,6 +316,14 @@ server <- function(input, output, session) {
       geom_text(aes(label = faltan ), alpha = .5) +
       scale_fill_manual(values = c(dos, "white", uno)) +
       labs(fill = "Entrevistas \n por hacer", y = NULL, x = NULL) + theme_minimal()
+  })
+
+  output$sexo <- renderPlot({
+    preguntas$encuesta$muestra$revisar_sexo()
+  })
+
+  output$rango_edad <- renderPlot({
+    preguntas$encuesta$muestra$revisar_rango_edad()
   })
 
   output$razon_el <- renderPlot({
