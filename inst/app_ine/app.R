@@ -167,10 +167,10 @@ ui <-dashboardPage(
               h2("Distribución sexo vs rango de edad"),
               fluidRow(
                 column(6,
-                       withSpinner(plotOutput("sexo",height = 1200)),
+                       withSpinner(plotOutput("sexo")),
                 ),
                 column(6,
-                       withSpinner(plotOutput("rango_edad",height = 1200))
+                       withSpinner(plotOutput("rango_edad"))
                 )
               ),
               h2("Eliminadas"),

@@ -501,14 +501,14 @@ Muestra <- R6::R6Class("Muestra",
                          revisar_rango_edad = function(){
                            self$diseno$variables %>% count(rango_edad) %>%
                              mutate(pct = n/sum(n), tipo = "encuesta") %>% bind_rows(
-                               self$muestra$muestra$poblacion$marco_muestral %>%
+                               self$muestra$poblacion$marco_muestral %>%
                                  select(contains("LN22_")) %>%
                                  summarise(across(everything(), ~sum(.x,na.rm = T))) %>%
                                  pivot_longer(everything()) %>% mutate(name = gsub("LN22_","",name)) %>%
                                  separate(name, into = c("rango_edad", "sexo")) %>%
                                  count(rango_edad, wt = value )%>%
                                  mutate(pct = n/sum(n), tipo = "real")
-                             )%>% ggplot(aes(x = tipo, y = pct, color = rango_edad)) + geom_point() +
+                             ) %>% ggplot(aes(x = tipo, y = pct, color = rango_edad)) + geom_point() +
                              ggrepel::geom_text_repel(aes(label = paste0(scales::percent(pct,.01))),force_pull = 5) +
                              geom_line(aes(group = rango_edad))
                          },
