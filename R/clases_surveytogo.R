@@ -510,7 +510,10 @@ Muestra <- R6::R6Class("Muestra",
                                  mutate(pct = n/sum(n), tipo = "real")
                              ) %>% ggplot(aes(x = tipo, y = pct, color = rango_edad)) + geom_point() +
                              ggrepel::geom_text_repel(aes(label = paste0(scales::percent(pct,.01))),force_pull = 5) +
-                             geom_line(aes(group = rango_edad))
+                             geom_line(aes(group = rango_edad)) +
+                             scale_y_continuous(labels = scales::percent) +
+                             labs(y = NULL,  x = NULL) +
+                             theme_minimal()
                          },
                          diseno_region = function(seleccion){
                            self$region <- seleccion
