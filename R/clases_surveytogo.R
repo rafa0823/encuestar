@@ -547,7 +547,7 @@ Muestra <- R6::R6Class("Muestra",
                              self$diseno_completo <- self$diseno
                            }
 
-                           self$diseno <- subset(self$diseno_completo, region == self$region)
+                           self$diseno <- subset(self$diseno_completo, region %in% self$region)
                          },
                          regresar_diseno_completo = function(){
                            self$region <- NULL
@@ -953,7 +953,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               stop("Correr clase$muestra$diseno_region para indicar la region seleccionada")
                             }
                             self$encuesta$preguntas$regiones %>%
-                              mutate(color = if_else(region == self$encuesta$muestra$region, color, "gray70")) %>%
+                              mutate(color = if_else(region %in% self$encuesta$muestra$region, color, "gray70")) %>%
                               ggplot(aes(fill = color)) + geom_sf(color = "black") +scale_fill_identity() +
                               theme_void() + labs(tit = self$encuesta$muestra$region)
                           },
