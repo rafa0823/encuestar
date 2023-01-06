@@ -547,7 +547,7 @@ Muestra <- R6::R6Class("Muestra",
                              self$diseno_completo <- self$diseno
                            }
 
-                           self$diseno <- subset(self$diseno_completo, region == self$region)
+                           self$diseno <- subset(self$diseno_completo, region %in% self$region)
                          },
                          regresar_diseno_completo = function(){
                            self$region <- NULL
