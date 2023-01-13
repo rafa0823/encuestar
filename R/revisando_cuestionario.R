@@ -50,13 +50,15 @@ diccionario_cuestionario <- function(doc, patron){
     select(tipo_pregunta, text, pregunta, bloque) %>%
     pivot_wider(names_from = tipo_pregunta, values_from = text)
 
-  multitabla <- diccionario %>% filter(tipo_pregunta == "multitabla")%>%
-    select(tipo_pregunta, text, pregunta, bloque, llaves) #%>%
-  # pivot_wider(names_from = tipo_pregunta, values_from = text)
+  if(diccionario %>% distinct(tipo_pregunta) %in% "multitabla"){
+    multitabla <- diccionario %>% filter(tipo_pregunta == "multitabla")%>%
+      select(tipo_pregunta, text, pregunta, bloque, llaves) #%>%
+    # pivot_wider(names_from = tipo_pregunta, values_from = text)
 
-  multitabla2 <- diccionario %>% filter(tipo_pregunta == "multitabla")%>%
-    select(tipo_pregunta, text, pregunta, bloque) %>%
-    pivot_wider(names_from = tipo_pregunta, values_from = text) %>% rename(respuestas_multitabla = multitabla)
+    multitabla2 <- diccionario %>% filter(tipo_pregunta == "multitabla")%>%
+      select(tipo_pregunta, text, pregunta, bloque) %>%
+      pivot_wider(names_from = tipo_pregunta, values_from = text) %>% rename(respuestas_multitabla = multitabla)
+  }
 
   if(nrow(aspectos)>0){
     for(i in tipo_r){
@@ -74,26 +76,26 @@ diccionario_cuestionario <- function(doc, patron){
       left_join(diccionario %>% select(aspectos = text, pregunta, bloque, llaves)) %>%
       rename(tema = aspectos) %>% distinct(.keep_all = T)
 
-    if(nrow(multitabla)>0){
-      multitabla_aux <- aspectos %>% filter(tipo_pregunta == "multitabla") %>%
-        group_by(pregunta, bloque, tema, tipo_pregunta) %>%
-        summarise(respuestas_multitabla = list(text)) %>%
-        ungroup
+    if(diccionario %>% distinct(tipo_pregunta) %in% "multitabla"){
+      if(nrow(multitabla)>0){
+        multitabla_aux <- aspectos %>% filter(tipo_pregunta == "multitabla") %>%
+          group_by(pregunta, bloque, tema, tipo_pregunta) %>%
+          summarise(respuestas_multitabla = list(text)) %>%
+          ungroup
 
-      aspectos <- aspectos %>% left_join(multitabla %>% rename(llaves_multitabla = llaves))
-      orden_multitabla <- diccionario %>% distinct(llaves) %>% left_join(aspectos %>% select(contains("llaves"))) %>%
-        mutate(llaves = if_else(!is.na(llaves_multitabla),
-                                paste(llaves, llaves_multitabla, sep = "_"), as.character(llaves)),
-               llaves = factor(llaves, unique(llaves))) %>% pull(llaves) %>% levels()
-      aspectos <- aspectos %>%
-        mutate(llaves = if_else(!is.na(llaves_multitabla),
-                                paste(llaves, llaves_multitabla, sep = "_"), as.character(llaves)))# %>%
+        aspectos <- aspectos %>% left_join(multitabla %>% rename(llaves_multitabla = llaves))
+        orden_multitabla <- diccionario %>% distinct(llaves) %>% left_join(aspectos %>% select(contains("llaves"))) %>%
+          mutate(llaves = if_else(!is.na(llaves_multitabla),
+                                  paste(llaves, llaves_multitabla, sep = "_"), as.character(llaves)),
+                 llaves = factor(llaves, unique(llaves))) %>% pull(llaves) %>% levels()
+        aspectos <- aspectos %>%
+          mutate(llaves = if_else(!is.na(llaves_multitabla),
+                                  paste(llaves, llaves_multitabla, sep = "_"), as.character(llaves)))# %>%
         # select(-llaves_multitabla)
-
+      }
     }
 
   }
-
 
 
   diccionario <- diccionario %>%
@@ -111,12 +113,18 @@ diccionario_cuestionario <- function(doc, patron){
       .
     }} %>%
     summarise(respuestas=list(text)) %>%
-    {if(nrow(multitabla_aux)>0){
-      select(mutate(left_join(.,  multitabla2),
-                    nulo = map_lgl(respuestas_multitabla,is.null),
-                    respuestas = if_else(!nulo, respuestas_multitabla, respuestas),
-                    llaves = factor(llaves, orden_multitabla)
-      ), -respuestas_multitabla, -nulo)
+    {if(diccionario %>% distinct(tipo_pregunta) %in% "multitabla") {
+
+      {if(nrow(multitabla_aux)>0){
+        select(mutate(left_join(.,  multitabla2),
+                      nulo = map_lgl(respuestas_multitabla,is.null),
+                      respuestas = if_else(!nulo, respuestas_multitabla, respuestas),
+                      llaves = factor(llaves, orden_multitabla)
+        ), -respuestas_multitabla, -nulo)
+      } else{
+        .
+      }}
+
     } else{
       .
     }} %>%
