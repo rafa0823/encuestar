@@ -237,7 +237,7 @@ pclave_combinaciones_saldo <- function(bd_texto, tipo, n_palabras){
 
 analizar_frecuencia_region <- function(variable, diseno, diccionario){
   survey::svytable(survey::make.formula(c(variable,"region")), design = diseno) %>%
-    as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>% mutate(llaves = .x) %>%
+    as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>% mutate(llaves = variable) %>%
     left_join(
       diccionario %>% select(llaves, pregunta)
     )
@@ -398,14 +398,14 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
 analizar_morena <- function(encuesta, personajes, atributos){
 
   #opinión positiva
-  o_p <- analizar_frecuencias_aspectos(encuesta_chiapas$preguntas$encuesta, op, personajes) %>%
+  o_p <- analizar_frecuencias_aspectos(encuesta$encuesta, op, personajes) %>%
     filter(respuesta == "Buena") %>% mutate(ganador = media == max(media),
                                             puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
   #atributos
   atr_p <- atributos %>% pmap_df(function(atributo, puntos){
-    analizar_frecuencias_aspectos(encuesta_chiapas$preguntas$encuesta, !!rlang::sym(atributo), personajes)  %>%
+    analizar_frecuencias_aspectos(encuesta$encuesta, !!rlang::sym(atributo), personajes)  %>%
       filter(respuesta %in% c("Mucho", "Algo")) %>% mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
       group_by(aspecto) %>% summarise(media = sum(media)) %>% mutate(ganador = media == max(media),
                                                                      puntos = if_else(ganador,puntos,0)) %>%
@@ -453,7 +453,7 @@ analizar_frecuencia_multirespuesta <- function(encuesta, patron_inicial){
     pivot_wider(names_from = value, values_from  = seleccion, values_fill = 0) %>%
     select(-rowname) %>% summarise(across(-weight, ~sum(.x*weight))) %>%
     pivot_longer(everything(), names_to = "respuesta", values_to = "value") %>%
-    mutate(media = value/sum(weights(encuesta_edomex$muestra$diseno)),
+    mutate(media = value/sum(weights(encuesta$muestra$diseno)),
            respuesta=forcats::fct_reorder(.f = respuesta,
                                           .x = media,
                                           .fun = max)
