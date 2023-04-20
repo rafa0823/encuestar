@@ -18,7 +18,7 @@ library(gt)
 library(shinyjs)
 library(encuestar)
 
-options(survey.lonely.psu="remove")
+options(survey.lonely.psu ="remove")
 preguntas <- read_rds("data/clase_pregunta.rda")
 diseno <- preguntas$encuesta$muestra$muestra
 shp <- preguntas$encuesta$shp_completo
@@ -74,11 +74,65 @@ entrevistas <- function(diseno, enc, u_nivel, u_nivel_tipo){
   return(list(hecho = hecho, por_hacer = por_hacer))
 }
 
+graficar_entrevistas <- function(bd_efectivas, bd_eliminadas, bd_corregidas){
+
+  bd_hechas <- bd_efectivas %>% as_tibble %>%
+    count(fecha = lubridate::floor_date(Date, "day")) %>%
+    rename("Hechas" = n)
+
+  bd_eliminadas <- bd_eliminadas %>% as_tibble %>%
+    count(fecha = lubridate::floor_date(Date, "day")) %>%
+    rename("Eliminadas" = n)
+
+  bd_corregidas <- bd_corregidas %>% as_tibble %>%
+    count(fecha = lubridate::floor_date(Date, "day")) %>%
+    rename("Corregidas" = n)
+
+  bd_plot <- bd_hechas %>%
+    left_join(bd_eliminadas, by = "fecha") %>%
+    left_join(bd_corregidas, by = "fecha") %>%
+    tidyr::pivot_longer(cols = !fecha, names_to = "tipo", values_to = "n") %>%
+    mutate(color = case_when(tipo == "Hechas" ~ "blue",
+                             tipo == "Eliminadas" ~ "red",
+                             tipo == "Corregidas" ~ "orange"))
+
+  g <- bd_plot %>%
+    ggplot(aes(x = fecha, y = n, color = color)) +
+    geom_point() +
+    geom_line() +
+    ggrepel::geom_text_repel(aes(label = n), show.legend = F, size = 8) +
+    scale_color_identity(labels = c("blue" = "Hechas", "red" = "Eliminadas", "orange" = "Corregidas"),
+                         guide = "legend") +
+    scale_x_datetime(date_breaks = "1 day", date_labels = "%d %b") +
+    labs(x = NULL, y = "Entrevistas") +
+    theme_minimal() +
+    theme(legend.position = "bottom",
+          legend.title = element_blank(),
+          legend.text = element_text(size = 16),
+          axis.text = element_text(size = 14))
+
+  return(g)
+
+}
+
+graficar_barras <- function(bd, color){
+
+  g <- bd %>%
+    ggplot(aes(x = reorder(str_to_title(Srvyr), n), y = n)) +
+    ggchicklet::geom_chicklet(fill = color) +
+    ggfittext::geom_bar_text(show.legend = F, contrast = T, size = 14) +
+    scale_y_continuous(breaks = NULL) +
+    coord_flip() +
+    theme_minimal() +
+    theme(legend.position = "none", axis.text = element_text(size = 14))
+
+  return(g)
+}
+
 # vars necesarios para app ------------------------------------------------
 
 u_nivel <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel)
 u_nivel_tipo <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
-
 aulr <- unidades_app(diseno, u_nivel)
 
 # cuotas ------------------------------------------------------------------
@@ -89,7 +143,10 @@ por_hacer <- n_entrevista$por_hacer
 faltan_shp <- aulr %>%
   left_join(hecho %>% count(!!rlang::sym(paste("cluster",u_nivel$nivel, sep = "_")) := cluster,
                             wt =  faltan))
-ui <-dashboardPage(
+
+# UI ----------------------------------------------------------------------
+
+ui <- dashboardPage(
   dashboardHeader(title = diseno$poblacion$nombre),
   dashboardSidebar(
     sidebarMenu(
@@ -100,6 +157,9 @@ ui <-dashboardPage(
         "Entrevistas", tabName = "entrevistas", icon = icon("poll")
       ),
       menuItem(
+        "Encuestadores", tabName = "encuestadores", icon = icon("users")
+      ),
+      menuItem(
         "Auditoría", tabName = "auditoria", icon = icon("search")
       )
     )
@@ -108,7 +168,7 @@ ui <-dashboardPage(
     useShinyjs(),
     tabItems(
       tabItem("mapa",
-              leafletOutput(outputId = "map", height = 600),
+              leafletOutput(outputId = "map", height = 850),
 
               # Shiny versions prior to 0.11 should use class = "modal" instead.
               absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
@@ -126,16 +186,15 @@ ui <-dashboardPage(
               )
       ),
       tabItem("entrevistas",
-              h2("Entrevistas realizadas"),
-
+              h2("Total de entrevistas realizadas"),
               fluidRow(
                 column(12,
-                       progressBar(id = "enc_hechas", value = nrow(bd),display_pct = T,striped = T,
+                       progressBar(id = "enc_hechas", value = nrow(bd), display_pct = T, striped = T,
                                    total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
                                    status = "success"
+                                   )
                        )
-                )
-              ),
+                ),
               fluidRow(
                 valueBox(width = 6,
                          value = por_hacer %>% filter(por_hacer < 0) %>% summarise(sum(por_hacer)) %>% pull(1) %>% abs(),
@@ -149,20 +208,29 @@ ui <-dashboardPage(
                          icon = icon("times")
                 )
               ),
+              hr(),
+              fluidRow(
+                column(width = 3,
+                       selectInput(inputId = "municipio", "Municipio",
+                                   choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos")
+                ),
+                column(width = 3,
+                       downloadButton(outputId = "descargar_resumen", "Descargar resumen")
+                ),
+                column(width = 3,
+                       downloadButton(outputId = "descargar_individual", "Descargar cuotas municipio")
+                )
+              ),
+              h2("Histórico de entrevistas"),
               fluidRow(
                 column(12,
-                       plotOutput("hechas", height = 400)
+                       shinycssloaders::withSpinner(plotOutput("hechas", height = 400))
                 )
-
               ),
-              h2("Entrevitas por hacer"),
+              h2("Entrevistas por hacer"),
               fluidRow(
-                column(6,
-                       withSpinner(plotOutput("por_hacer",height = 1200)),
-                ),
-                column(6,
-                       withSpinner(plotOutput("por_hacer_cuotas",height = 1200))
-                )
+                column(6, withSpinner(plotOutput("por_hacer", height = 1200))),
+                column(6, withSpinner(plotOutput("por_hacer_cuotas", height = 1200)))
               ),
               h2("Distribución sexo vs rango de edad"),
               fluidRow(
@@ -172,35 +240,103 @@ ui <-dashboardPage(
                 column(6,
                        withSpinner(plotOutput("rango_edad"))
                 )
-              ),
-              h2("Eliminadas"),
-              fluidRow(
-                column(6,
-                       plotOutput("razon_el",height = 400)
-                ),
-                column(6,
-                       DTOutput("eliminadas")
-                )
               )
-
       ),
       tabItem("auditoria",
               fluidRow(
                 column(6, passwordInput(inputId = "psw",label = "Contraseña")),
                 column(6, hidden(selectInput("vars", "Variable", choices = c("Cargando..." = ""))))
               ),
-              # uiOutput("au")
               fluidRow(
-                plotOutput("grafica",height = 600)
+                plotOutput("grafica", height = 600)
+              )
+      ),
+      tabItem("encuestadores",
+              tabsetPanel(type = "tabs",
+                          tabPanel("General",
+                                   h2("Estadísticas generales de los encuestadores"),
+                                   fluidRow(
+                                     column(width = 3,
+                                            selectInput(inputId = "municipio_encuestadores", "Municipio",
+                                                        choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos")
+                                     )
+                                   ),
+                                   fluidRow(
+                                     fluidRow(
+                                       column(6,
+                                              shinycssloaders::withSpinner(plotOutput("eliminadas_encuestador", height = 450))
+                                       ),
+                                       column(6,
+                                              shinycssloaders::withSpinner(plotOutput("corregidas_encuestador", height = 450))
+                                       )
+                                     ),
+                                     fluidRow(
+                                       column(6,
+                                              actionButton(inputId = "siguiente_eliminadas", label = "Siguiente")
+                                       ),
+                                       column(6,
+                                              actionButton(inputId = "siguiente_corregidas", label = "Siguiente")
+                                       )
+                                     )
+                                   ),
+                                   hr(),
+                                   fluidRow(
+                                     fluidRow(
+                                       column(6,
+                                              shinycssloaders::withSpinner(plotOutput("prom_tiempo_encuestador", height = 400))
+                                       ),
+                                       column(6,
+                                              shinycssloaders::withSpinner(plotOutput("duracion_entrevistas", height = 400))
+                                       )
+                                     ),
+                                     fluidRow(
+                                       column(6,
+                                              actionButton(inputId = "siguiente_promedio", label = "Siguiente")
+                                       )
+                                     )
+                                   ),
+                                   hr(),
+                                   fluidRow(
+                                     column(6,
+                                            shinycssloaders::withSpinner(plotOutput("razon_el", height = 400))
+                                     ),
+                                     column(6,
+                                            shinycssloaders::withSpinner(DTOutput("eliminadas"))
+                                     )
+                                   )
+                          ),
+                          tabPanel("Individual",
+                                   h2("Estadísticas particulares por encuestador"),
+                                   fluidRow(
+                                     column(width = 3,
+                                            selectInput(inputId = "encuestador", "Encuestador",
+                                                        choices = c("Seleccionar", sort(unique(bd$Srvyr))), selected = "Seleccionar")
+                                     )
+                                   ),
+                                   fluidRow(
+                                     column(width = 4,
+                                            valueBoxOutput(outputId = "eliminadas_individual", width = NULL)
+                                     ),
+                                     column(width = 4,
+                                            valueBoxOutput(outputId = "corregidas_individual", width = NULL)
+                                     ),
+                                     column(width = 4,
+                                            valueBoxOutput(outputId = "efectivas_individual", width = NULL)
+                                     )
+                                   )
+                                   )
               )
       )
     )
   )
 )
 
+# SERVER ------------------------------------------------------------------
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+
+# Pestaña "Mapa" ----------------------------------------------------------
 
   output$map <- renderLeaflet({
     pal <- colorFactor(topo.colors(n_distinct(mapa_base$strata_1)), domain = unique(mapa_base$strata_1))
@@ -222,11 +358,14 @@ server <- function(input, output, session) {
     pal_n <- leaflet::colorNumeric(colorRampPalette(c("red","white","blue"))(3),
                                    domain = faltan_shp$n)
 
-    map <- mapa_base %>% leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
-      addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
-      addLegend(pal = pal, values = ~strata_1, position = "bottomleft") %>%
+    # browser()
+
+    map <- mapa_base %>%
+      leaflet() %>%
+      addProviderTiles("CartoDB.Positron") %>%
+      addPolygons(color = ~pal(strata_1), opacity = 1, fill = T, fillOpacity = 0.1) %>%
+      addLegend(pal = pal, values = ~strata_1, position = "bottomleft", title = "Región") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
-      # shp$graficar_mapa(bd = diseno$muestra, nivel = "MANZANA") %>%
       addPolygons(data = faltan_shp, fillColor = ~pal_n(n), fillOpacity = 1,stroke = F,
                   label = ~glue::glue("Encuestas faltantes: {n}"), group = "Encuestas faltantes") %>%
       addLegend(pal = pal_n, values = faltan_shp$n, title = "Encuestas faltantes",
@@ -239,6 +378,7 @@ server <- function(input, output, session) {
       addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
                        popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster")
+
     if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
       map <- map %>% addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
                                position = "bottomright", pal = pal2, values = ~distancia,
@@ -246,7 +386,7 @@ server <- function(input, output, session) {
     }
 
     map %>% addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"),
-                             overlayGroups = c("Encuestas faltantes"),options = layersControlOptions()) %>%
+                             overlayGroups = c("Encuestas faltantes"), options = layersControlOptions()) %>%
       hideGroup("Encuestas faltantes")
 
   })
@@ -273,18 +413,96 @@ server <- function(input, output, session) {
       tab_header(title = "Faltantes",subtitle = glue("Cluster: {input$cluster}"))
   })
 
+# Pestaña "Entrevistas" ---------------------------------------------------
+
+  output$tot_hechas <- renderPlot({
+
+    bd_plot <- tibble("hechas" = bd |>  nrow(),
+                      "totales" = (diseno$niveles  |> filter(nivel == 0) |> pull(unidades))*diseno$n_0) |>
+      pivot_longer(cols = everything(), names_to = "tipo", values_to = "n") |>
+      mutate(control = "Entrevistas")
+
+    g <- bd_plot |>
+      ggplot(aes(x = control, y = n, fill = reorder(tipo, -n))) +
+      geom_col() +
+      ggfittext::geom_bar_text(aes(label = n), position = "stack", contrast = T, size = 16) +
+      coord_flip() +
+      theme_minimal() +
+      labs(title = "Total de entrevistas realizadas") +
+      scale_fill_manual(values = c("hechas" = "blue", "totales" = "red"),
+                        labels = c("hechas" = "Hechas", "totales" = "Totales"),
+                        name = "") +
+      theme(axis.title.x = element_blank(), legend.position = "bottom",
+            axis.title.y = element_blank(), text = element_text(size = 16))
+
+    return(g)
+
+  })
+
+  efectivas_filter <- eventReactive(c(bd, input$municipio),{
+    # browser()
+    bd %>%
+      {
+        if(input$municipio != "Todos"){
+          filter(., Muni == input$municipio)
+        } else{
+          .
+        }}
+  })
+
+  eliminadas_filter <- eventReactive(c(eliminadas, input$municipio),{
+    # browser()
+    eliminadas %>%
+      {
+        if(input$municipio != "Todos"){
+          filter(., Muni == input$municipio)
+        } else{
+          .
+        }}
+  })
+
+  corregidas_filter <- eventReactive(c(corregidas_shp, input$municipio),{
+    # browser()
+    corregidas_shp %>% as_tibble %>%
+      left_join(bd %>% distinct(SbjNum, Muni), by = "SbjNum") %>%
+      {
+        if(input$municipio != "Todos"){
+          filter(., Muni == input$municipio)
+        } else{
+          .
+        }}
+  })
+
+  por_hacer_filter <- eventReactive(c(por_hacer, input$municipio),{
+    # browser()
+    por_hacer %>%
+      {
+        if(input$municipio != "Todos"){
+          filter(., Municipio == input$municipio)
+        } else{
+          .
+        }}
+  })
+
+  hecho_filter <- eventReactive(c(hecho, input$municipio),{
+    # browser()
+    hecho %>%
+      {
+        if(input$municipio != "Todos"){
+          filter(., Municipio == input$municipio)
+        } else{
+          .
+        }}
+  })
+
   output$hechas <- renderPlot({
-    bd %>% as_tibble %>%
-      count(fecha = lubridate::floor_date(Date, "day")) %>% ggplot(aes(x = fecha, y = n)) +
-      # geom_col() +
-      geom_point() + geom_line()+
-      scale_x_datetime(date_breaks = "1 day", date_labels = "%d %b") +
-      labs(y = "encuestas") +
-      geom_text(aes(label = n), vjust = -1) + theme_minimal()
+
+    graficar_entrevistas(bd_efectivas = efectivas_filter(), bd_eliminadas = eliminadas_filter(), bd_corregidas = corregidas_filter())
+
   })
 
   output$por_hacer <- renderPlot({
-    aux <- por_hacer %>% count(cluster, wt = por_hacer, name = "encuestas") %>%# filter(encuestas != 0) %>%
+    aux <- por_hacer_filter() %>% count(cluster, wt = por_hacer, name = "encuestas") %>%
       mutate(color = if_else(encuestas > 0, "#5BC0EB", "#C3423F"))
 
     aux %>%
@@ -292,22 +510,22 @@ server <- function(input, output, session) {
       geom_col(aes(fill = color)) +
       geom_label(aes(label = encuestas)) +
       scale_fill_identity() +
-      annotate("label", x = aux %>% filter(encuestas == max(encuestas)) %>% pull(encuestas),
-               y = aux %>% filter(encuestas == min(encuestas)) %>% pull(cluster) %>% factor(),
-               size = 9,
-               label = glue::glue("{scales::comma(sum(aux$encuestas))} entrevistas por hacer"),
-               hjust = "inward", vjust = "inward") +
+      # annotate("label", x = aux %>% filter(encuestas == max(encuestas)) %>% pull(encuestas),
+      #          y = aux %>% filter(encuestas == min(encuestas)) %>% pull(cluster) %>% factor(),
+      #          size = 9,
+      #          label = glue::glue("{scales::comma(sum(aux$encuestas))} entrevistas por hacer"),
+      #          hjust = "inward", vjust = "inward") +
       theme_minimal() + ylab("cluster") + xlab("entrevistas por hacer")
   })
 
   output$por_hacer_cuotas <- renderPlot({
+    # browser()
+    pal_p <- leaflet::colorNumeric("Blues", domain = hecho_filter() %>% filter(faltan>0) %>% pull(faltan) %>% unique %>% sort)
+    pal_n <- leaflet::colorNumeric("Reds", domain = hecho_filter() %>% filter(faltan<0) %>% pull(faltan) %>% unique %>% sort)
+    uno <- pal_p(hecho_filter() %>% filter(faltan>0) %>% pull(faltan) %>% unique %>% sort)
+    dos <- pal_n(hecho_filter() %>% filter(faltan<0) %>% pull(faltan) %>% unique %>% sort %>% rev)
 
-    pal_p <- leaflet::colorNumeric("Blues", domain = hecho %>% filter(faltan>0) %>% pull(faltan) %>% unique %>% sort)
-    pal_n <- leaflet::colorNumeric("Reds", domain = hecho %>% filter(faltan<0) %>% pull(faltan) %>% unique %>% sort)
-    uno <- pal_p(hecho %>% filter(faltan>0) %>% pull(faltan) %>% unique %>% sort)
-    dos <- pal_n(hecho %>% filter(faltan<0) %>% pull(faltan) %>% unique %>% sort %>% rev)
-
-    hecho %>% mutate(grupo = glue::glue("{edad} {sexo}")) %>%
+    hecho_filter() %>% mutate(grupo = glue::glue("{edad} {sexo}")) %>%
       group_by(cluster) %>% mutate(total = sum(faltan)) %>%
       ungroup %>% mutate(cluster = reorder(cluster, total)) %>%
       ggplot(aes(y = cluster, x = grupo,
@@ -321,28 +539,91 @@ server <- function(input, output, session) {
 
   output$sexo <- renderPlot({
     preguntas$encuesta$muestra$revisar_sexo()
+
+    # preguntas$encuesta$muestra$muestra$poblacion$marco_muestral
+
   })
 
   output$rango_edad <- renderPlot({
     preguntas$encuesta$muestra$revisar_rango_edad()
   })
 
-  output$razon_el <- renderPlot({
-    preguntas$encuesta$respuestas$eliminadas %>% count(razon) %>% mutate(pct = n/sum(n)) %>%
-      ggplot(aes(y = reorder(razon,n), x = n)) + geom_col(fill = "#FF715B") +
-      geom_text(aes(label = scales::percent(pct,1)), size = 3, hjust = 1, color = "black") + theme_minimal() +
-      labs(y = "Razón", x = "Entervistas eliminadas")
+  output$descargar_resumen <- downloadHandler(filename = function(){
+    paste("cuotas_por_municipio_", format(Sys.time(), "%Y_%m_%d-%H_%M"), ".xlsx", sep = "")
+  },
+  content = function(file){
+
+    df_mun <- hecho %>%
+      group_by(Municipio) %>%
+      summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T)))
+
+    df_mun_cluster <- hecho %>%
+      group_by(Municipio, cluster) %>%
+      summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T))) |>
+      ungroup()
+
+    wb <- openxlsx::createWorkbook()
+
+    openxlsx::addWorksheet(wb, sheetName = "municipios")
+    openxlsx::writeData(wb, df_mun, sheet = "municipios")
+
+    openxlsx::addWorksheet(wb, sheetName = "municipios_cluster")
+    openxlsx::writeData(wb, df_mun_cluster, sheet = "municipios_cluster")
+
+    openxlsx::saveWorkbook(wb, file = file)
+
+  },
+  contentType = "file/xlsx"
+  )
+
+  shinyjs::hide("descargar_individual")
+
+  observeEvent(input$municipio, {
+
+    if(input$municipio != "Todos") {
+
+      shinyjs::show("descargar_individual")
+
+    }
+
+    if(input$municipio == "Todos") {
+
+      shinyjs::hide("descargar_individual")
+
+    }
+
   })
 
-  output$eliminadas <- renderDT({
-    eliminadas %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
-      # bind_rows(
-      #   bd %>% filter(is.na(Longitude)) %>% select(SbjNum, Fecha = Date, Encuestador = Srvyr) %>%
-      #     mutate(Razón = "GPS apagado")
-      # ) %>%
-      arrange(desc(Fecha))
-  }, options = list(dom = "ltpi",
-                    language = list(url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json")))
+  output$descargar_individual <- downloadHandler(filename = function(){
+    paste("Cuotas_", input$municipio, "_", format(Sys.time(), "%Y_%m_%d-%H_%M"), ".xlsx", sep = "")
+  },
+  content = function(file){
+
+    df_cluster <- hecho |>
+      filter(Municipio == input$municipio) |>
+      group_by(Municipio, cluster) |>
+      dplyr::summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T))) |>
+      ungroup()
+
+    df_edad_sexo <- hecho |>
+      filter(Municipio == input$municipio) |>
+      relocate(Municipio)
+
+    wb <- openxlsx::createWorkbook()
+
+    openxlsx::addWorksheet(wb, sheetName = "cluster")
+    openxlsx::writeData(wb, df_cluster, sheet = "cluster")
+
+    openxlsx::addWorksheet(wb, sheetName = "cluster_edad_sexo")
+    openxlsx::writeData(wb, df_edad_sexo, sheet = "cluster_edad_sexo")
+
+    openxlsx::saveWorkbook(wb, file = file)
+
+  },
+  contentType = "file/xlsx"
+  )
+
+# Pestaña "Auditoría" -----------------------------------------------------
 
   observeEvent(input$psw,{
 
@@ -362,6 +643,285 @@ server <- function(input, output, session) {
 
     preguntas$graficar(llave = !!rlang::sym(input$vars), "frecuencia", parametros = list(salto = 10, tit = ""))
   })
+
+# Pestaña "Encuestadores" -------------------------------------------------
+
+## Estadisticas colectivas ------------------------------------------------
+
+  efectivas_filter_encuestadores <- eventReactive(c(bd, input$municipio_encuestadores),{
+    # browser()
+    bd %>%
+      {
+        if(input$municipio_encuestadores != "Todos"){
+          filter(., Muni == input$municipio_encuestadores)
+        } else{
+          .
+        }}
+  })
+
+  eliminadas_filter_encuestadores <- eventReactive(c(eliminadas, input$municipio_encuestadores),{
+    # browser()
+    eliminadas %>%
+      {
+        if(input$municipio_encuestadores != "Todos"){
+          filter(., Muni == input$municipio_encuestadores)
+        } else{
+          .
+        }}
+  })
+
+  corregidas_filter_encuestadores <- eventReactive(c(corregidas_shp, input$municipio_encuestadores),{
+    # browser()
+    corregidas_shp %>% as_tibble %>%
+      left_join(bd %>% distinct(SbjNum, Muni), by = "SbjNum") %>%
+      {
+        if(input$municipio_encuestadores != "Todos"){
+          filter(., Muni == input$municipio_encuestadores)
+        } else{
+          .
+        }}
+  })
+
+  por_hacer_filter_encuestadores <- eventReactive(c(por_hacer, input$municipio_encuestadores),{
+    # browser()
+    por_hacer %>%
+      {
+        if(input$municipio_encuestadores != "Todos"){
+          filter(., Municipio == input$municipio_encuestadores)
+        } else{
+          .
+        }}
+  })
+
+  hecho_filter_encuestadores <- eventReactive(c(hecho, input$municipio_encuestadores),{
+    # browser()
+    hecho %>%
+      {
+        if(input$municipio_encuestadores != "Todos"){
+          filter(., Municipio == input$municipio_encuestadores)
+        } else{
+          .
+        }}
+  })
+
+  indice_eliminadas <- reactiveVal(1)
+  indice_corregidas <- reactiveVal(1)
+  indice_promedio <- reactiveVal(1)
+
+  observeEvent(input$siguiente_eliminadas,{
+    indice_eliminadas(indice_eliminadas() + 1)
+  })
+
+  observeEvent(input$siguiente_corregidas,{
+    indice_corregidas(indice_corregidas() + 1)
+  })
+
+  observeEvent(input$siguiente_promedio,{
+    indice_promedio(indice_promedio() + 1)
+  })
+
+  output$eliminadas_encuestador <- renderPlot({
+    # browser()
+    lista <- eliminadas_filter_encuestadores() %>%
+      count(Srvyr) %>%
+      arrange(desc(n)) %>%
+      tibble::rownames_to_column("id") %>%
+      mutate(grupo = ((as.numeric(id)-1) %/% 7)+1) %>%
+      split(.$grupo)
+
+    pag <- indice_eliminadas() %% (length(lista)+1)
+
+    if(pag == 0) {
+      indice_eliminadas(indice_eliminadas() + 1)
+      pag <- indice_eliminadas() %% (length(lista)+1)
+    }
+
+    aux <- lista %>% purrr::pluck(pag) %>% select(Srvyr, n)
+
+    g <- graficar_barras(bd = aux, color = "red") +
+      labs(x = NULL, y = "Eliminadas", title = "Entrevistas eliminadas por encuestador")
+
+    return(g)
+
+  })
+
+  output$corregidas_encuestador <- renderPlot({
+
+    lista <- corregidas_filter_encuestadores() %>%
+      count(Srvyr) %>%
+      arrange(desc(n)) %>%
+      tibble::rownames_to_column("id") %>%
+      mutate(grupo = ((as.numeric(id)-1) %/% 7)+1) %>%
+      split(.$grupo)
+
+    pag <- indice_corregidas() %% (length(lista)+1)
+
+    if(pag == 0) {
+      indice_corregidas(indice_corregidas() + 1)
+      pag <- indice_corregidas() %% (length(lista)+1)
+    }
+
+    aux <- lista %>% purrr::pluck(pag) %>% select(Srvyr, n)
+
+    g <- graficar_barras(bd = aux, color = "orange") +
+      labs(x = NULL, y = "Corregidas", title = "Entrevistas corregidas por encuestador")
+
+    return(g)
+
+  })
+
+  output$duracion_entrevistas <- renderPlot({
+
+    g <- efectivas_filter_encuestadores() %>%
+      transmute(duracion = as.double(VEnd - VStart)) %>%
+      # filter(duracion <= lubridate::as.duration("60 mins")) %>%
+      filter(duracion <= 60) %>%
+      ggplot(aes(x = duracion)) +
+      geom_histogram(bins = 120, fill = "blue") +
+      labs(x = "Duración (minutos)", y = "Entrevistas", title = "Duración de las entrevistas") +
+      theme_minimal()
+
+    return(g)
+
+  })
+
+  output$prom_tiempo_encuestador <- renderPlot({
+    # browser()
+    duracion_promedio <- efectivas_filter_encuestadores() %>% transmute(Srvyr,
+                                          duracion = as.double(VEnd - VStart)) %>%
+      filter(duracion <= 60) %>%
+      summarise(duracion_promedio = mean(duracion)) %>% pull(duracion_promedio)
+
+    lista <- efectivas_filter_encuestadores() %>%
+      transmute(Srvyr,
+                duracion = as.double(VEnd - VStart)) %>%
+      filter(duracion <= 60) %>%
+      group_by(Srvyr) %>%
+      mutate(promedio = mean(duracion),
+             min = min(duracion),
+             max = max(duracion),
+             sd = sd(duracion),
+             mediana = median(duracion)) %>%
+      select(!duracion) %>%
+      ungroup() %>%
+      distinct(.keep_all = T) %>%
+      arrange(promedio) %>%
+      tibble::rownames_to_column("id") %>%
+      mutate(grupo = ((as.numeric(id)-1) %/% 7)+1) %>%
+      split(.$grupo)
+
+    pag <- indice_promedio() %% (length(lista)+1)
+
+    if(pag == 0) {
+      indice_promedio(indice_promedio() + 1)
+      pag <- indice_promedio() %% (length(lista)+1)
+    }
+
+    aux <- lista %>% purrr::pluck(pag)
+
+    g <- aux %>%
+      ggplot(aes(x = reorder(str_to_title(Srvyr), -promedio), y = promedio)) +
+      geom_point(size = 2) +
+      geom_errorbar(aes(ymin = min, ymax = max)) +
+      geom_hline(yintercept = duracion_promedio, show.legend = "Duración promedio", na.rm = T, color = "brown") +
+      coord_flip() +
+      scale_y_continuous(breaks = seq.int(from = 0, to = 60, by = 5)) +
+      labs(x = NULL, y = "Minutos", title = "Duración promedio de las entrevistas") +
+      theme_minimal() +
+      theme(legend.position = "none", axis.text = element_text(size = 14))
+
+    return(g)
+
+  })
+
+  output$razon_el <- renderPlot({
+
+    bd_razones <- preguntas$encuesta$respuestas$eliminadas %>%
+      {
+        if(input$municipio_encuestadores != "Todos"){
+          filter(., Muni == input$municipio_encuestadores)
+        } else{
+          .
+        }} %>%
+      count(razon) %>%
+      mutate(pct = n/sum(n)) %>%
+      rename(Srvyr = razon) %>%
+      select(Srvyr, n)
+
+    g <- graficar_barras(bd = bd_razones, color = "blue") +
+      labs(x = NULL, y = NULL, title = "Razones para eliminar entrevistas")
+
+    return(g)
+  })
+
+  output$eliminadas <- renderDT({
+    eliminadas_filter_encuestadores() %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
+      # bind_rows(
+      #   bd %>% filter(is.na(Longitude)) %>% select(SbjNum, Fecha = Date, Encuestador = Srvyr) %>%
+      #     mutate(Razón = "GPS apagado")
+      # ) %>%
+      arrange(desc(Fecha))
+  }, options = list(dom = "ltpi",
+                    language = list(url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json")))
+
+## Estadísticas individuales ----------------------------------------------
+
+  output$efectivas_individual <- renderValueBox({
+
+    req(input$encuestador != "Seleccionar")
+
+    res <- bd %>% count(Srvyr) %>%
+      filter(Srvyr == input$encuestador) %>%
+      pull(n)
+
+    valueBox(value = res, subtitle = glue::glue('Entrevistas efectivas'), color = "green")
+
+  })
+
+  output$corregidas_individual <- renderValueBox({
+
+    req(input$encuestador != "Seleccionar")
+
+    res <- corregidas_shp %>% as_tibble %>%
+      left_join(bd %>% distinct(SbjNum, Muni), by = "SbjNum") %>%
+      count(Srvyr) %>%
+      filter(Srvyr == input$encuestador) %>%
+      pull(n)
+
+    valueBox(value = res, subtitle = glue::glue('Entrevistas corregidas'), color = "orange")
+
+  })
+
+  output$eliminadas_individual <- renderValueBox({
+
+    req(input$encuestador != "Seleccionar")
+
+    res <- eliminadas %>%
+      count(Srvyr) %>%
+      filter(Srvyr == input$encuestador) %>%
+      pull(n)
+
+    valueBox(value = res, subtitle = glue::glue('Entrevistas eliminadas'), color = "red")
+
+  })
+
+  output$duracion_individual <- renderPlot({
+
+    g <- efectivas_filter_encuestadores() %>%
+      transmute(duracion = as.double(VEnd - VStart)) %>%
+      # filter(duracion <= lubridate::as.duration("60 mins")) %>%
+      filter(duracion <= 60) %>%
+      ggplot(aes(x = duracion)) +
+      geom_histogram(bins = 120, fill = "blue") +
+      labs(x = "Duración (minutos)", y = "Entrevistas", title = "Duración de las entrevistas") +
+      theme_minimal()
+
+    return(g)
+
+  })
+
+
+
 }
 
 # Run the application
