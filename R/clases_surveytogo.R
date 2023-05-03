@@ -735,7 +735,12 @@ Pregunta <- R6::R6Class("Pregunta",
                             if(stringr::str_detect(pattern = "candidato", tipo)){
                               if(stringr::str_detect(pattern = "opinion", tipo)){
 
-                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo", "colores", "llave_burbuja", "filtro_burbuja", "color_burbuja")
+                                v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo",
+                                              "colores", "llave_burbuja", "filtro_burbuja", "color_burbuja",
+                                              "caption_burbuja", "caption_opinion", "caption_nsnc",
+                                              "size_caption_burbuja", "size_caption_opinion", "size_caption_nsnc",
+                                              "size_text_cat",
+                                              "orden_resp")
 
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
@@ -774,6 +779,14 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              regular = parametros$regular,
                                                              grupo_positivo= parametros$grupo_positivo,
                                                              grupo_negativo = parametros$grupo_negativo,
+                                                             caption_opinion = parametros$caption_opinion,
+                                                             caption_nsnc = parametros$caption_nsnc,
+                                                             caption_burbuja = parametros$caption_burbuja,
+                                                             size_caption_opinion = parametros$size_caption_opinion,
+                                                             size_caption_nsnc = parametros$size_caption_nsnc,
+                                                             size_caption_burbuja = parametros$size_caption_burbuja,
+                                                             size_text_cat = parametros$size_text_cat,
+                                                             orden_resp = parametros$orden_resp,
                                                              colores = parametros$colores,
                                                              burbuja = burbuja,
                                                              salto = parametros$salto,
@@ -893,12 +906,12 @@ Pregunta <- R6::R6Class("Pregunta",
                             return(g)
 
                           },
-                          categorica_gauge = function(llave, filtro, color){
+                          categorica_gauge = function(llave, filtro, color, size_text_pct){
                             g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
                               filter(eval(rlang::parse_expr(filtro))) %>%
                               mutate(media = media*100) %>%
                               graficar_gauge_promedio(color = color, maximo = 100, texto = "%",
-                                                      familia = self$tema()$text$family)
+                                                      familia = self$tema()$text$family, size_text_pct = size_text_pct)
                             return(g)
                           },
                           multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){

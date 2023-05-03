@@ -227,20 +227,26 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia, texto = "\n Promedio"){
-  bd %>% ggplot() + geom_rect(aes(xmin = 2, xmax = 3, ymin = 0,
-                                  ymax = media), fill = color,  color = "white") +
-    geom_rect(aes(xmin = 2, xmax = 3, ymin = media,
-                  ymax = maximo), fill = "grey90", color = "white") +
-    geom_text(aes(x = 0,
-                  y = media, label = paste(media %>% round(1), texto)),
-              size = 10, family = familia, nudge_y = 0.25) + scale_fill_manual(values = c("#1DCDBC",
-                                                                                          "#38C6F4")) +
+graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia, texto = "\n Promedio", size_text_pct){
+
+  bd %>%
+    ggplot() +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
+                         fill = color,  color = "white") +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = maximo),
+              fill = "grey90", color = "white") +
+    geom_text(aes(x = 0, y = media, label = scales::percent(x = media/100, accuracy = 1.)),
+              size = size_text_pct, family = familia, nudge_y = 0.25) +
+    scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
     scale_x_continuous(limits = c(0, NA)) +
-    scale_y_continuous(limits = c(0, maximo)) + xlab("") +
-    ylab("") + coord_polar(theta = "y") + theme_void() +
+    scale_y_continuous(limits = c(0, maximo)) +
+    xlab("") +
+    ylab("") +
+    coord_polar(theta = "y") +
+    theme_void() +
     theme(legend.position = "bottom", axis.text = element_blank(),
           text = element_text(size = 15, family = familia))
+
 }
 
 sustituir <- function(bd, patron, reemplazo = ""){
@@ -563,6 +569,14 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                                        colores,
                                        burbuja,
                                        color_burbuja,
+                                       caption_opinion,
+                                       caption_nsnc,
+                                       caption_burbuja,
+                                       size_caption_opinion,
+                                       size_caption_nsnc,
+                                       size_caption_burbuja,
+                                       size_text_cat,
+                                       orden_resp,
                                        salto = 200,
                                        tema){
 
@@ -589,12 +603,15 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                  x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
       tema() +
+      labs(caption = caption_burbuja) +
       theme(legend.position = "none", panel.grid.major.x = element_blank(),
-            axis.text = element_blank(),axis.line.x = element_blank())
+            axis.text = element_blank(), axis.line.x = element_blank(),
+            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja))
   }
 
   a <- aux %>%
     {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
+    mutate(respuesta = factor(respuesta, levels = orden_resp)) |>
     ggplot(aes(x  = factor(tema, orden), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
@@ -603,25 +620,29 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                              min.size = 8,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
     coord_flip()+
-    labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
+    labs(fill= NULL , y= NULL, x = NULL, caption = caption_opinion) +
+    theme_minimal() +
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema() +
+    theme(axis.text.y = element_text(size = size_text_cat),
+          plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc)) +
     scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
-    b<- aux %>%  filter(respuesta == ns_nc) %>%
+    b <- aux %>%  filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden), y = media))+
       ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
       coord_flip()+
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
                                hjust = -.1)+
-      labs(y = NULL, x = NULL)+
+      labs(y = NULL, x = NULL, caption = caption_nsnc)+
       scale_y_continuous(n.breaks = 2) +
       tema() +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-            axis.text.x = element_blank(), axis.line.x = element_blank())
+            axis.text.x = element_blank(), axis.line.x = element_blank(),
+            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc))
 
     if(!all(is.na(burbuja))){
       final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
