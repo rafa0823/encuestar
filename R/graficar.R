@@ -852,10 +852,10 @@ graficar_saldo_region <- function(bd){
           text = element_text(family = "Poppins", size=14))+
     scale_x_discrete(position = "top") +
     scale_fill_gradient2(high ="#046B9F", low= "#DE6400", mid = "white",
-                         labels = scales::percent_format(accuracy = 1) )
+                         labels = scales::percent_format(accuracy = 1) ) +
   # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
-  # ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
-  #                           aes(label =saldo %>%  scales::percent(accuracy = 1)))
+  ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
+                            aes(label =saldo %>%  scales::percent(accuracy = 1)))
 }
 
 
