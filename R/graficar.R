@@ -232,7 +232,7 @@ graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia,
   bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
-                         fill = color,  color = "white") +
+                         fill = color,  color = "white", alpha= .95) +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = maximo),
               fill = "grey90", color = "white") +
     geom_text(aes(x = 0, y = media, label = scales::percent(x = media/100, accuracy = 1.)),
@@ -816,7 +816,7 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 #'
 #' @examples
 graficar_conocimiento_region <- function(bd){
-  bd %>% ggplot(aes(x = region%>%  str_wrap(5), y =forcats::fct_reorder(tema %>%  str_wrap(20), pct), fill = pct)) +
+  bd %>% ggplot(aes(x = region%>%  str_wrap(5), y =forcats::fct_reorder(tema %>%  str_wrap(60), pct), fill = pct)) +
     geom_tile()+
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
@@ -842,7 +842,7 @@ graficar_conocimiento_region <- function(bd){
 #' @examples
 graficar_saldo_region <- function(bd){
   bd %>%
-    ggplot(aes(x = region%>% stringr::str_wrap(6), y =forcats::fct_reorder(tema %>% stringr::str_wrap(20),saldo), fill = saldo)) + geom_tile() +
+    ggplot(aes(x = region%>% stringr::str_wrap(6), y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo), fill = saldo)) + geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
     labs(y = NULL, x= NULL, fill = "Saldo")+
     theme_minimal()+
