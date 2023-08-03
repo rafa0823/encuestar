@@ -275,15 +275,15 @@ graficar_barras_numerica<- function(bd){
                              contrast = T)
 }
 
-graficar_intervalo_numerica<- function(bd, tema){
+graficar_intervalo_numerica<- function(bd, tema, point_size, text_point_size){
   bd %>%
-    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
-    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D") +
+    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40), media))) +
+    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size) +
     coord_flip()+
     labs(title = NULL,
          x = NULL,
          y = "Promedio")+
-    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, family = tema()$text$family)
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, family = tema()$text$family, size = text_point_size)
 
 }
 
@@ -627,7 +627,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema() +
     theme(axis.text.y = element_text(size = size_text_cat),
-          plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc)) +
+          plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc), legend.key.size = unit(1, units = "cm")) +
     scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
@@ -815,8 +815,14 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 #' @export
 #'
 #' @examples
-graficar_conocimiento_region <- function(bd){
-  bd %>% ggplot(aes(x = region%>%  str_wrap(5), y =forcats::fct_reorder(tema %>%  str_wrap(60), pct), fill = pct)) +
+graficar_conocimiento_region <- function(bd, orden_horizontal){
+
+  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
+
+  bd %>%
+    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
+               y = forcats::fct_reorder(tema %>%  str_wrap(60), pct),
+               fill = pct)) +
     geom_tile()+
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
