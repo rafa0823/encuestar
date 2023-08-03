@@ -19,8 +19,8 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
   todas <- enc_shp %>%
     st_join(shp %>% filter(sf::st_geometry_type(.) != "POINT"))
 
-  if(!is.na(mantener)){
-    fuera <-  todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))),
+  if(length(mantener) != 0){
+    fuera <- todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))),
                                ! (!!rlang::sym(glue::glue("{var_n}.x")) %in% mantener))
     fuera_sm <-  todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))),
                                   !!rlang::sym(glue::glue("{var_n}.x")) %in% mantener)
@@ -32,7 +32,7 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
   ja <- st_distance(fuera,shp) %>% as_tibble %>% rowwise() %>% mutate(id = which.min(c_across(everything())))
   fuera <- fuera %>% mutate(!!rlang::sym(nivel) := as.character(shp[[nivel]][ja$id]))
 
-  if(!is.na(mantener)){
+  if(length(mantener) != 0){
     fuera_sm <- fuera_sm %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(glue::glue("{var_n}.y"))))
     fuera <- bind_rows(fuera, fuera_sm)
   }
