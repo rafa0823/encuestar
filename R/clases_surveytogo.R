@@ -623,6 +623,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                               llave_opinion,
                                               llave_xq,
                                               parametros = list(tit = "")){
+
                             tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
@@ -637,7 +638,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                   g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
                                     graficar_gauge_promedio(color = parametros$color, maximo = parametros$maximo,
                                                             familia = self$tema()$text$family)
-                                } else{
+                                }
+                                else{
                                   llave_aux <- quo_name(enquo(llave))
                                   if(!(llave_aux %in% self$graficadas)){
                                     if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
@@ -656,19 +658,24 @@ Pregunta <- R6::R6Class("Pregunta",
                                     encuestar::graficar_barras_frecuencia(titulo = parametros$tit,
                                                                           salto = parametros$salt, tema = self$tema) + self$tema()
                                 }
-                              } else{
+                              }
+                              else{
+
                                 if(quo_name(enquo(llave)) != "NULL") {
                                   aspectos_aux <- paste(quo_name(enquo(llave)), aspectos, sep = "_")
-                                } else {
+                                }
+                                else {
                                   aspectos_aux <- aspectos
                                 }
-
                                 v_params <- c("tipo_numerica")
+
                                 if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
                                 tipo_p <- self$encuesta$cuestionario$diccionario %>%
                                   filter(llaves %in% aspectos_aux) %>% pull(tipo_pregunta)
+
                                 if("numericas" %in% tipo_p){
+
                                   g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
                                     left_join(
                                       self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
@@ -677,14 +684,16 @@ Pregunta <- R6::R6Class("Pregunta",
                                     g <- g %>% mutate(tema = aspecto)
                                   }
                                   if(parametros$tipo_numerica == "intervalos"){
-                                    g <- g %>% graficar_intervalo_numerica(tema = self$tema) + self$tema()
+                                    g <- g %>% graficar_intervalo_numerica(tema = self$tema, point_size = parametros$point_size,
+                                                                           text_point_size = parametros$text_point_size) +
+                                      self$tema()
                                   }
                                   if(parametros$tipo_numerica == "barras"){
                                     g <- g %>% graficar_barras_numerica() + self$tema()
                                   }
 
-
-                                } else{
+                                }
+                                else{
                                   if(!all(aspectos_aux %in% self$graficadas)){
                                     if(all(aspectos_aux %in% self$encuesta$cuestionario$diccionario$llaves)){
                                       self$graficadas <- self$graficadas %>% append(aspectos_aux)
@@ -947,11 +956,12 @@ Pregunta <- R6::R6Class("Pregunta",
                                                        diseno = self$encuesta$muestra$diseno,
                                                        diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario)
                           },
-                          conocimiento_region = function(llave_conocimiento, candidatos, respuesta){
+                          conocimiento_region = function(llave_conocimiento, candidatos, respuesta, orden_horizontal){
+
                             analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
                                                          self$encuesta$muestra$diseno,
                                                          self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
-                              graficar_conocimiento_region()
+                              graficar_conocimiento_region(orden_horizontal = orden_horizontal)
 
                           },
                           saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo){
