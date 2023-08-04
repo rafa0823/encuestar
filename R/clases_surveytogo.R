@@ -964,11 +964,12 @@ Pregunta <- R6::R6Class("Pregunta",
                               graficar_conocimiento_region(orden_horizontal = orden_horizontal)
 
                           },
-                          saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo){
+                          saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
+                                                  orden_horizontal){
                             analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
                                                   diseno = self$encuesta$muestra$diseno,
                                                   diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario) %>%
-                              graficar_saldo_region()
+                              graficar_saldo_region(orden_horizontal = orden_horizontal)
 
                           },
                           resaltar_region = function(color){

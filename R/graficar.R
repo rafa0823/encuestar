@@ -633,7 +633,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
   if(!is.null(ns_nc)){
     b <- aux %>%  filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores["Ns/Nc"] |> as_tibble() |> pull())+
       coord_flip()+
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
                                hjust = -.1)+
@@ -846,9 +846,15 @@ graficar_conocimiento_region <- function(bd, orden_horizontal){
 #' @export
 #'
 #' @examples
-graficar_saldo_region <- function(bd){
+graficar_saldo_region <- function(bd, orden_horizontal){
+
+  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
+
   bd %>%
-    ggplot(aes(x = region%>% stringr::str_wrap(6), y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo), fill = saldo)) + geom_tile() +
+    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
+               y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
+               fill = saldo)) +
+    geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
     labs(y = NULL, x= NULL, fill = "Saldo")+
     theme_minimal()+
