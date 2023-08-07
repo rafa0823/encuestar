@@ -925,22 +925,26 @@ graficar_blackbox_1d <- function(lst){
 
 graficar_morena <- function(atr, atributos, p, thm){
 
-  orden <- atr %>% distinct(tema, atributo, puntos, .keep_all = T) %>% select(-aspecto,-ganador,-puntos,-personaje) %>%
+  orden <- atr %>%
+    distinct(tema, atributo, puntos, .keep_all = T) %>%
+    select(-aspecto,-ganador,-puntos,-personaje) %>%
     pivot_wider(names_from = atributo, values_from = media) %>%
-    left_join(
-      atr %>% count(tema, wt = puntos)
-    ) %>%
-    arrange(n, preferencia, votaria) %>% pull(tema)
+    left_join(atr %>% count(tema, wt = puntos)) %>%
+    arrange(n, preferencia, votaria) %>%
+    pull(tema)
 
-  atr %>% ggplot(aes(x = atributo,y = factor(tema, orden), fill = media,
-                     label = scales::percent(media, p)
-  )) + geom_tile() +
+  atr %>%
+    ggplot(aes(x = atributo, y = factor(tema, orden), fill = media, label = scales::percent(media, p))) +
+    geom_tile() +
     ggfittext::geom_fit_text(contrast = T, family = thm()$text$family) +
     geom_label(data = atr %>% filter(puntos!=0), aes(label = puntos),
                color = "black", vjust = 0, nudge_y = -.5, fill = "white", family = thm()$text$family) +
-    theme(legend.position = "bottom") +
     geom_text(data = atr %>% count(tema, wt = puntos),
-              aes(label = n, x  ="Puntaje", y = tema), inherit.aes = F, family = thm()$text$family) +
+              aes(label = n, x  ="Puntaje", y = tema),
+              inherit.aes = F, family = thm()$text$family) +
     scale_fill_continuous(labels = scales::percent) +
-    labs(x = NULL, y = NULL, fill = "Porcentaje")
+    labs(x = NULL, y = NULL, fill = "Porcentaje") +
+    theme_minimal() +
+    theme(legend.position = "none")
+
 }
