@@ -718,16 +718,19 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
     colores_partido <- colores_partido_filter
   }
 
-  b <- bases$partido %>%
-    ggplot() +
-    geom_rect(aes(xmin = inf, xmax = sup,
-                  y = tema,
-                  ymin = as.numeric(tema) - .3,
-                  ymax = as.numeric(tema) + .3,
-                  fill = respuesta)) +
-    geom_text(data = bases$partido %>% filter(tema %in% cliente),
-              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-              color = "white", fontface = "bold") +
+    b <- bases$partido %>%
+      ggplot() +
+      geom_rect(aes(xmin = inf, xmax = sup,
+                    y = tema,
+                    ymin = as.numeric(tema) - .3,
+                    ymax = as.numeric(tema) + .3,
+                    fill = respuesta)) +
+        geom_text(data = bases$partido %>% filter(tema %in% cliente),
+                  aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
+                  color = "white", fontface = "bold") +
+      geom_text(data = bases$partido %>% filter(respuesta %in% c("MORENA", "Ns/Nc")),
+                aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
+                color = "white", fontface = "bold") +
     scale_fill_manual(values = colores_partido) +
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
