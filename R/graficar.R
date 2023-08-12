@@ -600,7 +600,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     orden <- burbuja$tema %>% levels
     a.1 <-  burbuja %>%
       ggplot(aes(y = tema,
-                 x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja, shape = 16) +
+                 x = factor(1))) + geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
       tema() +
       labs(caption = caption_burbuja) +
