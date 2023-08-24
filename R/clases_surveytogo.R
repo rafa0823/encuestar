@@ -412,6 +412,7 @@ Muestra <- R6::R6Class("Muestra",
                          diseno_completo = NULL,
                          region = NULL,
                          diseno=NULL,
+                         calibraciones = NULL,
                          initialize =function(muestra, respuestas, nivel, var_n){
                            self$muestra <- muestra
 
@@ -552,6 +553,31 @@ Muestra <- R6::R6Class("Muestra",
                          regresar_diseno_completo = function(){
                            self$region <- NULL
                            self$diseno_completo -> self$diseno
+                         },
+                         agregar_calibracion = function(vars, poblacion, nombre){
+                           calibracion <- survey::calibrate(self$diseno,
+                                                            survey::make.formula(vars),
+                                                            population = poblacion)
+
+                           self$calibraciones <- self$calibraciones |>
+                             append(
+                               list(
+                                 list(
+                                   diseno = calibracion,
+                                   variables = vars
+                                 )
+                               ) |>
+                                 purrr::set_names(nombre))
+                         },
+                         revisar_calibracion = function(nombre){
+                           aux <- self$calibraciones |> purrr::pluck(nombre)
+                           survey::svytotal(survey::make.formula(aux |> pluck("variables")),
+                                            design = aux |> pluck("diseno"))
+                         },
+                         comparar_calibraciones = function(variables, valor_variables, vartype){
+                           list(original = self$diseno) |>
+                             append(self$calibraciones |> purrr::map(~.x$diseno)) |>
+                             encuestar:::comparar_disenos(variables, valor_variables, vartype)
                          }
                        ))
 

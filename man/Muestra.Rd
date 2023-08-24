@@ -19,7 +19,7 @@ Esta es la clase de muestra
 \item \href{#method-Muestra-diseno_region}{\code{Muestra$diseno_region()}}
 \item \href{#method-Muestra-regresar_diseno_completo}{\code{Muestra$regresar_diseno_completo()}}
 \item \href{#method-Muestra-agregar_calibracion}{\code{Muestra$agregar_calibracion()}}
-\item \href{#method-Muestra-revisar_calabracion}{\code{Muestra$revisar_calabracion()}}
+\item \href{#method-Muestra-revisar_calibracion}{\code{Muestra$revisar_calibracion()}}
 \item \href{#method-Muestra-comparar_calibraciones}{\code{Muestra$comparar_calibraciones()}}
 \item \href{#method-Muestra-clone}{\code{Muestra$clone()}}
 }
@@ -103,11 +103,11 @@ Esta es la clase de muestra
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Muestra-revisar_calabracion"></a>}}
-\if{latex}{\out{\hypertarget{method-Muestra-revisar_calabracion}{}}}
-\subsection{Method \code{revisar_calabracion()}}{
+\if{html}{\out{<a id="method-Muestra-revisar_calibracion"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-revisar_calibracion}{}}}
+\subsection{Method \code{revisar_calibracion()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_calabracion(nombre)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_calibracion(nombre)}\if{html}{\out{</div>}}
 }
 
 }
