@@ -17,12 +17,6 @@ graficar_candidato_partido(
 \arguments{
 \item{bases}{}
 }
-\value{
-
-}
 \description{
 Title
-}
-\examples{
-
 }

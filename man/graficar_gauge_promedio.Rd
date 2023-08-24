@@ -9,7 +9,8 @@ graficar_gauge_promedio(
   color = "#850D2D",
   maximo = 10,
   familia,
-  texto = "\\n Promedio"
+  texto = "\\n Promedio",
+  size_text_pct
 )
 }
 \arguments{
@@ -18,9 +19,6 @@ graficar_gauge_promedio(
 \item{color}{Color de la barra}
 
 \item{maximo}{Número máximo en la escala}
-}
-\value{
-
 }
 \description{
 Title

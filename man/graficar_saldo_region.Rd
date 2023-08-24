@@ -4,13 +4,10 @@
 \alias{graficar_saldo_region}
 \title{Title}
 \usage{
-graficar_saldo_region(bd)
+graficar_saldo_region(bd, orden_horizontal)
 }
 \arguments{
 \item{bd}{}
-}
-\value{
-
 }
 \description{
 Title

@@ -11,15 +11,22 @@ Esta es la clase de muestra
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{Muestra$new()}}
-\item \href{#method-recalcular_fpc}{\code{Muestra$recalcular_fpc()}}
-\item \href{#method-extraer_diseno}{\code{Muestra$extraer_diseno()}}
-\item \href{#method-clone}{\code{Muestra$clone()}}
+\item \href{#method-Muestra-new}{\code{Muestra$new()}}
+\item \href{#method-Muestra-recalcular_fpc}{\code{Muestra$recalcular_fpc()}}
+\item \href{#method-Muestra-extraer_diseno}{\code{Muestra$extraer_diseno()}}
+\item \href{#method-Muestra-revisar_sexo}{\code{Muestra$revisar_sexo()}}
+\item \href{#method-Muestra-revisar_rango_edad}{\code{Muestra$revisar_rango_edad()}}
+\item \href{#method-Muestra-diseno_region}{\code{Muestra$diseno_region()}}
+\item \href{#method-Muestra-regresar_diseno_completo}{\code{Muestra$regresar_diseno_completo()}}
+\item \href{#method-Muestra-agregar_calibracion}{\code{Muestra$agregar_calibracion()}}
+\item \href{#method-Muestra-revisar_calabracion}{\code{Muestra$revisar_calabracion()}}
+\item \href{#method-Muestra-comparar_calibraciones}{\code{Muestra$comparar_calibraciones()}}
+\item \href{#method-Muestra-clone}{\code{Muestra$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-Muestra-new"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$new(muestra, respuestas, nivel, var_n)}\if{html}{\out{</div>}}
@@ -27,8 +34,8 @@ Esta es la clase de muestra
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-recalcular_fpc"></a>}}
-\if{latex}{\out{\hypertarget{method-recalcular_fpc}{}}}
+\if{html}{\out{<a id="method-Muestra-recalcular_fpc"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-recalcular_fpc}{}}}
 \subsection{Method \code{recalcular_fpc()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$recalcular_fpc(respuestas, nivel, var_n)}\if{html}{\out{</div>}}
@@ -36,8 +43,8 @@ Esta es la clase de muestra
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-extraer_diseno"></a>}}
-\if{latex}{\out{\hypertarget{method-extraer_diseno}{}}}
+\if{html}{\out{<a id="method-Muestra-extraer_diseno"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-extraer_diseno}{}}}
 \subsection{Method \code{extraer_diseno()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$extraer_diseno(
@@ -51,8 +58,71 @@ Esta es la clase de muestra
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-Muestra-revisar_sexo"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-revisar_sexo}{}}}
+\subsection{Method \code{revisar_sexo()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_sexo()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-revisar_rango_edad"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-revisar_rango_edad}{}}}
+\subsection{Method \code{revisar_rango_edad()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_rango_edad()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-diseno_region"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-diseno_region}{}}}
+\subsection{Method \code{diseno_region()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$diseno_region(seleccion)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-regresar_diseno_completo"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-regresar_diseno_completo}{}}}
+\subsection{Method \code{regresar_diseno_completo()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$regresar_diseno_completo()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-agregar_calibracion"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-agregar_calibracion}{}}}
+\subsection{Method \code{agregar_calibracion()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$agregar_calibracion(vars, poblacion, nombre)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-revisar_calabracion"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-revisar_calabracion}{}}}
+\subsection{Method \code{revisar_calabracion()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_calabracion(nombre)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-comparar_calibraciones"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-comparar_calibraciones}{}}}
+\subsection{Method \code{comparar_calibraciones()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$comparar_calibraciones(variables, valor_variables, vartype)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

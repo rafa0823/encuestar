@@ -9,9 +9,6 @@ analizar_conocimiento_region(llave, variable, respuesta, diseno, diccionario)
 \arguments{
 \item{diccionario}{}
 }
-\value{
-
-}
 \description{
 Title
 }

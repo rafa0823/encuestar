@@ -9,9 +9,6 @@ rainfall_p(dicc)
 \arguments{
 \item{dicc}{}
 }
-\value{
-
-}
 \description{
 Title
 }

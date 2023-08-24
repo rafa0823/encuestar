@@ -9,9 +9,6 @@ graficar_barras_numerica(bd)
 \arguments{
 \item{bd}{Base de datos (ya procesada)}
 }
-\value{
-
-}
 \description{
 Title
 }

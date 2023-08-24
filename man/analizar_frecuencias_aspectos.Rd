@@ -9,9 +9,6 @@ analizar_frecuencias_aspectos(encuesta, pregunta, aspectos)
 \arguments{
 \item{aspectos}{}
 }
-\value{
-
-}
 \description{
 Title
 }

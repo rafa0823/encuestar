@@ -9,9 +9,6 @@ analizar_ganador_region(regiones, var, lugar, diseno)
 \arguments{
 \item{diseno}{}
 }
-\value{
-
-}
 \description{
 Title
 }

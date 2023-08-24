@@ -27,15 +27,15 @@ La clase Encuesta contiene todos los metodos, y atributos que puede tener una en
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{Encuesta$new()}}
-\item \href{#method-error_muestral_maximo}{\code{Encuesta$error_muestral_maximo()}}
-\item \href{#method-exportar_entregable}{\code{Encuesta$exportar_entregable()}}
-\item \href{#method-clone}{\code{Encuesta$clone()}}
+\item \href{#method-Encuesta-new}{\code{Encuesta$new()}}
+\item \href{#method-Encuesta-error_muestral_maximo}{\code{Encuesta$error_muestral_maximo()}}
+\item \href{#method-Encuesta-exportar_entregable}{\code{Encuesta$exportar_entregable()}}
+\item \href{#method-Encuesta-clone}{\code{Encuesta$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-Encuesta-new"></a>}}
+\if{latex}{\out{\hypertarget{method-Encuesta-new}{}}}
 \subsection{Method \code{new()}}{
 Create a person
 \subsection{Usage}{
@@ -51,7 +51,8 @@ Create a person
   patron = NA,
   auditar = NA,
   sin_peso = F,
-  rake = T
+  rake = T,
+  mantener_falta_coordenadas = F
 )}\if{html}{\out{</div>}}
 }
 
@@ -66,8 +67,8 @@ Create a person
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-error_muestral_maximo"></a>}}
-\if{latex}{\out{\hypertarget{method-error_muestral_maximo}{}}}
+\if{html}{\out{<a id="method-Encuesta-error_muestral_maximo"></a>}}
+\if{latex}{\out{\hypertarget{method-Encuesta-error_muestral_maximo}{}}}
 \subsection{Method \code{error_muestral_maximo()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$error_muestral_maximo(quitar_patron = NULL)}\if{html}{\out{</div>}}
@@ -75,8 +76,8 @@ Create a person
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-exportar_entregable"></a>}}
-\if{latex}{\out{\hypertarget{method-exportar_entregable}{}}}
+\if{html}{\out{<a id="method-Encuesta-exportar_entregable"></a>}}
+\if{latex}{\out{\hypertarget{method-Encuesta-exportar_entregable}{}}}
 \subsection{Method \code{exportar_entregable()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$exportar_entregable(
@@ -88,8 +89,8 @@ Create a person
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-Encuesta-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-Encuesta-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

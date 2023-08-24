@@ -11,16 +11,16 @@ Esta es la clase cuestionario
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{Cuestionario$new()}}
-\item \href{#method-aprobar}{\code{Cuestionario$aprobar()}}
-\item \href{#method-checar_pregunta}{\code{Cuestionario$checar_pregunta()}}
-\item \href{#method-resumen}{\code{Cuestionario$resumen()}}
-\item \href{#method-clone}{\code{Cuestionario$clone()}}
+\item \href{#method-Cuestionario-new}{\code{Cuestionario$new()}}
+\item \href{#method-Cuestionario-aprobar}{\code{Cuestionario$aprobar()}}
+\item \href{#method-Cuestionario-checar_pregunta}{\code{Cuestionario$checar_pregunta()}}
+\item \href{#method-Cuestionario-resumen}{\code{Cuestionario$resumen()}}
+\item \href{#method-Cuestionario-clone}{\code{Cuestionario$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-Cuestionario-new"></a>}}
+\if{latex}{\out{\hypertarget{method-Cuestionario-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Cuestionario$new(documento, patron)}\if{html}{\out{</div>}}
@@ -28,8 +28,8 @@ Esta es la clase cuestionario
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-aprobar"></a>}}
-\if{latex}{\out{\hypertarget{method-aprobar}{}}}
+\if{html}{\out{<a id="method-Cuestionario-aprobar"></a>}}
+\if{latex}{\out{\hypertarget{method-Cuestionario-aprobar}{}}}
 \subsection{Method \code{aprobar()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Cuestionario$aprobar()}\if{html}{\out{</div>}}
@@ -37,8 +37,8 @@ Esta es la clase cuestionario
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-checar_pregunta"></a>}}
-\if{latex}{\out{\hypertarget{method-checar_pregunta}{}}}
+\if{html}{\out{<a id="method-Cuestionario-checar_pregunta"></a>}}
+\if{latex}{\out{\hypertarget{method-Cuestionario-checar_pregunta}{}}}
 \subsection{Method \code{checar_pregunta()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Cuestionario$checar_pregunta(pregunta)}\if{html}{\out{</div>}}
@@ -46,8 +46,8 @@ Esta es la clase cuestionario
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-resumen"></a>}}
-\if{latex}{\out{\hypertarget{method-resumen}{}}}
+\if{html}{\out{<a id="method-Cuestionario-resumen"></a>}}
+\if{latex}{\out{\hypertarget{method-Cuestionario-resumen}{}}}
 \subsection{Method \code{resumen()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Cuestionario$resumen()}\if{html}{\out{</div>}}
@@ -55,8 +55,8 @@ Esta es la clase cuestionario
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-Cuestionario-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-Cuestionario-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

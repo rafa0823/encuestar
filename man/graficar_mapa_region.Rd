@@ -9,9 +9,6 @@ graficar_mapa_region(bd, var)
 \arguments{
 \item{var}{}
 }
-\value{
-
-}
 \description{
 Title
 }

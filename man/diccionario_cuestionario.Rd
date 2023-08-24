@@ -9,9 +9,6 @@ diccionario_cuestionario(doc, patron)
 \arguments{
 \item{doc}{}
 }
-\value{
-
-}
 \description{
 Title
 }

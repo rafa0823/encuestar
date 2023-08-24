@@ -21,9 +21,6 @@ graficar_nube_frecuencias(
 
 \item{alto}{}
 }
-\value{
-
-}
 \description{
 Title
 }

@@ -11,8 +11,8 @@ graficar_aspectos_frecuencias(
   grupo_positivo = c("Aprueba mucho", "Aprueba poco"),
   grupo_negativo = c("Desaprueba mucho", "Desaprueba poco"),
   ns_nc = "Ns/Nc",
-  colores = c(`Desaprueba mucho` = "#DE6400", `Desaprueba poco` = "#FB8500", `Aprueba
-    poco` = "#126782", `Aprueba mucho` = "#023047", `Ns/Nc` = "gray"),
+  colores = c(`Desaprueba mucho` = "#DE6400", `Desaprueba poco` = "#FB8500",
+    `Aprueba poco` = "#126782", `Aprueba mucho` = "#023047", `Ns/Nc` = "gray"),
   familia
 )
 }
@@ -36,9 +36,6 @@ graficar_aspectos_frecuencias(
 \item{fill}{Variable de color}
 
 \item{orden}{Orden de la variable de color}
-}
-\value{
-
 }
 \description{
 Title

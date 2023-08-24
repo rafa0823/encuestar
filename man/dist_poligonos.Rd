@@ -9,9 +9,6 @@ dist_poligonos(base_sf, shp, var_n, nivel)
 \arguments{
 \item{nivel}{}
 }
-\value{
-
-}
 \description{
 Title
 }

@@ -9,9 +9,6 @@ analizar_promedio_region(regiones, var, diseno)
 \arguments{
 \item{diseno}{}
 }
-\value{
-
-}
 \description{
 Title
 }

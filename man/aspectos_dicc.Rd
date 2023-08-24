@@ -9,9 +9,6 @@ aspectos_dicc(dicc)
 \arguments{
 \item{dicc}{}
 }
-\value{
-
-}
 \description{
 Title
 }

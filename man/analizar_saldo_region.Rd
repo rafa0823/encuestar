@@ -18,9 +18,6 @@ analizar_saldo_region(
 \arguments{
 \item{cat_positivo}{}
 }
-\value{
-
-}
 \description{
 Title
 }

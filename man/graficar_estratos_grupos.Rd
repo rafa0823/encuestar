@@ -11,9 +11,6 @@ graficar_estratos_grupos(bd, titulo = "", nota = "", familia = "Poppins")
 
 \item{familia}{}
 }
-\value{
-
-}
 \description{
 Title
 }
