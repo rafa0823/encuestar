@@ -24,11 +24,13 @@ Encuesta <- R6::R6Class("Encuesta",
                           sin_peso = NA,
                           rake = NA,
                           mantener_falta_coordenadas = NULL,
+                          n_simulaciones = NA,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
                           #' @param diccionario Hair colour
                           initialize = function(respuestas = NA,
+                                                n_simulaciones = 100,
                                                 quitar_vars = NA,
                                                 muestra = NA,
                                                 auditoria_telefonica = NA,
@@ -50,7 +52,8 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
                             self$auditar <- auditar
-                            self$mantener_falta_coordenadas = mantener_falta_coordenadas
+                            self$mantener_falta_coordenadas <- mantener_falta_coordenadas
+                            self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
@@ -68,6 +71,10 @@ Encuesta <- R6::R6Class("Encuesta",
                                            distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n), !!rlang::sym(nivel)))
                             self$mantener <- mantener
                             # Respuestas
+                            if(is.na(respuestas)) respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
+                                                                                        n = self$n_simulaciones,
+                                                                                        diseño = muestra,
+                                                                                        shp = shp)
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
                                                               mantener_falta_coordenadas = self$mantener_falta_coordenadas,
@@ -89,11 +96,61 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-
                             self$preguntas <- Pregunta$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
                             return(print(match_dicc_base(self, self$quitar_vars)))
+                          },
+                          simular_surveytogo = function(cuestionario, n, diseño, shp){
+                            #simular respuestas
+                            respuestas <- cuestionario$diccionario %>% mutate(n = n) %>%
+                              pmap_dfc(function(llaves, respuestas, tipo_pregunta, n,...){
+                                if(tipo_pregunta == "numericas") {
+                                  aux_r <- respuestas[1] %>%
+                                    str_split(pattern = "-") %>%
+                                    pluck(1) %>%
+                                    as.numeric()
+
+                                  respuestas <- seq(aux_r[1], aux_r[2]) %>%
+                                    as.character() %>%
+                                    c(respuestas[2])
+                                }
+
+                                tibble(llaves = sample(respuestas,size = n, replace = T)) %>%
+                                  set_names(llaves)
+                              })
+                            #ubicación aleatoria en muestra
+                            secc <- diseño$poblacion$marco_muestral %>%
+                              semi_join(diseño$muestra$MZA %>%
+                                          distinct(cluster_2),
+                                        by = "cluster_2") %>%
+                              distinct(cluster_2,SECCION)
+
+                            respuestas <- shp$shp$SECCION %>%
+                              semi_join(secc) %>%
+                              st_sample(size = n) %>%
+                              st_coordinates() %>%
+                              as_tibble %>%
+                              sf::st_as_sf(coords = c("X","Y"), crs = "+init=epsg:4326") %>%
+                              st_join(shp$shp$SECCION) %>%
+                              select(SECCION) %>%
+                              left_join(secc) %>%
+                              transmute(SECCION = as.character(cluster_2)) %>%
+                              bind_cols(st_coordinates(.)) %>%
+                              as_tibble() %>% select(-geometry) %>% rename(Longitude = X, Latitude = Y) %>% bind_cols(respuestas) %>%
+                              rownames_to_column(var = "SbjNum") %>% mutate(SbjNum = as.numeric(SbjNum))
+                            #simular sexo y edad para postestratificación
+                            respuestas <- respuestas %>%
+                              mutate(sexo = sample(c("Hombre", "Mujer"),
+                                                   size = n, replace = T),
+                                     edad = sample(18:100,size = n, replace = T))
+                            #formato de base
+                            respuestas <- respuestas %>%
+                              mutate(Srvyr=NA, Date = NA, INT15 = NA, T_Q = NA)
+
+                            respuestas <- respuestas %>%
+                              relocate(Srvyr, Date, .before = Longitude) %>%
+                              relocate(SECCION, INT15, .after = Latitude)
                           },
                           error_muestral_maximo = function(quitar_patron = NULL){
                             aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiples")
@@ -577,7 +634,7 @@ Muestra <- R6::R6Class("Muestra",
                          comparar_calibraciones = function(variables, valor_variables, vartype){
                            list(original = self$diseno) |>
                              append(self$calibraciones |> purrr::map(~.x$diseno)) |>
-                             encuestar:::comparar_disenos(variables, valor_variables, vartype)
+                             encuestar:::camparar_disenos(variables, valor_variables, vartype)
                          }
                        ))
 
@@ -590,8 +647,12 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               aprobado=NULL,
                               diccionario=NULL,
                               initialize=function(documento, patron){
-                                self$documento <- documento %>% officer::docx_summary() %>% as_tibble
-                                self$diccionario <- private$crear_diccionario(patron)
+                                if("data.frame" %in% class(documento)){
+                                  self$diccionario <- documento
+                                } else{
+                                  self$documento <- documento %>% officer::docx_summary() %>% as_tibble
+                                  self$diccionario <- private$crear_diccionario(patron)
+                                }
                               },
                               aprobar=function(){
                                 self$aprobado <- T
@@ -704,7 +765,8 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                   g <- analizar_frecuencias_aspectos(self$encuesta, {{llave}}, aspectos) %>%
                                     left_join(
-                                      self$encuesta$preguntas$encuesta$cuestionario$diccionario %>% select(aspecto = llaves, tema)
+                                      self$encuesta$preguntas$encuesta$cuestionario$diccionario %>%
+                                        select(aspecto = llaves, tema)
                                     )
                                   if(all(is.na(g$tema))){
                                     g <- g %>% mutate(tema = aspecto)

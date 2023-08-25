@@ -133,12 +133,15 @@ match_dicc_base <- function(self, quitar) {
     bd = self$respuestas$base %>% select(-all_of(quitar)) %>% names
   ) %>% tibble::rownames_to_column() %>% full_join(
     tibble(
-      diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%
-        append(
-          self$cuestionario$documento %>%
-            filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
-            transmute(text = stringr::str_extract(text,"(?<=\\{).+?(?=\\})") %>% stringr::str_squish()) %>% pull(1)
-        )
+      diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%{
+        if(!is.null(self$cuestionario$documento)){
+          append(.,
+            self$cuestionario$documento %>%
+              filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
+              transmute(text = stringr::str_extract(text,"(?<=\\{).+?(?=\\})") %>% stringr::str_squish()) %>% pull(1)
+          )
+        } else {.}}
+
     ) %>% tibble::rownames_to_column(), by = c("bd" = "diccionario")
   ) %>% filter(is.na(rowname.x) | is.na(rowname.y)) %>%
     replace_na(list(rowname.y = "No esta en el diccionario",
