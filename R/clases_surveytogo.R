@@ -1112,6 +1112,17 @@ Pregunta <- R6::R6Class("Pregunta",
                               encuestar:::graficar_cruce_puntos(cruce = cruce, vartype = vartype) +
                               self$tema()
                           },
+                          cruce_brechas = function(var1, var2_filtro, filtro,vartype,
+                                                   line_rich, line_linewidth, line_hjust, line_vjust){
+                            encuestar:::analizar_cruce_brechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
+                                                   var1 = var1,
+                                                   var2_filtro = var2_filtro,
+                                                   filtro = filtro,
+                                                   vartype = vartype) |>
+                              graficar_cruce_brechas(var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust,
+                                                                 familia = self$tema()$text$family) +
+                              self$tema()
+                          },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
