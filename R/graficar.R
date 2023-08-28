@@ -951,3 +951,17 @@ graficar_morena <- function(atr, atributos, p, thm){
     theme(legend.position = "none")
 
 }
+
+graficar_cruce_puntos <- function(bd, cruce, vartype){
+  bd |>
+    ggplot(aes(x=reorder(variable,mean), xend=variable,
+               color=!!rlang::sym(cruce))) +
+    geom_vline(aes(xintercept = variable), linetype = "dashed",
+               color = "gray60", size=.5) +
+    geom_point(aes(y=mean),
+               shape=19,  size=6) +
+    geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
+                   linetype="solid", color="black", linewidth=.5) +
+    scale_y_continuous(labels=scales::percent) +
+    coord_flip()
+}

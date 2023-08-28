@@ -73,9 +73,9 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Respuestas
 
                             if(!"data.frame" %in% class(respuestas)){ respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
-                                                                                        n = self$n_simulaciones,
-                                                                                        diseño = muestra,
-                                                                                        shp = shp)
+                                                                                                            n = self$n_simulaciones,
+                                                                                                            diseño = muestra,
+                                                                                                            shp = shp)
                             }
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
@@ -1101,6 +1101,16 @@ Pregunta <- R6::R6Class("Pregunta",
                           morena = function(personajes, atributos, labels, p){
                             analizar_morena(self$encuesta$preguntas, personajes, atributos) %>%
                               graficar_morena(atributos, p, thm = self$tema)
+                          },
+                          cruce_puntos = function(cruce, variables, vartype, valor_variables){
+                            encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
+                                                              cruce = cruce,
+                                                              variables, vartype, valor_variables) |>
+                              left_join(self$encuesta$preguntas$encuesta$cuestionario$diccionario,
+                                        join_by(variable == llaves)) |> select(-variable) |>
+                              rename(variable = tema) |>
+                              encuestar:::graficar_cruce_puntos(cruce = cruce, vartype = vartype) +
+                              self$tema()
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))

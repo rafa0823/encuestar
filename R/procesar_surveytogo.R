@@ -468,3 +468,22 @@ analizar_frecuencia_multirespuesta <- function(encuesta, patron_inicial){
     )
   return(aux)
 }
+
+analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, valor_variables){
+
+  variables <- enquos(variables)
+
+  res <- encuesta_diseño |>
+    group_by(!!rlang::sym(cruce)) |>
+    summarise(across(!!!variables,
+                     ~ srvyr::survey_mean(.x == !!valor_variables, vartype = vartype, na.rm = TRUE),
+                     .names = "{.col}")) |>
+    drop_na() |>
+    tidyr::pivot_longer(cols = -rlang::sym(cruce),
+                 names_to = "variable", values_to = "valor") |>
+    mutate(separar = ifelse(stringr::str_detect(variable, glue::glue('_{vartype}$')), vartype, "mean"),
+           variable = stringr::str_remove(variable, glue::glue('_{vartype}'))) |>
+    tidyr::pivot_wider(names_from = separar, values_from = valor)
+
+  return(res)
+}
