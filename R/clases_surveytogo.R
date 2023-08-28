@@ -1102,7 +1102,7 @@ Pregunta <- R6::R6Class("Pregunta",
                             analizar_morena(self$encuesta$preguntas, personajes, atributos) %>%
                               graficar_morena(atributos, p, thm = self$tema)
                           },
-                          cruce_puntos = function(cruce, variables, vartype, valor_variables){
+                          cruce_puntos = function(cruce, variables, vartype = "se", valor_variables){
                             encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                               cruce = cruce,
                                                               variables, vartype, valor_variables) |>
@@ -1112,15 +1112,43 @@ Pregunta <- R6::R6Class("Pregunta",
                               encuestar:::graficar_cruce_puntos(cruce = cruce, vartype = vartype) +
                               self$tema()
                           },
-                          cruce_brechas = function(var1, var2_filtro, filtro,vartype,
-                                                   line_rich, line_linewidth, line_hjust, line_vjust){
-                            encuestar:::analizar_cruce_brechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
-                                                   var1 = var1,
-                                                   var2_filtro = var2_filtro,
-                                                   filtro = filtro,
-                                                   vartype = vartype) |>
-                              graficar_cruce_brechas(var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust,
-                                                                 familia = self$tema()$text$family) +
+                          cruce_2vbrechas = function(var1, var2_filtro, filtro, vartype = "cv",
+                                                     line_rich = FALSE,
+                                                     line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+                            encuestar:::analizar_cruce_2vbrechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
+                                                                 var1 = var1,
+                                                                 var2_filtro = var2_filtro,
+                                                                 filtro = filtro,
+                                                                 vartype = vartype) |>
+                              encuestar:::graficar_cruce_2vbrechas(var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust,
+                                                                   familia = self$tema()$text$family) +
+                              self$tema()
+                          },
+                          cruce_multibrechas = function(por_grupo, variables, vartype = "cv", valor_variables,
+                                                        line_rich = FALSE,
+                                                        line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+                            encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
+                                                  cruce = por_grupo,
+                                                  variables = variables, vartype = vartype, valor_variables = valor_variables) %>%
+                              {
+                                if(vartype == "cv"){
+                                  mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
+                                                           `cv` >.30 ~ "**",
+                                                           TRUE ~""))
+                                } else{
+                                  .
+                                }
+                              } |>
+                              left_join(self$encuesta$preguntas$encuesta$cuestionario$diccionario,
+                                        join_by(variable == llaves)) |> select(-variable) |>
+                              rename(variable = tema) |>
+                              encuestar:::graficar_cruce_multibrechas(cruce = por_grupo, vartype = vartype,
+                                                          line_rich = line_rich,
+                                                          line_linewidth = line_linewidth,
+                                                          line_hjust = line_hjust,
+                                                          line_vjust = line_vjust,
+                                                          familia = self$tema()$text$family
+                                                          ) +
                               self$tema()
                           },
                           faltantes = function(){

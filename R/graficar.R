@@ -960,13 +960,13 @@ graficar_cruce_puntos <- function(bd, cruce, vartype){
                color = "gray60", size=.5) +
     geom_point(aes(y=mean),
                shape=19,  size=6) +
-    geomtextpath::geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
+    geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
                    linetype="solid", color="black", linewidth=.5) +
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
 }
 
-graficar_cruce_brechas <- function(bd, var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
   g <- bd |>
     ggplot(aes(x=!!rlang::sym(var1),
                y=coef)) +
@@ -984,6 +984,30 @@ graficar_cruce_brechas <- function(bd, var1, var2_filtro, vartype, line_rich, li
       geom_text(aes(label=pres),
                 color="black", size=6, hjust=-.1)
   }
+
   return(g)
+}
+
+graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+  g <- bd |>
+    ggplot(aes(x=!!rlang::sym(cruce),
+               y=mean)) +
+    geomtextpath::geom_textline(aes(color=(variable),
+                      group=(variable),
+                      label=(variable)),
+                  linewidth=line_linewidth, hjust = line_hjust,
+                  vjust = line_vjust, rich = line_rich,
+                  size=6, family = familia) +
+    scale_y_continuous(labels=scales::percent) +
+    labs(color = NULL)
+
+  if(vartype == "cv"){
+    g <- g +
+      geom_text(aes(label=pres),
+                color="black", size=6, hjust=-.1)
+  }
+
+  return(g)
+
 }
 
