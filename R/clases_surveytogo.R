@@ -71,10 +71,12 @@ Encuesta <- R6::R6Class("Encuesta",
                                            distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n), !!rlang::sym(nivel)))
                             self$mantener <- mantener
                             # Respuestas
-                            if(is.na(respuestas)) respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
+                            if(length(respuestas)==0){ respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
                                                                                         n = self$n_simulaciones,
                                                                                         diseño = muestra,
                                                                                         shp = shp)
+                            }
+                            if(length(respuestas)>0){
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
                                                               mantener_falta_coordenadas = self$mantener_falta_coordenadas,
@@ -82,6 +84,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                               patron = patron,
                                                               nivel = nivel, var_n = var_n
                             )
+                            }
 
                             # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
