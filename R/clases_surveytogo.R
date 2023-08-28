@@ -636,7 +636,7 @@ Muestra <- R6::R6Class("Muestra",
                          comparar_calibraciones = function(variables, valor_variables, vartype){
                            list(original = self$diseno) |>
                              append(self$calibraciones |> purrr::map(~.x$diseno)) |>
-                             encuestar:::camparar_disenos(variables, valor_variables, vartype)
+                             encuestar:::comparar_disenos(variables, valor_variables, vartype)
                          }
                        ))
 
