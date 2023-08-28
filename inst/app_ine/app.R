@@ -206,7 +206,7 @@ ui <- dashboardPage(
               fluidRow(
                 column(width = 3, offset = 9,
                        downloadButton(outputId = "descargar_region", "Descargar resumen por region")
-                       )
+                )
               ),
               hr(),
               fluidRow(
@@ -220,9 +220,6 @@ ui <- dashboardPage(
                        selectInput(inputId = "municipio", "Municipio",
                                    choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos")
                 ),
-                # column(width = 3,
-                #        downloadButton(outputId = "descargar_resumen", "Descargar resumen")
-                # ),
                 column(width = 3,
                        downloadButton(outputId = "descargar_individual", "Descargar cuotas municipio")
                 )
@@ -343,8 +340,8 @@ ui <- dashboardPage(
                                      ),
                                      column(width = 4,
                                             valueBoxOutput(outputId = "efectivas_individual", width = NULL)
-                                            )
-                                     ),
+                                     )
+                                   ),
                                    hr(),
                                    fluidRow(
                                      leafletOutput(outputId = "mapa_auditoria", height = 850),
@@ -381,9 +378,7 @@ server <- function(input, output, session) {
     nombres_region <- diseno$poblacion$marco_muestral |>
       distinct(region, strata_1) |>
       arrange(region) |>
-      mutate(nombre_region = dplyr::if_else(condition = region == "14",
-                                            true = "Tuxtla Gutierrez 09",
-                                            false = paste("Distrito ", sprintf("%02d", as.double(region)), sep = "")))
+      mutate(nombre_region = paste("Región ", strata_1, sep = ""))
 
     # pal <- colorFactor(topo.colors(n_distinct(mapa_base$strata_1)), domain = unique(mapa_base$strata_1))
 
@@ -725,14 +720,11 @@ server <- function(input, output, session) {
 
     bd_plot <- clusters_en_muestra |>
       inner_join(datos_de_levantamiento, by = c("cluster_2" = "cluster")) |>
-      select(!strata_1) |>
-      group_by(region) |>
+      group_by(region, strata_1) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
       mutate(pct = hecho/cuota) |>
       arrange(desc(pct)) |>
-      mutate(region = dplyr::if_else(condition = region == "14",
-                                     true = "Tuxtla Gutierrez 09",
-                                     false = paste("Distrito ", sprintf("%02d", as.double(region)), sep = "")))
+      mutate(region = paste("Región ", strata_1, sep = ""))
 
     g <- bd_plot %>%
       ggplot() +
@@ -742,7 +734,7 @@ server <- function(input, output, session) {
       ggfittext::geom_bar_text(aes(x = reorder(region, pct), y = hecho,
                                    label = paste(hecho, " (", scales::percent(x = pct, accuracy = 1.), ")", sep = "")
                                    # label = hecho
-                                   ), vjust = 2.5, contrast = T) +
+      ), vjust = 2.5, contrast = T) +
       coord_flip() +
       labs(x = "", y = "Entrevistas", fill = "") +
       scale_fill_manual(values = c("A" = "gray70", "B" = PRINCIPAL),
@@ -775,38 +767,28 @@ server <- function(input, output, session) {
 
     bd_region <- clusters_en_muestra |>
       inner_join(datos_de_levantamiento, by = c("cluster_2" = "cluster")) |>
-      # mutate(region = paste(strata_1, region, sep = " ")) |>
-      select(!strata_1) |>
-      group_by(region) |>
+      group_by(region, strata_1) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) %>%
-      mutate(region = dplyr::if_else(condition = region == "14",
-                                     true = "Tuxtla Gutierrez 09",
-                                     false = paste("Distrito ", sprintf("%02d", as.double(region)), sep = "")))
+      mutate(region = paste("Región ", strata_1, sep = "")) |>
+      select(!strata_1)
 
     bd_region_municipio <- clusters_en_muestra |>
       inner_join(datos_de_levantamiento_mun, by = c("cluster_2" = "cluster")) |>
-      # mutate(region = paste(strata_1, region, sep = " ")) |>
-      select(!strata_1) |>
       relocate(Municipio, .after = region) |>
-      group_by(region, Municipio) |>
+      group_by(strata_1, region, Municipio) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
       ungroup() %>%
-      mutate(region = dplyr::if_else(condition = region == "14",
-                                     true = "Tuxtla Gutierrez 09",
-                                     false = paste("Distrito ", sprintf("%02d", as.double(region)), sep = "")))
+      mutate(region = paste("Región ", strata_1, sep = "")) |>
+      select(!strata_1)
 
     bd_region_municipio_cluster <- clusters_en_muestra |>
       inner_join(datos_de_levantamiento_mun, by = c("cluster_2" = "cluster")) |>
-      # mutate(region = paste(strata_1, region, sep = " ")) |>
-      select(!strata_1) |>
       relocate(Municipio, .after = region) |>
-      group_by(region, Municipio, cluster_2) |>
+      group_by(strata_1, region, Municipio, cluster_2) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
       ungroup() %>%
-      mutate(region = dplyr::if_else(condition = region == "14",
-                                     true = "Tuxtla Gutierrez 09",
-                                     false = paste("Distrito ", sprintf("%02d", as.double(region)), sep = "")))
-      # left_join(equipos, by = "cluster_2")
+      mutate(region = paste("Región ", strata_1, sep = "")) |>
+      select(!strata_1)
 
     # bd_equipos <- hecho |>
     #   left_join(equipos, by = c("cluster" = "cluster_2")) |>
@@ -1174,14 +1156,14 @@ server <- function(input, output, session) {
                          filter(Srvyr == input$encuestador), stroke = F, color = "yellow", fillOpacity = 1,
                        popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions())
 
-      if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
-        mapa_auditoria <- mapa_auditoria %>%
-          addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
-                    position = "bottomright",
-                    pal = pal2,
-                    values = ~distancia,
-                    title = "Distancia (m)")
-      }
+    if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
+      mapa_auditoria <- mapa_auditoria %>%
+        addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
+                  position = "bottomright",
+                  pal = pal2,
+                  values = ~distancia,
+                  title = "Distancia (m)")
+    }
 
   })
 
