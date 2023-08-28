@@ -71,12 +71,12 @@ Encuesta <- R6::R6Class("Encuesta",
                                            distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n), !!rlang::sym(nivel)))
                             self$mantener <- mantener
                             # Respuestas
-                            if(length(respuestas)==0){ respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
-                                                                                        n = self$n_simulaciones,
-                                                                                        diseño = muestra,
-                                                                                        shp = shp)
+
+                            if(!"data.frame" %in% class(respuestas)){ respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
+                                                                                                            n = self$n_simulaciones,
+                                                                                                            diseño = muestra,
+                                                                                                            shp = shp)
                             }
-                            if(length(respuestas)>0){
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
                                                               mantener_falta_coordenadas = self$mantener_falta_coordenadas,
@@ -84,7 +84,6 @@ Encuesta <- R6::R6Class("Encuesta",
                                                               patron = patron,
                                                               nivel = nivel, var_n = var_n
                             )
-                            }
 
                             # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
@@ -637,7 +636,7 @@ Muestra <- R6::R6Class("Muestra",
                          comparar_calibraciones = function(variables, valor_variables, vartype){
                            list(original = self$diseno) |>
                              append(self$calibraciones |> purrr::map(~.x$diseno)) |>
-                             encuestar:::camparar_disenos(variables, valor_variables, vartype)
+                             encuestar:::comparar_disenos(variables, valor_variables, vartype)
                          }
                        ))
 
@@ -1102,6 +1101,16 @@ Pregunta <- R6::R6Class("Pregunta",
                           morena = function(personajes, atributos, labels, p){
                             analizar_morena(self$encuesta$preguntas, personajes, atributos) %>%
                               graficar_morena(atributos, p, thm = self$tema)
+                          },
+                          cruce_puntos = function(cruce, variables, vartype, valor_variables){
+                            encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
+                                                              cruce = cruce,
+                                                              variables, vartype, valor_variables) |>
+                              left_join(self$encuesta$preguntas$encuesta$cuestionario$diccionario,
+                                        join_by(variable == llaves)) |> select(-variable) |>
+                              rename(variable = tema) |>
+                              encuestar:::graficar_cruce_puntos(cruce = cruce, vartype = vartype) +
+                              self$tema()
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
