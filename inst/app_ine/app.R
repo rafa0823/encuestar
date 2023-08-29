@@ -202,7 +202,7 @@ ui <- dashboardPage(
                        )
                 )
               ),
-              h2("Avance por distrito"),
+              h2("Avance por región"),
               fluidRow(
                 column(width = 3, offset = 9,
                        downloadButton(outputId = "descargar_region", "Descargar resumen por region")
