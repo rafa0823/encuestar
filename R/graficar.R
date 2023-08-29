@@ -1011,7 +1011,7 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
 
 }
 
-graficar_cruce_barras <-  function(bd, cruce, vartype, color){
+graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia){
 
   g <- bd |>
     ggplot(aes(x=reorder(variable, mean),
@@ -1020,21 +1020,48 @@ graficar_cruce_barras <-  function(bd, cruce, vartype, color){
                               fill=color) +
     scale_y_continuous(labels = scales::percent) +
     coord_flip() +
-    facet_wrap( as_label(rlang::sym(cruce)))
+    facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
   if(vartype=="cv"){
     g <- g +
       ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
-                               color="white")
+                               color="white",
+                               family = familia)
 
 
   }else{
     g <- g +
       ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
-                               color="white")
+                               color="white",
+                               family = familia)
 
   }
   return(g)
 
 }
 
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia){
+  g <- bd |>
+    ggplot(aes(area=coef,
+               fill=!!rlang::sym(variable))) +
+    treemapify::geom_treemap(alpha=0.7) +
+    facet_wrap(rlang::as_label(rlang::sym(cruce)))
+
+  if(vartype=="cv"){
+
+    g <- g +
+      treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
+                        place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
+                        color="white",
+                        family = familia)
+  }else{
+    g <- g +
+      treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
+                        place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
+                        color="white",
+                        family = familia)
+
+  }
+
+  return(g)
+}

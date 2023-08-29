@@ -488,12 +488,18 @@ analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, 
   return(res)
 }
 
-analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtro,vartype){
+analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtro, vartype){
 
   encuesta_diseño %>%
-    group_by(!!rlang::sym(var1), !!rlang::sym(var2_filtro)) %>%
-    summarise(srvyr::survey_mean(nest=T, na.rm=T, vartype = vartype)) |>
-    filter(!!rlang::sym(var2_filtro) %in% filtro) %>% {
+    group_by(!!rlang::sym(var1), !!rlang::sym(var2_filtro)) |>
+    summarise(srvyr::survey_mean(na.rm=T, vartype = vartype)) %>%
+    {
+      if(is.null(filtro)){
+        .
+      } else{
+        filter(., !!rlang::sym(var2_filtro) %in% filtro)
+      }
+    } %>% {
       if(vartype == "cv"){
         mutate(., pres=case_when(`_cv` >.15 & `_cv` <.30 ~ "*",
                                  `_cv` >.30 ~ "**",

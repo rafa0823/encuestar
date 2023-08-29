@@ -1168,8 +1168,23 @@ Pregunta <- R6::R6Class("Pregunta",
                               left_join(self$encuesta$preguntas$encuesta$cuestionario$diccionario,
                                         join_by(variable == llaves)) |> select(-variable) |>
                               rename(variable = tema) |>
-                              encuestar:::graficar_cruce_barras(cruce = por_grupo, vartype = vartype, color = color) +
+                              encuestar:::graficar_cruce_barras(cruce = por_grupo,
+                                                                vartype = vartype,
+                                                                color = color,
+                                                                familia = self$tema()$text$family) +
                               self$tema()
+                          },
+                          cruce_bloque = function(cruce, variable, vartype = "cv"){
+                            encuestar:::analizar_cruce_2vbrechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
+                                                                 var1 = cruce,
+                                                                 var2_filtro = variable,
+                                                                 filtro = NULL,
+                                                                 vartype = vartype) |>
+                              encuestar:::graficar_cruce_bloques(cruce = cruce,
+                                                                 variable = variable,
+                                                                 vartype = vartype,
+                                                                 familia = self$tema()$text$family)
+
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))

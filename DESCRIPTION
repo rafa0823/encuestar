@@ -45,6 +45,7 @@ Imports:
     tibble,
     tidyr,
     tidytext,
+    treemapify,
     utils,
     yesno
 Remotes:
