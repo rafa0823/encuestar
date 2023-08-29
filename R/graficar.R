@@ -232,7 +232,7 @@ graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia,
   bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
-                         fill = color,  color = "white", alpha= .95) +
+              fill = color,  color = "white", alpha= .95) +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = maximo),
               fill = "grey90", color = "white") +
     geom_text(aes(x = 0, y = media, label = scales::percent(x = media/100, accuracy = 1.)),
@@ -718,19 +718,19 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
     colores_partido <- colores_partido_filter
   }
 
-    b <- bases$partido %>%
-      ggplot() +
-      geom_rect(aes(xmin = inf, xmax = sup,
-                    y = tema,
-                    ymin = as.numeric(tema) - .3,
-                    ymax = as.numeric(tema) + .3,
-                    fill = respuesta)) +
-        geom_text(data = bases$partido %>% filter(tema %in% cliente),
-                  aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-                  color = "white", fontface = "bold") +
-      geom_text(data = bases$partido %>% filter(respuesta %in% c("MORENA", "Ns/Nc")),
-                aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-                color = "white", fontface = "bold") +
+  b <- bases$partido %>%
+    ggplot() +
+    geom_rect(aes(xmin = inf, xmax = sup,
+                  y = tema,
+                  ymin = as.numeric(tema) - .3,
+                  ymax = as.numeric(tema) + .3,
+                  fill = respuesta)) +
+    geom_text(data = bases$partido %>% filter(tema %in% cliente),
+              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
+              color = "white", fontface = "bold") +
+    geom_text(data = bases$partido %>% filter(respuesta %in% c("MORENA", "Ns/Nc")),
+              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
+              color = "white", fontface = "bold") +
     scale_fill_manual(values = colores_partido) +
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
@@ -868,9 +868,9 @@ graficar_saldo_region <- function(bd, orden_horizontal){
     scale_x_discrete(position = "top") +
     scale_fill_gradient2(high ="#046B9F", low= "#DE6400", mid = "white",
                          labels = scales::percent_format(accuracy = 1) ) +
-  # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
-  ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
-                            aes(label =saldo %>%  scales::percent(accuracy = 1)))
+    # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
+    ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
+                              aes(label =saldo %>%  scales::percent(accuracy = 1)))
 }
 
 
@@ -965,3 +965,49 @@ graficar_cruce_puntos <- function(bd, cruce, vartype){
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
 }
+
+graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+  g <- bd |>
+    ggplot(aes(x=!!rlang::sym(var1),
+               y=coef)) +
+    geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
+                      group=!!rlang::sym(var2_filtro),
+                      label=!!rlang::sym(var2_filtro)),
+                  linewidth=line_linewidth, hjust = line_hjust,
+                  vjust = line_vjust, rich = line_rich,
+                  size=6, family = familia) +
+    scale_y_continuous(labels=scales::percent) +
+    labs(color = NULL)
+
+  if(vartype == "cv"){
+    g <- g +
+      geom_text(aes(label=pres),
+                color="black", size=6, hjust=-.1)
+  }
+
+  return(g)
+}
+
+graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+  g <- bd |>
+    ggplot(aes(x=!!rlang::sym(cruce),
+               y=mean)) +
+    geomtextpath::geom_textline(aes(color=(variable),
+                      group=(variable),
+                      label=(variable)),
+                  linewidth=line_linewidth, hjust = line_hjust,
+                  vjust = line_vjust, rich = line_rich,
+                  size=6, family = familia) +
+    scale_y_continuous(labels=scales::percent) +
+    labs(color = NULL)
+
+  if(vartype == "cv"){
+    g <- g +
+      geom_text(aes(label=pres),
+                color="black", size=6, hjust=-.1)
+  }
+
+  return(g)
+
+}
+

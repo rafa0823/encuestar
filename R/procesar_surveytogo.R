@@ -414,7 +414,7 @@ analizar_morena <- function(encuesta, personajes, atributos){
         mutate(ganador = media == max(media),
                puntos = if_else(ganador,puntos,0)) %>%
         separate(aspecto, c("atributo", "personaje"),remove = F)
-      })
+    })
 
   #buen candidato
   cand <- analizar_frecuencias_aspectos(encuesta$encuesta, buencandidato, personajes) %>%
@@ -480,10 +480,26 @@ analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, 
                      .names = "{.col}")) |>
     drop_na() |>
     tidyr::pivot_longer(cols = -rlang::sym(cruce),
-                 names_to = "variable", values_to = "valor") |>
+                        names_to = "variable", values_to = "valor") |>
     mutate(separar = ifelse(stringr::str_detect(variable, glue::glue('_{vartype}$')), vartype, "mean"),
            variable = stringr::str_remove(variable, glue::glue('_{vartype}'))) |>
     tidyr::pivot_wider(names_from = separar, values_from = valor)
 
   return(res)
+}
+
+analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtro,vartype){
+
+  encuesta_diseño %>%
+    group_by(!!rlang::sym(var1), !!rlang::sym(var2_filtro)) %>%
+    summarise(srvyr::survey_mean(nest=T, na.rm=T, vartype = vartype)) |>
+    filter(!!rlang::sym(var2_filtro) %in% filtro) %>% {
+      if(vartype == "cv"){
+        mutate(., pres=case_when(`_cv` >.15 & `_cv` <.30 ~ "*",
+                                 `_cv` >.30 ~ "**",
+                                 TRUE ~""))
+      } else{
+        .
+      }
+    }
 }

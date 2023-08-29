@@ -13,6 +13,7 @@ Imports:
     factoextra,
     FactoMineR,
     forcats,
+    geomtextpath,
     ggchicklet,
     ggfittext,
     ggplot2,
