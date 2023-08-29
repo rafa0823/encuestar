@@ -478,7 +478,7 @@ analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, 
     summarise(across(!!!variables,
                      ~ srvyr::survey_mean(.x == !!valor_variables, vartype = vartype, na.rm = TRUE),
                      .names = "{.col}")) |>
-    drop_na() |>
+    tidyr::drop_na() |>
     tidyr::pivot_longer(cols = -rlang::sym(cruce),
                         names_to = "variable", values_to = "valor") |>
     mutate(separar = ifelse(stringr::str_detect(variable, glue::glue('_{vartype}$')), vartype, "mean"),
