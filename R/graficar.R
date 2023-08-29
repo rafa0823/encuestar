@@ -971,11 +971,11 @@ graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, 
     ggplot(aes(x=!!rlang::sym(var1),
                y=coef)) +
     geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
-                      group=!!rlang::sym(var2_filtro),
-                      label=!!rlang::sym(var2_filtro)),
-                  linewidth=line_linewidth, hjust = line_hjust,
-                  vjust = line_vjust, rich = line_rich,
-                  size=6, family = familia) +
+                                    group=!!rlang::sym(var2_filtro),
+                                    label=!!rlang::sym(var2_filtro)),
+                                linewidth=line_linewidth, hjust = line_hjust,
+                                vjust = line_vjust, rich = line_rich,
+                                size=6, family = familia) +
     scale_y_continuous(labels=scales::percent) +
     labs(color = NULL)
 
@@ -993,11 +993,11 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
     ggplot(aes(x=!!rlang::sym(cruce),
                y=mean)) +
     geomtextpath::geom_textline(aes(color=(variable),
-                      group=(variable),
-                      label=(variable)),
-                  linewidth=line_linewidth, hjust = line_hjust,
-                  vjust = line_vjust, rich = line_rich,
-                  size=6, family = familia) +
+                                    group=(variable),
+                                    label=(variable)),
+                                linewidth=line_linewidth, hjust = line_hjust,
+                                vjust = line_vjust, rich = line_rich,
+                                size=6, family = familia) +
     scale_y_continuous(labels=scales::percent) +
     labs(color = NULL)
 
@@ -1007,6 +1007,33 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
                 color="black", size=6, hjust=-.1)
   }
 
+  return(g)
+
+}
+
+graficar_cruce_barras <-  function(bd, cruce, vartype, color){
+
+  g <- bd |>
+    ggplot(aes(x=reorder(variable, mean),
+               y=mean)) +
+    ggchicklet::geom_chicklet(width = 0.6,alpha=0.9,
+                              fill=color) +
+    scale_y_continuous(labels = scales::percent) +
+    coord_flip() +
+    facet_wrap( as_label(rlang::sym(cruce)))
+
+  if(vartype=="cv"){
+    g <- g +
+      ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
+                               color="white")
+
+
+  }else{
+    g <- g +
+      ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
+                               color="white")
+
+  }
   return(g)
 
 }

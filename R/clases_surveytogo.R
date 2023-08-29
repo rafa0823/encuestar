@@ -1151,6 +1151,26 @@ Pregunta <- R6::R6Class("Pregunta",
                                                           ) +
                               self$tema()
                           },
+                          cruce_barras = function(por_grupo, variables, vartype = "cv", valor_variables, color){
+                            encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
+                                                              cruce = por_grupo,
+                                                              variables = variables, vartype = vartype,
+                                                              valor_variables = valor_variables) %>%
+                              {
+                                if(vartype == "cv"){
+                                  mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
+                                                           `cv` >.30 ~ "**",
+                                                           TRUE ~""))
+                                } else{
+                                  .
+                                }
+                              } |>
+                              left_join(self$encuesta$preguntas$encuesta$cuestionario$diccionario,
+                                        join_by(variable == llaves)) |> select(-variable) |>
+                              rename(variable = tema) |>
+                              encuestar:::graficar_cruce_barras(cruce = por_grupo, vartype = vartype, color = color) +
+                              self$tema()
+                          },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
