@@ -1011,9 +1011,9 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
 
 }
 
-graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter=F){
+graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
 
-  if(filter == T) {
+  if(!is.null(filter)) {
 
     bd <- bd |>
       filter(!(rlang::sym(cruce) %in% filter))
@@ -1047,9 +1047,9 @@ graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter=F)
 
 }
 
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia,filter=F){
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filter){
 
-  if(filter == T) {
+  if(!is.null(filter)) {
 
     bd <- bd |>
       filter(!(rlang::sym(cruce) %in% filter))
