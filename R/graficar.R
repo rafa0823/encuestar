@@ -1016,7 +1016,7 @@ graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
   if(!is.null(filter)) {
 
     bd <- bd |>
-      filter(!(rlang::sym(cruce) %in% filter))
+      filter(!(!!rlang::sym(cruce) %in% filter))
 
   }
 
@@ -1052,7 +1052,7 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filte
   if(!is.null(filter)) {
 
     bd <- bd |>
-      filter(!(rlang::sym(cruce) %in% filter))
+      filter(!(!!rlang::sym(cruce) %in% filter))
 
   }
 
