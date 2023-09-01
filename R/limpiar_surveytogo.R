@@ -130,7 +130,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47
 match_dicc_base <- function(self, quitar) {
   # quitar <- match(self$respuestas$base %>% select(contains("Q_")) %>% select(1) %>% names,names(self$respuestas$base))
   g <- tibble(
-    bd = self$respuestas$base %>% select(-all_of(quitar)) %>% names
+    bd = self$respuestas$base %>% select(-any_of(quitar)) %>% names
   ) %>% tibble::rownames_to_column() %>% full_join(
     tibble(
       diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%{
