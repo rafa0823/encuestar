@@ -1159,7 +1159,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                           ) +
                               self$tema()
                           },
-                          cruce_barras = function(por_grupo, variables, vartype = "cv", valor_variables, color){
+                          cruce_barras = function(por_grupo, variables, vartype = "cv", valor_variables, color, filter=NULL){
                             encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                               cruce = por_grupo,
                                                               variables = variables, vartype = vartype,
@@ -1179,10 +1179,11 @@ Pregunta <- R6::R6Class("Pregunta",
                               encuestar:::graficar_cruce_barras(cruce = por_grupo,
                                                                 vartype = vartype,
                                                                 color = color,
+                                                                filter=filter,
                                                                 familia = self$tema()$text$family) +
                               self$tema()
                           },
-                          cruce_bloque = function(cruce, variable, vartype = "cv"){
+                          cruce_bloque = function(cruce, variable, vartype = "cv", filter=NULL){
                             encuestar:::analizar_cruce_2vbrechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                                  var1 = cruce,
                                                                  var2_filtro = variable,
@@ -1191,6 +1192,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               encuestar:::graficar_cruce_bloques(cruce = cruce,
                                                                  variable = variable,
                                                                  vartype = vartype,
+                                                                 filter=filter,
                                                                  familia = self$tema()$text$family)
 
                           },

@@ -1011,7 +1011,14 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
 
 }
 
-graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia){
+graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
+
+  if(!is.null(filter)) {
+
+    bd <- bd |>
+      filter(!(!!rlang::sym(cruce) %in% filter))
+
+  }
 
   g <- bd |>
     ggplot(aes(x=reorder(variable, mean),
@@ -1040,7 +1047,15 @@ graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia){
 
 }
 
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia){
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filter){
+
+  if(!is.null(filter)) {
+
+    bd <- bd |>
+      filter(!(!!rlang::sym(cruce) %in% filter))
+
+  }
+
   g <- bd |>
     ggplot(aes(area=coef,
                fill=!!rlang::sym(variable))) +
