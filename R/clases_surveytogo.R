@@ -470,6 +470,7 @@ Muestra <- R6::R6Class("Muestra",
                          base=NULL,
                          diseno_original = NULL,
                          region = NULL,
+                         calibracion = NULL,
                          diseno=NULL,
                          calibraciones = NULL,
                          initialize =function(muestra, respuestas, nivel, var_n){
@@ -611,6 +612,7 @@ Muestra <- R6::R6Class("Muestra",
                          },
                          regresar_diseno_original = function(){
                            self$region <- NULL
+                           self$calibracion <- NULL
                            self$diseno_original -> self$diseno
                          },
                          agregar_calibracion = function(vars, poblacion, nombre){
@@ -639,6 +641,8 @@ Muestra <- R6::R6Class("Muestra",
                              encuestar:::comparar_disenos(variables, valor_variables, vartype)
                          },
                          elegir_calibracion = function(nombre){
+
+                           self$calibracion <- nombre
 
                            if(is.null(self$diseno_original)){
                              self$diseno_original <- self$diseno
