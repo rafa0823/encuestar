@@ -17,24 +17,41 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
                                        salto =20,
+                                       porcentajes_afuera = F,
+                                       desplazar_porcentajes = 0.01,
                                        nota = "",
                                        tema){
 
-  g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto),
-                                                   media),
-                          y  = media,
-                          fill=respuesta))+
-    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
-                              alpha= .8,
-                              width =.45)+
+  g_aux <-  bd %>%
+    ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
+               y  = media,
+               fill=respuesta)) +
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha= .8, width = .45)
+
+  if (porcentajes_afuera == F) {
+
+    g_aux <- g_aux +
+      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T, family = tema()$text$family)
+
+  }
+
+  if (porcentajes_afuera == T) {
+
+    g_aux <- g_aux +
+      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes, family = tema()$text$family)
+
+  }
+  g <- g_aux +
+    coord_flip() +
     labs(title = titulo,
          x = NULL,
          y = NULL,
-         caption = nota)+
-    coord_flip()+
-    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-    ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)),contrast = T, family = tema()$text$family)+
+         caption = nota) +
+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1)) +
+
     theme(legend.position = "none")
+
   return(g)
 
 }

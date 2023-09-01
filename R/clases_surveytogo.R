@@ -745,7 +745,11 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                   g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
                                     encuestar::graficar_barras_frecuencia(titulo = parametros$tit,
-                                                                          salto = parametros$salt, tema = self$tema) + self$tema()
+                                                                          salto = parametros$salt,
+                                                                          porcentajes_afuera = parametros$porcentajes_afuera,
+                                                                          desplazar_porcentajes = parametros$desplazar_porcentajes,
+                                                                          tema = self$tema) +
+                                    self$tema()
                                 }
                               }
                               else{
