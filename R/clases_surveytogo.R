@@ -468,7 +468,7 @@ Muestra <- R6::R6Class("Muestra",
                        public=list(
                          muestra = NULL,
                          base=NULL,
-                         diseno_completo = NULL,
+                         diseno_original = NULL,
                          region = NULL,
                          diseno=NULL,
                          calibraciones = NULL,
@@ -603,15 +603,15 @@ Muestra <- R6::R6Class("Muestra",
                          diseno_region = function(seleccion){
                            self$region <- seleccion
 
-                           if(is.null(self$diseno_completo)){
-                             self$diseno_completo <- self$diseno
+                           if(is.null(self$diseno_original)){
+                             self$diseno_original <- self$diseno
                            }
 
-                           self$diseno <- subset(self$diseno_completo, region %in% self$region)
+                           self$diseno <- subset(self$diseno_original, region %in% self$region)
                          },
-                         regresar_diseno_completo = function(){
+                         regresar_diseno_original = function(){
                            self$region <- NULL
-                           self$diseno_completo -> self$diseno
+                           self$diseno_original -> self$diseno
                          },
                          agregar_calibracion = function(vars, poblacion, nombre){
                            calibracion <- survey::calibrate(self$diseno,
@@ -637,6 +637,14 @@ Muestra <- R6::R6Class("Muestra",
                            list(original = self$diseno) |>
                              append(self$calibraciones |> purrr::map(~.x$diseno)) |>
                              encuestar:::comparar_disenos(variables, valor_variables, vartype)
+                         },
+                         elegir_calibracion = function(nombre){
+
+                           if(is.null(self$diseno_original)){
+                             self$diseno_original <- self$diseno
+                           }
+
+                           self$diseno <- self$calibraciones |> purrr:::pluck(nombre, "diseno")
                          }
                        ))
 
