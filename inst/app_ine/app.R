@@ -145,6 +145,7 @@ u_nivel_tipo <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
 aulr <- unidades_app(diseno, u_nivel)
 
 # cuotas ------------------------------------------------------------------
+
 n_entrevista <- entrevistas(diseno, bd, u_nivel, u_nivel_tipo)
 hecho <- n_entrevista$hecho
 por_hacer <- n_entrevista$por_hacer
@@ -236,16 +237,16 @@ ui <- dashboardPage(
                        valueBoxOutput(outputId = "hecho_totales", width = NULL)
                 ),
                 column(3,
-                       valueBoxOutput(outputId = "excedentes_totales", width = NULL)
+                       valueBoxOutput(outputId = "faltantes_totales", width = NULL)
                 ),
                 column(3,
-                       valueBoxOutput(outputId = "faltantes_totales", width = NULL)
+                       valueBoxOutput(outputId = "excedentes_totales", width = NULL)
                 ),
                 column(3,
                        valueBoxOutput(outputId = "eliminadas_totales", width = NULL)
                 )
               ),
-              h2("Entrevistas por hacer"),
+              h2("Balance de entrevistas"),
               fluidRow(
                 column(6, withSpinner(plotOutput("por_hacer", height = 1200))),
                 column(6, withSpinner(plotOutput("por_hacer_cuotas", height = 1200)))
@@ -406,8 +407,6 @@ server <- function(input, output, session) {
                   select(strata_1, nombre_region), by = "strata_1") |>
       leaflet() %>%
       addProviderTiles("CartoDB.Positron") %>%
-      # addPolygons(color = ~pal(strata_1), opacity = 1, fill = T, fillOpacity = 0.1) %>%
-      # addLegend(pal = pal, values = ~strata_1, position = "bottomleft", title = "Región") %>%
       addPolygons(color = ~pal(nombre_region), opacity = 1, fill = T, fillOpacity = 0.1) %>%
       addLegend(pal = pal, values = ~nombre_region, position = "bottomleft", title = "Región") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
@@ -417,14 +416,23 @@ server <- function(input, output, session) {
                 group = "Encuestas faltantes",position = "bottomleft") %>%
       addCircleMarkers(data = ent_c,
                        color = ~color, stroke = F,
-                       label = ~label, group = "Entrevistas")  %>%
-      # addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
-      #                  label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
+                       label = ~label, group = "Entrevistas")
+
+    if(nrow(eliminadas_shp) != 0) {
+
+      map <- map %>%
+        addCircleMarkers(data = eliminadas_shp, stroke = F, color = "red", fillOpacity = 1,
+                         label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions())
+
+    }
+
+    map <- map %>%
       addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
                        popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster")
 
     if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
+
       map <- map %>% addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
                                position = "bottomright", pal = pal2, values = ~distancia,
                                title = "Distancia (m)")
@@ -563,7 +571,9 @@ server <- function(input, output, session) {
       pull() |>
       scales::comma()
 
-    valueBox(value = res, subtitle = glue::glue("Entrevistas por hacer en total"), color = "orange")
+    res <- pmax(0, res)
+
+    valueBox(value = res, subtitle = glue::glue("Entrevistas por hacer en total"), color = "yellow")
   })
 
 
@@ -571,11 +581,11 @@ server <- function(input, output, session) {
 
     res <- hecho_filter() %>%
       summarise(excedentes = sum(faltan)) |>
-      mutate(excedentes = pmin(0, excedentes)) |>
+      mutate(excedentes = abs(pmin(0, excedentes))) |>
       pull() |>
       scales::comma()
 
-    valueBox(value = res, subtitle = glue::glue("Entrevistas hechas de más en total"), color = "yellow")
+    valueBox(value = res, subtitle = glue::glue("Entrevistas hechas de más en total"), color = "orange")
   })
 
   output$eliminadas_totales <- renderValueBox({
@@ -1028,12 +1038,16 @@ server <- function(input, output, session) {
   output$razon_el <- renderPlot({
 
     bd_razones <- preguntas$encuesta$respuestas$eliminadas %>%
+
       {
         if(input$municipio_encuestadores != "Todos"){
+
           filter(., Muni == input$municipio_encuestadores)
+
         } else{
           .
-        }} %>%
+        }
+      } %>%
       count(razon) %>%
       mutate(pct = n/sum(n)) %>%
       rename(Srvyr = razon) %>%
@@ -1043,9 +1057,11 @@ server <- function(input, output, session) {
       labs(x = NULL, y = NULL, title = "Razones para eliminar entrevistas")
 
     return(g)
+
   })
 
   output$eliminadas <- renderDT({
+
     eliminadas_filter_encuestadores() %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
       # bind_rows(
       #   bd %>% filter(is.na(Longitude)) %>% select(SbjNum, Fecha = Date, Encuestador = Srvyr) %>%
@@ -1061,9 +1077,12 @@ server <- function(input, output, session) {
 
     req(input$encuestador != "Seleccionar")
 
-    res <- bd %>% count(Srvyr) %>%
+    res <- bd %>%
+      count(Srvyr) %>%
       filter(Srvyr == input$encuestador) %>%
       pull(n)
+
+    res <- pmax(0, res)
 
     valueBox(value = res, subtitle = glue::glue('Entrevistas efectivas'), color = "green")
 
@@ -1073,11 +1092,16 @@ server <- function(input, output, session) {
 
     req(input$encuestador != "Seleccionar")
 
-    res <- corregidas_shp %>% as_tibble %>%
+    res <- corregidas_shp %>%
+      as_tibble %>%
       left_join(bd %>% distinct(SbjNum, MUNI), by = "SbjNum") %>%
       count(Srvyr) %>%
+      tidyr::complete(Srvyr = preguntas$encuesta$muestra$diseno$variables |> distinct(Srvyr) |> pull(),
+                      fill = list(n = 0)) |>
       filter(Srvyr == input$encuestador) %>%
       pull(n)
+
+    res <- pmax(0, res)
 
     valueBox(value = res, subtitle = glue::glue('Entrevistas corregidas'), color = "orange")
 
@@ -1087,10 +1111,23 @@ server <- function(input, output, session) {
 
     req(input$encuestador != "Seleccionar")
 
-    res <- eliminadas %>%
+    aux <- eliminadas %>%
       count(Srvyr) %>%
-      filter(Srvyr == input$encuestador) %>%
-      pull(n)
+      filter(Srvyr == input$encuestador)
+
+    if(nrow(aux) != 0) {
+
+      res <- aux %>% pull(n)
+
+    }
+
+    if(nrow(aux) == 0) {
+
+      res <- nrow(aux)
+
+    }
+
+    res <- pmax(0, res)
 
     valueBox(value = res, subtitle = glue::glue('Entrevistas eliminadas'), color = "red")
 
@@ -1100,7 +1137,6 @@ server <- function(input, output, session) {
 
     g <- efectivas_filter_encuestadores() %>%
       transmute(duracion = as.double(VEnd - VStart)) %>%
-      # filter(duracion <= lubridate::as.duration("60 mins")) %>%
       filter(duracion <= 60) %>%
       ggplot(aes(x = duracion)) +
       geom_histogram(bins = 120, fill = "blue") +
@@ -1120,24 +1156,33 @@ server <- function(input, output, session) {
       arrange(region) |>
       mutate(nombre_region = paste(strata_1, region, sep = " "))
 
-    pal <- colorFactor(topo.colors(n_distinct(nombres_region$nombre_region)), domain = unique(nombres_region$nombre_region))
+    pal <- colorFactor(topo.colors(n_distinct(nombres_region$nombre_region)),
+                       domain = unique(nombres_region$nombre_region))
 
     if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
-      pal2 <- leaflet::colorBin(palette = c("blue", "yellow", "orange"),
-                                domain = unique(enc_shp %>% filter(as.numeric(distancia) != 0) %>% pull(distancia)), bins = 5)
+
+      efectivas_encuestador <- preguntas$encuesta$muestra$diseno$variables |>
+        as_tibble() |>
+        filter(Srvyr == input$encuestador) |>
+        pull(SbjNum)
+
       ent_c <- enc_shp %>%
         filter(Srvyr == input$encuestador) |>
-        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
-               color = if_else(as.numeric(distancia) == 0, "green", pal2(distancia))) %>%
+        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= " - "),
+               color = case_when(SbjNum %in% efectivas_encuestador ~ "green",
+                                 T ~ "sin categoria")
+        ) %>%
         arrange(distancia)
+
     } else {
+
       ent_c <- enc_shp %>%
-        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
+        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum,sep= "-"),
                color = "green")
+
     }
 
-
-    pal_n <- leaflet::colorNumeric(colorRampPalette(c("red","white","blue"))(3),
+    pal_n <- leaflet::colorNumeric(colorRampPalette(c("red", "white", "blue"))(3),
                                    domain = faltan_shp$n)
 
     mapa_auditoria <- mapa_base %>%
@@ -1150,25 +1195,34 @@ server <- function(input, output, session) {
       addLegend(pal = pal, values = ~nombre_region, position = "bottomleft", title = "Región") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
       addCircleMarkers(data = ent_c,
-                       color = ~color, stroke = F,
-                       label = ~label, group = "Entrevistas") |>
+                       color = ~color,
+                       stroke = F,
+                       label = ~label,
+                       group = "Entrevistas") %>%
       addCircleMarkers(data = corregidas_shp %>%
-                         filter(Srvyr == input$encuestador), stroke = F, color = "yellow", fillOpacity = 1,
-                       popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions())
+                         filter(Srvyr == input$encuestador),
+                       stroke = F,
+                       color = "yellow",
+                       fillOpacity = 1,
+                       popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"),
+                       group = "Cluster corregido")
 
-    if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
+    if(nrow(eliminadas_shp %>% filter(Srvyr == input$encuestador)) != 0) {
+
       mapa_auditoria <- mapa_auditoria %>%
-        addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
-                  position = "bottomright",
-                  pal = pal2,
-                  values = ~distancia,
-                  title = "Distancia (m)")
+        addCircleMarkers(data = eliminadas_shp %>%
+                           filter(Srvyr == input$encuestador),
+                         stroke = F, color = "red", fillOpacity = 1,
+                         label = ~glue::glue("{SbjNum} - {Srvyr}"),
+                         group = "Eliminadas")
+
     }
+
+    return(mapa_auditoria)
 
   })
 
   proxy <- leafletProxy("mapa_auditoria")
-
 
 }
 
