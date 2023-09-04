@@ -723,7 +723,9 @@ Pregunta <- R6::R6Class("Pregunta",
                                               llave_partido, llave_conocimiento,
                                               llave_opinion,
                                               llave_xq,
-                                              parametros = list(tit = "")){
+                                              parametros = list(tit = "",
+                                                                porcentajes_afuera = F,
+                                                                desplazar_porcentajes = 0.01)){
 
                             tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
@@ -848,6 +850,7 @@ Pregunta <- R6::R6Class("Pregunta",
                             }
 
                             if(stringr::str_detect(pattern = "candidato", tipo)){
+
                               if(stringr::str_detect(pattern = "opinion", tipo)){
 
                                 v_params <- c("ns_nc", "regular", "grupo_positivo", "grupo_negativo",
@@ -909,6 +912,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              tema = self$tema)
 
                               }
+
                               if(stringr::str_detect(pattern = "saldo", tipo)){
 
                                 v_params <- c("grupo_positivo", "grupo_negativo", "tipo_combinacion","n_palabras")
@@ -949,6 +953,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                            familia = self$tema()$text$family ) +
                                   self$tema()
                               }
+
                               if(stringr::str_detect(pattern = "partido", tipo)){
 
                                 v_params <- c("corte_otro", "cliente", "tipo_conoce", "colores_candidato","colores_partido", "respuesta_conoce", "solo_respondidos")
@@ -990,9 +995,11 @@ Pregunta <- R6::R6Class("Pregunta",
                                                              solo_respondidos = parametros$solo_respondidos,
                                                              tema = self$tema)
                               }
+
                             }
 
                             if(stringr::str_detect(pattern = "texto", tipo)){
+
                               if(stringr::str_detect(pattern = "nube", tipo)){
 
                                 v_params <- c("n", "color1", "color2", "color3", "ancho", "alto")
@@ -1016,24 +1023,32 @@ Pregunta <- R6::R6Class("Pregunta",
                                                               nota = parametros$nota,
                                                               tit = parametros$tit) + self$tema()
                               }
+
                             }
 
                             return(g)
 
                           },
+
                           categorica_gauge = function(llave, filtro, color, size_text_pct){
+
                             g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
                               filter(eval(rlang::parse_expr(filtro))) %>%
                               mutate(media = media*100) %>%
                               graficar_gauge_promedio(color = color, maximo = 100, texto = "%",
                                                       familia = self$tema()$text$family, size_text_pct = size_text_pct)
                             return(g)
+
                           },
+
                           multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
+
                             g <-  analizar_frecuencia_multirespuesta(self$encuesta, patron_inicial) %>%
                               graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) + self$tema()
                             return(g)
+
                           },
+
                           regiones_shp = function(){
                             sf_use_s2(T)
                             self$regiones <- self$encuesta$shp_completo$shp$MUNICIPIO %>%
@@ -1043,25 +1058,30 @@ Pregunta <- R6::R6Class("Pregunta",
                               sf::st_buffer(dist = 0)
                             sf_use_s2(F)
                           },
+
                           correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
                             analisis_correspondencia(var1, var2, legenda1, legenda2, diseno = self$encuesta$muestra$diseno, colores)
                           },
+
                           mapa_ganador = function(var, lugar = 1){
                             analizar_ganador_region(regiones = self$regiones, {{var}},
                                                     lugar = lugar,
                                                     diseno = self$encuesta$muestra$diseno) %>%
                               graficar_mapa_region({{var}})
                           },
+
                           mapa_numerico = function(var){
                             analizar_promedio_region(regiones = self$regiones, var = {{var}},
                                                      diseno = self$encuesta$muestra$diseno) %>%
                               graficar_mapa_region({{var}})
                           },
+
                           frecuencia_region = function(variable){
                             analizar_frecuencia_region(variable,
                                                        diseno = self$encuesta$muestra$diseno,
                                                        diccionario = self$encuesta$preguntas$encuesta$cuestionario$diccionario)
                           },
+
                           conocimiento_region = function(llave_conocimiento, candidatos, respuesta, orden_horizontal){
 
                             analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
@@ -1070,6 +1090,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               graficar_conocimiento_region(orden_horizontal = orden_horizontal)
 
                           },
+
                           saldo_region = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
                                                   orden_horizontal){
                             analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
@@ -1078,6 +1099,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               graficar_saldo_region(orden_horizontal = orden_horizontal)
 
                           },
+
                           resaltar_region = function(color){
                             if(is.null(self$encuesta$muestra$region)){
                               stop("Correr clase$muestra$diseno_region para indicar la region seleccionada")
@@ -1087,37 +1109,55 @@ Pregunta <- R6::R6Class("Pregunta",
                               ggplot(aes(fill = color)) + geom_sf(color = "black") +scale_fill_identity() +
                               theme_void() + labs(tit = self$encuesta$muestra$region)
                           },
+
                           pclave_region = function(var){
                             analizar_pclave_region(bd = self$encuesta$respuestas$base, var)
                           },
-                          sankey = function(var1, var2){
-                            aux <- survey::svytable(survey::make.formula(c(var1,var2)),
-                                                    design = self$encuesta$muestra$diseno) %>%
-                              tibble::as_tibble() %>% ggsankey::make_long(-n, value = n)
 
+                          sankey = function(var1, var2, size_text_cat = 8){
 
-                            ggplot(aux, aes(x = x,
+                            aux_0 <- survey::svytable(survey::make.formula(c(var1,var2)),
+                                                      design = self$encuesta$muestra$diseno) %>%
+                              tibble::as_tibble()
+
+                            aux <- aux_0 %>% ggsankey::make_long(-n, value = n)
+
+                            g <- ggplot(aux, aes(x = x,
                                             value = value,
                                             next_x = next_x,
                                             node = node,
                                             next_node = next_node,
                                             fill = factor(node))) +
-                              ggsankey::geom_sankey() + self$tema()
+                              ggsankey::geom_sankey() +
+                              ggsankey::geom_sankey_label(data = . %>% filter(x == names(aux_0)[1]),
+                                                          aes(label = node, color = node),
+                                                          hjust = 1.0, fill = "white", size = size_text_cat) +
+                              ggsankey::geom_sankey_label(data = . %>% filter(x == names(aux_0)[2]),
+                                                          aes(label = node, color = node),
+                                                          hjust = -0.2, fill = "white", size = size_text_cat) +
+                              self$tema()
+
+                            return(g)
+
                           },
+
                           prcomp = function(variables){
                             pc <- survey::svyprcomp(survey::make.formula(variables),
                                                     design= self$encuesta$muestra$diseno,
                                                     scale=TRUE,scores=TRUE)
                             factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
                           },
+
                           blackbox_1d = function(vars, stimuli){
                             self$encuesta$respuestas$base %>% analizar_blackbox_1d(vars,stimuli) %>%
                               graficar_blackbox_1d()
                           },
+
                           morena = function(personajes, atributos, labels, p){
                             analizar_morena(self$encuesta$preguntas, personajes, atributos) %>%
                               graficar_morena(atributos, p, thm = self$tema)
                           },
+
                           cruce_puntos = function(cruce, variables, vartype = "se", valor_variables){
                             encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                               cruce = cruce,
@@ -1128,6 +1168,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               encuestar:::graficar_cruce_puntos(cruce = cruce, vartype = vartype) +
                               self$tema()
                           },
+
                           cruce_2vbrechas = function(var1, var2_filtro, filtro, vartype = "cv",
                                                      line_rich = FALSE,
                                                      line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
@@ -1140,12 +1181,13 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                    familia = self$tema()$text$family) +
                               self$tema()
                           },
+
                           cruce_multibrechas = function(por_grupo, variables, vartype = "cv", valor_variables,
                                                         line_rich = FALSE,
                                                         line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
                             encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
-                                                  cruce = por_grupo,
-                                                  variables = variables, vartype = vartype, valor_variables = valor_variables) %>%
+                                                              cruce = por_grupo,
+                                                              variables = variables, vartype = vartype, valor_variables = valor_variables) %>%
                               {
                                 if(vartype == "cv"){
                                   mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
@@ -1159,12 +1201,12 @@ Pregunta <- R6::R6Class("Pregunta",
                                         join_by(variable == llaves)) |> select(-variable) |>
                               rename(variable = tema) |>
                               encuestar:::graficar_cruce_multibrechas(cruce = por_grupo, vartype = vartype,
-                                                          line_rich = line_rich,
-                                                          line_linewidth = line_linewidth,
-                                                          line_hjust = line_hjust,
-                                                          line_vjust = line_vjust,
-                                                          familia = self$tema()$text$family
-                                                          ) +
+                                                                      line_rich = line_rich,
+                                                                      line_linewidth = line_linewidth,
+                                                                      line_hjust = line_hjust,
+                                                                      line_vjust = line_vjust,
+                                                                      familia = self$tema()$text$family
+                              ) +
                               self$tema()
                           },
                           cruce_barras = function(por_grupo, variables, vartype = "cv", valor_variables, color, filter=NULL){
