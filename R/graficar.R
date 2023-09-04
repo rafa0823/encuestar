@@ -16,9 +16,9 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
-                                       salto =20,
-                                       porcentajes_afuera = F,
-                                       desplazar_porcentajes = 0.01,
+                                       salto = 20,
+                                       porcentajes_afuera,
+                                       desplazar_porcentajes,
                                        nota = "",
                                        tema){
 
