@@ -220,9 +220,6 @@ ui <- dashboardPage(
                 column(width = 3,
                        selectInput(inputId = "municipio", "Municipio",
                                    choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos")
-                ),
-                column(width = 3,
-                       downloadButton(outputId = "descargar_individual", "Descargar cuotas municipio")
                 )
               ),
               h2("Histórico de entrevistas"),
@@ -263,8 +260,7 @@ ui <- dashboardPage(
       ),
       tabItem("auditoria",
               fluidRow(
-                column(6, passwordInput(inputId = "psw",label = "Contraseña")),
-                column(6, hidden(selectInput("vars", "Variable", choices = c("Cargando..." = ""))))
+                column(6, selectInput(inputId = "vars", "Variable", choices = sort(preguntas$encuesta$auditar)))
               ),
               fluidRow(
                 plotOutput("grafica", height = 600)
@@ -407,6 +403,8 @@ server <- function(input, output, session) {
                   select(strata_1, nombre_region), by = "strata_1") |>
       leaflet() %>%
       addProviderTiles("CartoDB.Positron") %>%
+      # addPolygons(color = ~pal(strata_1), opacity = 1, fill = T, fillOpacity = 0.1) %>%
+      # addLegend(pal = pal, values = ~strata_1, position = "bottomleft", title = "Región") %>%
       addPolygons(color = ~pal(nombre_region), opacity = 1, fill = T, fillOpacity = 0.1) %>%
       addLegend(pal = pal, values = ~nombre_region, position = "bottomleft", title = "Región") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
@@ -416,23 +414,14 @@ server <- function(input, output, session) {
                 group = "Encuestas faltantes",position = "bottomleft") %>%
       addCircleMarkers(data = ent_c,
                        color = ~color, stroke = F,
-                       label = ~label, group = "Entrevistas")
-
-    if(nrow(eliminadas_shp) != 0) {
-
-      map <- map %>%
-        addCircleMarkers(data = eliminadas_shp, stroke = F, color = "red", fillOpacity = 1,
-                         label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions())
-
-    }
-
-    map <- map %>%
+                       label = ~label, group = "Entrevistas")  %>%
+      addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
+                       label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
       addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
                        popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster")
 
     if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
-
       map <- map %>% addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
                                position = "bottomright", pal = pal2, values = ~distancia,
                                title = "Distancia (m)")
@@ -576,7 +565,6 @@ server <- function(input, output, session) {
     valueBox(value = res, subtitle = glue::glue("Entrevistas por hacer en total"), color = "yellow")
   })
 
-
   output$excedentes_totales <- renderValueBox({
 
     res <- hecho_filter() %>%
@@ -672,53 +660,6 @@ server <- function(input, output, session) {
   contentType = "file/xlsx"
   )
 
-  shinyjs::hide("descargar_individual")
-
-  observeEvent(input$municipio, {
-
-    if(input$municipio != "Todos") {
-
-      shinyjs::show("descargar_individual")
-
-    }
-
-    if(input$municipio == "Todos") {
-
-      shinyjs::hide("descargar_individual")
-
-    }
-
-  })
-
-  output$descargar_individual <- downloadHandler(filename = function(){
-    paste("Cuotas_", input$municipio, "_", format(Sys.time(), "%Y_%m_%d-%H_%M"), ".xlsx", sep = "")
-  },
-  content = function(file){
-
-    df_cluster <- hecho |>
-      filter(Municipio == input$municipio) |>
-      group_by(Municipio, cluster) |>
-      dplyr::summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T))) |>
-      ungroup()
-
-    df_edad_sexo <- hecho |>
-      filter(Municipio == input$municipio) |>
-      relocate(Municipio)
-
-    wb <- openxlsx::createWorkbook()
-
-    openxlsx::addWorksheet(wb, sheetName = "cluster")
-    openxlsx::writeData(wb, df_cluster, sheet = "cluster")
-
-    openxlsx::addWorksheet(wb, sheetName = "cluster_edad_sexo")
-    openxlsx::writeData(wb, df_edad_sexo, sheet = "cluster_edad_sexo")
-
-    openxlsx::saveWorkbook(wb, file = file)
-
-  },
-  contentType = "file/xlsx"
-  )
-
   output$avance_region <- renderPlot({
 
     clusters_en_muestra <- diseno$poblacion$marco_muestral |>
@@ -800,10 +741,6 @@ server <- function(input, output, session) {
       mutate(region = paste("Región ", strata_1, sep = "")) |>
       select(!strata_1)
 
-    # bd_equipos <- hecho |>
-    #   left_join(equipos, by = c("cluster" = "cluster_2")) |>
-    #   count(Empresa, wt = hecho, name = "efectivas")
-
     wb <- openxlsx::createWorkbook()
 
     openxlsx::addWorksheet(wb, sheetName = "region")
@@ -815,9 +752,6 @@ server <- function(input, output, session) {
     openxlsx::addWorksheet(wb, sheetName = "cluster")
     openxlsx::writeData(wb, bd_region_municipio_cluster, sheet = "cluster")
 
-    # openxlsx::addWorksheet(wb, sheetName = "equipos")
-    # openxlsx::writeData(wb, bd_equipos, sheet = "equipos")
-
     openxlsx::saveWorkbook(wb, file = file)
 
   },
@@ -826,23 +760,10 @@ server <- function(input, output, session) {
 
   # Pestaña "Auditoría" -----------------------------------------------------
 
-  observeEvent(input$psw,{
-
-    if(input$psw == "hola"){
-      updateSelectInput(session, "vars", choices = preguntas$encuesta$auditar)
-      shinyjs::show(id = "vars")
-    } else{
-      shinyjs::hide(id = "vars")
-    }
-
-  })
-
   output$grafica <- renderPlot({
-    validate(
-      need(input$psw == "hola" & (input$vars != ""), message = "Escriba la contraseña")
-    )
 
-    preguntas$graficar(llave = !!rlang::sym(input$vars), "frecuencia", parametros = list(salto = 10, tit = ""))
+    preguntas$graficar(llave = !!rlang::sym(input$vars), "frecuencia", parametros = list(salto = 10, tit = "", porcentajes_afuera = F))
+
   })
 
   # Pestaña "Encuestadores" -------------------------------------------------
