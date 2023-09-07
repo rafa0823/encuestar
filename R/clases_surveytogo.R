@@ -101,6 +101,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$preguntas <- Pregunta$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
+                            beepr::beep()
                             return(print(match_dicc_base(self, self$quitar_vars)))
                           },
                           simular_surveytogo = function(cuestionario, n, diseño, shp){
