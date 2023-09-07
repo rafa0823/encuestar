@@ -178,7 +178,7 @@ ui <- dashboardPage(
     useShinyjs(),
     tabItems(
       tabItem("mapa",
-              leafletOutput(outputId = "map", height = 850),
+              leafletOutput(outputId = "mapa_principal", height = 850),
               absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                             draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
                             width = 330, height = "auto",
@@ -370,7 +370,7 @@ server <- function(input, output, session) {
 
   # Pestaña "Mapa" ----------------------------------------------------------
 
-  output$map <- renderLeaflet({
+  output$mapa_principal <- renderLeaflet({
 
     nombres_region <- diseno$poblacion$marco_muestral |>
       distinct(region, strata_1) |>
@@ -433,12 +433,14 @@ server <- function(input, output, session) {
 
   })
 
-  proxy_map <- leafletProxy("map")
+  proxy_mapa_principal <- leafletProxy("mapa_principal")
 
   observeEvent(input$filtrar,{
+
     bbox <-  aulr %>% filter(!!rlang::sym(u_nivel_tipo) == !!input$cluster) %>% sf::st_bbox()
 
-    proxy_map %>% flyToBounds(bbox[[1]],bbox[[2]],bbox[[3]],bbox[[4]])
+    proxy_mapa_principal %>% flyToBounds(bbox[[1]],bbox[[2]],bbox[[3]],bbox[[4]])
+
   })
 
   observeEvent(input$regresar,{
@@ -446,14 +448,29 @@ server <- function(input, output, session) {
   })
 
   output$faltantes <- render_gt({
-    req(input$filtrar)
-    validate(need(input$cluster != "",message =  "Escoja un cluster"))
 
-    hecho %>% filter(cluster == !!input$cluster) %>% select(sexo,edad,faltan) %>%
-      pivot_wider(names_from = sexo,values_from = faltan) %>%
-      replace_na(list(Mujer = 0, Hombre = 0)) %>% gt() %>%
-      tab_header(title = "Faltantes",subtitle = glue("Cluster: {input$cluster}"))
-  })
+    req(input$filtrar)
+    validate(need(input$cluster != "", message =  "Escoja un cluster"))
+
+    balance_cluster <- hecho %>%
+      filter(cluster == !!input$cluster) |>
+      group_by(cluster) |>
+      summarise(across(.cols = c(cuota, hecho, faltan), .fns = ~ sum(.x)))
+
+    hecho %>%
+      filter(cluster == !!input$cluster) %>%
+      select(sexo, edad, faltan) %>%
+      mutate(edad = gsub(pattern = "([0-9])([A-Z])([0-9])", replacement = "\\1 a \\3", x = edad),
+             edad = gsub(pattern = "Y", replacement = " y ", x = edad)) |>
+      pivot_wider(names_from = sexo, values_from = faltan) %>%
+      replace_na(list(Mujer = 0, Hombre = 0)) %>%
+      rename(Edad = edad) |>
+      gt() %>%
+      tab_header(title = md(glue::glue("**Cluster {input$cluster}**")),
+                 subtitle = glue::glue("Cuota: {balance_cluster$cuota}   Hecho: {balance_cluster$hecho}   Faltan: {balance_cluster$faltan}")) |>
+      tab_spanner(label = "Entrevistas faltanes por edad y sexo", columns = c(Edad, Hombre, Mujer))
+
+    })
 
   # Pestaña "Entrevistas" ---------------------------------------------------
 
