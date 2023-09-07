@@ -246,7 +246,6 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$nombres(self$base, diccionario)
 
                               #Quitar patrones a respuestas
-
                               self$q_patron(self$base, diccionario, patron)
 
                               # Parar si opciones de respuesta no coinciden con diccionario
@@ -258,10 +257,13 @@ Respuestas <- R6::R6Class("Respuestas",
                               # Mantener respuestas que no tienen coordenadas
 
                               if(mantener_falta_coordenadas){
+
                                 self$coordenadas_faltantes()
-                              } else{
+                              } else {
+
                                 # Limpiar las respuestas que no tienen coordenadas
                                 self$eliminar_falta_coordenadas()
+
                               }
 
 
@@ -309,29 +311,41 @@ Respuestas <- R6::R6Class("Respuestas",
                             },
                             categorias = function(bd, diccionario){
 
-                              discrepancia <- diccionario %>% filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) %>% pull(llaves) %>%
+                              discrepancia <- diccionario %>%
+                                filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) %>%
+                                pull(llaves) %>%
                                 map_df(~{
 
-                                  res <- bd %>% count(across(all_of(.x))) %>% na.omit %>% pull(1)
-                                  m <- match(
-                                    res,
-                                    diccionario %>% filter(llaves == .x) %>% unnest(respuestas) %>% pull(respuestas)
+                                  res <- bd %>%
+                                    count(across(all_of(.x))) %>%
+                                    na.omit %>%
+                                    pull(1)
+
+                                  m <- match(res, diccionario %>%
+                                               filter(llaves == .x) %>%
+                                               unnest(respuestas) %>%
+                                               pull(respuestas)
                                   )
 
-                                  tibble(
-                                    llave = .x,
-                                    faltantes = res[is.na(m)]
+                                  tibble(llave = .x,
+                                         faltantes = res[is.na(m)]
                                   )
 
                                 })
 
                               if(nrow(discrepancia)>0){
-                                print(discrepancia)
-                                warning("Revisar la base impresa arriba pues hay respuestas que no se contemplaron en el diccionario.")
+
+                                warning(paste("La siguiente tabla muestra las respuestas en la base de campo que no están contempladas en el cuestionario de procesamiento", " (total: ", nrow(discrepancia), ").", sep = ""),
+                                        immediate. = T)
+                                print(discrepancia |>
+                                        rename(codigo_pregunta = llave,
+                                               respuesta_faltante = faltantes))
+
                               }
 
                             },
-                            eliminar_auditoria_telefonica=function(auditoria_telefonica){
+                            eliminar_auditoria_telefonica = function(auditoria_telefonica){
+
                               if(("SbjNum" %in% names(self$base)) &
                                  ("SbjNum" %in% names(auditoria_telefonica))){
                                 if(is.character(auditoria_telefonica$SbjNum)) auditoria_telefonica <- auditoria_telefonica %>% mutate(SbjNum = readr::parse_double(SbjNum))
@@ -342,6 +356,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                                 self$base <- self$base %>%
                                   anti_join(auditoria_telefonica, by="SbjNum")
+
                                 # Mandar mensaje
                                 print(
                                   glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por auditoria telefonica")
@@ -349,12 +364,16 @@ Respuestas <- R6::R6Class("Respuestas",
                               }
                               else cat("Identificador SbjNum no presente en alguna de las bases para eliminar por auditoria telefonica")
                               return(self$base)
+
                             },
                             coordenadas_faltantes = function(){
+
                               self$sin_coordenadas <- self$base %>% filter(is.na(Longitude) | is.na(Latitude))
                               self$base <- self$base %>% filter(!is.na(Longitude) | !is.na(Latitude))
+
                             },
                             eliminar_falta_coordenadas = function(){
+
                               if("Longitude" %in% names(self$base) & "Latitude" %in% names(self$base)){
                                 n <- nrow(self$base)
                                 self$base <- self$base %>% filter(!is.na(Longitude) | !is.na(Latitude))
@@ -380,6 +399,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$base <- aux
                             },
                             eliminar_fuera_muestra = function(respuestas, muestra, nivel, var_n){
+
                               self$base <- respuestas %>%
                                 semi_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
                                           by = set_names(nivel,var_n))
@@ -393,6 +413,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
                             },
                             calcular_distancia = function(base, encuesta, muestra, var_n, nivel){
+
                               aux_sf <- base %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
 
                               pol <- dist_poligonos(aux_sf, shp = encuesta$shp, var_n, nivel)
@@ -405,13 +426,13 @@ Respuestas <- R6::R6Class("Respuestas",
                                   ) %>% bind_rows(
                                     puntos
                                   )
-                              } else{
+                              } else {
                                 respuestas <- pol
                               }
 
                               self$base <- respuestas %>% left_join(base %>% select(SbjNum, Longitude, Latitude), by = "SbjNum")
                             },
-                            eliminar_faltantes_diseno=function(){
+                            eliminar_faltantes_diseno = function(){
                               n <- nrow(self$base)
 
                               self$base <- self$base %>%
@@ -1123,11 +1144,11 @@ Pregunta <- R6::R6Class("Pregunta",
                             aux <- aux_0 %>% ggsankey::make_long(-n, value = n)
 
                             g <- ggplot(aux, aes(x = x,
-                                            value = value,
-                                            next_x = next_x,
-                                            node = node,
-                                            next_node = next_node,
-                                            fill = factor(node))) +
+                                                 value = value,
+                                                 next_x = next_x,
+                                                 node = node,
+                                                 next_node = next_node,
+                                                 fill = factor(node))) +
                               ggsankey::geom_sankey() +
                               ggsankey::geom_sankey_label(data = . %>% filter(x == names(aux_0)[1]),
                                                           aes(label = node, color = node),
