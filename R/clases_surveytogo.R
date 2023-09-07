@@ -251,6 +251,9 @@ Respuestas <- R6::R6Class("Respuestas",
                               # Parar si opciones de respuesta no coinciden con diccionario
                               self$categorias(self$base, diccionario)
 
+                              # Advertir si hay opciones de respuestas que tienen count = 0
+                              self$respuestas_sin_seleccion(bd = self$base, diccionario)
+
                               # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
 
@@ -259,6 +262,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               if(mantener_falta_coordenadas){
 
                                 self$coordenadas_faltantes()
+
                               } else {
 
                                 # Limpiar las respuestas que no tienen coordenadas
@@ -295,12 +299,14 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               # self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
                             },
+
                             nombres = function(bd, diccionario){
                               faltantes <- is.na(match(diccionario$llaves, names(bd)))
                               if(!all(!faltantes)){
                                 stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(diccionario$llaves[faltantes], collapse = ', ')}"))
                               }
                             },
+
                             q_patron = function(bd, dicc, patron){
                               if(!is.na(patron)){
                                 aux <- bd %>%
@@ -309,6 +315,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                 self$base <- aux
                               }
                             },
+
                             categorias = function(bd, diccionario){
 
                               discrepancia <- diccionario %>%
@@ -339,11 +346,48 @@ Respuestas <- R6::R6Class("Respuestas",
                                         immediate. = T)
                                 print(discrepancia |>
                                         rename(codigo_pregunta = llave,
-                                               respuesta_faltante = faltantes))
+                                               respuesta_campo = faltantes))
+                                warning("Revise las respuestas entre la base de campo y el cuestionario de procesamiento y corrija.",
+                                        immediate. = T)
 
                               }
 
                             },
+
+                            respuestas_sin_seleccion = function(bd, diccionario){
+
+                              bd_sinregistros <- diccionario |>
+                                filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) |>
+                                pull(llaves) %>%
+                                purrr::map_df(.x = ., .f = ~ {
+
+                                  respuestas_sin_registros <- diccionario %>%
+                                    filter(llaves == .x) %>%
+                                    unnest(respuestas) |>
+                                    pull(respuestas) |>
+                                    as_tibble() |>
+                                    anti_join(bd |>
+                                                count(across(all_of(.x))) %>%
+                                                arrange(1) |>
+                                                pull(1) |>
+                                                as_tibble(), by = "value") |>
+                                    pull()
+
+                                  tibble(codigo_pregunta = .x,
+                                         respuesta_sin_registros = respuestas_sin_registros)
+
+                                })
+
+                              if(nrow(bd_sinregistros) > 0) {
+
+                                warning(paste("La siguiente tabla muestra las respuestas que tienen cero registros en la base de respuestas de campo", " (total: ", nrow(bd_sinregistros), ").", sep = ""),
+                                        immediate. = T)
+                                print(bd_sinregistros, n = Inf)
+
+                              }
+
+                            },
+
                             eliminar_auditoria_telefonica = function(auditoria_telefonica){
 
                               if(("SbjNum" %in% names(self$base)) &
@@ -366,12 +410,14 @@ Respuestas <- R6::R6Class("Respuestas",
                               return(self$base)
 
                             },
+
                             coordenadas_faltantes = function(){
 
                               self$sin_coordenadas <- self$base %>% filter(is.na(Longitude) | is.na(Latitude))
                               self$base <- self$base %>% filter(!is.na(Longitude) | !is.na(Latitude))
 
                             },
+
                             eliminar_falta_coordenadas = function(){
 
                               if("Longitude" %in% names(self$base) & "Latitude" %in% names(self$base)){
@@ -387,6 +433,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                 print("No existe la columna Longitude ni Latitude en la base de respuestas")
                               }
                             },
+
                             correccion_cluster = function(base, shp, mantener, nivel, var_n){
                               aux <- corregir_cluster(base, shp, mantener, nivel, var_n)
 
@@ -398,6 +445,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               self$base <- aux
                             },
+
                             eliminar_fuera_muestra = function(respuestas, muestra, nivel, var_n){
 
                               self$base <- respuestas %>%
@@ -412,6 +460,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               )
                               print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
                             },
+
                             calcular_distancia = function(base, encuesta, muestra, var_n, nivel){
 
                               aux_sf <- base %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
@@ -432,6 +481,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               self$base <- respuestas %>% left_join(base %>% select(SbjNum, Longitude, Latitude), by = "SbjNum")
                             },
+
                             eliminar_faltantes_diseno = function(){
                               n <- nrow(self$base)
 
@@ -449,6 +499,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               )
                               return(self$base)
                             },
+
                             vars_diseno = function(muestra, var_n, tipo_encuesta){
                               vars_join <- c(var_n,
                                              names(muestra$base)[is.na(match(names(muestra$base), names(self$base)))]
@@ -479,6 +530,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                                distinct(across(all_of(var_reg)), region), by = var_reg)
                               }
                             }
+
                           )
 )
 
