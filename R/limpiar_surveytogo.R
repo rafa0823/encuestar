@@ -128,32 +128,36 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47
 #' @examples
 
 match_dicc_base <- function(self, quitar) {
-  # quitar <- match(self$respuestas$base %>% select(contains("Q_")) %>% select(1) %>% names,names(self$respuestas$base))
-  g <- tibble(
-    bd = self$respuestas$base %>% select(-any_of(quitar)) %>% names
-  ) %>% tibble::rownames_to_column() %>% full_join(
-    tibble(
-      diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%{
-        if(!is.null(self$cuestionario$documento)){
-          append(.,
-            self$cuestionario$documento %>%
-              filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
-              transmute(text = stringr::str_extract(text,"(?<=\\{).+?(?=\\})") %>% stringr::str_squish()) %>% pull(1)
-          )
-        } else {.}}
 
-    ) %>% tibble::rownames_to_column(), by = c("bd" = "diccionario")
-  ) %>% filter(is.na(rowname.x) | is.na(rowname.y)) %>%
+  g <- tibble(bd = self$respuestas$base %>% select(-any_of(quitar)) %>% names) %>%
+    tibble::rownames_to_column() %>%
+    full_join(tibble(diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%
+                       {
+                         if(!is.null(self$cuestionario$documento)) {
+                           append(., self$cuestionario$documento %>%
+                                    filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
+                                    transmute(text = stringr::str_extract(text,"(?<=\\{).+?(?=\\})") %>% stringr::str_squish()) %>%
+                                    pull(1)
+                                  )
+                           } else {.} }
+                     ) %>%
+                tibble::rownames_to_column(), by = c("bd" = "diccionario")) %>%
+    filter(is.na(rowname.x) | is.na(rowname.y)) %>%
     replace_na(list(rowname.y = "No esta en el diccionario",
                     rowname.x = "No esta en la base")) %>%
     mutate(rowname.x = if_else(stringr::str_detect(rowname.x,"No esta"), rowname.x, bd) %>%
              forcats::fct_relevel("No esta en la base", after = Inf),
            rowname.y = if_else(stringr::str_detect(rowname.y,"No esta"), rowname.y, bd) %>%
              forcats::fct_relevel("No esta en el diccionario", after = Inf)) %>%
-    ggplot() + geom_tile(aes(x = rowname.x, y =rowname.y), fill = "red") +
-    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-    labs(x = NULL, y = NULL)
+    select(variable = bd, razon = rowname.y)
+    # ggplot() +
+    # geom_tile(aes(x = rowname.x, y =rowname.y), fill = "red") +
+    # coord_flip() +
+    # theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    # labs(x = NULL, y = NULL)
+
   return(g)
+
 }
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("nivel","llave","Municipio","Localidad"))

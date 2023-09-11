@@ -102,8 +102,9 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
                             beepr::beep()
-                            return(print(match_dicc_base(self, self$quitar_vars)))
+                            return(print(match_dicc_base(self, self$quitar_vars), n = Inf))
                           },
+
                           simular_surveytogo = function(cuestionario, n, diseño, shp){
                             #simular respuestas
                             respuestas <- cuestionario$diccionario %>% mutate(n = n) %>%
@@ -155,6 +156,7 @@ Encuesta <- R6::R6Class("Encuesta",
                               relocate(Srvyr, Date, .before = Longitude) %>%
                               relocate(SECCION, INT15, .after = Latitude)
                           },
+
                           error_muestral_maximo = function(quitar_patron = NULL){
                             aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiples")
                             if(!is.null(quitar_patron)) {
@@ -201,14 +203,21 @@ Encuesta <- R6::R6Class("Encuesta",
                             print(a + b)
                             return(aux)
                           },
-                          exportar_entregable = function(carpeta = "Entregables", agregar = NULL, quitar = NULL){
+
+                          exportar_entregable = function(carpeta = "entregables", agregar = NULL, quitar = NULL){
+
                             if(!file.exists(carpeta)) dir.create(carpeta)
-                            #Exportar bd
+
+                            # Exportar bd
                             exportar_bd(self, carpeta, agregar, quitar)
+
                             # Exportar diccionario
-                            self$cuestionario$diccionario %>% unnest(respuestas) %>%
+                            self$cuestionario$diccionario %>%
+                              unnest(respuestas) %>%
                               readr::write_excel_csv(glue::glue("{carpeta}/diccionario.csv"))
+
                           }),
+
                         private=list()
 )
 
@@ -246,7 +255,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               # Parar si nombres de respuestas no coinciden con diccionario
                               self$nombres(self$base, diccionario)
 
-                              #Quitar patrones a respuestas
+                              # Quitar patrones a respuestas
                               self$q_patron(self$base, diccionario, patron)
 
                               # Parar si opciones de respuesta no coinciden con diccionario
@@ -259,7 +268,6 @@ Respuestas <- R6::R6Class("Respuestas",
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
 
                               # Mantener respuestas que no tienen coordenadas
-
                               if(mantener_falta_coordenadas){
 
                                 self$coordenadas_faltantes()
@@ -271,20 +279,20 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               }
 
-
                               # Eliminar entrevistas cuyo cluster no pertenece a la muestra
                               self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
+
                               # Corregir cluster equivocado
                               self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
-                              # Calcular distancia de la entrevista al cluster correcto
 
+                              # Calcular distancia de la entrevista al cluster correcto
                               self$calcular_distancia(base = self$base,
                                                       encuesta = encuesta,
                                                       muestra = muestra_completa,
                                                       var_n = var_n, nivel = nivel)
+
                               # Limpiar las que no tienen variables de diseno
                               # self$eliminar_faltantes_diseno() # no entiendo por qué
-
                               if(mantener_falta_coordenadas){
                                 self$base <- self$base %>% bind_rows(
                                   self$sin_coordenadas
@@ -302,10 +310,12 @@ Respuestas <- R6::R6Class("Respuestas",
                             },
 
                             nombres = function(bd, diccionario){
+
                               faltantes <- is.na(match(diccionario$llaves, names(bd)))
                               if(!all(!faltantes)){
                                 stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(diccionario$llaves[faltantes], collapse = ', ')}"))
                               }
+
                             },
 
                             q_patron = function(bd, dicc, patron){
@@ -436,13 +446,14 @@ Respuestas <- R6::R6Class("Respuestas",
                             },
 
                             correccion_cluster = function(base, shp, mantener, nivel, var_n){
+
                               aux <- corregir_cluster(base, shp, mantener, nivel, var_n)
 
-                              self$cluster_corregido <- self$base %>% select(all_of(c("SbjNum", "Srvyr", "Date", "Longitude", "Latitude", var_n))) %>%
+                              self$cluster_corregido <- self$base %>%
+                                select(all_of(c("SbjNum", "Srvyr", "Date", "Longitude", "Latitude", var_n))) %>%
                                 anti_join(aux, by = c("SbjNum", var_n)) %>%
-                                left_join(
-                                  aux %>% select(all_of(c("SbjNum", var_n))), by = "SbjNum"
-                                ) %>% rename(anterior = 6, nueva = 7)
+                                left_join(aux %>% select(all_of(c("SbjNum", var_n))), by = "SbjNum") %>%
+                                rename(anterior = 6, nueva = 7)
 
                               self$base <- aux
                             },
