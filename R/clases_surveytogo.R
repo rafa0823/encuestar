@@ -13,6 +13,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           cuestionario=NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
+                          bd_correcciones = NULL,
                           preguntas = NULL,
                           shp_completo = NULL,
                           shp = NULL,
@@ -34,6 +35,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 quitar_vars = NA,
                                                 muestra = NA,
                                                 auditoria_telefonica = NA,
+                                                bd_correcciones = NULL,
                                                 cuestionario=NA,
                                                 shp = NA,
                                                 tipo_encuesta = NA,
@@ -63,6 +65,9 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$cuestionario <- Cuestionario$new(documento = cuestionario, patron)
                             # Valorar active binding
                             self$auditoria_telefonica <- auditoria_telefonica %>% distinct(SbjNum, .keep_all = T)
+
+                            # Base de respuestas incorrectas y su correccion
+                            self$bd_correcciones <- bd_correcciones
 
                             self$shp_completo <- shp
 
@@ -247,7 +252,13 @@ Respuestas <- R6::R6Class("Respuestas",
                               diccionario <- encuesta$cuestionario$diccionario
 
                               if(!identical(names(encuesta$auditoria_telefonica), c("SbjNum", "razon"))) stop("Los nombres de las columnas de la base de datos de auditoría telefónica deben ser: 'Sbjnum, razon'")
+
+                              if(!is.null(encuesta$bd_correcciones)){
+                                if(!identical(names(encuesta$bd_correcciones), c("SbjNum", "codigo_pregunta", "capturada", "correccion"))) stop("Los nombres de las columnas de la base de datos de correcciones deben ser: 'Sbjnum, codigo_pregunta, capturada, correccion'")
+                              }
+
                               auditoria_telefonica <- encuesta$auditoria_telefonica
+                              bd_correcciones <- encuesta$bd_correcciones
                               muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
@@ -266,6 +277,13 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               # Limpiar las que no pasan auditoria telefonica
                               self$eliminar_auditoria_telefonica(auditoria_telefonica)
+
+                              # Corregir respuestas registradas mal por los encuestadores
+                              if(!is.null(bd_correcciones)) {
+
+                                self$base <- self$corregir_respuestas(respuestas = self$base, bd_correcciones = bd_correcciones)
+
+                              }
 
                               # Mantener respuestas que no tienen coordenadas
                               if(mantener_falta_coordenadas){
@@ -419,6 +437,54 @@ Respuestas <- R6::R6Class("Respuestas",
                               }
                               else cat("Identificador SbjNum no presente en alguna de las bases para eliminar por auditoria telefonica")
                               return(self$base)
+
+                            },
+
+                            corregir_respuestas = function(respuestas, bd_correcciones){
+
+                              corregir_respuestas_fn <- function(bd_respuestas, id_entrevista, codigo_pregunta, respuesta_capturada, respuesta_correcta) {
+
+                                respuestas_corregidas <- bd_respuestas %>%
+                                  mutate(!!rlang::sym(codigo_pregunta) := dplyr::if_else(condition = SbjNum == id_entrevista,
+                                                                                         true = respuesta_correcta,
+                                                                                         false = !!rlang::sym(codigo_pregunta)))
+
+                                return(respuestas_corregidas)
+
+                              }
+
+                              for(i in seq_along(bd_correcciones$SbjNum)) {
+
+                                # print(i)
+
+                                id_entrevista = bd_correcciones$SbjNum[i]
+                                codigo_pregunta = bd_correcciones$codigo_pregunta[i]
+                                respuesta_capturada = bd_correcciones$capturada[i]
+                                respuesta_correcta = bd_correcciones$correccion[i]
+
+                                a <- respuestas |>
+                                  filter(SbjNum == id_entrevista) |>
+                                  select(!!codigo_pregunta) |>
+                                  pull()
+
+                                # print(a)
+
+                                respuestas <- corregir_respuestas_fn(bd_respuestas = respuestas,
+                                                                  id_entrevista = id_entrevista,
+                                                                  codigo_pregunta = codigo_pregunta,
+                                                                  respuesta_capturada = respuesta_capturada,
+                                                                  respuesta_correcta = respuesta_correcta)
+
+                                b <- respuestas |>
+                                  filter(SbjNum == id_entrevista) |>
+                                  select(!!codigo_pregunta) |>
+                                  pull()
+
+                                # print(b)
+
+                              }
+
+                              return(respuestas)
 
                             },
 
