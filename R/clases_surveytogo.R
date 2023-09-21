@@ -1249,8 +1249,11 @@ Pregunta <- R6::R6Class("Pregunta",
 
                           multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
 
-                            g <-  analizar_frecuencia_multirespuesta(self$encuesta, patron_inicial) %>%
-                              graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) + self$tema()
+                            g <-  analizar_frecuencia_multirespuesta(diseno = self$encuesta$muestra$diseno,
+                                                                     patron_inicial) %>%
+                              graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) +
+                              self$tema()
+
                             return(g)
 
                           },
