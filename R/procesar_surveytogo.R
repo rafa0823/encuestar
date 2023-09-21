@@ -11,9 +11,10 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "l
 #'
 #' @examples
 
-analizar_frecuencias <- function(encuesta, pregunta){
-  estimacion <-survey::svymean(enquo(pregunta),
-                               design = encuesta$muestra$diseno, na.rm = T) %>%
+analizar_frecuencias <- function(diseno, pregunta){
+
+  estimacion <- survey::svymean(enquo(pregunta),
+                                design = diseno, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
     rename(media=2, ee=3) %>%
     mutate(respuesta = stringr::str_replace(
@@ -26,11 +27,9 @@ analizar_frecuencias <- function(encuesta, pregunta){
                                      .x = media,
                                      .fun = max)
     )
-  p <- estimacion %>% pull(pregunta) %>% unique
-  p <- encuesta$cuestionario$diccionario %>%
-    filter(llaves == p) %>% pull(pregunta)
-  estimacion <- estimacion %>% mutate(pregunta = p)
+
   return(estimacion)
+
 }
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))

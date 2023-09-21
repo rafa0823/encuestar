@@ -908,7 +908,25 @@ Pregunta <- R6::R6Class("Pregunta",
 
                                   if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
 
-                                  g <- encuestar::analizar_frecuencias(self$encuesta, {{llave}}) %>%
+                                  estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
+                                                                                pregunta = {{llave}})
+
+                                  if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
+
+                                    p <- estimacion %>%
+                                      pull(pregunta) %>%
+                                      unique
+
+                                    p <- self$encuesta$cuestionario$diccionario %>%
+                                      filter(llaves == p) %>%
+                                      pull(pregunta)
+
+                                    estimacion <- estimacion %>%
+                                      mutate(pregunta = p)
+
+                                  }
+
+                                  g <- estimacion |>
                                     encuestar::graficar_barras_frecuencia(titulo = parametros$tit,
                                                                           salto = parametros$salt,
                                                                           porcentajes_afuera = parametros$porcentajes_afuera,
