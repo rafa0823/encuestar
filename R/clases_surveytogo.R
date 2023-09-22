@@ -865,23 +865,28 @@ Pregunta <- R6::R6Class("Pregunta",
                           graficadas = NULL,
                           tema = NULL,
                           initialize = function(encuesta, tema = tema_default){
+
                             self$encuesta <- encuesta
                             self$tema <- tema
                             self$regiones_shp()
 
                           },
+
                           graficar = function(llave, tipo, aspectos = NULL, filtro = NULL,
                                               llave_partido, llave_conocimiento,
                                               llave_opinion,
                                               llave_xq,
                                               parametros = list(tit = "",
                                                                 porcentajes_afuera = F,
-                                                                desplazar_porcentajes = 0.01)){
+                                                                desplazar_porcentajes = 0.01)
+                                              ){
 
                             tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
+
                               if(is.null(aspectos)){
+
                                 tipo_p <- self$encuesta$cuestionario$diccionario %>%
                                   filter(llaves == quo_name(enquo(llave))) %>% pull(tipo_pregunta)
 
@@ -912,6 +917,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                     graficar_gauge_promedio(color = parametros$color, maximo = parametros$maximo,
                                                             familia = self$tema()$text$family)
                                 }
+
                                 else{
                                   llave_aux <- quo_name(enquo(llave))
                                   if(!(llave_aux %in% self$graficadas)){
@@ -954,6 +960,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                     self$tema()
                                 }
                               }
+
                               else{
 
                                 if(quo_name(enquo(llave)) != "NULL") {
@@ -1418,6 +1425,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               ) +
                               self$tema()
                           },
+
                           cruce_barras = function(por_grupo, variables, vartype = "cv", valor_variables, color, filter=NULL){
                             encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                               cruce = por_grupo,
@@ -1442,6 +1450,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                 familia = self$tema()$text$family) +
                               self$tema()
                           },
+
                           cruce_bloque = function(cruce, variable, vartype = "cv", filter=NULL){
                             encuestar:::analizar_cruce_2vbrechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                                  var1 = cruce,
@@ -1455,9 +1464,11 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                  familia = self$tema()$text$family)
 
                           },
+
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
+
                         ))
 
 #' Title
