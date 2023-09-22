@@ -882,6 +882,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                               ){
 
                             tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
+                                                                "gauge_categorica",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
 
@@ -891,6 +892,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                   filter(llaves == quo_name(enquo(llave))) %>% pull(tipo_pregunta)
 
                                 if("numericas" == tipo_p){
+
                                   v_params <- c("color", "maximo")
 
                                   if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
@@ -914,8 +916,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                   }
 
                                   g <- estimacion %>%
-                                    graficar_gauge_promedio(color = parametros$color, maximo = parametros$maximo,
-                                                            familia = self$tema()$text$family)
+                                    graficar_gauge_promedio(color = parametros$color,
+                                                            size_text_pct = parametros$size_text_pct)
                                 }
 
                                 else{
@@ -1041,6 +1043,34 @@ Pregunta <- R6::R6Class("Pregunta",
                                   }
                                 }
                               }
+
+                            }
+
+                            if(tipo == "gauge_categorica"){
+
+                              estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
+                                                                            pregunta = {{llave}})
+
+                              if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
+
+                                p <- estimacion %>%
+                                  pull(pregunta) %>%
+                                  unique
+
+                                p <- self$encuesta$cuestionario$diccionario %>%
+                                  filter(llaves == p) %>%
+                                  pull(pregunta)
+
+                                estimacion <- estimacion %>%
+                                  mutate(pregunta = p)
+
+                              }
+
+                              g <- estimacion %>%
+                                filter(eval(rlang::parse_expr(filtro))) %>%
+                                mutate(media = media) %>%
+                                graficar_gauge_promedio(color = parametros$color,
+                                                        size_text_pct = parametros$size_text_pct)
 
                             }
 
@@ -1221,35 +1251,6 @@ Pregunta <- R6::R6Class("Pregunta",
 
                             }
 
-                            return(g)
-
-                          },
-
-                          categorica_gauge = function(llave, filtro, color, size_text_pct){
-
-                            estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
-                                                                          pregunta = {{llave}})
-
-                            if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
-
-                              p <- estimacion %>%
-                                pull(pregunta) %>%
-                                unique
-
-                              p <- self$encuesta$cuestionario$diccionario %>%
-                                filter(llaves == p) %>%
-                                pull(pregunta)
-
-                              estimacion <- estimacion %>%
-                                mutate(pregunta = p)
-
-                            }
-
-                            g <- estimacion %>%
-                              filter(eval(rlang::parse_expr(filtro))) %>%
-                              mutate(media = media*100) %>%
-                              graficar_gauge_promedio(color = color, maximo = 100, texto = "%",
-                                                      familia = self$tema()$text$family, size_text_pct = size_text_pct)
                             return(g)
 
                           },

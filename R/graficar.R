@@ -244,25 +244,27 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia, texto = "\n Promedio", size_text_pct){
+graficar_gauge_promedio <- function(bd, color = "#850D2D", size_text_pct){
 
-  bd %>%
+  g <- bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
               fill = color,  color = "white", alpha= .95) +
-    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = maximo),
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = 1.),
               fill = "grey90", color = "white") +
-    geom_text(aes(x = 0, y = media, label = scales::percent(x = media/100, accuracy = 1.)),
-              size = size_text_pct, family = familia, nudge_y = 0.25) +
+    geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
+              size = size_text_pct, family = "Poppins", nudge_y = 0.25) +
     scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
     scale_x_continuous(limits = c(0, NA)) +
-    scale_y_continuous(limits = c(0, maximo)) +
+    scale_y_continuous(limits = c(0, 1)) +
     xlab("") +
     ylab("") +
     coord_polar(theta = "y") +
     theme_void() +
     theme(legend.position = "bottom", axis.text = element_blank(),
-          text = element_text(size = 15, family = familia))
+          text = element_text(size = 15, family = "Poppins"))
+
+  return(g)
 
 }
 
