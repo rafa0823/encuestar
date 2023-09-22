@@ -244,19 +244,32 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", size_text_pct){
+graficar_gauge_promedio <- function(bd, color = "#850D2D", escala = c(0, 10), size_text_pct){
 
   g <- bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
               fill = color,  color = "white", alpha= .95) +
-    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = 1.),
-              fill = "grey90", color = "white") +
-    geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
-              size = size_text_pct, family = "Poppins", nudge_y = 0.25) +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = escala[2]),
+              fill = "grey90", color = "white")
+
+  if(escala[2] == 1) {
+
+    g <- g + geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
+                       size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+
+  }
+  else {
+
+    g <- g + geom_text(aes(x = 0, y = media, label = scales::comma(x = media, accuracy = 1.1)),
+                       size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+
+  }
+
+  g <- g +
     scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
     scale_x_continuous(limits = c(0, NA)) +
-    scale_y_continuous(limits = c(0, 1)) +
+    scale_y_continuous(limits = c(0, escala[2])) +
     xlab("") +
     ylab("") +
     coord_polar(theta = "y") +
