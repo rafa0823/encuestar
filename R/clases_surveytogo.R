@@ -1048,29 +1048,38 @@ Pregunta <- R6::R6Class("Pregunta",
 
                             if(tipo == "gauge_categorica"){
 
-                              estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
-                                                                            pregunta = {{llave}})
+                              if(is.null(filtro)) {
 
-                              if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
-
-                                p <- estimacion %>%
-                                  pull(pregunta) %>%
-                                  unique
-
-                                p <- self$encuesta$cuestionario$diccionario %>%
-                                  filter(llaves == p) %>%
-                                  pull(pregunta)
-
-                                estimacion <- estimacion %>%
-                                  mutate(pregunta = p)
+                                stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
 
                               }
 
-                              g <- estimacion %>%
-                                filter(eval(rlang::parse_expr(filtro))) %>%
-                                mutate(media = media) %>%
-                                graficar_gauge_promedio(color = parametros$color,
-                                                        size_text_pct = parametros$size_text_pct)
+                              if(!is.null(filtro)) {
+
+                                estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
+                                                                              pregunta = {{llave}})
+
+                                if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
+
+                                  p <- estimacion %>%
+                                    pull(pregunta) %>%
+                                    unique
+
+                                  p <- self$encuesta$cuestionario$diccionario %>%
+                                    filter(llaves == p) %>%
+                                    pull(pregunta)
+
+                                  estimacion <- estimacion %>%
+                                    mutate(pregunta = p)
+
+                                }
+
+                                g <- estimacion %>%
+                                  filter(eval(rlang::parse_expr(filtro))) %>%
+                                  mutate(media = media) %>%
+                                  graficar_gauge_promedio(color = parametros$color,
+                                                          size_text_pct = parametros$size_text_pct)
+                              }
 
                             }
 
