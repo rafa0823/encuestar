@@ -891,7 +891,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                 tipo_p <- self$encuesta$cuestionario$diccionario %>%
                                   filter(llaves == quo_name(enquo(llave))) %>% pull(tipo_pregunta)
 
-                                if("numericas" == tipo_p){
+                                if(tipo_p == "numericas"){
 
                                   # v_params <- c("color", "maximo")
                                   #
@@ -918,17 +918,19 @@ Pregunta <- R6::R6Class("Pregunta",
                                   # g <- estimacion %>%
                                   #   graficar_gauge_promedio(color = parametros$color,
                                   #                           size_text_pct = parametros$size_text_pct)
+
                                 }
 
-                                else{
+                                else {
+
                                   llave_aux <- quo_name(enquo(llave))
                                   if(!(llave_aux %in% self$graficadas)){
                                     if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
                                       self$graficadas <- self$graficadas %>% append(llave_aux)
-                                    } else{
+                                    } else {
                                       stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
                                     }
-                                  } else{
+                                  } else {
                                     warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                                   }
                                   v_params <- c("tit", "salto")
@@ -961,6 +963,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                           tema = self$tema) +
                                     self$tema()
                                 }
+
                               }
 
                               else{
