@@ -865,53 +865,61 @@ Pregunta <- R6::R6Class("Pregunta",
                           graficadas = NULL,
                           tema = NULL,
                           initialize = function(encuesta, tema = tema_default){
+
                             self$encuesta <- encuesta
                             self$tema <- tema
                             self$regiones_shp()
 
                           },
+
                           graficar = function(llave, tipo, aspectos = NULL, filtro = NULL,
                                               llave_partido, llave_conocimiento,
                                               llave_opinion,
                                               llave_xq,
                                               parametros = list(tit = "",
                                                                 porcentajes_afuera = F,
-                                                                desplazar_porcentajes = 0.01)){
+                                                                desplazar_porcentajes = 0.01)
+                                              ){
 
                             tipo <- match.arg(tipo, choices = c("frecuencia", "promedio", "texto_barras", "texto_nube",
+                                                                "gauge",
                                                                 "candidato_opinion", "candidato_saldo", "candidato_partido"))
                             if(tipo == "frecuencia"){
+
                               if(is.null(aspectos)){
+
                                 tipo_p <- self$encuesta$cuestionario$diccionario %>%
                                   filter(llaves == quo_name(enquo(llave))) %>% pull(tipo_pregunta)
 
                                 if("numericas" == tipo_p){
-                                  v_params <- c("color", "maximo")
 
-                                  if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
-
-                                  estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
-                                                                                pregunta = {{llave}})
-
-                                  if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
-
-                                    p <- estimacion %>%
-                                      pull(pregunta) %>%
-                                      unique
-
-                                    p <- self$encuesta$cuestionario$diccionario %>%
-                                      filter(llaves == p) %>%
-                                      pull(pregunta)
-
-                                    estimacion <- estimacion %>%
-                                      mutate(pregunta = p)
-
-                                  }
-
-                                  g <- estimacion %>%
-                                    graficar_gauge_promedio(color = parametros$color, maximo = parametros$maximo,
-                                                            familia = self$tema()$text$family)
+                                  # v_params <- c("color", "maximo")
+                                  #
+                                  # if(sum(is.na(match(v_params, names(parametros)))) > 0) stop(glue::glue("Especifique los parametros {paste(v_params[is.na(match(v_params, names(parametros)))], collapse= ', ')}"))
+                                  #
+                                  # estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
+                                  #                                               pregunta = {{llave}})
+                                  #
+                                  # if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
+                                  #
+                                  #   p <- estimacion %>%
+                                  #     pull(pregunta) %>%
+                                  #     unique
+                                  #
+                                  #   p <- self$encuesta$cuestionario$diccionario %>%
+                                  #     filter(llaves == p) %>%
+                                  #     pull(pregunta)
+                                  #
+                                  #   estimacion <- estimacion %>%
+                                  #     mutate(pregunta = p)
+                                  #
+                                  # }
+                                  #
+                                  # g <- estimacion %>%
+                                  #   graficar_gauge_promedio(color = parametros$color,
+                                  #                           size_text_pct = parametros$size_text_pct)
                                 }
+
                                 else{
                                   llave_aux <- quo_name(enquo(llave))
                                   if(!(llave_aux %in% self$graficadas)){
@@ -954,6 +962,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                     self$tema()
                                 }
                               }
+
                               else{
 
                                 if(quo_name(enquo(llave)) != "NULL") {
@@ -1033,6 +1042,81 @@ Pregunta <- R6::R6Class("Pregunta",
                                       ) + self$tema()
                                   }
                                 }
+                              }
+
+                            }
+
+                            if(tipo == "gauge"){
+
+                              tipo_p <- self$encuesta$cuestionario$diccionario %>%
+                                filter(llaves == quo_name(enquo(llave))) %>%
+                                pull(tipo_pregunta)
+
+                              if(tipo_p == "multiples") {
+
+                                if(is.null(filtro)) {
+
+                                  stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
+
+                                }
+
+                                else {
+
+                                  estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
+                                                                                pregunta = {{llave}})
+
+                                  if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
+
+                                    p <- estimacion %>%
+                                      pull(pregunta) %>%
+                                      unique
+
+                                    p <- self$encuesta$cuestionario$diccionario %>%
+                                      filter(llaves == p) %>%
+                                      pull(pregunta)
+
+                                    estimacion <- estimacion %>%
+                                      mutate(pregunta = p)
+
+                                  }
+
+                                  g <- estimacion %>%
+                                    filter(eval(rlang::parse_expr(filtro))) %>%
+                                    mutate(media = media) %>%
+                                    graficar_gauge_promedio(color = parametros$color,
+                                                            escala = parametros$escala,
+                                                            size_text_pct = parametros$size_text_pct)
+                                }
+
+                              }
+
+                              if(tipo_p == "numericas") {
+
+                                estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
+                                                                              pregunta = {{llave}})
+
+                                if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
+
+                                  p <- estimacion %>%
+                                    pull(pregunta) %>%
+                                    unique
+
+                                  p <- self$encuesta$cuestionario$diccionario %>%
+                                    filter(llaves == p) %>%
+                                    pull(pregunta)
+
+                                  estimacion <- estimacion %>%
+                                    mutate(pregunta = p)
+
+                                }
+
+                                g <- estimacion %>%
+                                  graficar_gauge_promedio(color = parametros$color,
+                                                          escala = parametros$escala,
+                                                          size_text_pct = parametros$size_text_pct)
+
+
+
                               }
 
                             }
@@ -1218,39 +1302,13 @@ Pregunta <- R6::R6Class("Pregunta",
 
                           },
 
-                          categorica_gauge = function(llave, filtro, color, size_text_pct){
-
-                            estimacion <- encuestar::analizar_frecuencias(diseno = self$encuesta$muestra$diseno,
-                                                                          pregunta = {{llave}})
-
-                            if(self$encuesta$tipo_encuesta %in% c("ine", "inegi")) {
-
-                              p <- estimacion %>%
-                                pull(pregunta) %>%
-                                unique
-
-                              p <- self$encuesta$cuestionario$diccionario %>%
-                                filter(llaves == p) %>%
-                                pull(pregunta)
-
-                              estimacion <- estimacion %>%
-                                mutate(pregunta = p)
-
-                            }
-
-                            g <- estimacion %>%
-                              filter(eval(rlang::parse_expr(filtro))) %>%
-                              mutate(media = media*100) %>%
-                              graficar_gauge_promedio(color = color, maximo = 100, texto = "%",
-                                                      familia = self$tema()$text$family, size_text_pct = size_text_pct)
-                            return(g)
-
-                          },
-
                           multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
 
-                            g <-  analizar_frecuencia_multirespuesta(self$encuesta, patron_inicial) %>%
-                              graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) + self$tema()
+                            g <-  analizar_frecuencia_multirespuesta(diseno = self$encuesta$muestra$diseno,
+                                                                     patron_inicial) %>%
+                              graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) +
+                              self$tema()
+
                             return(g)
 
                           },
@@ -1415,6 +1473,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               ) +
                               self$tema()
                           },
+
                           cruce_barras = function(por_grupo, variables, vartype = "cv", valor_variables, color, filter=NULL){
                             encuestar:::analizar_cruce_puntos(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                               cruce = por_grupo,
@@ -1439,6 +1498,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                 familia = self$tema()$text$family) +
                               self$tema()
                           },
+
                           cruce_bloque = function(cruce, variable, vartype = "cv", filter=NULL){
                             encuestar:::analizar_cruce_2vbrechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                                  var1 = cruce,
@@ -1452,9 +1512,11 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                  familia = self$tema()$text$family)
 
                           },
+
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                           }
+
                         ))
 
 #' Title

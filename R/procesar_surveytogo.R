@@ -448,11 +448,11 @@ analizar_morena <- function(encuesta, personajes, atributos){
 
 }
 
-analizar_frecuencia_multirespuesta <- function(encuesta, patron_inicial){
-  aux <- encuesta$muestra$diseno$variables %>%
-    select(starts_with(patron_inicial)) %>% as_tibble %>%
-    rownames_to_column() %>%
-    mutate(weight = weights(encuesta$muestra$diseno)) %>%
+analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
+
+  aux <- diseno$variables %>%
+    tibble::rownames_to_column() %>%
+    mutate(weight = weights(diseno)) %>%
     pivot_longer(-c(rowname, weight)) %>%
     filter(!is.na(value)) %>%
     mutate(seleccion = 1) %>%
@@ -460,12 +460,12 @@ analizar_frecuencia_multirespuesta <- function(encuesta, patron_inicial){
     pivot_wider(names_from = value, values_from  = seleccion, values_fill = 0) %>%
     select(-rowname) %>% summarise(across(-weight, ~sum(.x*weight))) %>%
     pivot_longer(everything(), names_to = "respuesta", values_to = "value") %>%
-    mutate(media = value/sum(weights(encuesta$muestra$diseno)),
+    mutate(media = value/sum(weights(diseno)),
            respuesta=forcats::fct_reorder(.f = respuesta,
                                           .x = media,
-                                          .fun = max)
-    )
+                                          .fun = max))
   return(aux)
+
 }
 
 analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, valor_variables){
