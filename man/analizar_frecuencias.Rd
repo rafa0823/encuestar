@@ -4,7 +4,7 @@
 \alias{analizar_frecuencias}
 \title{Title}
 \usage{
-analizar_frecuencias(encuesta, pregunta)
+analizar_frecuencias(diseno, pregunta)
 }
 \arguments{
 \item{pregunta}{}

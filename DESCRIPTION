@@ -7,8 +7,11 @@ Authors@R:
 Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
+Depends: 
+    R (>= 2.10)
 Imports: 
     basicspace,
+    beepr,
     dplyr,
     factoextra,
     FactoMineR,
@@ -48,11 +51,14 @@ Imports:
     treemapify,
     utils,
     yesno
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: 
+    knitr
 Remotes:
     hrbrmstr/ggchicklet
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Depends: 
-    R (>= 2.10)

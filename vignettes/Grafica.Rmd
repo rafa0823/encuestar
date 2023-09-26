@@ -1,0 +1,55 @@
+---
+title: "Clase Grafica"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Clase Grafica}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.asp = .6, fig.width = 12, out.width="100%", dpi = 300
+)
+```
+
+```{r setup}
+library(encuestar)
+library(dplyr)
+# usethis::load_all()
+```
+
+```{r correcciones_data}
+datos_demo <- datos_demo |> mutate(across(contains("evaluacion_"), ~as.numeric(.x)))
+cuestionario_demo <-  cuestionario_demo|> 
+  mutate(tema = if_else(llaves =="evaluacion_amlo", "AMLO", tema),
+         tema = if_else(llaves =="evaluacion_rutilio", "Rutilio", tema)
+  )
+```
+
+
+```{r clase_grafica}
+diseno <- survey::svydesign(ids = ~1, data = datos_demo)
+
+gr <- Grafica$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
+
+```
+
+# Barras categórica
+
+```{r}
+gr$barras_categorica(codigo = problema_masimportante, 
+                     titulo = "Aquí va el título",
+                     salto = 20, nota = "Aquí va la nota")
+
+
+```
+
+# Barras numérica
+
+```{r, dpi = 300, out.width="100%", out.height="50%"}
+gr$barras_numerica(llave = evaluacion, aspectos = c("amlo", "rutilio"))
+```
+

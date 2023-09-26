@@ -1544,24 +1544,49 @@ Pregunta2 <- R6::R6Class(classname = "Pregunta2",
                            })
 )
 
+#'Esta es la clase de pregunta
+#'@export
 Grafica <- R6::R6Class(classname = "Grafica",
                        public = list(
                          diseno = NULL,
+                         diccionario = NULL,
                          shp = NULL,
                          tema = NULL,
-                         initialize = function(diseno, shp = NULL, tema){
+                         initialize = function(diseno, diccionario = NULL, shp = NULL, tema){
                            self$diseno <- diseno
+                           self$diccionario <- diccionario
                            # self$shp <- shp
                            self$tema <- tema
                          },
-                         barras_categorica = function(){
+                         barras_categorica = function(codigo, titulo,
+                                                      salto, porcentajes_afuera = T,
+                                                      desplazar_porcentajes = 0, nota){
+
+                           analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
+                             graficar_barras_frecuencia(titulo = titulo, salto = salto,
+                                                        porcentajes_afuera = porcentajes_afuera,
+                                                        desplazar_porcentajes = desplazar_porcentajes,
+                                                        nota = nota, tema = self$tema) +
+                             self$tema()
 
                          },
-                         barras_multirespuesta = function(){
+                         barras_multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
+
+                             analizar_frecuencia_multirespuesta(diseno = self$diseno,
+                                                                      patron_inicial) %>%
+                               graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) +
+                               self$tema()
 
                          },
-                         barras_numerica = function(){
-
+                         barras_numerica = function(llave, aspectos){
+                           analizar_frecuencias_aspectos(self$diseno, self$diccionario,
+                                                         {{llave}}, aspectos) %>%
+                             left_join(
+                               self$diccionario %>%
+                                 select(aspecto = llaves, tema)
+                             ) |>
+                             graficar_barras_numerica() +
+                             self$tema()
                          },
                          barras_texto = function(){
 

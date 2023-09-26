@@ -4,7 +4,15 @@
 \alias{graficar_barras_frecuencia}
 \title{Para graficar frecuencias simples}
 \usage{
-graficar_barras_frecuencia(bd, titulo, salto = 20, nota = "", tema)
+graficar_barras_frecuencia(
+  bd,
+  titulo,
+  salto = 20,
+  porcentajes_afuera,
+  desplazar_porcentajes,
+  nota = "",
+  tema
+)
 }
 \arguments{
 \item{bd}{Debe provenir de la función de analizar_frecuencias}

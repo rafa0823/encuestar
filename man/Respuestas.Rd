@@ -18,7 +18,9 @@ Esta es la clase Respuestas
 \item \href{#method-Respuestas-nombres}{\code{Respuestas$nombres()}}
 \item \href{#method-Respuestas-q_patron}{\code{Respuestas$q_patron()}}
 \item \href{#method-Respuestas-categorias}{\code{Respuestas$categorias()}}
+\item \href{#method-Respuestas-respuestas_sin_seleccion}{\code{Respuestas$respuestas_sin_seleccion()}}
 \item \href{#method-Respuestas-eliminar_auditoria_telefonica}{\code{Respuestas$eliminar_auditoria_telefonica()}}
+\item \href{#method-Respuestas-corregir_respuestas}{\code{Respuestas$corregir_respuestas()}}
 \item \href{#method-Respuestas-coordenadas_faltantes}{\code{Respuestas$coordenadas_faltantes()}}
 \item \href{#method-Respuestas-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
 \item \href{#method-Respuestas-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
@@ -91,11 +93,29 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Respuestas-respuestas_sin_seleccion"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-respuestas_sin_seleccion}{}}}
+\subsection{Method \code{respuestas_sin_seleccion()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$respuestas_sin_seleccion(bd, diccionario)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Respuestas-eliminar_auditoria_telefonica"></a>}}
 \if{latex}{\out{\hypertarget{method-Respuestas-eliminar_auditoria_telefonica}{}}}
 \subsection{Method \code{eliminar_auditoria_telefonica()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_auditoria_telefonica(auditoria_telefonica)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Respuestas-corregir_respuestas"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-corregir_respuestas}{}}}
+\subsection{Method \code{corregir_respuestas()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$corregir_respuestas(respuestas, bd_correcciones)}\if{html}{\out{</div>}}
 }
 
 }

@@ -7,9 +7,7 @@
 graficar_gauge_promedio(
   bd,
   color = "#850D2D",
-  maximo = 10,
-  familia,
-  texto = "\\n Promedio",
+  escala = c(0, 10),
   size_text_pct
 )
 }

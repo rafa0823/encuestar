@@ -3,6 +3,7 @@
 export(Auditoria)
 export(Cuestionario)
 export(Encuesta)
+export(Grafica)
 export(Muestra)
 export(Pregunta)
 export(Respuestas)
