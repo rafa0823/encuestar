@@ -34,6 +34,7 @@ Esta es la clase Respuestas
 <ul>
 <li><span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="error_muestral_maximo"><a href='../../encuestar/html/Encuesta.html#method-Encuesta-error_muestral_maximo'><code>encuestar::Encuesta$error_muestral_maximo()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="exportar_entregable"><a href='../../encuestar/html/Encuesta.html#method-Encuesta-exportar_entregable'><code>encuestar::Encuesta$exportar_entregable()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="simular_surveytogo"><a href='../../encuestar/html/Encuesta.html#method-Encuesta-simular_surveytogo'><code>encuestar::Encuesta$simular_surveytogo()</code></a></span></li>
 </ul>
 </details>
 }}
