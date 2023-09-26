@@ -1,9 +1,9 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
 
-#' Title
+#' Analizar frecuencias
 #'
-#' @param encuesta
-#' @param pregunta
+#' @param diseno Diseño muestral que contiene la información de pesos de cada individuo
+#' @param pregunta Nombre de la variable asociada al análisis de la muestra
 #'
 #' @return
 #' \item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}

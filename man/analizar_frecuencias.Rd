@@ -2,16 +2,18 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_frecuencias}
 \alias{analizar_frecuencias}
-\title{Title}
+\title{Analizar frecuencias}
 \usage{
-analizar_frecuencias(encuesta, pregunta)
+analizar_frecuencias(diseno, pregunta)
 }
 \arguments{
-\item{pregunta}{}
+\item{diseno}{Diseño muestral que contiene la información de pesos de cada individuo}
+
+\item{pregunta}{Nombre de la variable asociada al análisis de la muestra}
 }
 \value{
 \item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
 }
 \description{
-Title
+Analizar frecuencias
 }
