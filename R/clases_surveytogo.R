@@ -1522,6 +1522,67 @@ Pregunta <- R6::R6Class("Pregunta",
 
                         ))
 
+Pregunta2 <- R6::R6Class(classname = "Pregunta2",
+                         public = list(
+                           encuesta = NULL,
+                           grafica = NULL,
+                           mapa = NULL,
+                           modelo = NULL,
+                           cruce = NULL,
+                           especiales = NULL,
+                           regiones = NULL,
+                           tema = NULL,
+                           initialize = function(encuesta, tema = tema_default){
+
+                             self$encuesta <- encuesta
+
+                             # self$grafica <- Grafica$new()
+                             # self$mapa <- Mapa$new()
+                             # self$cruce <- Cruce$new()
+                             self$tema <- tema
+
+                           })
+)
+
+Grafica <- R6::R6Class(classname = "Grafica",
+                       public = list(
+                         diseno = NULL,
+                         shp = NULL,
+                         tema = NULL,
+                         initialize = function(diseno, shp = NULL, tema){
+                           self$diseno <- diseno
+                           # self$shp <- shp
+                           self$tema <- tema
+                         },
+                         barras_categorica = function(){
+
+                         },
+                         barras_multirespuesta = function(){
+
+                         },
+                         barras_numerica = function(){
+
+                         },
+                         barras_texto = function(){
+
+                         },
+                         gauge_numerica = function(){
+
+                         },
+                         gauge_categorica = function(){
+
+                         },
+                         intervalo_numerica = function(){
+
+                         },
+                         nube_texto = function(){
+
+                         },
+                         sankey_categorica = function(){
+
+                         }
+                       ))
+
 #' Title
 #'
 #' @param encuesta
