@@ -28,6 +28,11 @@ Esta es la clase de pregunta
 \item \href{#method-Pregunta-prcomp}{\code{Pregunta$prcomp()}}
 \item \href{#method-Pregunta-blackbox_1d}{\code{Pregunta$blackbox_1d()}}
 \item \href{#method-Pregunta-morena}{\code{Pregunta$morena()}}
+\item \href{#method-Pregunta-cruce_puntos}{\code{Pregunta$cruce_puntos()}}
+\item \href{#method-Pregunta-cruce_2vbrechas}{\code{Pregunta$cruce_2vbrechas()}}
+\item \href{#method-Pregunta-cruce_multibrechas}{\code{Pregunta$cruce_multibrechas()}}
+\item \href{#method-Pregunta-cruce_barras}{\code{Pregunta$cruce_barras()}}
+\item \href{#method-Pregunta-cruce_bloque}{\code{Pregunta$cruce_bloque()}}
 \item \href{#method-Pregunta-faltantes}{\code{Pregunta$faltantes()}}
 \item \href{#method-Pregunta-clone}{\code{Pregunta$clone()}}
 }
@@ -211,6 +216,75 @@ Esta es la clase de pregunta
 \subsection{Method \code{morena()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Pregunta$morena(personajes, atributos, labels, p)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Pregunta-cruce_puntos"></a>}}
+\if{latex}{\out{\hypertarget{method-Pregunta-cruce_puntos}{}}}
+\subsection{Method \code{cruce_puntos()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_puntos(cruce, variables, vartype = "se", valor_variables)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Pregunta-cruce_2vbrechas"></a>}}
+\if{latex}{\out{\hypertarget{method-Pregunta-cruce_2vbrechas}{}}}
+\subsection{Method \code{cruce_2vbrechas()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_2vbrechas(
+  var1,
+  var2_filtro,
+  filtro,
+  vartype = "cv",
+  line_rich = FALSE,
+  line_linewidth = 2,
+  line_hjust = "ymax",
+  line_vjust = -0.3
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Pregunta-cruce_multibrechas"></a>}}
+\if{latex}{\out{\hypertarget{method-Pregunta-cruce_multibrechas}{}}}
+\subsection{Method \code{cruce_multibrechas()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_multibrechas(
+  por_grupo,
+  variables,
+  vartype = "cv",
+  valor_variables,
+  line_rich = FALSE,
+  line_linewidth = 2,
+  line_hjust = "ymax",
+  line_vjust = -0.3
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Pregunta-cruce_barras"></a>}}
+\if{latex}{\out{\hypertarget{method-Pregunta-cruce_barras}{}}}
+\subsection{Method \code{cruce_barras()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_barras(
+  por_grupo,
+  variables,
+  vartype = "cv",
+  valor_variables,
+  color
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Pregunta-cruce_bloque"></a>}}
+\if{latex}{\out{\hypertarget{method-Pregunta-cruce_bloque}{}}}
+\subsection{Method \code{cruce_bloque()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_bloque(cruce, variable, vartype = "cv")}\if{html}{\out{</div>}}
 }
 
 }

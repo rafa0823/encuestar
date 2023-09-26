@@ -28,6 +28,7 @@ La clase Encuesta contiene todos los metodos, y atributos que puede tener una en
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Encuesta-new}{\code{Encuesta$new()}}
+\item \href{#method-Encuesta-simular_surveytogo}{\code{Encuesta$simular_surveytogo()}}
 \item \href{#method-Encuesta-error_muestral_maximo}{\code{Encuesta$error_muestral_maximo()}}
 \item \href{#method-Encuesta-exportar_entregable}{\code{Encuesta$exportar_entregable()}}
 \item \href{#method-Encuesta-clone}{\code{Encuesta$clone()}}
@@ -41,6 +42,7 @@ Create a person
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$new(
   respuestas = NA,
+  n_simulaciones = 100,
   quitar_vars = NA,
   muestra = NA,
   auditoria_telefonica = NA,
@@ -65,6 +67,15 @@ Create a person
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Encuesta-simular_surveytogo"></a>}}
+\if{latex}{\out{\hypertarget{method-Encuesta-simular_surveytogo}{}}}
+\subsection{Method \code{simular_surveytogo()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Encuesta$simular_surveytogo(cuestionario, n, diseño, shp)}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Encuesta-error_muestral_maximo"></a>}}
