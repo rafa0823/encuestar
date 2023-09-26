@@ -3,9 +3,6 @@
 \name{Auditoria}
 \alias{Auditoria}
 \title{Title}
-\value{
-
-}
 \description{
 Title
 
@@ -14,15 +11,15 @@ Title
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{Auditoria$new()}}
-\item \href{#method-run_app}{\code{Auditoria$run_app()}}
-\item \href{#method-subir_app}{\code{Auditoria$subir_app()}}
-\item \href{#method-clone}{\code{Auditoria$clone()}}
+\item \href{#method-Auditoria-new}{\code{Auditoria$new()}}
+\item \href{#method-Auditoria-run_app}{\code{Auditoria$run_app()}}
+\item \href{#method-Auditoria-subir_app}{\code{Auditoria$subir_app()}}
+\item \href{#method-Auditoria-clone}{\code{Auditoria$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-Auditoria-new"></a>}}
+\if{latex}{\out{\hypertarget{method-Auditoria-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Auditoria$new(encuesta, tipo_encuesta, dir = "auditoria")}\if{html}{\out{</div>}}
@@ -37,8 +34,8 @@ Title
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-run_app"></a>}}
-\if{latex}{\out{\hypertarget{method-run_app}{}}}
+\if{html}{\out{<a id="method-Auditoria-run_app"></a>}}
+\if{latex}{\out{\hypertarget{method-Auditoria-run_app}{}}}
 \subsection{Method \code{run_app()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Auditoria$run_app()}\if{html}{\out{</div>}}
@@ -46,8 +43,8 @@ Title
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-subir_app"></a>}}
-\if{latex}{\out{\hypertarget{method-subir_app}{}}}
+\if{html}{\out{<a id="method-Auditoria-subir_app"></a>}}
+\if{latex}{\out{\hypertarget{method-Auditoria-subir_app}{}}}
 \subsection{Method \code{subir_app()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Auditoria$subir_app(...)}\if{html}{\out{</div>}}
@@ -55,8 +52,8 @@ Title
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-Auditoria-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-Auditoria-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

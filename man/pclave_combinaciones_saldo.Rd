@@ -9,9 +9,6 @@ pclave_combinaciones_saldo(bd_texto, tipo, n_palabras)
 \arguments{
 \item{n_palabras}{}
 }
-\value{
-
-}
 \description{
 Title
 }

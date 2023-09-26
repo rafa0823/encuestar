@@ -26,9 +26,6 @@ graficar_frecuencia_opuestos(
 
 \item{color2}{Color de las barras del grupo 2}
 }
-\value{
-
-}
 \description{
 @param bd  Base de datos (ya procesada)
 }

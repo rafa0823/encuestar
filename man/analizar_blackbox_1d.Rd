@@ -9,9 +9,6 @@ analizar_blackbox_1d(bd, vars, stimuli)
 \arguments{
 \item{stimuli}{}
 }
-\value{
-
-}
 \description{
 Title
 }

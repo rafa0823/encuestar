@@ -9,9 +9,6 @@ graficar_blackbox_1d(lst)
 \arguments{
 \item{lst}{}
 }
-\value{
-
-}
 \description{
 Title
 }

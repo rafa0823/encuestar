@@ -9,9 +9,6 @@ var_clave_diccionario(self, diseno)
 \arguments{
 \item{self}{}
 }
-\value{
-
-}
 \description{
 Title
 }

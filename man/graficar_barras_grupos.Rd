@@ -29,9 +29,6 @@ graficar_barras_grupos(
 
 \item{colores}{Vector de colores del plot}
 }
-\value{
-
-}
 \description{
 Para graficar frecuencias de barras agrupadas
 }

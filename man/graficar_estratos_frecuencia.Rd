@@ -17,9 +17,6 @@ graficar_estratos_frecuencia(
 
 \item{familia}{}
 }
-\value{
-
-}
 \description{
 Title
 }

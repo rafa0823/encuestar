@@ -14,35 +14,44 @@ Esta es la clase Respuestas
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{Respuestas$new()}}
-\item \href{#method-nombres}{\code{Respuestas$nombres()}}
-\item \href{#method-q_patron}{\code{Respuestas$q_patron()}}
-\item \href{#method-categorias}{\code{Respuestas$categorias()}}
-\item \href{#method-eliminar_auditoria_telefonica}{\code{Respuestas$eliminar_auditoria_telefonica()}}
-\item \href{#method-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
-\item \href{#method-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
-\item \href{#method-eliminar_fuera_muestra}{\code{Respuestas$eliminar_fuera_muestra()}}
-\item \href{#method-calcular_distancia}{\code{Respuestas$calcular_distancia()}}
-\item \href{#method-eliminar_faltantes_diseno}{\code{Respuestas$eliminar_faltantes_diseno()}}
-\item \href{#method-vars_diseno}{\code{Respuestas$vars_diseno()}}
-\item \href{#method-clone}{\code{Respuestas$clone()}}
+\item \href{#method-Respuestas-new}{\code{Respuestas$new()}}
+\item \href{#method-Respuestas-nombres}{\code{Respuestas$nombres()}}
+\item \href{#method-Respuestas-q_patron}{\code{Respuestas$q_patron()}}
+\item \href{#method-Respuestas-categorias}{\code{Respuestas$categorias()}}
+\item \href{#method-Respuestas-eliminar_auditoria_telefonica}{\code{Respuestas$eliminar_auditoria_telefonica()}}
+\item \href{#method-Respuestas-coordenadas_faltantes}{\code{Respuestas$coordenadas_faltantes()}}
+\item \href{#method-Respuestas-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
+\item \href{#method-Respuestas-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
+\item \href{#method-Respuestas-eliminar_fuera_muestra}{\code{Respuestas$eliminar_fuera_muestra()}}
+\item \href{#method-Respuestas-calcular_distancia}{\code{Respuestas$calcular_distancia()}}
+\item \href{#method-Respuestas-eliminar_faltantes_diseno}{\code{Respuestas$eliminar_faltantes_diseno()}}
+\item \href{#method-Respuestas-vars_diseno}{\code{Respuestas$vars_diseno()}}
+\item \href{#method-Respuestas-clone}{\code{Respuestas$clone()}}
 }
 }
-\if{html}{
-\out{<details open ><summary>Inherited methods</summary>}
-\itemize{
-\item \out{<span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="error_muestral_maximo">}\href{../../encuestar/html/Encuesta.html#method-error_muestral_maximo}{\code{encuestar::Encuesta$error_muestral_maximo()}}\out{</span>}
-\item \out{<span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="exportar_entregable">}\href{../../encuestar/html/Encuesta.html#method-exportar_entregable}{\code{encuestar::Encuesta$exportar_entregable()}}\out{</span>}
-}
-\out{</details>}
-}
+\if{html}{\out{
+<details open><summary>Inherited methods</summary>
+<ul>
+<li><span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="error_muestral_maximo"><a href='../../encuestar/html/Encuesta.html#method-Encuesta-error_muestral_maximo'><code>encuestar::Encuesta$error_muestral_maximo()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="encuestar" data-topic="Encuesta" data-id="exportar_entregable"><a href='../../encuestar/html/Encuesta.html#method-Encuesta-exportar_entregable'><code>encuestar::Encuesta$exportar_entregable()</code></a></span></li>
+</ul>
+</details>
+}}
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-Respuestas-new"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-new}{}}}
 \subsection{Method \code{new()}}{
 Crear respuesta
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(base, encuesta, muestra_completa, patron, nivel, var_n)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(
+  base,
+  encuesta,
+  muestra_completa,
+  mantener_falta_coordenadas,
+  patron,
+  nivel,
+  var_n
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -54,8 +63,8 @@ Crear respuesta
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-nombres"></a>}}
-\if{latex}{\out{\hypertarget{method-nombres}{}}}
+\if{html}{\out{<a id="method-Respuestas-nombres"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-nombres}{}}}
 \subsection{Method \code{nombres()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$nombres(bd, diccionario)}\if{html}{\out{</div>}}
@@ -63,8 +72,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-q_patron"></a>}}
-\if{latex}{\out{\hypertarget{method-q_patron}{}}}
+\if{html}{\out{<a id="method-Respuestas-q_patron"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-q_patron}{}}}
 \subsection{Method \code{q_patron()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$q_patron(bd, dicc, patron)}\if{html}{\out{</div>}}
@@ -72,8 +81,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-categorias"></a>}}
-\if{latex}{\out{\hypertarget{method-categorias}{}}}
+\if{html}{\out{<a id="method-Respuestas-categorias"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-categorias}{}}}
 \subsection{Method \code{categorias()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$categorias(bd, diccionario)}\if{html}{\out{</div>}}
@@ -81,8 +90,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-eliminar_auditoria_telefonica"></a>}}
-\if{latex}{\out{\hypertarget{method-eliminar_auditoria_telefonica}{}}}
+\if{html}{\out{<a id="method-Respuestas-eliminar_auditoria_telefonica"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-eliminar_auditoria_telefonica}{}}}
 \subsection{Method \code{eliminar_auditoria_telefonica()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_auditoria_telefonica(auditoria_telefonica)}\if{html}{\out{</div>}}
@@ -90,8 +99,17 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-eliminar_falta_coordenadas"></a>}}
-\if{latex}{\out{\hypertarget{method-eliminar_falta_coordenadas}{}}}
+\if{html}{\out{<a id="method-Respuestas-coordenadas_faltantes"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-coordenadas_faltantes}{}}}
+\subsection{Method \code{coordenadas_faltantes()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$coordenadas_faltantes()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Respuestas-eliminar_falta_coordenadas"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-eliminar_falta_coordenadas}{}}}
 \subsection{Method \code{eliminar_falta_coordenadas()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_falta_coordenadas()}\if{html}{\out{</div>}}
@@ -99,8 +117,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-correccion_cluster"></a>}}
-\if{latex}{\out{\hypertarget{method-correccion_cluster}{}}}
+\if{html}{\out{<a id="method-Respuestas-correccion_cluster"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-correccion_cluster}{}}}
 \subsection{Method \code{correccion_cluster()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$correccion_cluster(base, shp, mantener, nivel, var_n)}\if{html}{\out{</div>}}
@@ -108,8 +126,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-eliminar_fuera_muestra"></a>}}
-\if{latex}{\out{\hypertarget{method-eliminar_fuera_muestra}{}}}
+\if{html}{\out{<a id="method-Respuestas-eliminar_fuera_muestra"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-eliminar_fuera_muestra}{}}}
 \subsection{Method \code{eliminar_fuera_muestra()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_fuera_muestra(respuestas, muestra, nivel, var_n)}\if{html}{\out{</div>}}
@@ -117,8 +135,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-calcular_distancia"></a>}}
-\if{latex}{\out{\hypertarget{method-calcular_distancia}{}}}
+\if{html}{\out{<a id="method-Respuestas-calcular_distancia"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-calcular_distancia}{}}}
 \subsection{Method \code{calcular_distancia()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$calcular_distancia(base, encuesta, muestra, var_n, nivel)}\if{html}{\out{</div>}}
@@ -126,8 +144,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-eliminar_faltantes_diseno"></a>}}
-\if{latex}{\out{\hypertarget{method-eliminar_faltantes_diseno}{}}}
+\if{html}{\out{<a id="method-Respuestas-eliminar_faltantes_diseno"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-eliminar_faltantes_diseno}{}}}
 \subsection{Method \code{eliminar_faltantes_diseno()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$eliminar_faltantes_diseno()}\if{html}{\out{</div>}}
@@ -135,8 +153,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-vars_diseno"></a>}}
-\if{latex}{\out{\hypertarget{method-vars_diseno}{}}}
+\if{html}{\out{<a id="method-Respuestas-vars_diseno"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-vars_diseno}{}}}
 \subsection{Method \code{vars_diseno()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$vars_diseno(muestra, var_n, tipo_encuesta)}\if{html}{\out{</div>}}
@@ -144,8 +162,8 @@ Crear respuesta
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-Respuestas-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

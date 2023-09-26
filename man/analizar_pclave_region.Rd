@@ -9,9 +9,6 @@ analizar_pclave_region(bd, var)
 \arguments{
 \item{var}{}
 }
-\value{
-
-}
 \description{
 Title
 }

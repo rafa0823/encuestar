@@ -9,9 +9,6 @@ dist_puntos(base_sf, encuesta, muestra, var_n, nivel)
 \arguments{
 \item{nivel}{}
 }
-\value{
-
-}
 \description{
 Title
 }

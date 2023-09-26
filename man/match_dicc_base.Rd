@@ -9,9 +9,6 @@ match_dicc_base(self, quitar)
 \arguments{
 \item{encuesta_qro}{}
 }
-\value{
-
-}
 \description{
 Title
 }

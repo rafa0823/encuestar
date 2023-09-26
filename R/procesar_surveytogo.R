@@ -11,9 +11,10 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "l
 #'
 #' @examples
 
-analizar_frecuencias <- function(encuesta, pregunta){
-  estimacion <-survey::svymean(enquo(pregunta),
-                               design = encuesta$muestra$diseno, na.rm = T) %>%
+analizar_frecuencias <- function(diseno, pregunta){
+
+  estimacion <- survey::svymean(enquo(pregunta),
+                                design = diseno, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
     rename(media=2, ee=3) %>%
     mutate(respuesta = stringr::str_replace(
@@ -26,11 +27,9 @@ analizar_frecuencias <- function(encuesta, pregunta){
                                      .x = media,
                                      .fun = max)
     )
-  p <- estimacion %>% pull(pregunta) %>% unique
-  p <- encuesta$cuestionario$diccionario %>%
-    filter(llaves == p) %>% pull(pregunta)
-  estimacion <- estimacion %>% mutate(pregunta = p)
+
   return(estimacion)
+
 }
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
@@ -235,6 +234,14 @@ pclave_combinaciones_saldo <- function(bd_texto, tipo, n_palabras){
   return(res)
 }
 
+analizar_frecuencia_region <- function(variable, diseno, diccionario){
+  survey::svytable(survey::make.formula(c(variable,"region")), design = diseno) %>%
+    as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>% mutate(llaves = variable) %>%
+    left_join(
+      diccionario %>% select(llaves, pregunta)
+    )
+}
+
 #' Title
 #'
 #' @param llave
@@ -390,54 +397,62 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
 analizar_morena <- function(encuesta, personajes, atributos){
 
   #opinión positiva
-  o_p <- analizar_frecuencias_aspectos(encuesta_chiapas$preguntas$encuesta, op, personajes) %>%
-    filter(respuesta == "Buena") %>% mutate(ganador = media == max(media),
-                                            puntos = if_else(ganador, 2, 0)) %>%
-    separate(aspecto, c("atributo","personaje"),remove = F) %>%
+  o_p <- analizar_frecuencias_aspectos(encuesta$encuesta, opinion, personajes) %>%
+    filter(respuesta == "Buena") %>%
+    mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
+    separate(aspecto, c("atributo", "personaje"), remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
+
   #atributos
-  atr_p <- atributos %>% pmap_df(function(atributo, puntos){
-    analizar_frecuencias_aspectos(encuesta_chiapas$preguntas$encuesta, !!rlang::sym(atributo), personajes)  %>%
-      filter(respuesta %in% c("Mucho", "Algo")) %>% mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
-      group_by(aspecto) %>% summarise(media = sum(media)) %>% mutate(ganador = media == max(media),
-                                                                     puntos = if_else(ganador,puntos,0)) %>%
-      separate(aspecto, c("atributo", "personaje"),remove = F)
-  })
+  atr_p <- atributos %>%
+    pmap_df(function(atributo, puntos){
+      analizar_frecuencias_aspectos(encuesta$encuesta, !!rlang::sym(atributo), personajes) %>%
+        filter(respuesta %in% c("Mucho", "Algo")) %>% mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
+        group_by(aspecto) %>%
+        summarise(media = sum(media)) %>%
+        mutate(ganador = media == max(media),
+               puntos = if_else(ganador,puntos,0)) %>%
+        separate(aspecto, c("atributo", "personaje"),remove = F)
+    })
 
   #buen candidato
-  cand <- analizar_frecuencias_aspectos(encuesta$encuesta, candidato, personajes) %>%
-    filter(respuesta == "Sí") %>% mutate(ganador = media == max(media),
-                                         puntos = if_else(ganador, 1, 0)) %>%
+  cand <- analizar_frecuencias_aspectos(encuesta$encuesta, buencandidato, personajes) %>%
+    filter(respuesta == "Sí") %>%
+    mutate(ganador = media == max(media), puntos = if_else(ganador, 1, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #votaria
   voto <- analizar_frecuencias_aspectos(encuesta$encuesta, votaria, personajes) %>%
-    filter(respuesta == "Sí votaría") %>% mutate(ganador = media == max(media),
-                                                 puntos = if_else(ganador, 2, 0)) %>%
+    filter(respuesta == "Sí votaría") %>%
+    mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #preferencia
-  pref <- analizar_frecuencias(encuesta$encuesta, prefiere) %>%
-    filter(respuesta != "Ns/Nc") %>%
+  pref <- analizar_frecuencias(encuesta$encuesta, candidato_preferencia) %>%
+    filter(!respuesta %in% c("Ns/Nc", "Ninguno", "Otro")) %>%
     mutate(ganador = media == max(media),
            puntos = if_else(ganador, 2.75, 0)) %>%
     transmute(atributo = "preferencia", tema = respuesta, media, ganador, puntos)
 
-
   #juntar
-  atr <- o_p %>% bind_rows(atr_p) %>% bind_rows(cand) %>% bind_rows(voto) %>%
+  atr <- o_p %>%
+    bind_rows(atr_p) %>%
+    bind_rows(cand) %>%
+    bind_rows(voto) %>%
     left_join(dicc %>% select(llaves, tema), by = c("aspecto" = "llaves")) %>%
     bind_rows(pref)
+
   return(atr)
+
 }
 
-analizar_frecuencia_multirespuesta <- function(encuesta, patron_inicial){
-  aux <- encuesta$muestra$diseno$variables %>%
-    select(starts_with(patron_inicial)) %>% as_tibble %>%
-    rownames_to_column() %>%
-    mutate(weight = weights(encuesta$muestra$diseno)) %>%
+analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
+
+  aux <- diseno$variables %>%
+    tibble::rownames_to_column() %>%
+    mutate(weight = weights(diseno)) %>%
     pivot_longer(-c(rowname, weight)) %>%
     filter(!is.na(value)) %>%
     mutate(seleccion = 1) %>%
@@ -445,10 +460,51 @@ analizar_frecuencia_multirespuesta <- function(encuesta, patron_inicial){
     pivot_wider(names_from = value, values_from  = seleccion, values_fill = 0) %>%
     select(-rowname) %>% summarise(across(-weight, ~sum(.x*weight))) %>%
     pivot_longer(everything(), names_to = "respuesta", values_to = "value") %>%
-    mutate(media = value/sum(weights(encuesta_edomex$muestra$diseno)),
+    mutate(media = value/sum(weights(diseno)),
            respuesta=forcats::fct_reorder(.f = respuesta,
                                           .x = media,
-                                          .fun = max)
-    )
+                                          .fun = max))
   return(aux)
+
+}
+
+analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, valor_variables){
+
+  variables <- enquos(variables)
+
+  res <- encuesta_diseño |>
+    group_by(!!rlang::sym(cruce)) |>
+    summarise(across(!!!variables,
+                     ~ srvyr::survey_mean(.x == !!valor_variables, vartype = vartype, na.rm = TRUE),
+                     .names = "{.col}")) |>
+    tidyr::drop_na() |>
+    tidyr::pivot_longer(cols = -rlang::sym(cruce),
+                        names_to = "variable", values_to = "valor") |>
+    mutate(separar = ifelse(stringr::str_detect(variable, glue::glue('_{vartype}$')), vartype, "mean"),
+           variable = stringr::str_remove(variable, glue::glue('_{vartype}'))) |>
+    tidyr::pivot_wider(names_from = separar, values_from = valor)
+
+  return(res)
+}
+
+analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtro, vartype){
+
+  encuesta_diseño %>%
+    group_by(!!rlang::sym(var1), !!rlang::sym(var2_filtro)) |>
+    summarise(srvyr::survey_mean(na.rm=T, vartype = vartype)) %>%
+    {
+      if(is.null(filtro)){
+        .
+      } else{
+        filter(., !!rlang::sym(var2_filtro) %in% filtro)
+      }
+    } %>% {
+      if(vartype == "cv"){
+        mutate(., pres=case_when(`_cv` >.15 & `_cv` <.30 ~ "*",
+                                 `_cv` >.30 ~ "**",
+                                 TRUE ~""))
+      } else{
+        .
+      }
+    }
 }

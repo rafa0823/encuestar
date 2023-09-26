@@ -9,9 +9,6 @@ tema_default(base_size = 15, base_family = "Poppins", fondo = "#FFFFFF")
 \arguments{
 \item{fondo}{}
 }
-\value{
-
-}
 \description{
 Title
 }

@@ -19,9 +19,6 @@ graficar_barras_frecuencia(bd, titulo, salto = 20, nota = "", tema)
 
 \item{colores}{Vector de colores del plot}
 }
-\value{
-
-}
 \description{
 Para graficar frecuencias simples
 }

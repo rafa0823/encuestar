@@ -13,9 +13,6 @@ graficar_barras_palabras(bd, pregunta, nota, tit, n = 10)
 
 \item{n}{Número de palabras a mostrar}
 }
-\value{
-
-}
 \description{
 Title
 }

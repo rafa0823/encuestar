@@ -16,25 +16,42 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
 graficar_barras_frecuencia <- function(bd,
                                        titulo,
-                                       salto =20,
+                                       salto = 20,
+                                       porcentajes_afuera,
+                                       desplazar_porcentajes,
                                        nota = "",
                                        tema){
 
-  g <-  bd %>% ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto),
-                                                   media),
-                          y  = media,
-                          fill=respuesta))+
-    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"),
-                              alpha= .8,
-                              width =.45)+
+  g_aux <-  bd %>%
+    ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
+               y  = media,
+               fill=respuesta)) +
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha= .8, width = .45)
+
+  if (porcentajes_afuera == F) {
+
+    g_aux <- g_aux +
+      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T, family = tema()$text$family)
+
+  }
+
+  if (porcentajes_afuera == T) {
+
+    g_aux <- g_aux +
+      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes, family = tema()$text$family)
+
+  }
+  g <- g_aux +
+    coord_flip() +
     labs(title = titulo,
          x = NULL,
          y = NULL,
-         caption = nota)+
-    coord_flip()+
-    scale_y_continuous(labels=scales::percent_format(accuracy = 1))+
-    ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)),contrast = T, family = tema()$text$family)+
+         caption = nota) +
+
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1)) +
+
     theme(legend.position = "none")
+
   return(g)
 
 }
@@ -227,22 +244,41 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", maximo = 10, familia, texto = "\n Promedio"){
-  bd %>%
+graficar_gauge_promedio <- function(bd, color = "#850D2D", escala = c(0, 10), size_text_pct){
+
+  g <- bd %>%
     ggplot() +
-    geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax =media), fill = color,
-              color = 'gray50') +
-    geom_text(aes(x = 0, y = media,
-                  label = paste(media %>%  round(1), texto)),
-              size = 10, family = familia, nudge_y = 0.25) +
-    scale_fill_manual(values = c('#1DCDBC', '#38C6F4')) +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
+              fill = color,  color = "white", alpha= .95) +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = escala[2]),
+              fill = "grey90", color = "white")
+
+  if(escala[2] == 1) {
+
+    g <- g + geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
+                       size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+
+  }
+  else {
+
+    g <- g + geom_text(aes(x = 0, y = media, label = scales::comma(x = media, accuracy = 1.1)),
+                       size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+
+  }
+
+  g <- g +
+    scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
     scale_x_continuous(limits = c(0, NA)) +
-    scale_y_continuous(limits = c(0, maximo)) +
-    xlab('') + ylab('') +
-    coord_polar(theta = 'y') +
+    scale_y_continuous(limits = c(0, escala[2])) +
+    xlab("") +
+    ylab("") +
+    coord_polar(theta = "y") +
     theme_void() +
-    theme(legend.position = 'bottom', axis.text = element_blank(),
-          text = element_text(size = 15, family = familia))
+    theme(legend.position = "bottom", axis.text = element_blank(),
+          text = element_text(size = 15, family = "Poppins"))
+
+  return(g)
+
 }
 
 sustituir <- function(bd, patron, reemplazo = ""){
@@ -271,15 +307,15 @@ graficar_barras_numerica<- function(bd){
                              contrast = T)
 }
 
-graficar_intervalo_numerica<- function(bd, tema){
+graficar_intervalo_numerica<- function(bd, tema, point_size, text_point_size){
   bd %>%
-    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40),media))) +
-    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D") +
+    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40), media))) +
+    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size) +
     coord_flip()+
     labs(title = NULL,
          x = NULL,
          y = "Promedio")+
-    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, family = tema()$text$family)
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, family = tema()$text$family, size = text_point_size)
 
 }
 
@@ -565,6 +601,14 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                                        colores,
                                        burbuja,
                                        color_burbuja,
+                                       caption_opinion,
+                                       caption_nsnc,
+                                       caption_burbuja,
+                                       size_caption_opinion,
+                                       size_caption_nsnc,
+                                       size_caption_burbuja,
+                                       size_text_cat,
+                                       orden_resp,
                                        salto = 200,
                                        tema){
 
@@ -588,15 +632,18 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     orden <- burbuja$tema %>% levels
     a.1 <-  burbuja %>%
       ggplot(aes(y = tema,
-                 x = factor(1))) + geom_point(aes(alpha = escala, size = escala), color = color_burbuja) +
+                 x = factor(1))) + geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
       tema() +
+      labs(caption = caption_burbuja) +
       theme(legend.position = "none", panel.grid.major.x = element_blank(),
-            axis.text = element_blank(),axis.line.x = element_blank())
+            axis.text = element_blank(), axis.line.x = element_blank(),
+            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja))
   }
 
   a <- aux %>%
     {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
+    mutate(respuesta = factor(respuesta, levels = orden_resp)) |>
     ggplot(aes(x  = factor(tema, orden), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
@@ -605,24 +652,29 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
                              min.size = 8,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
     coord_flip()+
-    labs(fill= NULL , y= NULL, x = NULL)+theme_minimal()+
+    labs(fill= NULL , y= NULL, x = NULL, caption = caption_opinion) +
+    theme_minimal() +
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
     geom_hline(yintercept = 0, color = "gray", size= .6)+
-    lemon::scale_y_symmetric(labels=scales::percent_format(accuracy = 1))+
+    lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema() +
+    theme(axis.text.y = element_text(size = size_text_cat),
+          plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc), legend.key.size = unit(1, units = "cm")) +
     scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
-    b<- aux %>%  filter(respuesta == ns_nc) %>%
+    b <- aux %>%  filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = "gray")+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores["Ns/Nc"] |> as_tibble() |> pull())+
       coord_flip()+
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
                                hjust = -.1)+
-      labs(y = NULL, x = NULL)+
-      scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+      labs(y = NULL, x = NULL, caption = caption_nsnc)+
+      scale_y_continuous(n.breaks = 2) +
       tema() +
-      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+            axis.text.x = element_blank(), axis.line.x = element_blank(),
+            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc))
 
     if(!all(is.na(burbuja))){
       final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
@@ -706,6 +758,9 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
                   ymax = as.numeric(tema) + .3,
                   fill = respuesta)) +
     geom_text(data = bases$partido %>% filter(tema %in% cliente),
+              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
+              color = "white", fontface = "bold") +
+    geom_text(data = bases$partido %>% filter(respuesta %in% c("MORENA", "Ns/Nc")),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
               color = "white", fontface = "bold") +
     scale_fill_manual(values = colores_partido) +
@@ -795,8 +850,14 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 #' @export
 #'
 #' @examples
-graficar_conocimiento_region <- function(bd){
-  bd %>% ggplot(aes(x = region%>%  str_wrap(5), y =forcats::fct_reorder(tema %>%  str_wrap(20), pct), fill = pct)) +
+graficar_conocimiento_region <- function(bd, orden_horizontal){
+
+  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
+
+  bd %>%
+    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
+               y = forcats::fct_reorder(tema %>%  str_wrap(60), pct),
+               fill = pct)) +
     geom_tile()+
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
@@ -820,9 +881,15 @@ graficar_conocimiento_region <- function(bd){
 #' @export
 #'
 #' @examples
-graficar_saldo_region <- function(bd){
+graficar_saldo_region <- function(bd, orden_horizontal){
+
+  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
+
   bd %>%
-    ggplot(aes(x = region%>% stringr::str_wrap(6), y =forcats::fct_reorder(tema %>% stringr::str_wrap(20),saldo), fill = saldo)) + geom_tile() +
+    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
+               y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
+               fill = saldo)) +
+    geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
     labs(y = NULL, x= NULL, fill = "Saldo")+
     theme_minimal()+
@@ -832,10 +899,10 @@ graficar_saldo_region <- function(bd){
           text = element_text(family = "Poppins", size=14))+
     scale_x_discrete(position = "top") +
     scale_fill_gradient2(high ="#046B9F", low= "#DE6400", mid = "white",
-                         labels = scales::percent_format(accuracy = 1) )
-  # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
-  # ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
-  #                           aes(label =saldo %>%  scales::percent(accuracy = 1)))
+                         labels = scales::percent_format(accuracy = 1) ) +
+    # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
+    ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
+                              aes(label =saldo %>%  scales::percent(accuracy = 1)))
 }
 
 
@@ -893,22 +960,155 @@ graficar_blackbox_1d <- function(lst){
 
 graficar_morena <- function(atr, atributos, p, thm){
 
-  orden <- atr %>% distinct(tema, atributo, puntos, .keep_all = T) %>% select(-aspecto,-ganador,-puntos,-personaje) %>%
+  orden <- atr %>%
+    distinct(tema, atributo, puntos, .keep_all = T) %>%
+    select(-aspecto,-ganador,-puntos,-personaje) %>%
     pivot_wider(names_from = atributo, values_from = media) %>%
-    left_join(
-      atr %>% count(tema, wt = puntos)
-    ) %>%
-    arrange(n, preferencia, votaria) %>% pull(tema)
+    left_join(atr %>% count(tema, wt = puntos)) %>%
+    arrange(n, preferencia, votaria) %>%
+    pull(tema)
 
-  atr %>% ggplot(aes(x = atributo,y = factor(tema, orden), fill = media,
-                     label = scales::percent(media, p)
-  )) + geom_tile() +
+  atr %>%
+    ggplot(aes(x = atributo, y = factor(tema, orden), fill = media, label = scales::percent(media, p))) +
+    geom_tile() +
     ggfittext::geom_fit_text(contrast = T, family = thm()$text$family) +
     geom_label(data = atr %>% filter(puntos!=0), aes(label = puntos),
                color = "black", vjust = 0, nudge_y = -.5, fill = "white", family = thm()$text$family) +
-    theme(legend.position = "bottom") +
     geom_text(data = atr %>% count(tema, wt = puntos),
-              aes(label = n, x  ="Puntaje", y = tema), inherit.aes = F, family = thm()$text$family) +
+              aes(label = n, x  ="Puntaje", y = tema),
+              inherit.aes = F, family = thm()$text$family) +
     scale_fill_continuous(labels = scales::percent) +
-    labs(x = NULL, y = NULL, fill = "Porcentaje")
+    labs(x = NULL, y = NULL, fill = "Porcentaje") +
+    theme_minimal() +
+    theme(legend.position = "none")
+
+}
+
+graficar_cruce_puntos <- function(bd, cruce, vartype){
+  bd |>
+    ggplot(aes(x=reorder(variable,mean), xend=variable,
+               color=!!rlang::sym(cruce))) +
+    geom_vline(aes(xintercept = variable), linetype = "dashed",
+               color = "gray60", size=.5) +
+    geom_point(aes(y=mean),
+               shape=19,  size=6) +
+    geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
+                   linetype="solid", color="black", linewidth=.5) +
+    scale_y_continuous(labels=scales::percent) +
+    coord_flip()
+}
+
+graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+  g <- bd |>
+    ggplot(aes(x=!!rlang::sym(var1),
+               y=coef)) +
+    geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
+                                    group=!!rlang::sym(var2_filtro),
+                                    label=!!rlang::sym(var2_filtro)),
+                                linewidth=line_linewidth, hjust = line_hjust,
+                                vjust = line_vjust, rich = line_rich,
+                                size=6, family = familia) +
+    scale_y_continuous(labels=scales::percent) +
+    labs(color = NULL)
+
+  if(vartype == "cv"){
+    g <- g +
+      geom_text(aes(label=pres),
+                color="black", size=6, hjust=-.1)
+  }
+
+  return(g)
+}
+
+graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+  g <- bd |>
+    ggplot(aes(x=!!rlang::sym(cruce),
+               y=mean)) +
+    geomtextpath::geom_textline(aes(color=(variable),
+                                    group=(variable),
+                                    label=(variable)),
+                                linewidth=line_linewidth, hjust = line_hjust,
+                                vjust = line_vjust, rich = line_rich,
+                                size=6, family = familia) +
+    scale_y_continuous(labels=scales::percent) +
+    labs(color = NULL)
+
+  if(vartype == "cv"){
+    g <- g +
+      geom_text(aes(label=pres),
+                color="black", size=6, hjust=-.1)
+  }
+
+  return(g)
+
+}
+
+graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
+
+  if(!is.null(filter)) {
+
+    bd <- bd |>
+      filter(!(!!rlang::sym(cruce) %in% filter))
+
+  }
+
+  g <- bd |>
+    ggplot(aes(x=reorder(variable, mean),
+               y=mean)) +
+    ggchicklet::geom_chicklet(width = 0.6,alpha=0.9,
+                              fill=color) +
+    scale_y_continuous(labels = scales::percent) +
+    coord_flip() +
+    facet_wrap(rlang::as_label(rlang::sym(cruce)))
+
+  if(vartype=="cv"){
+    g <- g +
+      ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
+                               color="white",
+                               family = familia)
+
+
+  }else{
+    g <- g +
+      ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
+                               color="white",
+                               family = familia)
+
+  }
+  return(g)
+
+}
+
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filter){
+
+  if(!is.null(filter)) {
+
+    bd <- bd |>
+      filter(!(!!rlang::sym(cruce) %in% filter))
+
+  }
+
+  g <- bd |>
+    ggplot(aes(area=coef,
+               fill=!!rlang::sym(variable))) +
+    treemapify::geom_treemap(alpha=0.7) +
+    facet_wrap(rlang::as_label(rlang::sym(cruce)))
+
+  if(vartype=="cv"){
+
+    g <- g +
+      treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
+                        place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
+                        color="white",
+                        family = familia)
+  }else{
+    g <- g +
+      treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
+                        place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
+                        color="white",
+                        family = familia)
+
+  }
+
+  return(g)
 }

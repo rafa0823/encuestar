@@ -4,13 +4,10 @@
 \alias{graficar_conocimiento_region}
 \title{Title}
 \usage{
-graficar_conocimiento_region(bd)
+graficar_conocimiento_region(bd, orden_horizontal)
 }
 \arguments{
 \item{bd}{}
-}
-\value{
-
 }
 \description{
 Title

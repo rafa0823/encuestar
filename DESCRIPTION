@@ -13,17 +13,18 @@ Imports:
     factoextra,
     FactoMineR,
     forcats,
+    geomtextpath,
     ggchicklet,
     ggfittext,
     ggplot2,
     ggpubr,
+    ggrepel,
     ggsankey,
     ggthemes,
     glue,
     grid,
     janitor,
     lemon,
-    lubridate,
     officer,
     patchwork,
     purrr,
@@ -36,6 +37,7 @@ Imports:
     scales,
     sf,
     shiny,
+    srvyr,
     stats,
     stopwords,
     stringr,
@@ -43,6 +45,7 @@ Imports:
     tibble,
     tidyr,
     tidytext,
+    treemapify,
     utils,
     yesno
 Remotes:
@@ -50,4 +53,4 @@ Remotes:
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3

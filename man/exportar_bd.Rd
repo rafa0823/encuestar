@@ -9,9 +9,6 @@ exportar_bd(self, carpeta, agregar, quitar)
 \arguments{
 \item{quitar}{}
 }
-\value{
-
-}
 \description{
 Title
 }
