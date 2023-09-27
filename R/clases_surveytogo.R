@@ -1617,7 +1617,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                             size_text_pct = size_text_pct)
 
                          },
-                         gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
+                         gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 1), size_text_pct = 14){
 
                              if(is.null(filtro)) {
 
