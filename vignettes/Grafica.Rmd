@@ -54,6 +54,13 @@ gr$gauge_numerica(codigo = evaluacion_amlo, color = "red", escala = c(0, 11), si
 
 ```
 
+# Gauge categórica
+
+```{r}
+gr$gauge_categorica(codigo = persona_lenguaindigena, filtro = "respuesta == 'Sí'", color = "red", escala = c(0, 1), size_text_pct = 18)
+
+```
+
 # Barras numérica
 
 ```{r, dpi = 300, out.width="100%", out.height="50%"}
