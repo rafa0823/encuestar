@@ -1593,9 +1593,25 @@ Grafica <- R6::R6Class(classname = "Grafica",
                          },
                          gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
 
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
                            bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
 
+                           tema <- cuestionario_demo |>
+                             filter(llaves == rlang::ensym(codigo)) |>
+                             pull(tema)
+
                            bd_estimacion |>
+                             mutate(tema = tema) |>
                              graficar_gauge(color_principal = color,
                                             escala = escala,
                                             size_text_pct = size_text_pct)
