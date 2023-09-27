@@ -1563,7 +1563,23 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                       porcentajes_fuera = F,
                                                       desplazar_porcentajes = 0){
 
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
+                           tema <- cuestionario_demo |>
+                             filter(llaves == rlang::ensym(codigo)) |>
+                             pull(tema)
+
                            analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
+                             mutate(tema = tema)
                              graficar_barras(salto = salto,
                                              porcentajes_fuera = porcentajes_fuera,
                                              desplazar_porcentajes = desplazar_porcentajes) +
