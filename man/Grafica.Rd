@@ -2,11 +2,11 @@
 % Please edit documentation in R/clases_surveytogo.R
 \name{Grafica}
 \alias{Grafica}
-\title{Esta es la clase de pregunta}
+\title{Esta es la clase de Grafica}
 \description{
-Esta es la clase de pregunta
+Esta es la clase de Grafica
 
-Esta es la clase de pregunta
+Esta es la clase de Grafica
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -29,7 +29,7 @@ Esta es la clase de pregunta
 \if{latex}{\out{\hypertarget{method-Grafica-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$new(diseno, diccionario = NULL, shp = NULL, tema)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$new(diseno, diccionario = NULL, tema)}\if{html}{\out{</div>}}
 }
 
 }

@@ -1,0 +1,58 @@
+---
+title: "Clase Regiones"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Clase Regiones}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.asp = .6, fig.width = 12, out.width="100%", dpi = 300
+)
+```
+
+```{r setup}
+library(encuestar)
+library(dplyr)
+# usethis::load_all()
+```
+
+```{r correcciones_data}
+datos_demo <- datos_demo |> 
+  mutate(across(contains("evaluacion_"), ~as.numeric(.x)),
+         region = sample(c("uno", "dos", "tres"), replace = T, nrow(datos_demo)))
+
+cuestionario_demo <-  cuestionario_demo|> 
+  mutate(tema = if_else(llaves =="evaluacion_amlo", "AMLO", tema),
+         tema = if_else(llaves =="evaluacion_rutilio", "Rutilio", tema)
+  )
+```
+
+```{r clase_regiones}
+diseno <- survey::svydesign(ids = ~1, data = datos_demo)
+
+reg <- Regiones$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
+
+```
+
+# Heatmap de conocimiento por región
+
+```{r}
+reg$heatmap_conocimiento(llave_conocimiento = "conocimiento",
+                         candidatos = c("era", "manuelita", "carlos"),
+                         respuesta = "Sí", orden_horizontal = c("uno", "dos", "tres")
+)
+```
+
+# Heatmap de saldo opinión
+
+```{r}
+reg$heatmap_saldoOpinion(llave_opinion = "opinion", candidatos = c("adan", "carlos", "ebrad"),
+                         orden_horizontal = c("uno", "dos", "tres"), ns_nc = "Ns/Nc (No leer)",
+                         cat_negativo = c("Mala"), cat_positivo = "Buena", cat_regular = "Regular (No leer)")
+```
+

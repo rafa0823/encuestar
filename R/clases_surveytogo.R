@@ -1525,11 +1525,11 @@ Pregunta <- R6::R6Class("Pregunta",
 Pregunta2 <- R6::R6Class(classname = "Pregunta2",
                          public = list(
                            encuesta = NULL,
-                           grafica = NULL,
-                           mapa = NULL,
-                           modelo = NULL,
-                           cruce = NULL,
-                           especiales = NULL,
+                           Grafica = NULL,
+                           Regiones = NULL,
+                           Modelo = NULL,
+                           Cruce = NULL,
+                           Especiales = NULL,
                            regiones = NULL,
                            tema = NULL,
                            initialize = function(encuesta, tema = tema_default){
@@ -1537,22 +1537,22 @@ Pregunta2 <- R6::R6Class(classname = "Pregunta2",
                              self$encuesta <- encuesta
 
                              # self$grafica <- Grafica$new()
-                             # self$mapa <- Mapa$new()
+                             # self$regiones <- Regiones$new()
                              # self$cruce <- Cruce$new()
                              self$tema <- tema
 
                            })
 )
 
-#'Esta es la clase de pregunta
+#'Esta es la clase de Grafica
 #'@export
+#'
 Grafica <- R6::R6Class(classname = "Grafica",
                        public = list(
                          diseno = NULL,
                          diccionario = NULL,
-                         shp = NULL,
                          tema = NULL,
-                         initialize = function(diseno, diccionario = NULL, shp = NULL, tema){
+                         initialize = function(diseno, diccionario = NULL, tema){
                            self$diseno <- diseno
                            self$diccionario <- diccionario
                            # self$shp <- shp
@@ -1604,6 +1604,56 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                          },
                          sankey_categorica = function(){
+
+                         }
+                       ))
+
+#'Esta es la clase de Regiones
+#'@export
+#'
+Regiones <- R6::R6Class(classname = "Regiones",
+                       public = list(
+                         diseno = NULL,
+                         diccionario = NULL,
+                         tema = NULL,
+                         initialize = function(diseno, diccionario = NULL, shp = NULL, tema){
+                           self$diseno <- diseno
+                           self$diccionario <- diccionario
+                           # self$shp <- shp
+                           self$tema <- tema
+                         },
+                         mapa_regiones = function(){
+
+                         },
+                         mapa_ganador = function(){
+
+                         },
+                         mapa_degradadoNumerico = function(){
+
+                         },
+                         heatmap_conocimiento = function(llave_conocimiento, candidatos, respuesta, orden_horizontal){
+
+                           analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
+                                                        self$diseno,
+                                                        self$diccionario) %>%
+                             graficar_conocimiento_region(orden_horizontal = orden_horizontal)
+
+                         },
+
+                         heatmap_saldoOpinion = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
+                                                 orden_horizontal){
+                           analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
+                                                 diseno = self$diseno,
+                                                 diccionario = self$diccionario) %>%
+                             graficar_saldo_region(orden_horizontal = orden_horizontal)
+
+                         },
+                         mapa_resaltarRegion = function(region, color){
+
+                           self$shp %>%
+                             mutate(color = if_else(region %in% !!region, color, "gray70")) %>%
+                             ggplot(aes(fill = color)) + geom_sf(color = "black") +scale_fill_identity() +
+                             theme_void() + labs(tit = region)
 
                          }
                        ))
