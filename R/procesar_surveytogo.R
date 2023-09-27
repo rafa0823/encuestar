@@ -1,15 +1,17 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
 
-#' Title
+#' Analizar frecuencias
 #'
-#' @param encuesta
-#' @param pregunta
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas
+#' @param pregunta Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos
 #'
 #' @return
 #' \item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
 #' @export
 #'
 #' @examples
+#' analizar_frecuencias(diseno = as_survey_design(diseno), pregunta = sexo)
+#' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), pregunta = sexo)
 
 analizar_frecuencias <- function(diseno, pregunta){
 

@@ -40,11 +40,9 @@ Esta es la clase de Grafica
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_categorica(
   codigo,
-  titulo,
   salto,
-  porcentajes_afuera = T,
-  desplazar_porcentajes = 0,
-  nota
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -95,7 +93,13 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-gauge_categorica}{}}}
 \subsection{Method \code{gauge_categorica()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_categorica()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_categorica(
+  codigo,
+  filtro,
+  color = "#850D2D",
+  escala = c(0, 1),
+  size_text_pct = 14
+)}\if{html}{\out{</div>}}
 }
 
 }

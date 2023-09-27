@@ -1,55 +1,48 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
-#' Para graficar frecuencias simples
+#' Gráfica de barras horizontales ordenadas
 #'
-#' @param bd Debe provenir de la función de analizar_frecuencias
-#' @param titulo Es un parámetro obligatorio para el título de la gráfica
-#' @param familia Familia tipográfica de los elementos del plot
-#' @param color_etiqueta Color de la letra de las etiquetas de datos
-#' @param nota Si de desea añadir una nota al pie del plot
-#' @param colores Vector de colores del plot
+#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
+#' @param salto Número entero, se aplica un stringr::str_wrap a la variable categórica.
+#' @param porcentajes_fuera Si es T, las labels de los porcentajes aparecen fuera (o sobre) las barras.
+#' @param desplazar_porcentajes Si porcentajes_fuera es T, este parametro ajusta las etiquetas de texto.
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' graficar_barras(bd, salto = 13)
+#' graficar_barras(bd, porcentajes_fuera = T, desplazar_porcentajes = 0.1)
 
-graficar_barras_frecuencia <- function(bd,
-                                       titulo,
-                                       salto = 20,
-                                       porcentajes_afuera,
-                                       desplazar_porcentajes,
-                                       nota = "",
-                                       tema){
+graficar_barras <- function(bd,
+                            salto = 20,
+                            porcentajes_fuera = F,
+                            desplazar_porcentajes = 0){
 
-  g_aux <-  bd %>%
+  g <-  bd %>%
     ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
                y  = media,
                fill=respuesta)) +
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha= .8, width = .45)
 
-  if (porcentajes_afuera == F) {
+  if (porcentajes_fuera == F) {
 
-    g_aux <- g_aux +
-      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T, family = tema()$text$family)
+    g <- g +
+      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T)
+
+  }
+
+  if (porcentajes_fuera == T) {
+
+    g <- g +
+      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
 
   }
 
-  if (porcentajes_afuera == T) {
-
-    g_aux <- g_aux +
-      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes, family = tema()$text$family)
-
-  }
-  g <- g_aux +
+  g <- g +
     coord_flip() +
-    labs(title = titulo,
-         x = NULL,
-         y = NULL,
-         caption = nota) +
-
+    labs(x = NULL, y = NULL) +
     scale_y_continuous(labels=scales::percent_format(accuracy = 1)) +
-
     theme(legend.position = "none")
 
   return(g)

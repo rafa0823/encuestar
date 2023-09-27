@@ -1558,15 +1558,15 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            # self$shp <- shp
                            self$tema <- tema
                          },
-                         barras_categorica = function(codigo, titulo,
-                                                      salto, porcentajes_afuera = T,
-                                                      desplazar_porcentajes = 0, nota){
+                         barras_categorica = function(codigo,
+                                                      salto,
+                                                      porcentajes_fuera = F,
+                                                      desplazar_porcentajes = 0){
 
                            analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
-                             graficar_barras_frecuencia(titulo = titulo, salto = salto,
-                                                        porcentajes_afuera = porcentajes_afuera,
-                                                        desplazar_porcentajes = desplazar_porcentajes,
-                                                        nota = nota, tema = self$tema) +
+                             graficar_barras(salto = salto,
+                                             porcentajes_fuera = porcentajes_fuera,
+                                             desplazar_porcentajes = desplazar_porcentajes) +
                              self$tema()
 
                          },
@@ -1588,9 +1588,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              graficar_barras_numerica() +
                              self$tema()
                          },
-                         barras_texto = function(){
-
-                         },
+                         barras_texto = function(){},
                          gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
 
                            # llave_aux <- quo_name(enquo(codigo))
