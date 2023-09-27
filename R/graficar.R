@@ -233,25 +233,29 @@ graficar_aspectos_frecuencias <- function(bd,
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
-#' Title
+#' Graficar gauge
 #'
-#' @param bd  Base de datos (ya procesada)
-#' @param color Color de la barra
-#' @param maximo Número máximo en la escala
+#' @param bd  Base de datos con un único row. La variable a considerar se llama "media"
+#' @param color_principal Color principal de la barra
+#' @param color_secundario Color secundario de la barra
+#' @param escala Máximo y mínimo de los valores que puede tomar "media"
+#' @param size_text_pct Tamaño del texto dentro del gauge
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "red", escala = c(0, 10), size_text_pct = 8)
+#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "pink", color_secundario = "brown", escala = c(1, 7), size_text_pct = 14)
 
-graficar_gauge_promedio <- function(bd, color, escala, size_text_pct){
+graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", escala, size_text_pct){
 
   g <- bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
-              fill = color,  color = "white", alpha= .95) +
+              fill = color_principal,  color = "white", alpha= .95) +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = escala[2]),
-              fill = "grey90", color = "white")
+              fill = color_secundario, color = "white")
 
   if(escala[2] == 1) {
 

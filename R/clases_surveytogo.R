@@ -1596,9 +1596,9 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
 
                            bd_estimacion |>
-                             graficar_gauge_promedio(color = color,
-                                                     escala = escala,
-                                                     size_text_pct = size_text_pct)
+                             graficar_gauge(color_principal = color,
+                                            escala = escala,
+                                            size_text_pct = size_text_pct)
 
                          },
                          gauge_categorica = function(){

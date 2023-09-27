@@ -81,7 +81,12 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-gauge_numerica}{}}}
 \subsection{Method \code{gauge_numerica()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_numerica()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_numerica(
+  codigo,
+  color = "#850D2D",
+  escala = c(0, 10),
+  size_text_pct = 14
+)}\if{html}{\out{</div>}}
 }
 
 }
