@@ -47,6 +47,13 @@ gr$barras_categorica(codigo = problema_masimportante,
 
 ```
 
+# Gauge numérica
+
+```{r}
+gr$gauge_numerica(codigo = evaluacion_amlo, color = "red", escala = c(0, 11), size_text_pct = 18)
+
+```
+
 # Barras numérica
 
 ```{r, dpi = 300, out.width="100%", out.height="50%"}

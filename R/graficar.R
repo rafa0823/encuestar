@@ -244,7 +244,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #'
 #' @examples
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", escala = c(0, 10), size_text_pct){
+graficar_gauge_promedio <- function(bd, color, escala, size_text_pct){
 
   g <- bd %>%
     ggplot() +

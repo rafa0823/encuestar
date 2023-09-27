@@ -1591,7 +1591,14 @@ Grafica <- R6::R6Class(classname = "Grafica",
                          barras_texto = function(){
 
                          },
-                         gauge_numerica = function(){
+                         gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
+
+                           bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
+
+                           bd_estimacion |>
+                             graficar_gauge_promedio(color = color,
+                                                     escala = escala,
+                                                     size_text_pct = size_text_pct)
 
                          },
                          gauge_categorica = function(){
