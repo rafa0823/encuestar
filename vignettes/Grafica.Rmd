@@ -41,8 +41,7 @@ gr <- Grafica$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_
 
 ```{r}
 gr$barras_categorica(codigo = problema_masimportante, 
-                     titulo = "Aquí va el título",
-                     salto = 20, nota = "Aquí va la nota")
+                     salto = 20)
 
 
 ```
