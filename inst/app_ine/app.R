@@ -414,9 +414,16 @@ server <- function(input, output, session) {
                 group = "Encuestas faltantes",position = "bottomleft") %>%
       addCircleMarkers(data = ent_c,
                        color = ~color, stroke = F,
-                       label = ~label, group = "Entrevistas")  %>%
-      addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
-                       label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
+                       label = ~label, group = "Entrevistas")
+
+    if(nrow(eliminadas_shp) != 0) {
+
+      map <- map |> addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
+                                     label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions())
+
+    }
+
+    map <- map |>
       addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
                        popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
       addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster")
