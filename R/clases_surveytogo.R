@@ -1559,7 +1559,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            self$tema <- tema
                          },
                          barras_categorica = function(codigo,
-                                                      salto,
+                                                      salto = 20,
                                                       porcentajes_fuera = F,
                                                       desplazar_porcentajes = 0){
 
@@ -1574,7 +1574,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                            # }
 
-                           tema <- cuestionario_demo |>
+                           tema <- self$diccionario |>
                              filter(llaves == rlang::ensym(codigo)) |>
                              pull(tema)
 
@@ -1594,15 +1594,30 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                self$tema()
 
                          },
-                         barras_numerica = function(llave, aspectos){
-                           analizar_frecuencias_aspectos(self$diseno, self$diccionario,
-                                                         {{llave}}, aspectos) %>%
-                             left_join(
-                               self$diccionario %>%
-                                 select(aspecto = llaves, tema)
-                             ) |>
-                             graficar_barras_numerica() +
-                             self$tema()
+                         barras_aspectos = function(patron, aspectos, filtro, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                           if(is.null(filtro)) {
+
+                             stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
+
+                           } else {
+
+                             browser()
+
+                             bd_estimacion <- analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) |>
+                               left_join(self$diccionario %>%
+                                           select(aspecto = llaves, tema)) |>
+                               filter(eval(rlang::parse_expr(filtro))) |>
+                               transmute(media, respuesta = tema, tema) # Llevar la base al formato requerido por graficar_barras
+
+                             bd_estimacion |>
+                               graficar_barras(salto = salto,
+                                               porcentajes_fuera = porcentajes_fuera,
+                                               desplazar_porcentajes = desplazar_porcentajes) +
+                               self$tema()
+
+                           }
+
                          },
                          barras_texto = function(){},
                          gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
@@ -1620,7 +1635,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                            bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
 
-                           tema <- cuestionario_demo |>
+                           tema <- self$diccionario |>
                              filter(llaves == rlang::ensym(codigo)) |>
                              pull(tema)
 
@@ -1655,7 +1670,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}}) |>
                                  filter(eval(rlang::parse_expr(filtro)))
 
-                               tema <- cuestionario_demo |>
+                               tema <- self$diccionario |>
                                  filter(llaves == rlang::ensym(codigo)) |>
                                  pull(tema)
 
@@ -1667,15 +1682,9 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              }
 
                          },
-                         intervalo_numerica = function(){
-
-                         },
-                         nube_texto = function(){
-
-                         },
-                         sankey_categorica = function(){
-
-                         }
+                         intervalo_numerica = function(){},
+                         nube_texto = function(){},
+                         sankey_categorica = function(){}
                        ))
 
 #'Esta es la clase de Regiones

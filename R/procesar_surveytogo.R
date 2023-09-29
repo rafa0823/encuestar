@@ -36,35 +36,42 @@ analizar_frecuencias <- function(diseno, pregunta){
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 
-#' Title
+#' Analizar frecuencias aspectos
 #'
-#' @param encuesta
-#' @param pregunta
-#' @param aspectos
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param patron_pregunta Patrón que comparten las variables a analizar.
+#' @param aspectos Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
 #'
 #' @return
+#' \item{estimacion} {Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
 #' @export
 #'
 #' @examples
+#' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "opinion", aspectos = c("amlo", "claudia", "ebrard"))
+#' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "conocimiento", aspectos = c("amlo", "claudia", "ebrard"))
 
-analizar_frecuencias_aspectos <- function(diseno, diccionario, pregunta, aspectos){
+analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
 
   ja <- try(
-    rlang::expr_text(ensym(pregunta)),T
+    rlang::expr_text(ensym(patron_pregunta)),T
   )
 
   if(class(ja) != "try-error"){
-    p <- rlang::expr_text(ensym(pregunta))
+    p <- rlang::expr_text(ensym(patron_pregunta))
     llaves <- glue::glue("{p}_{aspectos}")
   } else{
     llaves <- aspectos
   }
 
-
   estimaciones <- map_df(llaves,
                          ~{
                            if(class(ja) != "try-error"){
-                             aux <- diccionario %>% tidyr::unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
+                             aux <- diccionario %>%
+                               tidyr::unnest(respuestas) %>%
+                               filter(grepl(.x,respuestas)) %>%
+                               pull(respuestas) %>%
+                               str_replace("\\s*\\{[^\\)]+\\} ","")
                            } else{
                              aux <- .x
                            }
@@ -91,8 +98,12 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, pregunta, aspecto
                          })
 
   p <- diccionario %>%
-    filter(llaves %in% !!llaves) %>% transmute(pregunta, aspecto = as.character(llaves))
-  estimaciones <- estimaciones %>% mutate(aspecto = as.character(aspecto)) %>% left_join(p)
+    filter(llaves %in% !!llaves) %>%
+    transmute(pregunta, aspecto = as.character(llaves))
+
+  estimaciones <- estimaciones %>%
+    mutate(aspecto = as.character(aspecto)) %>%
+    left_join(p)
 }
 
 
