@@ -1682,6 +1682,17 @@ Grafica <- R6::R6Class(classname = "Grafica",
                          },
                          intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
 
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
                            bd_estimacion <- analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) %>%
                              left_join(self$diccionario %>%
                                          select(aspecto = llaves, tema)
