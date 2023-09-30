@@ -1602,8 +1602,6 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                            } else {
 
-                             browser()
-
                              bd_estimacion <- analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) |>
                                left_join(self$diccionario %>%
                                            select(aspecto = llaves, tema)) |>
