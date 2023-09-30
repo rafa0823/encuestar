@@ -1680,7 +1680,28 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              }
 
                          },
-                         intervalo_numerica = function(){},
+                         intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
+
+                           self$diseno$variables <- self$diseno$variables |>
+                             mutate(across(.cols = starts_with("evaluacion_"), .fns = ~ as.numeric(.x)))
+
+                           bd_estimacion <- analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) %>%
+                             left_join(self$diccionario %>%
+                                         mutate(tema = dplyr::if_else(condition = grepl(pattern = "evaluacion_amlo", x = llaves),
+                                                                      true = "AMLO",
+                                                                      false = llaves),
+                                                tema = dplyr::if_else(condition = grepl(pattern = "evaluacion_rutilio", x = llaves),
+                                                                      true = "Rutilio Escandón",
+                                                                      false = llaves)) |>
+                                         select(aspecto = llaves, tema)
+                                       )
+
+                           bd_estimacion |>
+                             graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
+                             self$tema()
+
+
+                         },
                          nube_texto = function(){},
                          sankey_categorica = function(){}
                        ))

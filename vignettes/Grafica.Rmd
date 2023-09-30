@@ -47,7 +47,7 @@ gr$barras_categorica(codigo = problema_masimportante,
 # Barras numérica
 
 ```{r, dpi = 300, out.width="100%", out.height="50%"}
-gr$barras_numerica(llave = evaluacion, aspectos = c("amlo", "rutilio"))
+gr$barras_aspectos(patron = opinion, aspectos = c("era", "sasil"), filtro = "respuesta == 'Buena'")
 ```
 
 # Gauge numérica
@@ -61,6 +61,13 @@ gr$gauge_numerica(codigo = evaluacion_amlo, color = "red", escala = c(0, 11), si
 
 ```{r}
 gr$gauge_categorica(codigo = persona_lenguaindigena, filtro = "respuesta == 'Sí'", color = "red", escala = c(0, 1), size_text_pct = 18)
+
+```
+
+# Intervalos
+
+```{r}
+gr$intervalo_numerica(patron = evaluacion, aspectos = c("amlo", "rutilio"))
 
 ```
 

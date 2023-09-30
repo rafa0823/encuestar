@@ -96,7 +96,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("orden", "etiqueta"))
 
 #' Title
 #'
-#'  @param bd  Base de datos (ya procesada)
+#' @param bd  Base de datos (ya procesada)
 #' @param titulo Es un parámetro obligatorio para el título de la gráfica
 #' @param grupo1 vector: es el grupo que saldrá del lado derecho del plot
 #' @param grupo2 vector: es el grupo que saldrá del lado izquierdo del plot
@@ -304,15 +304,28 @@ graficar_barras_numerica<- function(bd){
                              contrast = T)
 }
 
-graficar_intervalo_numerica<- function(bd, tema, point_size, text_point_size){
+#' Graficar intervalos numérica
+#'
+#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
+#' @param point_size Tamaño del punto que indica el promedio de la estimación.
+#' @param text_point_size Tamaño del texto que acompaña el valor de la estimación
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_intervalo_numerica(bd = bd, point_size = 2, text_point_size = 14)
+graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, text_point_size = 8){
+
   bd %>%
     ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40), media))) +
     geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size) +
-    coord_flip()+
+    coord_flip() +
     labs(title = NULL,
          x = NULL,
          y = "Promedio")+
-    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, family = tema()$text$family, size = text_point_size)
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, size = text_point_size) +
+    scale_y_continuous(limits = c(escala[1], escala[2]))
 
 }
 
