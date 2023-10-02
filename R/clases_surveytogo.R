@@ -1579,7 +1579,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              pull(tema)
 
                            analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
-                             mutate(tema = tema)
+                             mutate(tema = tema) |>
                              graficar_barras(salto = salto,
                                              porcentajes_fuera = porcentajes_fuera,
                                              desplazar_porcentajes = desplazar_porcentajes) +
@@ -1594,30 +1594,33 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                self$tema()
 
                          },
-                         barras_aspectos = function(patron, aspectos, filtro, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+                         barras_numerica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
 
-                           if(is.null(filtro)) {
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
 
-                             stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
+                           tema <- self$diccionario |>
+                             filter(llaves == rlang::ensym(codigo)) |>
+                             pull(pregunta)
 
-                           } else {
+                           bd_estimacion <- analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
+                             mutate(tema = tema)
 
-                             bd_estimacion <- analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) |>
-                               left_join(self$diccionario %>%
-                                           select(aspecto = llaves, tema)) |>
-                               filter(eval(rlang::parse_expr(filtro))) |>
-                               transmute(media, respuesta = tema, tema) # Llevar la base al formato requerido por graficar_barras
-
-                             bd_estimacion |>
-                               graficar_barras(salto = salto,
-                                               porcentajes_fuera = porcentajes_fuera,
-                                               desplazar_porcentajes = desplazar_porcentajes) +
-                               self$tema()
-
-                           }
+                           bd_estimacion |>
+                             graficar_barras(salto = salto,
+                                             porcentajes_fuera = porcentajes_fuera,
+                                             desplazar_porcentajes = desplazar_porcentajes) +
+                             self$tema()
 
                          },
-                         barras_texto = function(){},
                          gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
 
                            # llave_aux <- quo_name(enquo(codigo))
@@ -1704,6 +1707,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
 
                          },
+                         barras_texto = function(){},
                          nube_texto = function(){},
                          sankey_categorica = function(){}
                        ))
