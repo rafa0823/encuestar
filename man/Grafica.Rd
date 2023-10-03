@@ -14,11 +14,11 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-new}{\code{Grafica$new()}}
 \item \href{#method-Grafica-barras_categorica}{\code{Grafica$barras_categorica()}}
 \item \href{#method-Grafica-barras_multirespuesta}{\code{Grafica$barras_multirespuesta()}}
-\item \href{#method-Grafica-barras_aspectos}{\code{Grafica$barras_aspectos()}}
-\item \href{#method-Grafica-barras_texto}{\code{Grafica$barras_texto()}}
+\item \href{#method-Grafica-barras_numerica}{\code{Grafica$barras_numerica()}}
 \item \href{#method-Grafica-gauge_numerica}{\code{Grafica$gauge_numerica()}}
 \item \href{#method-Grafica-gauge_categorica}{\code{Grafica$gauge_categorica()}}
 \item \href{#method-Grafica-intervalo_numerica}{\code{Grafica$intervalo_numerica()}}
+\item \href{#method-Grafica-barras_texto}{\code{Grafica$barras_texto()}}
 \item \href{#method-Grafica-nube_texto}{\code{Grafica$nube_texto()}}
 \item \href{#method-Grafica-sankey_categorica}{\code{Grafica$sankey_categorica()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
@@ -57,27 +57,18 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-barras_aspectos"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-barras_aspectos}{}}}
-\subsection{Method \code{barras_aspectos()}}{
+\if{html}{\out{<a id="method-Grafica-barras_numerica"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-barras_numerica}{}}}
+\subsection{Method \code{barras_numerica()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_aspectos(
-  patron,
-  aspectos,
-  filtro,
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_numerica(
+  patron_inicial,
+  aspectos = NULL,
   salto = 20,
+  filtro = NULL,
   porcentajes_fuera = F,
   desplazar_porcentajes = 0
 )}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-barras_texto"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-barras_texto}{}}}
-\subsection{Method \code{barras_texto()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_texto()}\if{html}{\out{</div>}}
 }
 
 }
@@ -126,6 +117,15 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-barras_texto"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-barras_texto}{}}}
+\subsection{Method \code{barras_texto()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_texto()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Grafica-nube_texto"></a>}}
 \if{latex}{\out{\hypertarget{method-Grafica-nube_texto}{}}}
 \subsection{Method \code{nube_texto()}}{
@@ -139,7 +139,7 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-sankey_categorica}{}}}
 \subsection{Method \code{sankey_categorica()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$sankey_categorica()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$sankey_categorica(variables = NULL, size_text_cat = 8)}\if{html}{\out{</div>}}
 }
 
 }

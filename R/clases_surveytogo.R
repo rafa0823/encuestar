@@ -1558,10 +1558,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            # self$shp <- shp
                            self$tema <- tema
                          },
-                         barras_categorica = function(codigo,
-                                                      salto = 20,
-                                                      porcentajes_fuera = F,
-                                                      desplazar_porcentajes = 0){
+                         barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
 
                            # llave_aux <- quo_name(enquo(codigo))
                            # if(!(llave_aux %in% self$graficadas)){
@@ -1586,15 +1583,17 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              self$tema()
 
                          },
-                         barras_multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
+                         barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
 
                              analizar_frecuencia_multirespuesta(diseno = self$diseno,
                                                                       patron_inicial) %>%
-                               graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) +
+                             graficar_barras(salto = salto,
+                                             porcentajes_fuera = porcentajes_fuera,
+                                             desplazar_porcentajes = desplazar_porcentajes) +
                                self$tema()
 
                          },
-                         barras_numerica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+                         barras_numerica = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
 
                            # llave_aux <- quo_name(enquo(codigo))
                            # if(!(llave_aux %in% self$graficadas)){
@@ -1607,18 +1606,31 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                            # }
 
-                           tema <- self$diccionario |>
-                             filter(llaves == rlang::ensym(codigo)) |>
-                             pull(pregunta)
+                           if(is.null(filtro) | is.null(aspectos)) {
 
-                           bd_estimacion <- analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
-                             mutate(tema = tema)
+                             stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro` o indique los aspectos correctos."))
 
-                           bd_estimacion |>
-                             graficar_barras(salto = salto,
-                                             porcentajes_fuera = porcentajes_fuera,
-                                             desplazar_porcentajes = desplazar_porcentajes) +
-                             self$tema()
+                           } else {
+
+                             tema <- self$diccionario |>
+                               filter(llaves == rlang::ensym(patron_inicial)) |>
+                               pull(pregunta)
+
+                             bd_estimacion <- analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                                            diccionario = self$diccionario,
+                                                                            patron_pregunta = {{patron_inicial}},
+                                                                            aspectos = aspectos) |>
+                               left_join(self$diccionario |> select(llaves, tema), by = c("aspecto" = "llaves")) |>
+                               filter(eval(rlang::parse_expr(filtro))) |>
+                               transmute(respuesta = tema, media)
+
+                             bd_estimacion |>
+                               graficar_barras(salto = salto,
+                                               porcentajes_fuera = porcentajes_fuera,
+                                               desplazar_porcentajes = desplazar_porcentajes) +
+                               self$tema()
+
+                           }
 
                          },
                          gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
@@ -1709,7 +1721,33 @@ Grafica <- R6::R6Class(classname = "Grafica",
                          },
                          barras_texto = function(){},
                          nube_texto = function(){},
-                         sankey_categorica = function(){}
+                         sankey_categorica = function(variables = NULL, size_text_cat = 8){
+
+                           if(is.null(variables)) {
+
+                             stop(paste("Especifique las variables a analizar con el argumento `variables`"))
+
+                           } else {
+
+                             # llave_aux <- quo_name(enquo(codigo))
+                             # if(!(llave_aux %in% self$graficadas)){
+                             #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                             #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                             #   } else {
+                             #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                             #   }
+                             # } else {
+                             #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                             # }
+
+                             bd_estimacion <- analizar_sankey(diseno = self$diseno, var_1 = variables[1], var_2 = variables[2])
+
+                             graficar_sankey(bd = bd_estimacion, size_text_cat = size_text_cat) +
+                               self$tema()
+
+                           }
+
+                         }
                        ))
 
 #'Esta es la clase de Regiones

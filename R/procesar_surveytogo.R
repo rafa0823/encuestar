@@ -521,3 +521,25 @@ analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtr
       }
     }
 }
+
+#' Analizar sankey
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param var_1 Nombre de la variable primer variable a analizar contenida en el diseño muestral
+#' @param var_2 Nombre de la variable segunda variable a analizar contenida en el diseño muestral
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_sankey(diseno = as_survey_design(diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
+#' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
+analizar_sankey = function(diseno, var_1, var_2){
+
+  estimacion <- survey::svytable(survey::make.formula(c(var1 = var_1, var2 = var_2)),
+                            design = diseno) %>%
+    tibble::as_tibble()
+
+  return(estimacion)
+
+}

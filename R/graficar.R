@@ -1122,3 +1122,38 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filte
 
   return(g)
 }
+
+#' Graficar sankey
+#'
+#' @param bd Base de datos procesada con la función analizar_sankey
+#' @param size_text_cat Tamaño del texto mostrado en cada nodo el sankey
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
+graficar_sankey = function(bd, size_text_cat){
+
+  g <- bd |>
+    ggsankey::make_long(-n, value = n) |>
+    ggplot(aes(x = x,
+               value = value,
+               next_x = next_x,
+               node = node,
+               next_node = next_node,
+               fill = factor(node))) +
+    ggsankey::geom_sankey() +
+    ggsankey::geom_sankey_label(data = . %>% filter(x == names(bd)[1]),
+                                aes(label = node, color = node),
+                                hjust = 1.0, fill = "white", size = size_text_cat) +
+    ggsankey::geom_sankey_label(data = . %>% filter(x == names(bd)[2]),
+                                aes(label = node, color = node),
+                                hjust = -0.2, fill = "white", size = size_text_cat) +
+    labs(fill = "") +
+    guides(color = "none") +
+    theme(legend.position = "bottom")
+
+  return(g)
+
+}

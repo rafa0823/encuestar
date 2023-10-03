@@ -67,7 +67,15 @@ gr$gauge_categorica(codigo = persona_lenguaindigena, filtro = "respuesta == 'Sí
 # Intervalos
 
 ```{r}
-gr$intervalo_numerica(patron = evaluacion, aspectos = c("amlo", "rutilio"))
+gr$barras_numerica(patron_inicial = conocimiento, aspectos = c("era", "sasil"), filtro = "respuesta == 'Sí'",
+                   salto = 20, porcentajes_fuera = F)
+
+```
+
+# Sankey
+
+```{r}
+gr$sankey_categorica(variables = c("sexo", "conocimiento_manuelita"))
 
 ```
 
