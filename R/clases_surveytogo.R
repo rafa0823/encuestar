@@ -1719,8 +1719,22 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
 
                          },
+                         nube_texto = function(codigo, palabrasVacias = NULL, total_palabras = 15, colores = c("#619CFF", "#FFFF33", "#00BA38")){
+
+                           nubeImg <- analizar_respuestaAbierta(bd = self$diseno$variables, variable = codigo,
+                                                     palabrasVacias = palabrasVacias, totalPalabras = total_palabras,
+                                                     colores = colores) |>
+                             graficar_nubePalabras_hc()
+
+                           htmlwidgets::saveWidget(widget = nubeImg, file = paste("data/nubeTexto", codigo, ".html", sep = ""))
+                           webshot::webshot(url = paste("data/nubeTexto", codigo, ".html", sep = ""), delay = 5,
+                                   file = paste("data/nubeTexto", codigo, ".png", sep = ""), vwidth = 600*5, vheight = 600*5/1.41)
+
+                           print(paste("El objeto se ha generado en el archivo ",
+                                       paste("'data/nubeTexto", codigo, ".png'", sep = ""), sep = ""))
+
+                         },
                          barras_texto = function(){},
-                         nube_texto = function(){},
                          sankey_categorica = function(variables = NULL, size_text_cat = 8){
 
                            if(is.null(variables)) {
@@ -1748,6 +1762,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            }
 
                          }
+
                        ))
 
 #'Esta es la clase de Regiones

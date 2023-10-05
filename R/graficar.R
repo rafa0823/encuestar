@@ -1157,3 +1157,23 @@ graficar_sankey = function(bd, size_text_cat){
   return(g)
 
 }
+
+#' Graficar nube de palabras clave
+#'
+#' @param bd Base de datos procesada con la estructura "palabras", "n", y "colores"
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_nubePalabras_hc(bd = tibble(palabras = c("hola"), n = c(2), colores = c("#619CFF")))
+graficar_nubePalabras_hc = function(bd){
+
+  hc <- bd |>
+    highcharter::hchart(highcharter::hcaes(x = palabras, weight = log(n), acolor = colores),
+                        type= "wordcloud") %>%
+    highcharter::hc_chart(style = list(fontFamily = "Poppins"))
+
+  return(hc)
+
+}

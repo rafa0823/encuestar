@@ -543,3 +543,35 @@ analizar_sankey = function(diseno, var_1, var_2){
   return(estimacion)
 
 }
+
+#' Analizar respuestas abiertas
+#'
+#' @param bd Base de datos en formato largo a analizar en formato largo.
+#' @param variable Variable cuyos valores son cadenas de texto.
+#' @param palabrasVacias Conjunto de palabras a omitir del lenguajes español.
+#' @param totalPalabras Total de palabras a segregar
+#' @param colores Vector de colores en orden descendente de relevancia.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_respuestaAbierta(bd, variable = opinion_amlo, palabrasVacias = c("muy", "de"), totalPalabras = 15, colores = c("green", "blue", "yellow"))
+analizar_respuestaAbierta = function(bd, variable, palabrasVacias, totalPalabras, colores){
+
+  res <- tidytext::unnest_tokens(tbl = bd %>% as_tibble(),
+                                  output = palabras,
+                                  input = variable) %>%
+    as_tibble() |>
+    count(palabras, sort = T) %>%
+    anti_join(tibble(palabras = c(stopwords::stopwords("es"), palabrasVacias))) %>%
+    mutate(colores = case_when(n <= quantile(n, probs = .75) ~ colores[3],
+                               n > quantile(n, probs = .75) & n <= quantile(n, probs=.90) ~ colores[2],
+                               n > quantile(n, probs = .90) ~ colores[1],
+                               T ~ NA_character_ )) %>%
+    na.omit(palabras) |>
+    slice(1:totalPalabras)
+
+  return(res)
+
+}

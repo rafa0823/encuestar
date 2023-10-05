@@ -18,8 +18,8 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-gauge_numerica}{\code{Grafica$gauge_numerica()}}
 \item \href{#method-Grafica-gauge_categorica}{\code{Grafica$gauge_categorica()}}
 \item \href{#method-Grafica-intervalo_numerica}{\code{Grafica$intervalo_numerica()}}
-\item \href{#method-Grafica-barras_texto}{\code{Grafica$barras_texto()}}
 \item \href{#method-Grafica-nube_texto}{\code{Grafica$nube_texto()}}
+\item \href{#method-Grafica-barras_texto}{\code{Grafica$barras_texto()}}
 \item \href{#method-Grafica-sankey_categorica}{\code{Grafica$sankey_categorica()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
@@ -52,7 +52,12 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-barras_multirespuesta}{}}}
 \subsection{Method \code{barras_multirespuesta()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_multirespuesta(patron_inicial, tit = "", salto = 100, nota = "")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_multirespuesta(
+  patron_inicial,
+  salto = 20,
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -117,20 +122,25 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-nube_texto"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-nube_texto}{}}}
+\subsection{Method \code{nube_texto()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$nube_texto(
+  codigo,
+  palabrasVacias = NULL,
+  total_palabras = 15,
+  colores = c("#619CFF", "#FFFF33", "#00BA38")
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Grafica-barras_texto"></a>}}
 \if{latex}{\out{\hypertarget{method-Grafica-barras_texto}{}}}
 \subsection{Method \code{barras_texto()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_texto()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-nube_texto"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-nube_texto}{}}}
-\subsection{Method \code{nube_texto()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$nube_texto()}\if{html}{\out{</div>}}
 }
 
 }
