@@ -79,3 +79,10 @@ gr$sankey_categorica(variables = c("sexo", "conocimiento_manuelita"))
 
 ```
 
+# Nube de texto
+```{r}
+gr$nube_texto(codigo = "problema_masimportante_otro",
+              palabrasVacias = c("muy", "anteriores", "mas", "todas", "falta"),
+              total_palabras = 15)
+
+```
