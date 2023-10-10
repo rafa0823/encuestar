@@ -37,19 +37,6 @@ gr <- Grafica$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_
 
 ```
 
-# Barras categórica
-
-```{r}
-gr$barras_categorica(codigo = problema_masimportante, 
-                     salto = 20)
-
-```
-# Barras numérica
-
-```{r, dpi = 300, out.width="100%", out.height="50%"}
-gr$barras_aspectos(patron = opinion, aspectos = c("era", "sasil"), filtro = "respuesta == 'Buena'")
-```
-
 # Gauge numérica
 
 ```{r}
@@ -64,11 +51,34 @@ gr$gauge_categorica(codigo = persona_lenguaindigena, filtro = "respuesta == 'Sí
 
 ```
 
-# Intervalos
+# Barras categórica
 
 ```{r}
-gr$barras_numerica(patron_inicial = conocimiento, aspectos = c("era", "sasil"), filtro = "respuesta == 'Sí'",
+gr$barras_categorica(codigo = problema_masimportante, 
+                     salto = 20)
+
+```
+
+# Barras numérica
+
+```{r}
+gr$barras_numerica(patron_inicial = conocimiento,
+                   aspectos = c("era", "sasil"), filtro = "respuesta == 'Sí'",
                    salto = 20, porcentajes_fuera = F)
+
+```
+
+# Barras multirespuesta
+
+```{r}
+gr$barras_multirespuesta()
+
+```
+
+# Intervalo numérica
+
+```{r}
+gr$intervalo_numerica(patron = "evaluacion", aspectos = c("amlo", "rutilio"), escala = c(0, 10))
 
 ```
 
