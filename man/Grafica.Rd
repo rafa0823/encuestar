@@ -23,6 +23,7 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-sankey_categorica}{\code{Grafica$sankey_categorica()}}
 \item \href{#method-Grafica-candidato_opinion}{\code{Grafica$candidato_opinion()}}
 \item \href{#method-Grafica-candidato_partido}{\code{Grafica$candidato_partido()}}
+\item \href{#method-Grafica-candidato_saldo}{\code{Grafica$candidato_saldo()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -200,6 +201,15 @@ Esta es la clase de Grafica
   colores_candidatos,
   colores_partido
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-candidato_saldo"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidato_saldo}{}}}
+\subsection{Method \code{candidato_saldo()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_saldo()}\if{html}{\out{</div>}}
 }
 
 }
