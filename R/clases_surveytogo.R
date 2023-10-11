@@ -1763,6 +1763,61 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                            }
 
+                         },
+                         candidato_opinion = function(patron_inicial, aspectos,
+                                                      ns_nc = "Ns/Nc",
+                                                      regular = "Regular",
+                                                      llave_burbuja = "conocimiento",
+                                                      filtro_burbuja = "respuesta == 'Sí'",
+                                                      grupo_positivo,
+                                                      grupo_negativo,
+                                                      orden_resp,
+                                                      colores_opinion = c("red", "yellow", "green", "gray70"),
+                                                      color_burbuja = "blue",
+                                                      caption_opinion = "",
+                                                      caption_nsnc = "Ns/Nc",
+                                                      caption_burbuja = "Conocimiento",
+                                                      size_caption_opinion = 12,
+                                                      size_caption_nsnc = 14,
+                                                      size_caption_burbuja = 14,
+                                                      size_text_cat = 16,
+                                                      burbuja = T,
+                                                      salto = 20){
+
+                           if(!is.na(llave_burbuja)){
+                             burbuja <- analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                                      diccionario = self$diccionario,
+                                                                      patron_pregunta = !!rlang::sym(llave_burbuja),
+                                                                      aspectos = aspectos) %>%
+                               filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
+                               left_join(self$diccionario %>% select(aspecto = llaves, tema))
+                           } else {
+                             burbuja <- NA
+                           }
+
+                           analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                         diccionario = self$diccionario,
+                                                         patron_pregunta = {{patron_inicial}},
+                                                         aspectos = aspectos) |>
+                             left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
+                             graficar_candidato_opinion(ns_nc = ns_nc,
+                                                        regular = regular,
+                                                        grupo_positivo= grupo_positivo,
+                                                        grupo_negativo = grupo_negativo,
+                                                        caption_opinion = caption_opinion,
+                                                        caption_nsnc = caption_nsnc,
+                                                        caption_burbuja = caption_burbuja,
+                                                        size_caption_opinion = size_caption_opinion,
+                                                        size_caption_nsnc = size_caption_nsnc,
+                                                        size_caption_burbuja = size_caption_burbuja,
+                                                        size_text_cat = size_text_cat,
+                                                        orden_resp = orden_resp,
+                                                        colores = colores_opinion,
+                                                        burbuja = burbuja,
+                                                        color_burbuja = color_burbuja,
+                                                        salto = salto,
+                                                        tema = self$tema)
+
                          }
 
                        ))
@@ -1784,10 +1839,18 @@ Regiones <- R6::R6Class(classname = "Regiones",
                          mapa_regiones = function(){
 
                          },
-                         mapa_ganador = function(){
+                         mapa_ganador = function(variable, lugar = 1){
+                           analizar_ganador_region(regiones = self$regiones, {{variable}},
+                                                   lugar = lugar,
+                                                   diseno = self$diseno) %>%
+                             graficar_mapa_region({{variable}})
 
                          },
-                         mapa_degradadoNumerico = function(){
+                         mapa_degradadoNumerico = function(variable){
+
+                           analizar_promedio_region(regiones = self$regiones, var = {{variable}},
+                                                    diseno = self$diseno) %>%
+                             graficar_mapa_region({{variable}})
 
                          },
                          heatmap_conocimiento = function(llave_conocimiento, candidatos, respuesta, orden_horizontal){

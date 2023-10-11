@@ -96,3 +96,13 @@ gr$nube_texto(codigo = "problema_masimportante_otro",
               total_palabras = 15)
 
 ```
+
+# Candidato opinion
+
+```{r}
+gr$candidato_opinion(patron_inicial = opinion,
+                     aspectos = c("era", "sasil"), ns_nc = "Ns/Nc (No leer)", regular = "Regular (No leer)",
+                     grupo_positivo= c("Buena"), grupo_negativo = c("Mala"),
+                     orden_resp = c("Mala", "Regular (No leer)", "Buena"))
+
+```

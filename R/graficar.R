@@ -606,7 +606,34 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 }
 
 
-graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
+#' Graficar candidato opinión
+#'
+#' @param bd Base de datos con estructura producida por analizar_frecuencias_aspectos.
+#' @param ns_nc Valor de la variable 'respuesta' asociado a "No sabe" o "No contesta" en la pregunta relativa.
+#' @param regular Valor de la variable 'respuesta' asociado a "Regular" en la pregunta relativa.
+#' @param grupo_positivo Conjunto de valores de la  variable 'respuesta' considerados como positivos.
+#' @param grupo_negativo Conjunto de valores de la  variable 'respuesta' considerados como negativos
+#' @param colores Vector ordenado de colores asociados al grupo negativo, regular y positivo.
+#' @param burbuja Base de datos con estructura producida por analizar_frecuencias_aspectos filtrada por un valor de interés. Disponible en el enviroment.
+#' @param color_burbuja Color de los puntos asociados a la base de datos 'burbuja'
+#' @param caption_opinion Caption de la gráfica que visualiza los datos de bd
+#' @param caption_nsnc Caption de la gráfica que visualiza los datos de bd separando el valor asociado a "No sabe" o "No contesta" en la pregunta relativa.
+#' @param caption_burbuja Caption de la gráfica que visualiza los datos de burbuja
+#' @param size_caption_opinion Tamaño del texto del caption_opinion
+#' @param size_caption_nsnc Tamaño del texto del caption_nsnc
+#' @param size_caption_burbuja Tamaño del texto del caption_burbuja
+#' @param size_text_cat Tamaño del texto de las categorías diferentes categorías de la variable 'tema' de la base de datos 'bd'
+#' @param orden_resp Vector ordenado de los posibles valores de la variable 'respuesta'
+#' @param salto Parámetro usado por la función str_wrap de la paquetería stringr aplicado a la variable 'tema' de la base 'bd'
+#' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_candidato_opinion(bd, ns_nc = "Ns/Nc", regular = "Regular", grupo_positivo = "Buena", grupo_negativo = "Mala", colores = c("red", "yellow", "green", "gray70"), burbuja = burbuja, color_burbuja = "blue", caption_opinion = "", caption_nsnc = "Ns/Nc", caption_burbuja = "Nivel de conocimiento", size_caption_opinion = 12, size_caption_nsnc = 12, size_caption_burbuja = 12, size_caption_cat = 12, orden_resp = c("Mala", "Regular", "Buena"), tema = self$tema)
+graficar_candidato_opinion <- function(bd, ns_nc, regular,
+                                       grupo_positivo,
                                        grupo_negativo,
                                        colores,
                                        burbuja,
@@ -656,7 +683,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     mutate(respuesta = factor(respuesta, levels = orden_resp)) |>
     ggplot(aes(x  = factor(tema, orden), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
-    ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
+    ggchicklet::geom_chicklet(width =.6, alpha =.9)+
     scale_fill_manual(values = colores)+
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema()$text$family,
                              min.size = 8,
@@ -675,7 +702,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
   if(!is.null(ns_nc)){
     b <- aux %>%  filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores["Ns/Nc"] |> as_tibble() |> pull())+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores[4])+
       coord_flip()+
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
                                hjust = -.1)+
