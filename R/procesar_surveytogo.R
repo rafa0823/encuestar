@@ -556,9 +556,22 @@ analizar_crucePuntos = function(diseno, cruce, variables, vartype, valor_variabl
   return(res)
 }
 
-analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtro, vartype){
+#' Analizar cruce entre dos variables
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param cruce Variable principal por la cual hacer análisis
+#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
+#' @param filtro Filtro aplicable a la variable secundaria
+#' @param vartype
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_cruceBrechas(diseno = diseno, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia", filtro = c("Sasil de León",  "Eduardo Ramírez Aguilar"), vartype = "cv")
+analizar_cruceBrechas = function(diseno, var1, var2_filtro, filtro, vartype){
 
-  encuesta_diseño %>%
+  diseno %>%
     group_by(!!rlang::sym(var1), !!rlang::sym(var2_filtro)) |>
     summarise(srvyr::survey_mean(na.rm=T, vartype = vartype)) %>%
     {

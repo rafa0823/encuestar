@@ -1864,16 +1864,30 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              encuestar:::graficar_morena(personajes = personajes, atributos = atributos)
                          },
                          puntos = function(cruce, variables, vartype = "se", valor_variables){
-                           bd_estimacion <- analizar_crucePuntos(diseno = srvyr::as_survey_design(self$diseno),
+                           bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(self$diseno),
                                                                  cruce = cruce, variables = variables,vartype = vartype,
                                                                  valor_variables = valor_variables) |>
                              left_join(self$diccionario, by = c("variable" = "llaves")) |>
                              select(-variable) |>
                              rename(variable = tema)
 
-                           graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
+                           encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
                              self$tema()
 
+                         },
+                         brechasDuales = function(var1, var2_filtro, filtro, vartype = "cv", line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+
+                           encuestar:::analizar_cruceBrechas(diseno = srvyr::as_survey_design(self$diseno),
+                                                             var1 = var1,
+                                                             var2_filtro = var2_filtro,
+                                                             filtro = filtro,
+                                                             vartype = vartype) |>
+                             encuestar:::graficar_cruce_brechasDuales(var1 = var1,var2_filtro = var2_filtro, vartype = vartype,
+                                                                      line_rich = line_rich,
+                                                                      line_linewidth = line_linewidth,
+                                                                      line_hjust = line_hjust,
+                                                                      line_vjust = line_vjust) +
+                             self$tema()
                          }
 
                        ))

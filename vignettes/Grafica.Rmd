@@ -186,7 +186,26 @@ gr$metodo_morena(personajes = candidatos, atributos = atributos)
 
 # Cruce por puntos
 ```{r}
-gr$candidato_saldo(patron_inicial = "opinion", aspectos = c("era", "sasil"), positivos = c("Buena"), negativos = c("Mala"),
-                   color_positivo = "orange", color_negativo = "brown")
+
+variablesConocimiento <- cuestionario_demo %>%
+  filter(grepl(pattern = "Bloque 3", x = bloque)) |>
+  filter(grepl(pattern = "conocimiento_", x = llaves)) |>
+  pull(llaves)
+
+gr$puntos(cruce = "sexo",
+          variables = variablesConocimiento,
+          vartype = "cv", valor_variables = "Sí")
+
+```
+
+# Cruce brechas duales
+```{r}
+
+gr$brechasDuales(var1 = "AMAI_factor",
+                 var2_filtro = "candidato_preferencia",
+                 filtro = c("Carlos Morales", "Sasil de León", "Eduardo Ramírez Aguilar"),
+                 vartype = "cv",
+                 line_rich = F,
+                 line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5)
 
 ```

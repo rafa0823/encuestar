@@ -1079,7 +1079,7 @@ graficar_morena <- function(atr, personajes, atributos){
 #'
 #' @examples
 #' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
-graficar_crucePuntos <- function(bd, cruce, vartype){
+graficar_crucePuntos = function(bd, cruce, vartype){
   g <- bd |>
     ggplot(aes(x=reorder(variable,mean), xend=variable,
                color=!!rlang::sym(cruce))) +
@@ -1095,16 +1095,32 @@ graficar_crucePuntos <- function(bd, cruce, vartype){
   return(g)
 }
 
-graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+#' Graficar cruce de una variable vs otra con opción a filtro
+#'
+#' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
+#' @param var1 Variable principal por la cual se hace el cruce
+#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
+#' @param vartype
+#' @param line_rich Argumento de la función 'geom_textline'
+#' @param line_linewidth Argumento de la función 'geom_textline'
+#' @param line_hjust Argumento de la función 'geom_textline'
+#' @param line_vjust Argumento de la función 'geom_textline'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
+graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F, line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
   g <- bd |>
     ggplot(aes(x=!!rlang::sym(var1),
                y=coef)) +
     geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
                                     group=!!rlang::sym(var2_filtro),
                                     label=!!rlang::sym(var2_filtro)),
-                                linewidth=line_linewidth, hjust = line_hjust,
+                                linewidth = line_linewidth, hjust = line_hjust,
                                 vjust = line_vjust, rich = line_rich,
-                                size=6, family = familia) +
+                                size=6, family = "Poppins") +
     scale_y_continuous(labels=scales::percent) +
     labs(color = NULL)
 

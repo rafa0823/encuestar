@@ -26,6 +26,7 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-candidato_saldo}{\code{Grafica$candidato_saldo()}}
 \item \href{#method-Grafica-metodo_morena}{\code{Grafica$metodo_morena()}}
 \item \href{#method-Grafica-puntos}{\code{Grafica$puntos()}}
+\item \href{#method-Grafica-brechasDuales}{\code{Grafica$brechasDuales()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -237,6 +238,24 @@ Esta es la clase de Grafica
 \subsection{Method \code{puntos()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Grafica$puntos(cruce, variables, vartype = "se", valor_variables)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-brechasDuales"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-brechasDuales}{}}}
+\subsection{Method \code{brechasDuales()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$brechasDuales(
+  var1,
+  var2_filtro,
+  filtro,
+  vartype = "cv",
+  line_rich = FALSE,
+  line_linewidth = 2,
+  line_hjust = "ymax",
+  line_vjust = -0.3
+)}\if{html}{\out{</div>}}
 }
 
 }
