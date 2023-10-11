@@ -209,7 +209,14 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-candidato_saldo}{}}}
 \subsection{Method \code{candidato_saldo()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_saldo()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_saldo(
+  patron_inicial,
+  aspectos,
+  positivos,
+  negativos,
+  color_positivo = "green",
+  color_negativo = "red"
+)}\if{html}{\out{</div>}}
 }
 
 }

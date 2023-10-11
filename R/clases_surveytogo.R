@@ -1207,7 +1207,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                   } else{
                                     stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
                                   }
-                                } else{
+                                } else {
                                   warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
 
@@ -1819,7 +1819,8 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                         tema = self$tema)
 
                          },
-                         candidato_partido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
+                         candidato_partido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos,
+                                                      corte_otro, cliente, colores_candidatos, colores_partido){
 
                            analizar_candidato_partido(diseno = self$diseno,
                                                       llave_partido = llave_partido,
@@ -1836,6 +1837,28 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                         colores_partido = colores_partido,
                                                         solo_respondidos = T,
                                                         tema = self$tema)
+                         },
+                         candidato_saldo = function(patron_inicial, aspectos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
+
+                           bd_saldo <- analizar_frecuencias_aspectos(diseno = self$diseno, diccionario = self$diccionario,
+                                                                     patron_pregunta = {{patron_inicial}}, aspectos = aspectos) %>%
+                             left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
+                             calcular_saldoOpinion(llave_opinion = patron_inicial, grupo_positivo = positivos, grupo_negativo = negativos)
+
+                           # texto <- ordenar_opinion_xq(self$encuesta$respuestas$base,
+                           #                             llave_opinion, llave_xq, aspectos,
+                           #                             parametros$grupo_positivo, parametros$grupo_negativo) %>%
+                           #   pclave_combinaciones_saldo(parametros$tipo_combinacion, parametros$n_palabras)
+
+                           # left_join(bd_saldo, texto) %>%
+
+                           bd_saldo %>%
+                             graficar_candidatoSaldo(grupo_positivo = positivos,
+                                                     grupo_negativo = negativos,
+                                                     color_positivo = color_positivo,
+                                                     color_negativo = color_negativo) +
+                             self$tema()
+
                          }
 
                        ))

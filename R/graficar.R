@@ -818,29 +818,48 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
 
 }
 
-graficar_candidato_saldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"),
-                                     grupo_negativo = c("Mala", "Muy mala"), familia){
+#' Graficar saldo de opinión por personaje
+#'
+#' @param bd Base de datos resultado de la función 'calcular_saldoOpinion'.
+#' @param grupo_positivo Valores posibles dentro de la variable 'grupo' que los identifica de manera arbitraria como positivos.
+#' @param grupo_negativo Valores posibles dentro de la variable 'grupo' que los identifica de manera arbitraria como negativos.
+#' @param color_positivo Color asociado al grupo positivo.
+#' @param color_negativo Color asociado al grupo negativo.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_candidato_saldo(bd, grupo_positivo = "Buena", grupo_negativo = "Mala")
+#' graficar_candidato_saldo(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "orange", color_negativo = "brown")
+graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "green", color_negativo = "red"){
 
-  g <- bd %>% ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = grupo,
-                         y =saldo
-  )) +
-    ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
-    coord_flip()+
-    scale_fill_manual(values = c("Negativa" = "#FB8500",
-                                 "Positiva" = "#126782"))+
-    geom_text(aes(label = scales::percent(saldo,accuracy = 1)), family = familia,
-              position = position_stack(.5,reverse = T), vjust = .5)
-
-  if("p_calve" %in% names(bd)) g <- g + geom_text(aes(label = p_calve),
-                                                  hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
-
-  g +
+  g <- bd %>%
+    ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = saldo, fill = grupo)) +
+    ggchicklet::geom_chicklet(width =.6, alpha =.9) +
+    ggfittext::geom_bar_text(aes(label = scales::percent(saldo, accuracy = 1)), contrast = T, family = "Poppins") +
+    coord_flip() +
+    scale_fill_manual(values = c("Negativa" = color_negativo,
+                                 "Positiva" = color_positivo)) +
     lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
     theme_minimal()+
     theme(legend.position = "bottom",
           panel.grid.minor.y = element_blank(),
           panel.grid.major.y = element_blank())+
-    labs(y = "Saldo", x = NULL, fill = NULL)
+    labs(x = NULL, fill = NULL)
+
+  # if("p_calve" %in% names(bd)) g <- g + geom_text(aes(label = p_calve),
+  #                                                 hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
+  #
+  # g +
+  #   lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
+  #   theme_minimal()+
+  #   theme(legend.position = "bottom",
+  #         panel.grid.minor.y = element_blank(),
+  #         panel.grid.major.y = element_blank())+
+  #   labs(y = "Saldo", x = NULL, fill = NULL)
+
+  return(g)
 
 }
 
