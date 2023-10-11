@@ -1818,6 +1818,24 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                         salto = salto,
                                                         tema = self$tema)
 
+                         },
+                         candidato_partido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
+
+                           analizar_candidato_partido(diseno = self$diseno,
+                                                      llave_partido = llave_partido,
+                                                      llave_conocimiento = llave_conocimiento,
+                                                      respuesta_conoce = respuesta_conoce,
+                                                      candidatos = candidatos,
+                                                      corte_otro = corte_otro) %>%
+                             purrr::map(~.x %>%
+                                          left_join(self$diccionario %>% select(aspecto = llaves, tema))
+                                        ) %>%
+                             graficar_candidato_partido(cliente = cliente,
+                                                        tipo_conoce = "intervalos",
+                                                        colores_candidato = colores_candidatos,
+                                                        colores_partido = colores_partido,
+                                                        solo_respondidos = T,
+                                                        tema = self$tema)
                          }
 
                        ))

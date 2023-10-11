@@ -731,17 +731,22 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 }
 
 
-#' Title
+#' Graficar el partido político con el que asocian a uno o varios personajes
 #'
-#' @param bases
+#' @param bases Lista. 'bases$conoce' contiene la estimación del conocimiento sobre algún personaje. 'bases$partido' tiene la información sobre la asociación a un partido político por personaje
+#' @param cliente Vector de códigos cortos que asocian a un personaje con una variable. Por ejemplo, 'personajeC' resaltará entre el conjunto 'personajeA', 'personajeB', 'personajeC'.
+#' @param tipo_conoce Tipo de gráfica a mostrar en la estimación de conocimiento. De forma predeterminada son barras, el otro valor son 'intervalos'
+#' @param colores_candidato Vector que asigna un color a un candidato de acuerdo al nombre largo (tema)
+#' @param solo_respondidos Logical. Omite los partidos en los cuales el personaje no tiene ninguna asociación
+#' @param colores_partido Vector que asigna un color a cada partido de acuerdo al nombre largo (tema)
+#' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
 #'
 #' @return
-#' @import patchwork
 #' @export
 #'
 #' @examples
-#'
-graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos, colores_partido,tema){
+#' graficar_candidato_partido(bases, clientes = c("era", "sasil"), tipo_conoce = "intervalos", colores_candidato = colores_candidato, colores_partido = colores_partido, tema = self$tema)
+graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))

@@ -107,6 +107,20 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
 }
 
 
+#' Analizar partido asociado a un candidato
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param llave_partido Patrón que comparten las variables asociadas a las preguntas que relacionan un personaje con un partido político
+#' @param llave_conocimiento Patrón que comparten las variables relacionadas a preguntas sobre el conocimiento de un personaje
+#' @param respuesta_conoce Filtro sobre el cuál se evalúa la asociación de un personaje a un partído político
+#' @param candidatos Vector de nombres cortos asociados a uno o más personajes sobre los cuáles se preguntó su asociación partidista
+#' @param corte_otro Parámetro 'prop' de la función 'fct_lump' de la paquetería 'forcats' usado para agrupar valores pequeños de partidos políticos
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_candidato_partido(diseno = self%diseno, llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí", candidatos = c("era", "sasil"))
 analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
   partido <- paste(llave_partido,candidatos,sep = "_")
   conoce <- paste(llave_conocimiento,candidatos, sep = "_")

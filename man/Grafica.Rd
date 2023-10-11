@@ -22,6 +22,7 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-nube_texto}{\code{Grafica$nube_texto()}}
 \item \href{#method-Grafica-sankey_categorica}{\code{Grafica$sankey_categorica()}}
 \item \href{#method-Grafica-candidato_opinion}{\code{Grafica$candidato_opinion()}}
+\item \href{#method-Grafica-candidato_partido}{\code{Grafica$candidato_partido()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -180,6 +181,24 @@ Esta es la clase de Grafica
   size_text_cat = 16,
   burbuja = T,
   salto = 20
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-candidato_partido"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidato_partido}{}}}
+\subsection{Method \code{candidato_partido()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_partido(
+  llave_partido,
+  llave_conocimiento,
+  respuesta_conoce,
+  candidatos,
+  corte_otro,
+  cliente,
+  colores_candidatos,
+  colores_partido
 )}\if{html}{\out{</div>}}
 }
 
