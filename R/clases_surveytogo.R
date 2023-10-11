@@ -1819,8 +1819,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                         tema = self$tema)
 
                          },
-                         candidato_partido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos,
-                                                      corte_otro, cliente, colores_candidatos, colores_partido){
+                         candidato_partido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
 
                            analizar_candidato_partido(diseno = self$diseno,
                                                       llave_partido = llave_partido,
@@ -1859,6 +1858,10 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                      color_negativo = color_negativo) +
                              self$tema()
 
+                         },
+                         metodo_morena = function(personajes, atributos){
+                           analizar_morena(diseno = self$diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
+                             graficar_morena(personajes = personajes, atributos = atributos)
                          }
 
                        ))

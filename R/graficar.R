@@ -1019,7 +1019,19 @@ graficar_blackbox_1d <- function(lst){
       text = element_text(family = "Poppins", size=14))
 }
 
-graficar_morena <- function(atr, atributos, p, thm){
+#' Graficar metodología de MORENA con un geom_tile
+#'
+#' @param atr Base de datos producto de la función 'analizar_morena'.
+#' @param cliente Vector de códigos cortos relacionados a los personajes a los cuales se les aplicó la batería de preguntas de MORENA.
+#' @param atributos Vector de códigos de cortos que identifican los diferentes atributos contenidos en la metodología de MORENA.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_morena(atr, personajes = c("era", "sasil"), atributos = c("honesto", "opinion"))
+#' graficar_morena(atr, personajes = c("era", "sasil", "jaac"), atributos = atributos)
+graficar_morena <- function(atr, personajes, atributos){
 
   orden <- atr %>%
     distinct(tema, atributo, puntos, .keep_all = T) %>%
@@ -1029,19 +1041,30 @@ graficar_morena <- function(atr, atributos, p, thm){
     arrange(n, preferencia, votaria) %>%
     pull(tema)
 
-  atr %>%
-    ggplot(aes(x = atributo, y = factor(tema, orden), fill = media, label = scales::percent(media, p))) +
+  g <- atr %>%
+    ggplot(aes(x = atributo, y = factor(tema, orden), fill = media, label = scales::percent(media, 1.))) +
     geom_tile() +
-    ggfittext::geom_fit_text(contrast = T, family = thm()$text$family) +
+    ggfittext::geom_fit_text(contrast = T, family = "Poppins") +
     geom_label(data = atr %>% filter(puntos!=0), aes(label = puntos),
-               color = "black", vjust = 0, nudge_y = -.5, fill = "white", family = thm()$text$family) +
+               color = "black", vjust = 0, nudge_y = -.5, fill = "white", family = "Poppins") +
     geom_text(data = atr %>% count(tema, wt = puntos),
               aes(label = n, x  ="Puntaje", y = tema),
-              inherit.aes = F, family = thm()$text$family) +
+              inherit.aes = F, family = "Poppins") +
     scale_fill_continuous(labels = scales::percent) +
     labs(x = NULL, y = NULL, fill = "Porcentaje") +
     theme_minimal() +
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    scale_x_discrete(position = "top",
+                     limits = c("opinion", atributos$atributo, "buencandidato", "votaria", "preferencia", "Puntaje"),
+                     labels = c("Opinión\npositiva", "Honestidad", "Respeta \nderecho\nmujeres",
+                                "Cercano\na la\ngente", "Conoce el\nEstado", "Cumple", "Buen\ncandidato",
+                                "Disposición\na\nvotar", "Preferencia\ncomo\ncandidato/a", "Puntaje\nfinal")) +
+    scale_fill_gradient(low = "white", high = "#A6032F", labels = scales::percent) +
+    theme(plot.caption = element_text(family = "Poppins", size = 14),
+          axis.text.x = element_text(family = "Poppins", size = 10),
+          axis.text.y = element_text(family = "Poppins", size = 14), panel.grid = element_blank())
+
+  return(g)
 
 }
 

@@ -165,3 +165,21 @@ gr$candidato_saldo(patron_inicial = "opinion", aspectos = c("era", "sasil"), pos
                    color_positivo = "orange", color_negativo = "brown")
 
 ```
+
+# Métododología de MORENA
+
+```{r}
+candidatos <- cuestionario_demo %>%
+  filter(grepl("Bloque 5", bloque)) |>
+  filter(grepl("opinion_",llaves)) |>
+  pull(llaves) %>%
+  gsub(pattern = "opinion_", replacement = "", x = .)
+
+atributos <- tibble(atributo = c("honesto", "mujeres", "cercano", "estado", "cumple"),
+                    puntos = c(1,.5,.25,.25,.25))
+
+gr <- Grafica$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
+
+gr$metodo_morena(personajes = candidatos, atributos = atributos)
+
+```

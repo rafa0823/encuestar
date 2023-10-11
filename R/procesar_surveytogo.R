@@ -436,10 +436,23 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
   )
 }
 
-analizar_morena <- function(encuesta, personajes, atributos){
+#' Analizar metodología de MORENA
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param personajes Vector de nombres cortos asociados a uno o más personajes sobre los cuáles se preguntó la batería de MORENA
+#' @param atributos Tibble que contiene los atributos y los puntos que obtiene el ganador de cada atributo
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_morena(diseno = diseno, diccionario = diccionario, personajes = c("era", "sasil"), atributos = atributos)
+#' analizar_morena(diseno = diseno, diccionario = diccionario, personajes = c("era", "sasil", "jaac"), atributos = atributos)
+analizar_morena <- function(diseno, diccionario, personajes, atributos){
 
   #opinión positiva
-  o_p <- analizar_frecuencias_aspectos(encuesta$encuesta, opinion, personajes) %>%
+  o_p <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = opinion, aspectos = personajes) %>%
     filter(respuesta == "Buena") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo", "personaje"), remove = F) %>%
@@ -447,32 +460,33 @@ analizar_morena <- function(encuesta, personajes, atributos){
 
   #atributos
   atr_p <- atributos %>%
-    pmap_df(function(atributo, puntos){
-      analizar_frecuencias_aspectos(encuesta$encuesta, !!rlang::sym(atributo), personajes) %>%
-        filter(respuesta %in% c("Mucho", "Algo")) %>% mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
+    purrr::pmap_df(function(atributo, puntos){
+      analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::sym(atributo), aspectos = personajes) %>%
+        filter(respuesta %in% c("Mucho", "Algo")) %>%
+        mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
         group_by(aspecto) %>%
         summarise(media = sum(media)) %>%
         mutate(ganador = media == max(media),
-               puntos = if_else(ganador,puntos,0)) %>%
-        separate(aspecto, c("atributo", "personaje"),remove = F)
+               puntos = if_else(ganador, puntos, 0)) %>%
+        separate(aspecto, c("atributo", "personaje"), remove = F)
     })
 
   #buen candidato
-  cand <- analizar_frecuencias_aspectos(encuesta$encuesta, buencandidato, personajes) %>%
+  cand <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = buencandidato, aspectos = personajes) %>%
     filter(respuesta == "Sí") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 1, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #votaria
-  voto <- analizar_frecuencias_aspectos(encuesta$encuesta, votaria, personajes) %>%
+  voto <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = votaria, aspectos = personajes) %>%
     filter(respuesta == "Sí votaría") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #preferencia
-  pref <- analizar_frecuencias(encuesta$encuesta, candidato_preferencia) %>%
+  pref <- analizar_frecuencias(diseno = diseno, pregunta = candidato_preferencia) %>%
     filter(!respuesta %in% c("Ns/Nc", "Ninguno", "Otro")) %>%
     mutate(ganador = media == max(media),
            puntos = if_else(ganador, 2.75, 0)) %>%
@@ -483,7 +497,7 @@ analizar_morena <- function(encuesta, personajes, atributos){
     bind_rows(atr_p) %>%
     bind_rows(cand) %>%
     bind_rows(voto) %>%
-    left_join(dicc %>% select(llaves, tema), by = c("aspecto" = "llaves")) %>%
+    left_join(diccionario %>% select(llaves, tema), by = c("aspecto" = "llaves")) %>%
     bind_rows(pref)
 
   return(atr)

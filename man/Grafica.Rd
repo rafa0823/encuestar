@@ -24,6 +24,7 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-candidato_opinion}{\code{Grafica$candidato_opinion()}}
 \item \href{#method-Grafica-candidato_partido}{\code{Grafica$candidato_partido()}}
 \item \href{#method-Grafica-candidato_saldo}{\code{Grafica$candidato_saldo()}}
+\item \href{#method-Grafica-metodo_morena}{\code{Grafica$metodo_morena()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -217,6 +218,15 @@ Esta es la clase de Grafica
   color_positivo = "green",
   color_negativo = "red"
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-metodo_morena"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-metodo_morena}{}}}
+\subsection{Method \code{metodo_morena()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$metodo_morena(personajes, atributos)}\if{html}{\out{</div>}}
 }
 
 }
