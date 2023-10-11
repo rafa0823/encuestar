@@ -1860,8 +1860,20 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                          },
                          metodo_morena = function(personajes, atributos){
-                           analizar_morena(diseno = self$diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
-                             graficar_morena(personajes = personajes, atributos = atributos)
+                           encuestar:::analizar_morena(diseno = self$diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
+                             encuestar:::graficar_morena(personajes = personajes, atributos = atributos)
+                         },
+                         puntos = function(cruce, variables, vartype = "se", valor_variables){
+                           bd_estimacion <- analizar_crucePuntos(diseno = srvyr::as_survey_design(self$diseno),
+                                                                 cruce = cruce, variables = variables,vartype = vartype,
+                                                                 valor_variables = valor_variables) |>
+                             left_join(self$diccionario, by = c("variable" = "llaves")) |>
+                             select(-variable) |>
+                             rename(variable = tema)
+
+                           graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
+                             self$tema()
+
                          }
 
                        ))

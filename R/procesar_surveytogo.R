@@ -524,11 +524,24 @@ analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
 
 }
 
-analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, valor_variables){
+#' Analizar cruce por puntos
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param cruce Variable principal por la cual hacer análisis
+#' @param variables Variables secundarias para hacer análisis con la primaria
+#' @param vartype
+#' @param valor_variables Filtro aplicado a las variables secundarias
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_crucePuntos(diseno = diseno, cruce = "rurub", variables = c("conocimiento_era", "conocimiento_sasil"), vartype = "cv", valor_variables = "Sí")
+analizar_crucePuntos = function(diseno, cruce, variables, vartype, valor_variables){
 
   variables <- enquos(variables)
 
-  res <- encuesta_diseño |>
+  res <- diseno |>
     group_by(!!rlang::sym(cruce)) |>
     summarise(across(!!!variables,
                      ~ srvyr::survey_mean(.x == !!valor_variables, vartype = vartype, na.rm = TRUE),

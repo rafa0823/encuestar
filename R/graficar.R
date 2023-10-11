@@ -1068,8 +1068,19 @@ graficar_morena <- function(atr, personajes, atributos){
 
 }
 
-graficar_cruce_puntos <- function(bd, cruce, vartype){
-  bd |>
+#' Graficar cruce de una variable vs varias variables
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
+graficar_crucePuntos <- function(bd, cruce, vartype){
+  g <- bd |>
     ggplot(aes(x=reorder(variable,mean), xend=variable,
                color=!!rlang::sym(cruce))) +
     geom_vline(aes(xintercept = variable), linetype = "dashed",
@@ -1080,6 +1091,8 @@ graficar_cruce_puntos <- function(bd, cruce, vartype){
                    linetype="solid", color="black", linewidth=.5) +
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
+
+  return(g)
 }
 
 graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
