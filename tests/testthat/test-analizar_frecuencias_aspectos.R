@@ -23,7 +23,7 @@ test_that("Estructura de la base de datos de la estimación",{
 
 })
 
-test_that("Suma cerrada por aspecto",{
+test_that("Suma cerrada entre aspectos",{
 
   bd_analizar_frecuencias_aspectos <- encuestar:::analizar_frecuencias_aspectos(diseno = survey::svydesign(ids = ~1, data = datos_demo),
                                                                                 diccionario = cuestionario_demo,
