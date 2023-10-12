@@ -1888,6 +1888,31 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                                       line_hjust = line_hjust,
                                                                       line_vjust = line_vjust) +
                              self$tema()
+                         },
+                         brechasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+
+                           encuestar:::analizar_crucePuntos(srvyr::as_survey_design(self$diseno),
+                                                cruce = por_grupo,
+                                                variables = variables, vartype = vartype, valor_variables = valor_variables) %>%
+                             {
+                               if(vartype == "cv"){
+                                 mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
+                                                          `cv` >.30 ~ "**",
+                                                          TRUE ~""))
+                               } else {
+                                 .
+                               }
+                             } |>
+                             left_join(self$diccionario,
+                                       join_by(variable == llaves)) |> select(-variable) |>
+                             rename(variable = tema) %>%
+                             encuestar:::graficar_cruce_brechasMultiples(cruce = por_grupo, vartype = vartype,
+                                                             line_rich = line_rich,
+                                                             line_linewidth = line_linewidth,
+                                                             line_hjust = line_hjust,
+                                                             line_vjust = line_vjust) +
+                             self$tema()
+
                          }
 
                        ))

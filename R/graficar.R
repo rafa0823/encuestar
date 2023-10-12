@@ -1133,7 +1133,21 @@ graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", l
   return(g)
 }
 
-graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+#' Graficar cruce de una variable vs múltiples variables
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#' @param line_rich Argumento de la función 'geom_textline'
+#' @param line_linewidth Argumento de la función 'geom_textline'
+#' @param line_hjust Argumento de la función 'geom_textline'
+#' @param line_vjust Argumento de la función 'geom_textline'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
   g <- bd |>
     ggplot(aes(x=!!rlang::sym(cruce),
                y=mean)) +
@@ -1142,7 +1156,7 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
                                     label=(variable)),
                                 linewidth=line_linewidth, hjust = line_hjust,
                                 vjust = line_vjust, rich = line_rich,
-                                size=6, family = familia) +
+                                size = 6, family = "Poppins") +
     scale_y_continuous(labels=scales::percent) +
     labs(color = NULL)
 
