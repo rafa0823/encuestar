@@ -1913,6 +1913,31 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                              line_vjust = line_vjust) +
                              self$tema()
 
+                         },
+                         barrasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, color = "green", filter = NULL){
+
+                           encuestar:::analizar_crucePuntos(srvyr::as_survey_design(self$diseno),
+                                                            cruce = por_grupo,
+                                                            variables = variables, vartype = vartype,
+                                                            valor_variables = valor_variables) %>%
+                             {
+                               if(vartype == "cv"){
+                                 mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
+                                                          `cv` >.30 ~ "**",
+                                                          TRUE ~""))
+                               } else{
+                                 .
+                               }
+                             } |>
+                             left_join(self$diccionario,
+                                       join_by(variable == llaves)) |> select(-variable) |>
+                             rename(variable = tema) |>
+                             encuestar:::graficar_cruce_barrasMultiples(cruce = por_grupo,
+                                                            vartype = vartype,
+                                                            color = color,
+                                                            filter = filter) +
+                             self$tema()
+
                          }
 
                        ))

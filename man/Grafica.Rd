@@ -28,6 +28,7 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-puntos}{\code{Grafica$puntos()}}
 \item \href{#method-Grafica-brechasDuales}{\code{Grafica$brechasDuales()}}
 \item \href{#method-Grafica-brechasMultiples}{\code{Grafica$brechasMultiples()}}
+\item \href{#method-Grafica-barrasMultiples}{\code{Grafica$barrasMultiples()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -274,6 +275,22 @@ Esta es la clase de Grafica
   line_linewidth = 2,
   line_hjust = "ymax",
   line_vjust = -0.3
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-barrasMultiples"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-barrasMultiples}{}}}
+\subsection{Method \code{barrasMultiples()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$barrasMultiples(
+  por_grupo,
+  variables,
+  vartype = "cv",
+  valor_variables,
+  color = "green",
+  filter = NULL
 )}\if{html}{\out{</div>}}
 }
 

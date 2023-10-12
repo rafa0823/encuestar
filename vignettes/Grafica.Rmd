@@ -222,3 +222,13 @@ gr$brechasMultiples(por_grupo = "AMAI_factor",
                     line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.5)
 
 ```
+
+# Cruce barras multiples
+```{r}
+
+gr$barrasMultiples(por_grupo = "AMAI_factor", variables = c("conocimiento_manuelita",
+                                                   "conocimiento_carlos",
+                                                   "conocimiento_era",
+                                                   "conocimiento_sasil"), valor_variables = "Sí", vartype = "cv", color = "red")
+
+```

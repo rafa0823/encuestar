@@ -1170,7 +1170,19 @@ graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_
 
 }
 
-graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
+#' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#' @param color Color usado en el parámetro 'fill' de la función 'aes' de ggplot2
+#' @param filter Filtro aplicable al parámetro 'cruce'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 
   if(!is.null(filter)) {
 
@@ -1188,18 +1200,18 @@ graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
     coord_flip() +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
-  if(vartype=="cv"){
+  if(vartype == "cv"){
     g <- g +
       ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
                                color="white",
-                               family = familia)
+                               family = "Poppins")
 
 
   }else{
     g <- g +
       ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
                                color="white",
-                               family = familia)
+                               family = "Poppins")
 
   }
   return(g)
