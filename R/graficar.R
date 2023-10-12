@@ -864,27 +864,33 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
 }
 
 analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, diseno, colores =NULL){
+
   if(is.null(legenda1)) legenda1 <- var1
   if(is.null(legenda2)) legenda2 <- var2
   if(is.null(colores)) colores <- c("#DE6400","#023047")
 
   formula <- survey::make.formula(c(var1,var2))
-  aux <- survey::svytable(formula, design = diseno) %>% tibble::as_tibble() %>%
-    tidyr::pivot_wider(names_from = var2, values_from = "n") %>% tibble::column_to_rownames(var = var1)
+  aux <- survey::svytable(formula, design = diseno) %>%
+    tibble::as_tibble() %>%
+    tidyr::pivot_wider(names_from = var2, values_from = "n") %>%
+    tibble::column_to_rownames(var = var1)
 
 
   # chisq.test(aux)
   res.ca <- FactoMineR::CA(aux, graph = F)
   eig <- factoextra::get_eigenvalue(res.ca)[, 2]
 
-  res.ca$col$coord %>% as_tibble(rownames = "respuesta") %>% janitor::clean_names() %>%
-    select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda2) %>%
-    bind_rows(
-      res.ca$row$coord %>% as_tibble(rownames = "respuesta") %>%
-        janitor::clean_names() %>%
-        select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda1)
-    ) %>% ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable",
-                            label = "respuesta", repel = T) +
+  res.ca$col$coord %>%
+    as_tibble(rownames = "respuesta") %>%
+    janitor::clean_names() %>%
+    select(respuesta,num_range("dim_",1:2)) %>%
+    mutate(variable = legenda2) %>%
+    bind_rows(res.ca$row$coord %>%
+                as_tibble(rownames = "respuesta") %>%
+                janitor::clean_names() %>%
+                select(respuesta,num_range("dim_",1:2)) %>%
+                mutate(variable = legenda1)) %>%
+    ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable", label = "respuesta", repel = T) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_hline(yintercept = 0, linetype = "dashed") +
     labs(x = scales::percent(eig[1]/100,accuracy = .1),

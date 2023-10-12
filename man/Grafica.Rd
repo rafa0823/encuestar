@@ -30,6 +30,9 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-brechasMultiples}{\code{Grafica$brechasMultiples()}}
 \item \href{#method-Grafica-barrasMultiples}{\code{Grafica$barrasMultiples()}}
 \item \href{#method-Grafica-bloques}{\code{Grafica$bloques()}}
+\item \href{#method-Grafica-correspondencia}{\code{Grafica$correspondencia()}}
+\item \href{#method-Grafica-componentesPrincipales}{\code{Grafica$componentesPrincipales()}}
+\item \href{#method-Grafica-blackBox}{\code{Grafica$blackBox()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -302,6 +305,39 @@ Esta es la clase de Grafica
 \subsection{Method \code{bloques()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Grafica$bloques(cruce, variable, vartype = "cv", filter = NULL)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-correspondencia"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-correspondencia}{}}}
+\subsection{Method \code{correspondencia()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$correspondencia(
+  var1,
+  var2,
+  legenda1 = NULL,
+  legenda2 = NULL,
+  colores = NULL
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-componentesPrincipales"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-componentesPrincipales}{}}}
+\subsection{Method \code{componentesPrincipales()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$componentesPrincipales(variables)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-blackBox"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-blackBox}{}}}
+\subsection{Method \code{blackBox()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$blackBox(vars, stimuli)}\if{html}{\out{</div>}}
 }
 
 }

@@ -1950,7 +1950,25 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                                 vartype = vartype,
                                                                 filter = filter) +
                              self$tema()
-                           }
+                           },
+                         correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
+                           analisis_correspondencia(var1 = var1, var2 = var2, legenda1 = legenda1, legenda2 = legenda2, diseno = self$diseno, colores = colores)
+                         },
+                         componentesPrincipales = function(variables){
+                           pc <- survey::svyprcomp(survey::make.formula(variables),
+                                                   design= self$diseno,
+                                                   scale=TRUE, scores=TRUE)
+                           factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
+                           },
+                         blackBox = function(vars, stimuli){
+
+                           self$diseno$variables %>%
+                             as_tibble() |>
+                             analizar_blackbox_1d(vars, stimuli) %>%
+                             graficar_blackbox_1d()
+
+                         }
+
 
                        ))
 

@@ -241,3 +241,24 @@ gr$bloques(cruce = "seg_voto", filter = c("Ns/Nc", NA),
            vartype = "cv")
 
 ```
+
+# Correspondencia
+```{r}
+
+gr$correspondencia(var1 = "sexo", var2 = "preferencia_candidatopresidencia", legenda1 = "a", legenda2 = "b", colores = c("red", "blue"))
+
+```
+
+# Componentes principales
+```{r}
+
+gr$componentesPrincipales(variables = c("sexo", "conocimiento_era"))
+
+```
+
+# Black box
+```{r}
+
+gr$blackBox(vars = "sexo", stimuli = "edad")
+
+```
