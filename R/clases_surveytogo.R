@@ -1207,7 +1207,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                   } else{
                                     stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
                                   }
-                                } else{
+                                } else {
                                   warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
 
@@ -1558,54 +1558,338 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            # self$shp <- shp
                            self$tema <- tema
                          },
-                         barras_categorica = function(codigo, titulo,
-                                                      salto, porcentajes_afuera = T,
-                                                      desplazar_porcentajes = 0, nota){
+                         gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
+
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
+                           bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
+
+                           tema <- self$diccionario |>
+                             filter(llaves == rlang::ensym(codigo)) |>
+                             pull(tema)
+
+                           bd_estimacion |>
+                             mutate(tema = tema) |>
+                             graficar_gauge(color_principal = color,
+                                            escala = escala,
+                                            size_text_pct = size_text_pct)
+
+                         },
+                         gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 1), size_text_pct = 14){
+
+                           if(is.null(filtro)) {
+
+                             stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
+
+                           }
+
+                           else {
+
+                             # llave_aux <- quo_name(enquo(codigo))
+                             # if(!(llave_aux %in% self$graficadas)){
+                             #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                             #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                             #   } else {
+                             #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                             #   }
+                             # } else {
+                             #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                             # }
+
+                             bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}}) |>
+                               filter(eval(rlang::parse_expr(filtro)))
+
+                             tema <- self$diccionario |>
+                               filter(llaves == rlang::ensym(codigo)) |>
+                               pull(tema)
+
+                             bd_estimacion %>%
+                               mutate(tema = tema) |>
+                               graficar_gauge(color_principal = color,
+                                              escala = escala,
+                                              size_text_pct = size_text_pct)
+                           }
+
+                         },
+                         barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
+                           tema <- self$diccionario |>
+                             filter(llaves == rlang::ensym(codigo)) |>
+                             pull(tema)
 
                            analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
-                             graficar_barras_frecuencia(titulo = titulo, salto = salto,
-                                                        porcentajes_afuera = porcentajes_afuera,
-                                                        desplazar_porcentajes = desplazar_porcentajes,
-                                                        nota = nota, tema = self$tema) +
+                             mutate(tema = tema) |>
+                             graficar_barras(salto = salto,
+                                             porcentajes_fuera = porcentajes_fuera,
+                                             desplazar_porcentajes = desplazar_porcentajes) +
                              self$tema()
 
                          },
-                         barras_multirespuesta = function(patron_inicial, tit = "", salto = 100, nota = ""){
+                         barras_numerica = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
 
-                             analizar_frecuencia_multirespuesta(diseno = self$diseno,
-                                                                      patron_inicial) %>%
-                               graficar_barras_frecuencia(tit = tit, tema = self$tema, salto = salto, nota) +
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
+                           if(is.null(filtro) | is.null(aspectos)) {
+
+                             stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro` o indique los aspectos correctos."))
+
+                           } else {
+
+                             tema <- self$diccionario |>
+                               filter(llaves == rlang::ensym(patron_inicial)) |>
+                               pull(pregunta)
+
+                             bd_estimacion <- analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                                            diccionario = self$diccionario,
+                                                                            patron_pregunta = {{patron_inicial}},
+                                                                            aspectos = aspectos) |>
+                               left_join(self$diccionario |> select(llaves, tema), by = c("aspecto" = "llaves")) |>
+                               filter(eval(rlang::parse_expr(filtro))) |>
+                               transmute(respuesta = tema, media)
+
+                             bd_estimacion |>
+                               graficar_barras(salto = salto,
+                                               porcentajes_fuera = porcentajes_fuera,
+                                               desplazar_porcentajes = desplazar_porcentajes) +
                                self$tema()
 
+                           }
+
                          },
-                         barras_numerica = function(llave, aspectos){
-                           analizar_frecuencias_aspectos(self$diseno, self$diccionario,
-                                                         {{llave}}, aspectos) %>%
-                             left_join(
-                               self$diccionario %>%
-                                 select(aspecto = llaves, tema)
-                             ) |>
-                             graficar_barras_numerica() +
+                         barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                             # analizar_frecuencia_multirespuesta(diseno = self$diseno,
+                             #                                          patron_inicial) %>%
+                             # graficar_barras(salto = salto,
+                             #                 porcentajes_fuera = porcentajes_fuera,
+                             #                 desplazar_porcentajes = desplazar_porcentajes) +
+                             #   self$tema()
+
+                           print("En desarrollo. Cambiar datos demo.")
+
+                         },
+                         barras_texto = function(){},
+                         intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
+
+                           # llave_aux <- quo_name(enquo(codigo))
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
+                           bd_estimacion <- analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) %>%
+                             left_join(self$diccionario %>%
+                                         select(aspecto = llaves, tema)
+                                       )
+
+                           bd_estimacion |>
+                             graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
                              self$tema()
-                         },
-                         barras_texto = function(){
+
 
                          },
-                         gauge_numerica = function(){
+                         nube_texto = function(codigo, palabrasVacias = NULL, total_palabras = 15, colores = c("#619CFF", "#FFFF33", "#00BA38")){
+
+                           nubeImg <- analizar_respuestaAbierta(bd = self$diseno$variables, variable = codigo,
+                                                     palabrasVacias = palabrasVacias, totalPalabras = total_palabras,
+                                                     colores = colores) |>
+                             graficar_nubePalabras_hc()
+
+                           htmlwidgets::saveWidget(widget = nubeImg, file = paste("data/nubeTexto", codigo, ".html", sep = ""))
+                           webshot::webshot(url = paste("data/nubeTexto", codigo, ".html", sep = ""), delay = 5,
+                                   file = paste("data/nubeTexto", codigo, ".png", sep = ""), vwidth = 600*5, vheight = 600*5/1.41)
+
+                           print(paste("El objeto se ha generado en el archivo ",
+                                       paste("'data/nubeTexto", codigo, ".png'", sep = ""), sep = ""))
 
                          },
-                         gauge_categorica = function(){
+                         sankey_categorica = function(variables = NULL, size_text_cat = 8){
+
+                           if(is.null(variables)) {
+
+                             stop(paste("Especifique las variables a analizar con el argumento `variables`"))
+
+                           } else {
+
+                             # llave_aux <- quo_name(enquo(codigo))
+                             # if(!(llave_aux %in% self$graficadas)){
+                             #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                             #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                             #   } else {
+                             #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                             #   }
+                             # } else {
+                             #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                             # }
+
+                             bd_estimacion <- analizar_sankey(diseno = self$diseno, var_1 = variables[1], var_2 = variables[2])
+
+                             graficar_sankey(bd = bd_estimacion, size_text_cat = size_text_cat) +
+                               self$tema()
+
+                           }
 
                          },
-                         intervalo_numerica = function(){
+                         candidato_opinion = function(patron_inicial, aspectos,
+                                                      ns_nc = "Ns/Nc",
+                                                      regular = "Regular",
+                                                      llave_burbuja = "conocimiento",
+                                                      filtro_burbuja = "respuesta == 'Sí'",
+                                                      grupo_positivo,
+                                                      grupo_negativo,
+                                                      orden_resp,
+                                                      colores_opinion = c("red", "yellow", "green", "gray70"),
+                                                      color_burbuja = "blue",
+                                                      caption_opinion = "",
+                                                      caption_nsnc = "Ns/Nc",
+                                                      caption_burbuja = "Conocimiento",
+                                                      size_caption_opinion = 12,
+                                                      size_caption_nsnc = 14,
+                                                      size_caption_burbuja = 14,
+                                                      size_text_cat = 16,
+                                                      burbuja = T,
+                                                      salto = 20){
+
+                           if(!is.na(llave_burbuja)){
+                             burbuja <- analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                                      diccionario = self$diccionario,
+                                                                      patron_pregunta = !!rlang::sym(llave_burbuja),
+                                                                      aspectos = aspectos) %>%
+                               filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
+                               left_join(self$diccionario %>% select(aspecto = llaves, tema))
+                           } else {
+                             burbuja <- NA
+                           }
+
+                           analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                         diccionario = self$diccionario,
+                                                         patron_pregunta = {{patron_inicial}},
+                                                         aspectos = aspectos) |>
+                             left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
+                             graficar_candidato_opinion(ns_nc = ns_nc,
+                                                        regular = regular,
+                                                        grupo_positivo= grupo_positivo,
+                                                        grupo_negativo = grupo_negativo,
+                                                        caption_opinion = caption_opinion,
+                                                        caption_nsnc = caption_nsnc,
+                                                        caption_burbuja = caption_burbuja,
+                                                        size_caption_opinion = size_caption_opinion,
+                                                        size_caption_nsnc = size_caption_nsnc,
+                                                        size_caption_burbuja = size_caption_burbuja,
+                                                        size_text_cat = size_text_cat,
+                                                        orden_resp = orden_resp,
+                                                        colores = colores_opinion,
+                                                        burbuja = burbuja,
+                                                        color_burbuja = color_burbuja,
+                                                        salto = salto,
+                                                        tema = self$tema)
 
                          },
-                         nube_texto = function(){
+                         candidato_partido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
+
+                           analizar_candidato_partido(diseno = self$diseno,
+                                                      llave_partido = llave_partido,
+                                                      llave_conocimiento = llave_conocimiento,
+                                                      respuesta_conoce = respuesta_conoce,
+                                                      candidatos = candidatos,
+                                                      corte_otro = corte_otro) %>%
+                             purrr::map(~.x %>%
+                                          left_join(self$diccionario %>% select(aspecto = llaves, tema))
+                                        ) %>%
+                             graficar_candidato_partido(cliente = cliente,
+                                                        tipo_conoce = "intervalos",
+                                                        colores_candidato = colores_candidatos,
+                                                        colores_partido = colores_partido,
+                                                        solo_respondidos = T,
+                                                        tema = self$tema)
+                         },
+                         candidato_saldo = function(patron_inicial, aspectos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
+
+                           bd_saldo <- analizar_frecuencias_aspectos(diseno = self$diseno, diccionario = self$diccionario,
+                                                                     patron_pregunta = {{patron_inicial}}, aspectos = aspectos) %>%
+                             left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
+                             calcular_saldoOpinion(llave_opinion = patron_inicial, grupo_positivo = positivos, grupo_negativo = negativos)
+
+                           # texto <- ordenar_opinion_xq(self$encuesta$respuestas$base,
+                           #                             llave_opinion, llave_xq, aspectos,
+                           #                             parametros$grupo_positivo, parametros$grupo_negativo) %>%
+                           #   pclave_combinaciones_saldo(parametros$tipo_combinacion, parametros$n_palabras)
+
+                           # left_join(bd_saldo, texto) %>%
+
+                           bd_saldo %>%
+                             graficar_candidatoSaldo(grupo_positivo = positivos,
+                                                     grupo_negativo = negativos,
+                                                     color_positivo = color_positivo,
+                                                     color_negativo = color_negativo) +
+                             self$tema()
 
                          },
-                         sankey_categorica = function(){
+                         metodo_morena = function(personajes, atributos){
+                           encuestar:::analizar_morena(diseno = self$diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
+                             encuestar:::graficar_morena(personajes = personajes, atributos = atributos)
+                         },
+                         puntos = function(cruce, variables, vartype = "se", valor_variables){
+                           bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(self$diseno),
+                                                                 cruce = cruce, variables = variables,vartype = vartype,
+                                                                 valor_variables = valor_variables) |>
+                             left_join(self$diccionario, by = c("variable" = "llaves")) |>
+                             select(-variable) |>
+                             rename(variable = tema)
 
+                           encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
+                             self$tema()
+
+                         },
+                         brechasDuales = function(var1, var2_filtro, filtro, vartype = "cv", line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+
+                           encuestar:::analizar_cruceBrechas(diseno = srvyr::as_survey_design(self$diseno),
+                                                             var1 = var1,
+                                                             var2_filtro = var2_filtro,
+                                                             filtro = filtro,
+                                                             vartype = vartype) |>
+                             encuestar:::graficar_cruce_brechasDuales(var1 = var1,var2_filtro = var2_filtro, vartype = vartype,
+                                                                      line_rich = line_rich,
+                                                                      line_linewidth = line_linewidth,
+                                                                      line_hjust = line_hjust,
+                                                                      line_vjust = line_vjust) +
+                             self$tema()
                          }
+
                        ))
 
 #'Esta es la clase de Regiones
@@ -1625,10 +1909,18 @@ Regiones <- R6::R6Class(classname = "Regiones",
                          mapa_regiones = function(){
 
                          },
-                         mapa_ganador = function(){
+                         mapa_ganador = function(variable, lugar = 1){
+                           analizar_ganador_region(regiones = self$regiones, {{variable}},
+                                                   lugar = lugar,
+                                                   diseno = self$diseno) %>%
+                             graficar_mapa_region({{variable}})
 
                          },
-                         mapa_degradadoNumerico = function(){
+                         mapa_degradadoNumerico = function(variable){
+
+                           analizar_promedio_region(regiones = self$regiones, var = {{variable}},
+                                                    diseno = self$diseno) %>%
+                             graficar_mapa_region({{variable}})
 
                          },
                          heatmap_conocimiento = function(llave_conocimiento, candidatos, respuesta, orden_horizontal){

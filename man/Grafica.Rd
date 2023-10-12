@@ -12,15 +12,21 @@ Esta es la clase de Grafica
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Grafica-new}{\code{Grafica$new()}}
-\item \href{#method-Grafica-barras_categorica}{\code{Grafica$barras_categorica()}}
-\item \href{#method-Grafica-barras_multirespuesta}{\code{Grafica$barras_multirespuesta()}}
-\item \href{#method-Grafica-barras_numerica}{\code{Grafica$barras_numerica()}}
-\item \href{#method-Grafica-barras_texto}{\code{Grafica$barras_texto()}}
 \item \href{#method-Grafica-gauge_numerica}{\code{Grafica$gauge_numerica()}}
 \item \href{#method-Grafica-gauge_categorica}{\code{Grafica$gauge_categorica()}}
+\item \href{#method-Grafica-barras_categorica}{\code{Grafica$barras_categorica()}}
+\item \href{#method-Grafica-barras_numerica}{\code{Grafica$barras_numerica()}}
+\item \href{#method-Grafica-barras_multirespuesta}{\code{Grafica$barras_multirespuesta()}}
+\item \href{#method-Grafica-barras_texto}{\code{Grafica$barras_texto()}}
 \item \href{#method-Grafica-intervalo_numerica}{\code{Grafica$intervalo_numerica()}}
 \item \href{#method-Grafica-nube_texto}{\code{Grafica$nube_texto()}}
 \item \href{#method-Grafica-sankey_categorica}{\code{Grafica$sankey_categorica()}}
+\item \href{#method-Grafica-candidato_opinion}{\code{Grafica$candidato_opinion()}}
+\item \href{#method-Grafica-candidato_partido}{\code{Grafica$candidato_partido()}}
+\item \href{#method-Grafica-candidato_saldo}{\code{Grafica$candidato_saldo()}}
+\item \href{#method-Grafica-metodo_morena}{\code{Grafica$metodo_morena()}}
+\item \href{#method-Grafica-puntos}{\code{Grafica$puntos()}}
+\item \href{#method-Grafica-brechasDuales}{\code{Grafica$brechasDuales()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -34,17 +40,60 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-gauge_numerica"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-gauge_numerica}{}}}
+\subsection{Method \code{gauge_numerica()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_numerica(
+  codigo,
+  color = "#850D2D",
+  escala = c(0, 10),
+  size_text_pct = 14
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-gauge_categorica"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-gauge_categorica}{}}}
+\subsection{Method \code{gauge_categorica()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_categorica(
+  codigo,
+  filtro,
+  color = "#850D2D",
+  escala = c(0, 1),
+  size_text_pct = 14
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Grafica-barras_categorica"></a>}}
 \if{latex}{\out{\hypertarget{method-Grafica-barras_categorica}{}}}
 \subsection{Method \code{barras_categorica()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_categorica(
   codigo,
-  titulo,
-  salto,
-  porcentajes_afuera = T,
-  desplazar_porcentajes = 0,
-  nota
+  salto = 20,
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-barras_numerica"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-barras_numerica}{}}}
+\subsection{Method \code{barras_numerica()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_numerica(
+  patron_inicial,
+  aspectos = NULL,
+  salto = 20,
+  filtro = NULL,
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -54,16 +103,12 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-barras_multirespuesta}{}}}
 \subsection{Method \code{barras_multirespuesta()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_multirespuesta(patron_inicial, tit = "", salto = 100, nota = "")}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-barras_numerica"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-barras_numerica}{}}}
-\subsection{Method \code{barras_numerica()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_numerica(llave, aspectos)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$barras_multirespuesta(
+  patron_inicial,
+  salto = 20,
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -77,29 +122,17 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-gauge_numerica"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-gauge_numerica}{}}}
-\subsection{Method \code{gauge_numerica()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_numerica()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-gauge_categorica"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-gauge_categorica}{}}}
-\subsection{Method \code{gauge_categorica()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$gauge_categorica()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Grafica-intervalo_numerica"></a>}}
 \if{latex}{\out{\hypertarget{method-Grafica-intervalo_numerica}{}}}
 \subsection{Method \code{intervalo_numerica()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$intervalo_numerica()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$intervalo_numerica(
+  patron,
+  aspectos,
+  escala = c(0, 10),
+  point_size = 1,
+  text_point_size = 8
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -108,7 +141,12 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-nube_texto}{}}}
 \subsection{Method \code{nube_texto()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$nube_texto()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$nube_texto(
+  codigo,
+  palabrasVacias = NULL,
+  total_palabras = 15,
+  colores = c("#619CFF", "#FFFF33", "#00BA38")
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -117,7 +155,107 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Grafica-sankey_categorica}{}}}
 \subsection{Method \code{sankey_categorica()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$sankey_categorica()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$sankey_categorica(variables = NULL, size_text_cat = 8)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-candidato_opinion"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidato_opinion}{}}}
+\subsection{Method \code{candidato_opinion()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_opinion(
+  patron_inicial,
+  aspectos,
+  ns_nc = "Ns/Nc",
+  regular = "Regular",
+  llave_burbuja = "conocimiento",
+  filtro_burbuja = "respuesta == 'Sí'",
+  grupo_positivo,
+  grupo_negativo,
+  orden_resp,
+  colores_opinion = c("red", "yellow", "green", "gray70"),
+  color_burbuja = "blue",
+  caption_opinion = "",
+  caption_nsnc = "Ns/Nc",
+  caption_burbuja = "Conocimiento",
+  size_caption_opinion = 12,
+  size_caption_nsnc = 14,
+  size_caption_burbuja = 14,
+  size_text_cat = 16,
+  burbuja = T,
+  salto = 20
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-candidato_partido"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidato_partido}{}}}
+\subsection{Method \code{candidato_partido()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_partido(
+  llave_partido,
+  llave_conocimiento,
+  respuesta_conoce,
+  candidatos,
+  corte_otro,
+  cliente,
+  colores_candidatos,
+  colores_partido
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-candidato_saldo"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidato_saldo}{}}}
+\subsection{Method \code{candidato_saldo()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_saldo(
+  patron_inicial,
+  aspectos,
+  positivos,
+  negativos,
+  color_positivo = "green",
+  color_negativo = "red"
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-metodo_morena"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-metodo_morena}{}}}
+\subsection{Method \code{metodo_morena()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$metodo_morena(personajes, atributos)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-puntos"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-puntos}{}}}
+\subsection{Method \code{puntos()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$puntos(cruce, variables, vartype = "se", valor_variables)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-brechasDuales"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-brechasDuales}{}}}
+\subsection{Method \code{brechasDuales()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$brechasDuales(
+  var1,
+  var2_filtro,
+  filtro,
+  vartype = "cv",
+  line_rich = FALSE,
+  line_linewidth = 2,
+  line_hjust = "ymax",
+  line_vjust = -0.3
+)}\if{html}{\out{</div>}}
 }
 
 }

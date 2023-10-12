@@ -44,7 +44,7 @@ Esta es la clase de Regiones
 \if{latex}{\out{\hypertarget{method-Regiones-mapa_ganador}{}}}
 \subsection{Method \code{mapa_ganador()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regiones$mapa_ganador()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regiones$mapa_ganador(variable, lugar = 1)}\if{html}{\out{</div>}}
 }
 
 }
@@ -53,7 +53,7 @@ Esta es la clase de Regiones
 \if{latex}{\out{\hypertarget{method-Regiones-mapa_degradadoNumerico}{}}}
 \subsection{Method \code{mapa_degradadoNumerico()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regiones$mapa_degradadoNumerico()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regiones$mapa_degradadoNumerico(variable)}\if{html}{\out{</div>}}
 }
 
 }
