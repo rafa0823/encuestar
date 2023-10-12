@@ -50,7 +50,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 #' @examples
 #' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "opinion", aspectos = c("amlo", "claudia", "ebrard"))
 #' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "conocimiento", aspectos = c("amlo", "claudia", "ebrard"))
-
 analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
 
   ja <- try(
@@ -82,10 +81,10 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
                            prev %>%
                              tibble::as_tibble(rownames = "respuesta") %>%
                              rename(media=2, ee=3) %>%
-                             left_join(
-                               prev %>% confint() %>% tibble::as_tibble(rownames = "respuesta") %>%
-                                 rename(inf=2, sup=3)
-                             ) %>%
+                             left_join(prev %>%
+                                         confint() %>%
+                                         tibble::as_tibble(rownames = "respuesta") %>%
+                                         rename(inf=2, sup=3), by = "respuesta") %>%
                              mutate(
                                aspecto = aux,
                                respuesta = stringr::str_replace(
@@ -103,7 +102,7 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
 
   estimaciones <- estimaciones %>%
     mutate(aspecto = as.character(aspecto)) %>%
-    left_join(p)
+    left_join(p, by = c("aspecto"))
 }
 
 
