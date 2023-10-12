@@ -625,14 +625,14 @@ analizar_sankey = function(diseno, var_1, var_2){
 #'
 #' @examples
 #' analizar_respuestaAbierta(bd, variable = opinion_amlo, palabrasVacias = c("muy", "de"), totalPalabras = 15, colores = c("green", "blue", "yellow"))
-analizar_respuestaAbierta = function(bd, variable, palabrasVacias, totalPalabras, colores){
+analizar_respuestaAbierta = function(bd, variable, palabrasVacias, totalPalabras, colores = c("green", "blue", "yellow")){
 
   res <- tidytext::unnest_tokens(tbl = bd %>% as_tibble(),
                                   output = palabras,
                                   input = variable) %>%
     as_tibble() |>
     count(palabras, sort = T) %>%
-    anti_join(tibble(palabras = c(stopwords::stopwords("es"), palabrasVacias))) %>%
+    anti_join(tibble(palabras = c(stopwords::stopwords("es"), palabrasVacias)), by = c("palabras")) %>%
     mutate(colores = case_when(n <= quantile(n, probs = .75) ~ colores[3],
                                n > quantile(n, probs = .75) & n <= quantile(n, probs=.90) ~ colores[2],
                                n > quantile(n, probs = .90) ~ colores[1],

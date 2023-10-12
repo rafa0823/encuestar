@@ -4,7 +4,13 @@
 \alias{analizar_respuestaAbierta}
 \title{Analizar respuestas abiertas}
 \usage{
-analizar_respuestaAbierta(bd, variable, palabrasVacias, totalPalabras, colores)
+analizar_respuestaAbierta(
+  bd,
+  variable,
+  palabrasVacias,
+  totalPalabras,
+  colores = c("green", "blue", "yellow")
+)
 }
 \arguments{
 \item{bd}{Base de datos en formato largo a analizar en formato largo.}
