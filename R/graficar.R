@@ -628,6 +628,7 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 #' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
 #'
 #' @return
+#' @import patchwork
 #' @export
 #'
 #' @examples
