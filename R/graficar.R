@@ -1218,7 +1218,19 @@ graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 
 }
 
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filter){
+#' Graficar cruce de una variable vs otra con opción a filtro
+#'
+#' @param bd Base de datos producto de la función 'analizar_cruceBrechas'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param variable Variable secundaria para hacer análisis con la primaria
+#' @param vartype
+#' @param filter Filtro aplicable al parámetro 'cruce'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter){
 
   if(!is.null(filter)) {
 
@@ -1233,19 +1245,19 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filte
     treemapify::geom_treemap(alpha=0.7) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
-  if(vartype=="cv"){
+  if(vartype == "cv"){
 
     g <- g +
       treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
                         place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                         color="white",
-                        family = familia)
+                        family = "Poppins")
   }else{
     g <- g +
       treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
                         place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                         color="white",
-                        family = familia)
+                        family = "Poppins")
 
   }
 

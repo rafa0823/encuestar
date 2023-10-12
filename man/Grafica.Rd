@@ -29,6 +29,7 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-brechasDuales}{\code{Grafica$brechasDuales()}}
 \item \href{#method-Grafica-brechasMultiples}{\code{Grafica$brechasMultiples()}}
 \item \href{#method-Grafica-barrasMultiples}{\code{Grafica$barrasMultiples()}}
+\item \href{#method-Grafica-bloques}{\code{Grafica$bloques()}}
 \item \href{#method-Grafica-clone}{\code{Grafica$clone()}}
 }
 }
@@ -292,6 +293,15 @@ Esta es la clase de Grafica
   color = "green",
   filter = NULL
 )}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Grafica-bloques"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-bloques}{}}}
+\subsection{Method \code{bloques()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$bloques(cruce, variable, vartype = "cv", filter = NULL)}\if{html}{\out{</div>}}
 }
 
 }

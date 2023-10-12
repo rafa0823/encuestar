@@ -232,3 +232,12 @@ gr$barrasMultiples(por_grupo = "AMAI_factor", variables = c("conocimiento_manuel
                                                    "conocimiento_sasil"), valor_variables = "Sí", vartype = "cv", color = "red")
 
 ```
+
+# Cruce bloques
+```{r}
+
+gr$bloques(cruce = "seg_voto", filter = c("Ns/Nc", NA),
+           variable = "voto_candidato",
+           vartype = "cv")
+
+```

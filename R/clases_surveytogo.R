@@ -1938,7 +1938,19 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                             filter = filter) +
                              self$tema()
 
-                         }
+                         },
+                         bloques = function(cruce, variable, vartype = "cv", filter = NULL){
+                           encuestar:::analizar_cruceBrechas(srvyr::as_survey_design(self$diseno),
+                                                                var1 = cruce,
+                                                                var2_filtro = variable,
+                                                                filtro = NULL,
+                                                                vartype = vartype) |>
+                             graficar_cruce_bloques(cruce = cruce,
+                                                                variable = variable,
+                                                                vartype = vartype,
+                                                                filter = filter) +
+                             self$tema()
+                           }
 
                        ))
 
