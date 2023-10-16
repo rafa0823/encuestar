@@ -1822,15 +1822,16 @@ Grafica <- R6::R6Class(classname = "Grafica",
                          candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
 
                            encuestar:::analizar_candidatoPartido(diseno = self$diseno,
-                                                      llave_partido = llave_partido,
-                                                      llave_conocimiento = llave_conocimiento,
-                                                      respuesta_conoce = respuesta_conoce,
-                                                      candidatos = candidatos,
-                                                      corte_otro = corte_otro) %>%
+                                                                 diccionario = self$diccionario,
+                                                                 llave_partido = llave_partido,
+                                                                 llave_conocimiento = llave_conocimiento,
+                                                                 respuesta_conoce = respuesta_conoce,
+                                                                 candidatos = candidatos,
+                                                                 corte_otro = corte_otro) %>%
                              purrr::map(~.x %>%
                                           left_join(self$diccionario %>% select(aspecto = llaves, tema))
                                         ) %>%
-                             encuestar:::graficar_candidato_partido(cliente = cliente,
+                             encuestar:::graficar_candidatoPartido(cliente = cliente,
                                                         tipo_conoce = "intervalos",
                                                         colores_candidato = colores_candidatos,
                                                         colores_partido = colores_partido,

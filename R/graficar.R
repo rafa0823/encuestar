@@ -746,7 +746,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 #'
 #' @examples
 #' graficar_candidato_partido(bases, clientes = c("era", "sasil"), tipo_conoce = "intervalos", colores_candidato = colores_candidato, colores_partido = colores_partido, tema = self$tema)
-graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
+graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
@@ -814,7 +814,7 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
 
-  a+ b+ plot_layout(widths = c(.2,.8))
+  a + b + patchwork::plot_layout(widths = c(.2,.8))
 
 }
 

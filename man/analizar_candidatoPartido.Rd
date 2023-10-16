@@ -6,6 +6,7 @@
 \usage{
 analizar_candidatoPartido(
   diseno,
+  diccionario,
   llave_partido,
   llave_conocimiento,
   respuesta_conoce,
@@ -15,6 +16,8 @@ analizar_candidatoPartido(
 }
 \arguments{
 \item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
+
+\item{diccionario}{Cuestionario de la encuesta en formato de procesamiento requerido}
 
 \item{llave_partido}{Patrón que comparten las variables asociadas a las preguntas que relacionan un personaje con un partido político}
 

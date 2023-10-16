@@ -24,6 +24,7 @@ test_that("Estructura de la base de datos de la estimación",{
 })
 
 test_that("Suma cerrada entre aspectos",{
+  # La suma de las proporciones para cada aspecto debe ser igual en cada caso. De lo contrario, hay un error de cómputo.
 
   bd_analizar_frecuencias_aspectos <- encuestar:::analizar_frecuencias_aspectos(diseno = survey::svydesign(ids = ~1, data = datos_demo),
                                                                                 diccionario = cuestionario_demo,
@@ -40,6 +41,7 @@ test_that("Suma cerrada entre aspectos",{
 })
 
 test_that("Suma normalizada",{
+  # La suma de las proporciones para cada aspecto, además de ser igual para cada caso, debe ser igual a 1.
 
   bd_analizar_frecuencias_aspectos <- encuestar:::analizar_frecuencias_aspectos(diseno = survey::svydesign(ids = ~1, data = datos_demo),
                                                                                 diccionario = cuestionario_demo,

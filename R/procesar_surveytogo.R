@@ -109,6 +109,7 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
 #' Analizar partido asociado a un candidato
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
 #' @param llave_partido Patrón que comparten las variables asociadas a las preguntas que relacionan un personaje con un partido político
 #' @param llave_conocimiento Patrón que comparten las variables relacionadas a preguntas sobre el conocimiento de un personaje
 #' @param respuesta_conoce Filtro sobre el cuál se evalúa la asociación de un personaje a un partído político
@@ -120,51 +121,30 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
 #'
 #' @examples
 #' analizar_candidatoPartido(diseno = self%diseno, llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí", candidatos = c("era", "sasil"))
-analizar_candidatoPartido <- function(diseno, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
+analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
 
-  partido <- paste(llave_partido,candidatos,sep = "_")
-  conoce <- paste(llave_conocimiento,candidatos, sep = "_")
+  conoce <- paste(llave_conocimiento, candidatos, sep = "_")
+  llaves_partido <- paste(llave_partido, candidatos,sep = "_")
 
-  conoce <- purrr::map_df(.x = conoce,.f = ~{
-    aux <- survey::svymean(survey::make.formula(.x),
-                           design = diseno, na.rm = T)
-    int <- aux %>% confint()
-    aux %>%
-      tibble::as_tibble(rownames = "respuesta") %>%
-      rename(media=2, ee=3) %>%
-      left_join(
-        int %>% tibble::as_tibble(rownames = "respuesta") %>% rename(inf = 2, sup = 3)
-      ) %>%
-      mutate(
-        aspecto = .x,
-        respuesta = stringr::str_replace(
-          pattern = .x,
-          replacement = "",
-          string = respuesta))
-  }) %>% filter(respuesta == respuesta_conoce)
+  conoce <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::enquo(llave_conocimiento), aspectos = candidatos) |>
+    filter(respuesta == respuesta_conoce)
 
-  partido <- purrr::map_df(.x = partido,.f = ~{
-    survey::svymean(survey::make.formula(.x),
-                    design = diseno, na.rm = T) %>%
-      tibble::as_tibble(rownames = "respuesta") %>%
-      rename(media=2, ee=3) %>%
-      mutate(
-        aspecto = .x,
-        respuesta = stringr::str_replace(
-          pattern = .x,
-          replacement = "",
-          string = respuesta),
-        respuesta=forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) %>%
-      count(respuesta, aspecto, wt = media, name = "media") %>% arrange(desc(media))
-  }) %>%
+  partido <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::enquo(llave_partido), aspectos = candidatos) |>
+    mutate(respuesta = as.character(respuesta),
+           respuesta = forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) |>
+    count(respuesta, aspecto, wt = media, name = "media") %>%
+    group_by(aspecto) |>
+    mutate(respuesta = forcats::fct_reorder(.f = respuesta, .x = media, .fun = max)) |>
+    ungroup() |>
+    arrange(aspecto, desc(media)) |>
+    group_by(aspecto) %>%
+    mutate(sup = cumsum(media),
+           inf = lag(sup, default = 0),
+           label = (inf +sup)/2)
 
-    group_by(aspecto) %>% mutate(sup = cumsum(media),
-                                 inf = lag(sup, default = 0),
-                                 label = (inf +sup)/2)
+  bases <- list(conoce = conoce, partido = partido)
 
-  bases <- list(conoce = conoce, partido =  partido)
-
-  return(list(conoce = conoce, partido =  partido))
+  return(list(conoce = conoce, partido = partido))
 }
 
 #' Calcular el saldo de opinión por personaje
