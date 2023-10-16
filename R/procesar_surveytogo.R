@@ -119,8 +119,9 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
 #' @export
 #'
 #' @examples
-#' analizar_candidato_partido(diseno = self%diseno, llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí", candidatos = c("era", "sasil"))
-analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
+#' analizar_candidatoPartido(diseno = self%diseno, llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí", candidatos = c("era", "sasil"))
+analizar_candidatoPartido <- function(diseno, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
+
   partido <- paste(llave_partido,candidatos,sep = "_")
   conoce <- paste(llave_conocimiento,candidatos, sep = "_")
 

@@ -22,7 +22,7 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-nube_texto}{\code{Grafica$nube_texto()}}
 \item \href{#method-Grafica-sankey_categorica}{\code{Grafica$sankey_categorica()}}
 \item \href{#method-Grafica-candidato_opinion}{\code{Grafica$candidato_opinion()}}
-\item \href{#method-Grafica-candidato_partido}{\code{Grafica$candidato_partido()}}
+\item \href{#method-Grafica-candidatoPartido}{\code{Grafica$candidatoPartido()}}
 \item \href{#method-Grafica-candidato_saldo}{\code{Grafica$candidato_saldo()}}
 \item \href{#method-Grafica-metodo_morena}{\code{Grafica$metodo_morena()}}
 \item \href{#method-Grafica-puntos}{\code{Grafica$puntos()}}
@@ -196,11 +196,11 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-candidato_partido"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-candidato_partido}{}}}
-\subsection{Method \code{candidato_partido()}}{
+\if{html}{\out{<a id="method-Grafica-candidatoPartido"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidatoPartido}{}}}
+\subsection{Method \code{candidatoPartido()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_partido(
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidatoPartido(
   llave_partido,
   llave_conocimiento,
   respuesta_conoce,
