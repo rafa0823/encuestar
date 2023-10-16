@@ -1764,7 +1764,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            }
 
                          },
-                         candidato_opinion = function(patron_inicial, aspectos,
+                         candidatoOpinion = function(patron_inicial, aspectos,
                                                       ns_nc = "Ns/Nc",
                                                       regular = "Regular",
                                                       llave_burbuja = "conocimiento",
@@ -1838,19 +1838,12 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                         solo_respondidos = T,
                                                         tema = self$tema)
                          },
-                         candidato_saldo = function(patron_inicial, aspectos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
+                         candidatoSaldo = function(patron_inicial, aspectos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
 
                            bd_saldo <- analizar_frecuencias_aspectos(diseno = self$diseno, diccionario = self$diccionario,
                                                                      patron_pregunta = {{patron_inicial}}, aspectos = aspectos) %>%
                              left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
                              calcular_saldoOpinion(llave_opinion = patron_inicial, grupo_positivo = positivos, grupo_negativo = negativos)
-
-                           # texto <- ordenar_opinion_xq(self$encuesta$respuestas$base,
-                           #                             llave_opinion, llave_xq, aspectos,
-                           #                             parametros$grupo_positivo, parametros$grupo_negativo) %>%
-                           #   pclave_combinaciones_saldo(parametros$tipo_combinacion, parametros$n_palabras)
-
-                           # left_join(bd_saldo, texto) %>%
 
                            bd_saldo %>%
                              graficar_candidatoSaldo(grupo_positivo = positivos,

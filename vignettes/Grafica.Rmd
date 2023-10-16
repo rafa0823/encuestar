@@ -100,7 +100,7 @@ gr$nube_texto(codigo = "problema_masimportante_otro",
 # Candidato opinion
 
 ```{r}
-gr$candidato_opinion(patron_inicial = opinion,
+gr$candidatoOpinion(patron_inicial = opinion,
                      aspectos = c("era", "sasil"), ns_nc = "Ns/Nc (No leer)", regular = "Regular (No leer)",
                      grupo_positivo= c("Buena"), grupo_negativo = c("Mala"),
                      orden_resp = c("Mala", "Regular (No leer)", "Buena"))
@@ -136,7 +136,7 @@ color_nsnc <- "gray60"
 
 gr <- Grafica$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
 
-gr$candidato_partido(llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí",
+gr$candidatoPartido(llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí",
                      candidatos = c("era", "sasil"), corte_otro = 0.03, cliente = c("era", "sasil"),
                      colores_candidatos = rep("#5B0A1C", 6) %>% purrr::set_names(nombres_candidatos),
                      colores_partido = c("PAN" = color_pan,
@@ -161,7 +161,7 @@ gr$candidato_partido(llave_partido = "partido", llave_conocimiento = "conocimien
 # Candidato saldo
 
 ```{r}
-gr$candidato_saldo(patron_inicial = "opinion", aspectos = c("era", "sasil"), positivos = c("Buena"), negativos = c("Mala"),
+gr$candidatoSaldo(patron_inicial = "opinion", aspectos = c("era", "sasil"), positivos = c("Buena"), negativos = c("Mala"),
                    color_positivo = "orange", color_negativo = "brown")
 
 ```

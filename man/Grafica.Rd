@@ -21,9 +21,9 @@ Esta es la clase de Grafica
 \item \href{#method-Grafica-intervalo_numerica}{\code{Grafica$intervalo_numerica()}}
 \item \href{#method-Grafica-nube_texto}{\code{Grafica$nube_texto()}}
 \item \href{#method-Grafica-sankey_categorica}{\code{Grafica$sankey_categorica()}}
-\item \href{#method-Grafica-candidato_opinion}{\code{Grafica$candidato_opinion()}}
+\item \href{#method-Grafica-candidatoOpinion}{\code{Grafica$candidatoOpinion()}}
 \item \href{#method-Grafica-candidatoPartido}{\code{Grafica$candidatoPartido()}}
-\item \href{#method-Grafica-candidato_saldo}{\code{Grafica$candidato_saldo()}}
+\item \href{#method-Grafica-candidatoSaldo}{\code{Grafica$candidatoSaldo()}}
 \item \href{#method-Grafica-metodo_morena}{\code{Grafica$metodo_morena()}}
 \item \href{#method-Grafica-puntos}{\code{Grafica$puntos()}}
 \item \href{#method-Grafica-brechasDuales}{\code{Grafica$brechasDuales()}}
@@ -166,11 +166,11 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-candidato_opinion"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-candidato_opinion}{}}}
-\subsection{Method \code{candidato_opinion()}}{
+\if{html}{\out{<a id="method-Grafica-candidatoOpinion"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidatoOpinion}{}}}
+\subsection{Method \code{candidatoOpinion()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_opinion(
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidatoOpinion(
   patron_inicial,
   aspectos,
   ns_nc = "Ns/Nc",
@@ -214,11 +214,11 @@ Esta es la clase de Grafica
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Grafica-candidato_saldo"></a>}}
-\if{latex}{\out{\hypertarget{method-Grafica-candidato_saldo}{}}}
-\subsection{Method \code{candidato_saldo()}}{
+\if{html}{\out{<a id="method-Grafica-candidatoSaldo"></a>}}
+\if{latex}{\out{\hypertarget{method-Grafica-candidatoSaldo}{}}}
+\subsection{Method \code{candidatoSaldo()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidato_saldo(
+\if{html}{\out{<div class="r">}}\preformatted{Grafica$candidatoSaldo(
   patron_inicial,
   aspectos,
   positivos,
