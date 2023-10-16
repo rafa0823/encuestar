@@ -1838,18 +1838,20 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                                         solo_respondidos = T,
                                                         tema = self$tema)
                          },
-                         candidatoSaldo = function(patron_inicial, aspectos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
+                         candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
 
-                           bd_saldo <- analizar_frecuencias_aspectos(diseno = self$diseno, diccionario = self$diccionario,
-                                                                     patron_pregunta = {{patron_inicial}}, aspectos = aspectos) %>%
-                             left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
-                             calcular_saldoOpinion(llave_opinion = patron_inicial, grupo_positivo = positivos, grupo_negativo = negativos)
+                           bd_saldo <- encuestar:::calcular_saldoOpinion(diseno = self$diseno,
+                                                                         diccionario = self$diccionario,
+                                                                         llave_opinion = llave_opinion,
+                                                                         candidatos = candidatos,
+                                                                         grupo_positivo = positivos,
+                                                                         grupo_negativo = negativos)
 
-                           bd_saldo %>%
-                             graficar_candidatoSaldo(grupo_positivo = positivos,
-                                                     grupo_negativo = negativos,
-                                                     color_positivo = color_positivo,
-                                                     color_negativo = color_negativo) +
+                           encuestar:::graficar_candidatoSaldo(bd = bd_saldo,
+                                                               grupo_positivo = positivos,
+                                                               grupo_negativo = negativos,
+                                                               color_positivo = color_positivo,
+                                                               color_negativo = color_negativo) +
                              self$tema()
 
                          },

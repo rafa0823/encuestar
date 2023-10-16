@@ -161,7 +161,7 @@ gr$candidatoPartido(llave_partido = "partido", llave_conocimiento = "conocimient
 # Candidato saldo
 
 ```{r}
-gr$candidatoSaldo(patron_inicial = "opinion", aspectos = c("era", "sasil"), positivos = c("Buena"), negativos = c("Mala"),
+gr$candidatoSaldo(patron_opinion = "opinion", candidatos = c("era", "sasil"), positivos = c("Buena"), negativos = c("Mala"),
                    color_positivo = "orange", color_negativo = "brown")
 
 ```

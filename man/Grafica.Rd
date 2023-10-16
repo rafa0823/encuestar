@@ -219,8 +219,8 @@ Esta es la clase de Grafica
 \subsection{Method \code{candidatoSaldo()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Grafica$candidatoSaldo(
-  patron_inicial,
-  aspectos,
+  llave_opinion,
+  candidatos,
   positivos,
   negativos,
   color_positivo = "green",

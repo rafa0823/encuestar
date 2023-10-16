@@ -4,12 +4,23 @@
 \alias{calcular_saldoOpinion}
 \title{Calcular el saldo de opinión por personaje}
 \usage{
-calcular_saldoOpinion(bd, llave_opinion, grupo_positivo, grupo_negativo)
+calcular_saldoOpinion(
+  diseno,
+  diccionario,
+  llave_opinion,
+  candidatos,
+  grupo_positivo,
+  grupo_negativo
+)
 }
 \arguments{
-\item{bd}{Base de datos producto de 'analizar_frecuencias_aspectos'.}
+\item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
+
+\item{diccionario}{Cuestionario de la encuesta en formato de procesamiento requerido}
 
 \item{llave_opinion}{Patrón que comparten las variables asociadas a las preguntas sobre la opinión pública hacia un personaje.}
+
+\item{candidatos}{Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.}
 
 \item{grupo_positivo}{Conjunto de valores de la variable opinión tratados como positivos.}
 

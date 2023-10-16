@@ -149,7 +149,9 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
 
 #' Calcular el saldo de opinión por personaje
 #'
-#' @param bd Base de datos producto de 'analizar_frecuencias_aspectos'.
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param candidatos Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
 #' @param llave_opinion Patrón que comparten las variables asociadas a las preguntas sobre la opinión pública hacia un personaje.
 #' @param grupo_positivo Conjunto de valores de la variable opinión tratados como positivos.
 #' @param grupo_negativo Conjunto de valores de la variable opinión tratados como negativos
@@ -160,13 +162,19 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
 #' @examples
 #' calcular_saldoOpinion(bd, llave_opinion = "opinion", grupo_positivo = "Buena", grupo_negativo = "Mala")
 #' calcular_saldoOpinion(bd, llave_opinion = "op", grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"))
-calcular_saldoOpinion <- function(bd, llave_opinion, grupo_positivo, grupo_negativo){
+calcular_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos, grupo_positivo, grupo_negativo){
+
+  llave_op = paste(llave_opinion) # BUG
+
+  bd <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::enquo(llave_op), aspectos = candidatos) |>
+    left_join(diccionario |> select(aspecto = llaves, tema), by = "aspecto")
+
   res <- bd %>%
-    mutate(!!rlang::sym(llave_opinion) := case_when(respuesta %in% grupo_positivo ~"Positiva",
+    mutate(!!rlang::sym(llave_op) := case_when(respuesta %in% grupo_positivo ~"Positiva",
                                                     respuesta %in% grupo_negativo ~"Negativa",)) %>%
-    filter(!is.na(!!rlang::sym(llave_opinion))) %>%
-    mutate(persona = stringr::str_replace(aspecto, glue::glue("{llave_opinion}_"), "")) %>%
-    count(persona,tema, grupo = !!rlang::sym(llave_opinion), wt = media, name = "saldo") %>%
+    filter(!is.na(!!rlang::sym(llave_op))) %>%
+    mutate(persona = stringr::str_replace(aspecto, glue::glue("{llave_op}_"), "")) %>%
+    count(persona, tema, grupo = !!rlang::sym(llave_op), wt = media, name = "saldo") %>%
     mutate(saldo = if_else(grupo == "Negativa", -saldo, saldo))
 
   return(res)
