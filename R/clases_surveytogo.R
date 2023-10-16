@@ -1840,7 +1840,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                          },
                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
 
-                           bd_saldo <- encuestar:::calcular_saldoOpinion(diseno = self$diseno,
+                           bd_saldo <- encuestar:::analizar_saldoOpinion(diseno = self$diseno,
                                                                          diccionario = self$diccionario,
                                                                          llave_opinion = llave_opinion,
                                                                          candidatos = candidatos,

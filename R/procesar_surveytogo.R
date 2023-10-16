@@ -162,7 +162,7 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
 #' @examples
 #' calcular_saldoOpinion(bd, llave_opinion = "opinion", grupo_positivo = "Buena", grupo_negativo = "Mala")
 #' calcular_saldoOpinion(bd, llave_opinion = "op", grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"))
-calcular_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos, grupo_positivo, grupo_negativo){
+analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos, grupo_positivo, grupo_negativo){
 
   llave_op = paste(llave_opinion) # BUG
 
