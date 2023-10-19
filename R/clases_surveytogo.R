@@ -1528,8 +1528,8 @@ Pregunta <- R6::R6Class("Pregunta",
 Pregunta2 <- R6::R6Class(classname = "Pregunta2",
                          public = list(
                            encuesta = NULL,
-                           grafica = NULL,
-                           regiones = NULL,
+                           Grafica = NULL,
+                           Regiones = NULL,
                            Modelo = NULL,
                            Cruce = NULL,
                            Especiales = NULL,
@@ -1540,11 +1540,11 @@ Pregunta2 <- R6::R6Class(classname = "Pregunta2",
                              self$tema <- tema
                              private$crear_shp_region()
 
-                             self$grafica <- Grafica$new(diseno = self$encuesta$muestra$diseno,
+                             self$Grafica <- Grafica$new(diseno = self$encuesta$muestra$diseno,
                                                          diccionario = self$encuesta$cuestionario$diccionario,
                                                          tema = self$tema)
 
-                             self$regiones <- Regiones$new(diseno = self$encuesta$muestra$diseno,
+                             self$Regiones <- Regiones$new(diseno = self$encuesta$muestra$diseno,
                                                            diccionario = self$encuesta$cuestionario$diccionario,
                                                            shp = private$shp_region,
                                                            tema = self$tema)

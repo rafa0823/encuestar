@@ -25,11 +25,11 @@ pr <- Pregunta2$new(encuesta = encuesta, tema = tema_default)
 ```
 
 ```{r}
-pr$grafica$gauge_numerica(codigo = evaluacion_amlo, color = "red", escala = c(0, 11), size_text_pct = 18)
+pr$Grafica$gauge_numerica(codigo = evaluacion_amlo, color = "red", escala = c(0, 11), size_text_pct = 18)
 ```
 
 ```{r}
-pr$regiones$heatmap_conocimiento(llave_conocimiento = "conocimiento",
+pr$Regiones$heatmap_conocimiento(llave_conocimiento = "conocimiento",
                                  candidatos = c("eduardo", "pepe", "carlos"),
                                  respuesta = "Sí",
                                  orden_horizontal = c("1","2", "3", "4", "5", "6")
@@ -37,14 +37,14 @@ pr$regiones$heatmap_conocimiento(llave_conocimiento = "conocimiento",
 ```
 
 ```{r}
-pr$regiones$mapa_resaltarRegion("1", color = "red")
+pr$Regiones$mapa_resaltarRegion("1", color = "red")
 ```
 
 ```{r}
-pr$regiones$mapa_ganador(conocimiento_carlos)
+pr$Regiones$mapa_ganador(conocimiento_carlos)
 ```
 
 ```{r}
-pr$regiones$mapa_degradadoNumerico(evaluacion_amlo)
+pr$Regiones$mapa_degradadoNumerico(evaluacion_amlo)
 ```
 
