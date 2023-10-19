@@ -1,0 +1,50 @@
+---
+title: "Clase Pregunta2"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Clase Pregunta2}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.asp = .6, fig.width = 12, out.width="100%", dpi = 300
+)
+```
+
+```{r setup}
+library(encuestar)
+```
+
+```{r}
+options(survey.lonely.psu="remove")
+pr <- Pregunta2$new(encuesta = encuesta, tema = tema_default)
+```
+
+```{r}
+pr$grafica$gauge_numerica(codigo = evaluacion_amlo, color = "red", escala = c(0, 11), size_text_pct = 18)
+```
+
+```{r}
+pr$regiones$heatmap_conocimiento(llave_conocimiento = "conocimiento",
+                                 candidatos = c("eduardo", "pepe", "carlos"),
+                                 respuesta = "Sí",
+                                 orden_horizontal = c("1","2", "3", "4", "5", "6")
+)
+```
+
+```{r}
+pr$regiones$mapa_resaltarRegion("1", color = "red")
+```
+
+```{r}
+pr$regiones$mapa_ganador(conocimiento_carlos)
+```
+
+```{r}
+pr$regiones$mapa_degradadoNumerico(evaluacion_amlo)
+```
+

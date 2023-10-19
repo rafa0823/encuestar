@@ -1522,26 +1522,46 @@ Pregunta <- R6::R6Class("Pregunta",
 
                         ))
 
+#'Esta es la clase de Pregunta2
+#'@export
+#'
 Pregunta2 <- R6::R6Class(classname = "Pregunta2",
                          public = list(
                            encuesta = NULL,
-                           Grafica = NULL,
-                           Regiones = NULL,
+                           grafica = NULL,
+                           regiones = NULL,
                            Modelo = NULL,
                            Cruce = NULL,
                            Especiales = NULL,
-                           regiones = NULL,
                            tema = NULL,
                            initialize = function(encuesta, tema = tema_default){
 
                              self$encuesta <- encuesta
-
-                             # self$grafica <- Grafica$new()
-                             # self$regiones <- Regiones$new()
-                             # self$cruce <- Cruce$new()
                              self$tema <- tema
+                             private$crear_shp_region()
 
-                           })
+                             self$grafica <- Grafica$new(diseno = self$encuesta$muestra$diseno,
+                                                         diccionario = self$encuesta$cuestionario$diccionario,
+                                                         tema = self$tema)
+
+                             self$regiones <- Regiones$new(diseno = self$encuesta$muestra$diseno,
+                                                           diccionario = self$encuesta$cuestionario$diccionario,
+                                                           shp = private$shp_region,
+                                                           tema = self$tema)
+                           }),
+                         private = list(
+                           shp_region = NULL,
+                           crear_shp_region = function(){
+                             sf_use_s2(T)
+                             private$shp_region <- self$encuesta$shp_completo$shp$MUNICIPIO %>%
+                               left_join(
+                                 self$encuesta$muestra$muestra$poblacion$marco_muestral %>%
+                                   distinct(region, MUNICIPIO), by = "MUNICIPIO"
+                               ) %>% group_by(region) %>% summarise(n()) %>%
+                               sf::st_buffer(dist = 0)
+                             sf_use_s2(F)
+                           }
+                         )
 )
 
 #'Esta es la clase de Grafica
@@ -1899,18 +1919,16 @@ Regiones <- R6::R6Class(classname = "Regiones",
                        public = list(
                          diseno = NULL,
                          diccionario = NULL,
+                         shp = NULL,
                          tema = NULL,
                          initialize = function(diseno, diccionario = NULL, shp = NULL, tema){
                            self$diseno <- diseno
                            self$diccionario <- diccionario
-                           # self$shp <- shp
+                           self$shp <- shp
                            self$tema <- tema
                          },
-                         mapa_regiones = function(){
-
-                         },
                          mapa_ganador = function(variable, lugar = 1){
-                           analizar_ganador_region(regiones = self$regiones, {{variable}},
+                           analizar_ganador_region(regiones = self$shp, {{variable}},
                                                    lugar = lugar,
                                                    diseno = self$diseno) %>%
                              graficar_mapa_region({{variable}})
@@ -1918,7 +1936,7 @@ Regiones <- R6::R6Class(classname = "Regiones",
                          },
                          mapa_degradadoNumerico = function(variable){
 
-                           analizar_promedio_region(regiones = self$regiones, var = {{variable}},
+                           analizar_promedio_region(regiones = self$shp, var = {{variable}},
                                                     diseno = self$diseno) %>%
                              graficar_mapa_region({{variable}})
 
