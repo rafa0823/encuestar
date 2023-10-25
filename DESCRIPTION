@@ -26,6 +26,8 @@ Imports:
     ggthemes,
     glue,
     grid,
+    highcharter,
+    htmlwidgets,
     janitor,
     lemon,
     officer,
@@ -50,6 +52,7 @@ Imports:
     tidytext,
     treemapify,
     utils,
+    webshot,
     yesno
 Suggests: 
     knitr,
