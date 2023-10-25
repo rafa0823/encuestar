@@ -147,7 +147,7 @@ Encuesta <- R6::R6Class("Encuesta",
                               transmute(SECCION = as.character(cluster_2)) %>%
                               bind_cols(st_coordinates(.)) %>%
                               as_tibble() %>% select(-geometry) %>% rename(Longitude = X, Latitude = Y) %>% bind_cols(respuestas) %>%
-                              rownames_to_column(var = "SbjNum") %>% mutate(SbjNum = as.numeric(SbjNum))
+                              tibble::rownames_to_column(var = "SbjNum") %>% mutate(SbjNum = as.numeric(SbjNum))
                             #simular sexo y edad para postestratificación
                             respuestas <- respuestas %>%
                               mutate(sexo = sample(c("Hombre", "Mujer"),
@@ -1795,12 +1795,12 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              burbuja <- NA
                            }
 
-                           analizar_frecuencias_aspectos(diseno = self$diseno,
+                           encuestar:::analizar_frecuencias_aspectos(diseno = self$diseno,
                                                          diccionario = self$diccionario,
                                                          patron_pregunta = {{patron_inicial}},
                                                          aspectos = aspectos) |>
                              left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
-                             graficar_candidato_opinion(ns_nc = ns_nc,
+                             encuestar:::graficar_candidato_opinion(ns_nc = ns_nc,
                                                         regular = regular,
                                                         grupo_positivo= grupo_positivo,
                                                         grupo_negativo = grupo_negativo,
