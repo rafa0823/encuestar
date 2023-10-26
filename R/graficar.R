@@ -953,7 +953,7 @@ graficar_saldo_region <- function(bd, orden_horizontal){
 
   orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
 
-  bd %>%
+  tbl <- bd %>%
     ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
                y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
                fill = saldo)) +
@@ -974,28 +974,29 @@ graficar_saldo_region <- function(bd, orden_horizontal){
 }
 
 
-#' Title
+#' Graficar mapa por categorías
 #'
-#' @param bd
-#' @param var
+#' @param bd Base de datos resultado de la función 'calcular_ganadorRegion
+#' @param variable Variable categórica a graficar
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_mapa_region <- function(bd, var){
-  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .3, alpha = .8, color = "white") +
+graficar_regionesCategorico <- function(bd, variable){
+  g <- bd %>%
+    ggplot() +
+    geom_sf(aes(fill = {{variable}}), size = .3, alpha = .8, color = "white") +
+    labs(fill = "") +
     theme_minimal() +
     theme(axis.line = element_blank(),
           axis.ticks = element_blank(),
           panel.grid = element_blank(),
           legend.position = "bottom",
           axis.text = element_blank(),
-          plot.title = element_text(hjust = 0,
-                                    size = rel(1.1),
-                                    # face = "bold",
-                                    colour = "#4C5B61"),
-          text = element_text(family = "Poppins", size=14))
+          text = element_text(family = "Poppins", size = 14))
+
+  return(g)
 }
 
 #' Title

@@ -262,3 +262,18 @@ gr$componentesPrincipales(variables = c("sexo", "conocimiento_era"))
 gr$blackBox(vars = "sexo", stimuli = "edad")
 
 ```
+
+
+
+```{r clase_regiones}
+diseno <- survey::svydesign(ids = ~1, data = datos_demo |> mutate(region = sample(x = seq.int(1:6), size  = n(), replace = T)))
+
+Preguntas <- Pregunta2$new(encuesta = encuesta_demo, tema = tema_default)
+
+```
+
+# Mapa ganador
+
+```{r}
+Preguntas$Regiones$mapa_ganador(variable = "voto_partido", lugar = 1)
+```

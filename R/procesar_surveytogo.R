@@ -334,41 +334,53 @@ analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo
   return(res)
 }
 
-#' Title
+#' Calcular valor más frecuente por región de acuerdo al diseño muestral
 #'
-#' @param var
-#' @param diseno
-#'
-#' @return
-#' @export
-#'
-#' @examples
-
-analizar_ganador_region <- function(regiones, var, lugar, diseno){
-  formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
-
-  regiones %>% left_join(
-    survey::svytable(formula, design = diseno) %>% as_tibble %>%
-      group_by(region) %>% filter(dense_rank(-n) == lugar)
-  )
-}
-#' Title
-#'
-#' @param var
-#' @param diseno
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param regiones Shape file de las regiones-estrato de la encuesta
+#' @param lugar Primer lugar del promedio por región de la variable "variable" usando la función dense_rank
+#' @param variable Variable a obtener la estimación estimación por región
+#' @param lugar Lugar del top de las estimaciones por región
 #'
 #' @return
 #' @export
 #'
 #' @examples
-analizar_promedio_region <- function(regiones, var, diseno){
-  formula <- survey::make.formula(rlang::expr_text(ensym(var)))
-  regiones %>% left_join(
-    survey::svyby(formula, ~region, design = diseno,FUN = survey::svymean, na.rm  = T) %>%
-      as_tibble()
-  )
-}
+#' calcular_ganadorRegion(regiones = shp, variable = "voto_partido", lugar = lugar, diseno = diseno)
+calcular_ganadorRegion <- function(diseno, regiones, variable, lugar){
+  bd_topEstimaciones <- encuestar:::analizar_frecuenciasRegion(regiones = regiones, variable = variable, diseno = diseno) |>
+    janitor::clean_names() |>
+    as_tibble() |>
+    select(!c(geometry, n)) |>
+    select(!contains("se")) |>
+    tidyr::pivot_longer(cols = !region, names_to = rlang::expr_text(ensym(variable)), values_to = "estimacion") |>
+    group_by(region) %>%
+    filter(dense_rank(-estimacion) == lugar)
+  tbl <- regiones %>%
+    left_join(bd_topEstimaciones, by = "region")
+  return(tbl)
 
+}
+#' Analizar estimaciones frecuentistas por región
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param regiones Shape file de las regiones-estrato de la encuesta
+#' @param variable Variable a obtener la estimación estimación por región
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_frecuenciasRegion(regiones = shp, variable = "voto_partido", diseno = diseno)
+analizar_frecuenciasRegion <- function(regiones, variable, diseno){
+  variable = variable
+  formula <- survey::make.formula(rlang::expr_text(ensym(variable)))
+  tbl <- regiones %>%
+    left_join(
+    survey::svyby(formula, ~region, design = diseno, FUN = survey::svymean, na.rm  = T) %>%
+      as_tibble(), by = "region")
+  return(tbl)
+}
 #' Title
 #'
 #' @param bd

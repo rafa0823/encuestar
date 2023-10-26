@@ -2004,11 +2004,11 @@ Regiones <- R6::R6Class(classname = "Regiones",
                            self$tema <- tema
                          },
                          mapa_ganador = function(variable, lugar = 1){
-                           analizar_ganador_region(regiones = self$shp, {{variable}},
-                                                   lugar = lugar,
-                                                   diseno = self$diseno) %>%
-                             graficar_mapa_region({{variable}})
-
+                           encuestar:::calcular_ganadorRegion(diseno = self$diseno,
+                                                              regiones = self$shp,
+                                                              variable = {{variable}},
+                                                              lugar = lugar) %>%
+                             encuestar:::graficar_regionesCategorico(variable = {{variable}})
                          },
                          mapa_degradadoNumerico = function(variable){
 
