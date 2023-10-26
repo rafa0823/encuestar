@@ -978,6 +978,7 @@ graficar_saldo_region <- function(bd, orden_horizontal){
 #'
 #' @param bd Base de datos resultado de la función 'calcular_ganadorRegion
 #' @param variable Variable categórica a graficar
+#' @param categorica Si la variable es categórica, cambia la posición del 'legend.position'
 #'
 #' @return
 #' @export
