@@ -2008,13 +2008,13 @@ Regiones <- R6::R6Class(classname = "Regiones",
                                                               regiones = self$shp,
                                                               variable = {{variable}},
                                                               lugar = lugar) %>%
-                             encuestar:::graficar_regionesCategorico(variable = {{variable}})
+                             encuestar:::graficar_mapaRegiones(variable = {{variable}})
                          },
                          mapa_degradadoNumerico = function(variable){
 
                            analizar_promedio_region(regiones = self$shp, var = {{variable}},
                                                     diseno = self$diseno) %>%
-                             graficar_mapa_region({{variable}})
+                             graficar_mapaRegiones({{variable}})
 
                          },
                          heatmap_conocimiento = function(llave_conocimiento, candidatos, respuesta, orden_horizontal){

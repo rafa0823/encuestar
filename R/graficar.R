@@ -983,7 +983,7 @@ graficar_saldo_region <- function(bd, orden_horizontal){
 #' @export
 #'
 #' @examples
-graficar_regionesCategorico <- function(bd, variable){
+graficar_mapaRegiones <- function(bd, variable){
   g <- bd %>%
     ggplot() +
     geom_sf(aes(fill = {{variable}}), size = .3, alpha = .8, color = "white") +
