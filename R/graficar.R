@@ -983,22 +983,33 @@ graficar_saldo_region <- function(bd, orden_horizontal){
 #' @export
 #'
 #' @examples
-graficar_mapaRegiones <- function(bd, variable){
+graficar_mapaRegiones <- function(bd, variable, categorica = T){
   g <- bd %>%
     ggplot() +
-    geom_sf(aes(fill = {{variable}}), size = .3, alpha = .8, color = "white") +
-    labs(fill = "") +
-    theme_minimal() +
-    theme(axis.line = element_blank(),
-          axis.ticks = element_blank(),
-          panel.grid = element_blank(),
-          legend.position = "bottom",
-          axis.text = element_blank(),
-          text = element_text(family = "Poppins", size = 14))
-
+    geom_sf(aes(fill = !!rlang::sym(variable)), size = .3, alpha = .8, color = "white") +
+    theme_minimal()
+  if(categorica == F)
+  {
+    g <- g + theme(axis.line = element_blank(),
+                   axis.ticks = element_blank(),
+                   panel.grid = element_blank(),
+                   legend.position = "right",
+                   axis.text = element_blank(),
+                   text = element_text(family = "Poppins", size = 14))
+  }
+  else
+  {
+    g <- g +
+      labs(fill = "") +
+      theme(axis.line = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            legend.position = "bottom",
+            axis.text = element_blank(),
+            text = element_text(family = "Poppins", size = 14))
+  }
   return(g)
 }
-
 #' Title
 #'
 #' @param lst

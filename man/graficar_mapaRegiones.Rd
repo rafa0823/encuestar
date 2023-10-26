@@ -4,7 +4,7 @@
 \alias{graficar_mapaRegiones}
 \title{Graficar mapa por categorías}
 \usage{
-graficar_mapaRegiones(bd, variable)
+graficar_mapaRegiones(bd, variable, categorica = T)
 }
 \arguments{
 \item{bd}{Base de datos resultado de la función 'calcular_ganadorRegion}
