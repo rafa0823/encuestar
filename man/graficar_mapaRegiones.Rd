@@ -10,6 +10,8 @@ graficar_mapaRegiones(bd, variable, categorica = T)
 \item{bd}{Base de datos resultado de la función 'calcular_ganadorRegion}
 
 \item{variable}{Variable categórica a graficar}
+
+\item{categorica}{Si la variable es categórica, cambia la posición del 'legend.position'}
 }
 \description{
 Graficar mapa por categorías
