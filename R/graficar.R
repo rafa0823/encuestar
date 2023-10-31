@@ -910,23 +910,31 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 
 }
 
-#' Title
+#' Graficar conocimiento de personajes por región o estrato
 #'
-#' @param bd
+#' @param bd Base de datos resultado de la función 'analizar_conocimientoRegion'
+#' @param ordenRegiones Vector que indica el orden de las columnas del geom_tile
+#' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_conocimiento_region <- function(bd, orden_horizontal){
-
-  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
-
-  bd %>%
-    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
+#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
+graficar_conocimientoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
+  if(is.null(ordenRegiones)) {
+    ordenRegiones <- bd |>
+      ungroup() |>
+      distinct(region) |>
+      mutate(region = stringr::str_wrap(string = region, width = salto_labelRegiones)) |>
+      pull() |>
+      stringr::str_wrap(width = salto_labelRegiones)
+  }
+  g <- bd %>%
+    ggplot(aes(x = factor(region |> stringr::str_wrap(width = salto_labelRegiones), levels = ordenRegiones),
                y = forcats::fct_reorder(tema %>%  str_wrap(60), pct),
                fill = pct)) +
-    geom_tile()+
+    geom_tile() +
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
     theme(panel.grid = element_blank(),
@@ -939,6 +947,7 @@ graficar_conocimiento_region <- function(bd, orden_horizontal){
     # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
     ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
                               aes(label =pct %>%  scales::percent(accuracy = 1)))
+  return(g)
 }
 
 #' Title

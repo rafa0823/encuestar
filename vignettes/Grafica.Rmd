@@ -283,3 +283,17 @@ Preguntas$Regiones$mapa_ganador(variable = "voto_partido", lugar = 1)
 ```{r}
 Preguntas$Regiones$mapa_degradadoNumerico(variable = "evaluacion_amlo")
 ```
+
+# Heatmao conocimiento
+
+```{r}
+candidatos <- cuestionario_demo |>
+  filter(grepl(pattern = "Bloque 3", x = bloque)) |>
+  distinct(llaves) |>
+  pull() |>
+  gsub(pattern = "conocimiento_", replacement = "")
+
+Preguntas$Regiones$heatmap_conocimiento(patron_llaveConocimiento = "conocimiento",
+                                        candidatos = candidatos,
+                                        respuesta = "Sí")
+```

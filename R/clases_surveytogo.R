@@ -2016,18 +2016,19 @@ Regiones <- R6::R6Class(classname = "Regiones",
                                                                   diseno = self$diseno) %>%
                              encuestar:::graficar_mapaRegiones(variable = {{variable}}, categorica = F)
                          },
-                         heatmap_conocimiento = function(llave_conocimiento, candidatos, respuesta, orden_horizontal){
-
-                           analizar_conocimiento_region(llave_conocimiento, candidatos, respuesta,
-                                                        self$diseno,
-                                                        self$diccionario) %>%
-                             graficar_conocimiento_region(orden_horizontal = orden_horizontal)
-
+                         heatmap_conocimiento = function(patron_llaveConocimiento, candidatos, respuesta, ordenRegiones = NULL){
+                           bd_analizar_conocimientoRegion <- encuestar:::analizar_conocimientoRegion(patron_llaveConocimiento = patron_llaveConocimiento, aspectos_llaveConocimiento = candidatos, filtro_respuestaConocimiento = respuesta, diseno = self$diseno, diccionario = self$diccionario)
+                           encuestar:::graficar_conocimientoRegion(bd = bd_analizar_conocimientoRegion, ordenRegiones = ordenRegiones)
                          },
 
                          heatmap_saldoOpinion = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
                                                  orden_horizontal){
-                           analizar_saldo_region(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
+                           analizar_saldo_region(llave_opinion,
+                                                 candidatos,
+                                                 ns_nc,
+                                                 cat_negativo,
+                                                 cat_regular,
+                                                 cat_positivo,
                                                  diseno = self$diseno,
                                                  diccionario = self$diccionario) %>%
                              graficar_saldo_region(orden_horizontal = orden_horizontal)

@@ -53,10 +53,10 @@ Esta es la clase de Regiones
 \subsection{Method \code{heatmap_conocimiento()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regiones$heatmap_conocimiento(
-  llave_conocimiento,
+  patron_llaveConocimiento,
   candidatos,
   respuesta,
-  orden_horizontal
+  ordenRegiones = NULL
 )}\if{html}{\out{</div>}}
 }
 

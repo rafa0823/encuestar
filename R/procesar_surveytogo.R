@@ -272,32 +272,31 @@ analizar_frecuencia_region <- function(variable, diseno, diccionario){
     )
 }
 
-#' Title
+#' Analizar conocimiento de personajes por region
 #'
-#' @param llave
-#' @param variable
-#' @param respuesta
-#' @param diseno
-#' @param diccionario
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param patron_llaveConocimiento Patrón que comparten las variables asociadas al conocimiento de un personaje
+#' @param filtro_respuestaConocimiento Filtro aplicado a las variables asociadas al conocimiento
+#' @param aspectos_llaveConocimiento Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, diccionario){
-  junto <- paste(llave, variable, sep = "_")
-
-  junto %>%
-    map_df(~{
-      survey::svytable(survey::make.formula(c(.x,"region")), design = diseno) %>%
-        as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n))%>% mutate(aspecto = .x) %>%
-        filter(!!rlang::sym(.x) == respuesta) %>% select(-1)
-    }) %>%
-    left_join(
-      diccionario %>% select(aspecto = llaves, tema)
-    )
+analizar_conocimientoRegion <- function(patron_llaveConocimiento, aspectos_llaveConocimiento, filtro_respuestaConocimiento, diseno, diccionario){
+  junto <- paste(patron_llaveConocimiento, aspectos_llaveConocimiento, sep = "_")
+  tbl <- junto %>%
+    purrr::map_df(~{survey::svytable(survey::make.formula(c(.x, "region")), design = diseno) %>%
+        as_tibble() %>%
+        group_by(region) %>%
+        mutate(pct = n/sum(n)) %>%
+        mutate(aspecto = .x) %>%
+        filter(!!rlang::sym(.x) == filtro_respuestaConocimiento) %>%
+        select(-1)}) %>%
+    left_join(diccionario %>% select(aspecto = llaves, tema), by = "aspecto")
+  return(tbl)
 }
-
 #' Title
 #'
 #' @param llave_opinion
