@@ -14,8 +14,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "l
 #' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), pregunta = sexo)
 
 analizar_frecuencias <- function(diseno, pregunta){
-
-  estimacion <- survey::svymean(enquo(pregunta),
+  estimacion <- survey::svymean(survey::make.formula(pregunta),
+    # enquo(pregunta),
                                 design = diseno, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
     rename(media=2, ee=3) %>%
@@ -52,12 +52,17 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 #' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "conocimiento", aspectos = c("amlo", "claudia", "ebrard"))
 analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
 
+  # ja <- try(
+  #   rlang::expr_text(ensym(patron_pregunta)),T
+  # )
+
   ja <- try(
-    rlang::expr_text(ensym(patron_pregunta)),T
+    patron_pregunta, T
   )
 
   if(class(ja) != "try-error"){
-    p <- rlang::expr_text(ensym(patron_pregunta))
+    # p <- rlang::expr_text(ensym(patron_pregunta))
+    p <- patron_pregunta
     llaves <- glue::glue("{p}_{aspectos}")
   } else{
     llaves <- aspectos
@@ -105,7 +110,6 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
     left_join(p, by = c("aspecto"))
 }
 
-
 #' Analizar partido asociado a un candidato
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
@@ -126,10 +130,10 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
   conoce <- paste(llave_conocimiento, candidatos, sep = "_")
   llaves_partido <- paste(llave_partido, candidatos,sep = "_")
 
-  conoce <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::enquo(llave_conocimiento), aspectos = candidatos) |>
+  conoce <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_conocimiento, aspectos = candidatos) |>
     filter(respuesta == respuesta_conoce)
 
-  partido <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::enquo(llave_partido), aspectos = candidatos) |>
+  partido <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_partido, aspectos = candidatos) |>
     mutate(respuesta = as.character(respuesta),
            respuesta = forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) |>
     count(respuesta, aspecto, wt = media, name = "media") %>%
@@ -166,7 +170,7 @@ analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos
 
   llave_op = paste(llave_opinion) # BUG
 
-  bd <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::enquo(llave_op), aspectos = candidatos) |>
+  bd <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_op, aspectos = candidatos) |>
     left_join(diccionario |> select(aspecto = llaves, tema), by = "aspecto")
 
   res <- bd %>%
@@ -454,7 +458,7 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
 analizar_morena <- function(diseno, diccionario, personajes, atributos){
 
   #opinión positiva
-  o_p <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = opinion, aspectos = personajes) %>%
+  o_p <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = "opinion", aspectos = personajes) %>%
     filter(respuesta == "Buena") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo", "personaje"), remove = F) %>%
@@ -463,7 +467,7 @@ analizar_morena <- function(diseno, diccionario, personajes, atributos){
   #atributos
   atr_p <- atributos %>%
     purrr::pmap_df(function(atributo, puntos){
-      analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = !!rlang::sym(atributo), aspectos = personajes) %>%
+      encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = atributo, aspectos = personajes) %>%
         filter(respuesta %in% c("Mucho", "Algo")) %>%
         mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
         group_by(aspecto) %>%
@@ -474,21 +478,21 @@ analizar_morena <- function(diseno, diccionario, personajes, atributos){
     })
 
   #buen candidato
-  cand <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = buencandidato, aspectos = personajes) %>%
+  cand <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = "buencandidato", aspectos = personajes) %>%
     filter(respuesta == "Sí") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 1, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #votaria
-  voto <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = votaria, aspectos = personajes) %>%
+  voto <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = "votaria", aspectos = personajes) %>%
     filter(respuesta == "Sí votaría") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #preferencia
-  pref <- analizar_frecuencias(diseno = diseno, pregunta = candidato_preferencia) %>%
+  pref <- encuestar:::analizar_frecuencias(diseno = diseno, pregunta = "candidato_preferencia") %>%
     filter(!respuesta %in% c("Ns/Nc", "Ninguno", "Otro")) %>%
     mutate(ganador = media == max(media),
            puntos = if_else(ganador, 2.75, 0)) %>%

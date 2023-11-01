@@ -103,7 +103,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-                            self$preguntas <- Pregunta$new(encuesta = self)
+                            self$preguntas <- Pregunta2$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
                             beepr::beep()
@@ -1591,7 +1591,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                            # }
 
-                           bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
+                           bd_estimacion <- encuestar:::analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
 
                            tema <- self$diccionario |>
                              filter(llaves == rlang::ensym(codigo)) |>
@@ -1599,7 +1599,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                            bd_estimacion |>
                              mutate(tema = tema) |>
-                             graficar_gauge(color_principal = color,
+                             encuestar:::graficar_gauge(color_principal = color,
                                             escala = escala,
                                             size_text_pct = size_text_pct)
 
@@ -1625,7 +1625,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                              # }
 
-                             bd_estimacion <- analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}}) |>
+                             bd_estimacion <- encuestar:::analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}}) |>
                                filter(eval(rlang::parse_expr(filtro)))
 
                              tema <- self$diccionario |>
@@ -1634,7 +1634,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                              bd_estimacion %>%
                                mutate(tema = tema) |>
-                               graficar_gauge(color_principal = color,
+                               encuestar:::graficar_gauge(color_principal = color,
                                               escala = escala,
                                               size_text_pct = size_text_pct)
                            }
@@ -1657,9 +1657,9 @@ Grafica <- R6::R6Class(classname = "Grafica",
                              filter(llaves == rlang::ensym(codigo)) |>
                              pull(tema)
 
-                           analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
+                           encuestar:::analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
                              mutate(tema = tema) |>
-                             graficar_barras(salto = salto,
+                             encuestar:::graficar_barras(salto = salto,
                                              porcentajes_fuera = porcentajes_fuera,
                                              desplazar_porcentajes = desplazar_porcentajes) +
                              self$tema()
@@ -1688,7 +1688,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                filter(llaves == rlang::ensym(patron_inicial)) |>
                                pull(pregunta)
 
-                             bd_estimacion <- analizar_frecuencias_aspectos(diseno = self$diseno,
+                             bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(diseno = self$diseno,
                                                                             diccionario = self$diccionario,
                                                                             patron_pregunta = {{patron_inicial}},
                                                                             aspectos = aspectos) |>
@@ -1697,7 +1697,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                                transmute(respuesta = tema, media)
 
                              bd_estimacion |>
-                               graficar_barras(salto = salto,
+                               encuestar:::graficar_barras(salto = salto,
                                                porcentajes_fuera = porcentajes_fuera,
                                                desplazar_porcentajes = desplazar_porcentajes) +
                                self$tema()
@@ -1731,30 +1731,32 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
                            # }
 
-                           bd_estimacion <- analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) %>%
-                             left_join(self$diccionario %>%
-                                         select(aspecto = llaves, tema)
-                                       )
+                           bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(self$diseno, self$diccionario, {{patron}}, aspectos) %>%
+                             left_join(self$diccionario %>% select(aspecto = llaves, tema = llaves), by = "aspecto")
 
                            bd_estimacion |>
-                             graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
+                             encuestar:::graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
                              self$tema()
 
 
                          },
                          nube_texto = function(codigo, palabrasVacias = NULL, total_palabras = 15, colores = c("#619CFF", "#FFFF33", "#00BA38")){
 
-                           nubeImg <- analizar_respuestaAbierta(bd = self$diseno$variables, variable = codigo,
-                                                     palabrasVacias = palabrasVacias, totalPalabras = total_palabras,
-                                                     colores = colores) |>
-                             graficar_nubePalabras_hc()
+                           nubeImg <- encuestar:::analizar_respuestaAbierta(bd = self$diseno$variables, variable = codigo,
+                                                                            palabrasVacias = palabrasVacias, totalPalabras = total_palabras,
+                                                                            colores = colores) |>
+                             encuestar:::graficar_nubePalabras_hc()
 
-                           htmlwidgets::saveWidget(widget = nubeImg, file = paste("data/nubeTexto", codigo, ".html", sep = ""))
-                           webshot::webshot(url = paste("data/nubeTexto", codigo, ".html", sep = ""), delay = 5,
-                                   file = paste("data/nubeTexto", codigo, ".png", sep = ""), vwidth = 600*5, vheight = 600*5/1.41)
+                           dest_folder <- "data/nubeTexto"
+
+                           if(!file.exists(dest_folder)) dir.create(dest_folder)
+
+                           htmlwidgets::saveWidget(widget = nubeImg, file = paste(dest_folder, codigo, ".html", sep = ""))
+                           webshot::webshot(url = paste(dest_folder, codigo, ".html", sep = ""), delay = 5,
+                                            file = paste(dest_folder, codigo, ".png", sep = ""), vwidth = 600*5, vheight = 600*5/1.41)
 
                            print(paste("El objeto se ha generado en el archivo ",
-                                       paste("'data/nubeTexto", codigo, ".png'", sep = ""), sep = ""))
+                                       paste(dest_folder, codigo, ".png'", sep = ""), sep = ""))
 
                          },
                          sankey_categorica = function(variables = NULL, size_text_cat = 8){
@@ -1807,7 +1809,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
                            if(!is.na(llave_burbuja)){
                              burbuja <- analizar_frecuencias_aspectos(diseno = self$diseno,
                                                                       diccionario = self$diccionario,
-                                                                      patron_pregunta = !!rlang::sym(llave_burbuja),
+                                                                      patron_pregunta = llave_burbuja,
                                                                       aspectos = aspectos) %>%
                                filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
                                left_join(self$diccionario %>% select(aspecto = llaves, tema))
@@ -1817,7 +1819,7 @@ Grafica <- R6::R6Class(classname = "Grafica",
 
                            encuestar:::analizar_frecuencias_aspectos(diseno = self$diseno,
                                                          diccionario = self$diccionario,
-                                                         patron_pregunta = {{patron_inicial}},
+                                                         patron_pregunta = patron_inicial,
                                                          aspectos = aspectos) |>
                              left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
                              encuestar:::graficar_candidato_opinion(ns_nc = ns_nc,
