@@ -2016,31 +2016,21 @@ Regiones <- R6::R6Class(classname = "Regiones",
                                                                   diseno = self$diseno) %>%
                              encuestar:::graficar_mapaRegiones(variable = {{variable}}, categorica = F)
                          },
-                         heatmap_conocimiento = function(patron_llaveConocimiento, candidatos, respuesta, ordenRegiones = NULL){
+                         heatmap_conocimiento = function(patron_llaveConocimiento, candidatos, respuesta, ordenRegiones = NULL, salto_labelRegiones = 5){
                            bd_analizar_conocimientoRegion <- encuestar:::analizar_conocimientoRegion(patron_llaveConocimiento = patron_llaveConocimiento, aspectos_llaveConocimiento = candidatos, filtro_respuestaConocimiento = respuesta, diseno = self$diseno, diccionario = self$diccionario)
-                           encuestar:::graficar_conocimientoRegion(bd = bd_analizar_conocimientoRegion, ordenRegiones = ordenRegiones)
+                           encuestar:::graficar_conocimientoRegion(bd = bd_analizar_conocimientoRegion, ordenRegiones = ordenRegiones, salto_labelRegiones = salto_labelRegiones)
                          },
-
-                         heatmap_saldoOpinion = function(llave_opinion = "", candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
-                                                 orden_horizontal){
-                           analizar_saldo_region(llave_opinion,
-                                                 candidatos,
-                                                 ns_nc,
-                                                 cat_negativo,
-                                                 cat_regular,
-                                                 cat_positivo,
-                                                 diseno = self$diseno,
-                                                 diccionario = self$diccionario) %>%
-                             graficar_saldo_region(orden_horizontal = orden_horizontal)
+                         heatmap_saldoOpinion = function(patron_llaveOpinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
+                                                         ordenRegiones = NULL, salto_labelRegiones = 5){
+                           encuestar:::analizar_saldoRegion(patron_llaveOpinion = patron_llaveOpinion, aspectos_llaveOpinion = candidatos, ns_nc = ns_nc, cat_negativo = cat_negativo, cat_regular = cat_regular, cat_positivo = cat_positivo, diseno = self$diseno, diccionario = self$diccionario) %>%
+                           encuestar:::graficar_saldoRegion(ordenRegiones = ordenRegiones, salto_labelRegiones = salto_labelRegiones)
 
                          },
                          mapa_resaltarRegion = function(region, color){
-
                            self$shp %>%
                              mutate(color = if_else(region %in% !!region, color, "gray70")) %>%
                              ggplot(aes(fill = color)) + geom_sf(color = "black") +scale_fill_identity() +
                              theme_void() + labs(tit = region)
-
                          }
                        ))
 

@@ -10,11 +10,11 @@ test_that("Estructura de la base de datos de salida", {
     pull() |>
     gsub(pattern = "conocimiento_", replacement = "")
 
-  bd_analizar_conocimientoRegion <- analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento",
-                                                                aspectos_llaveConocimiento = candidatos,
-                                                                filtro_respuestaConocimiento = "Sí",
-                                                                diseno = Preguntas$Regiones$diseno,
-                                                                diccionario = cuestionario_demo)
+  bd_analizar_conocimientoRegion <- encuestar:::analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento",
+                                                                            aspectos_llaveConocimiento = candidatos,
+                                                                            filtro_respuestaConocimiento = "Sí",
+                                                                            diseno = Preguntas$Regiones$diseno,
+                                                                            diccionario = cuestionario_demo)
 
   # Estructura
   testthat::expect_equal(object = names(bd_analizar_conocimientoRegion), expected = c("region", "n", "pct", "aspecto", "tema"))
@@ -37,7 +37,7 @@ test_that("Cálculo correcto de las estimaciones", {
     pull() |>
     gsub(pattern = "conocimiento_", replacement = "")
 
-  bd_analizar_conocimientoRegion <- analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento",
+  bd_analizar_conocimientoRegion <- encuestar:::analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento",
                                                                 aspectos_llaveConocimiento = candidatos,
                                                                 filtro_respuestaConocimiento = "Sí",
                                                                 diseno = Preguntas$Regiones$diseno,

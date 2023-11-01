@@ -56,7 +56,8 @@ Esta es la clase de Regiones
   patron_llaveConocimiento,
   candidatos,
   respuesta,
-  ordenRegiones = NULL
+  ordenRegiones = NULL,
+  salto_labelRegiones = 5
 )}\if{html}{\out{</div>}}
 }
 
@@ -67,13 +68,14 @@ Esta es la clase de Regiones
 \subsection{Method \code{heatmap_saldoOpinion()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regiones$heatmap_saldoOpinion(
-  llave_opinion = "",
+  patron_llaveOpinion,
   candidatos,
   ns_nc,
   cat_negativo,
   cat_regular,
   cat_positivo,
-  orden_horizontal
+  ordenRegiones = NULL,
+  salto_labelRegiones = 5
 )}\if{html}{\out{</div>}}
 }
 

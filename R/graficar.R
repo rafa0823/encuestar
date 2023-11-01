@@ -950,21 +950,31 @@ graficar_conocimientoRegion <- function(bd, ordenRegiones, salto_labelRegiones =
   return(g)
 }
 
-#' Title
+#' Graficar saldo de opinión asociado a personajes por región o estrato
 #'
-#' @param bd
+#' @param bd Base de datos resultado de la función 'analizar_saldoRegion'
+#' @param ordenRegiones Vector que indica el orden de las columnas del geom_tile
+#' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_saldo_region <- function(bd, orden_horizontal){
+#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
+graficar_saldoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
 
-  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
+  if(is.null(ordenRegiones)) {
+    ordenRegiones <- bd |>
+      ungroup() |>
+      distinct(region) |>
+      mutate(region = stringr::str_wrap(string = region, width = salto_labelRegiones)) |>
+      pull() |>
+      stringr::str_wrap(width = salto_labelRegiones)
+  }
 
-  tbl <- bd %>%
-    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
-               y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
+  g <- bd %>%
+    ggplot(aes(x = factor(region %>% stringr::str_wrap(width = salto_labelRegiones), levels = ordenRegiones),
+               y = forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
                fill = saldo)) +
     geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
@@ -980,9 +990,9 @@ graficar_saldo_region <- function(bd, orden_horizontal){
     # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
     ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
                               aes(label =saldo %>%  scales::percent(accuracy = 1)))
+
+  return(g)
 }
-
-
 #' Graficar mapa por categorías
 #'
 #' @param bd Base de datos resultado de la función 'calcular_ganadorRegion

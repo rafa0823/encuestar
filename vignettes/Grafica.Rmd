@@ -297,3 +297,20 @@ Preguntas$Regiones$heatmap_conocimiento(patron_llaveConocimiento = "conocimiento
                                         candidatos = candidatos,
                                         respuesta = "Sí")
 ```
+
+# Heatmap saldoOpinion
+```{r}
+candidatos <- cuestionario_demo |>
+  filter(grepl(pattern = "Bloque 5", x = bloque)) |>
+  filter(grepl(pattern = "opinion", x = llaves)) |>
+  distinct(llaves) |>
+  pull() |>
+  gsub(pattern = "opinion_", replacement = "")
+
+Preguntas$Regiones$heatmap_saldoOpinion(patron_llaveOpinion = "opinion",
+                                        candidatos = candidatos,
+                                        ns_nc = "Ns/Nc",
+                                        cat_negativo = c("Muy mala", "Mala"),
+                                        cat_regular = "Regular",
+                                        cat_positivo = c("Buena", "Muy buena"))
+```

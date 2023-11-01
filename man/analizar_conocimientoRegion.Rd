@@ -26,3 +26,6 @@ analizar_conocimientoRegion(
 \description{
 Analizar conocimiento de personajes por region
 }
+\examples{
+bd_analizar_conocimientoRegion <- analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento", aspectos_llaveConocimiento = candidatos, filtro_respuestaConocimiento = "Sí", diseno = Preguntas$Regiones$diseno, diccionario = cuestionario_demo)
+}

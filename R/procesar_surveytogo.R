@@ -284,6 +284,7 @@ analizar_frecuencia_region <- function(variable, diseno, diccionario){
 #' @export
 #'
 #' @examples
+#' bd_analizar_conocimientoRegion <- analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento", aspectos_llaveConocimiento = candidatos, filtro_respuestaConocimiento = "Sí", diseno = Preguntas$Regiones$diseno, diccionario = cuestionario_demo)
 analizar_conocimientoRegion <- function(patron_llaveConocimiento, aspectos_llaveConocimiento, filtro_respuestaConocimiento, diseno, diccionario){
   junto <- paste(patron_llaveConocimiento, aspectos_llaveConocimiento, sep = "_")
   tbl <- junto %>%
@@ -297,21 +298,24 @@ analizar_conocimientoRegion <- function(patron_llaveConocimiento, aspectos_llave
     left_join(diccionario %>% select(aspecto = llaves, tema), by = "aspecto")
   return(tbl)
 }
-#' Title
+#' Analizar saldo de opinión de personajes en cada región o estrato
 #'
-#' @param llave_opinion
-#' @param candidatos
-#' @param diseno
-#' @param ns_nc
-#' @param cat_negativo
-#' @param cat_positivo
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param ns_nc Cadena de texto que identifica los valores relacionados al "No sabe" o "No contesta"
+#' @param cat_negativo Vector que contiene los valores relacionados a las opiniones 'negativas'
+#' @param cat_positivo Vector que contiene los valores relacionados a las opiniones 'positivas'
+#' @param patron_llaveConocimiento Patrón que comparten las variables asociadas a la opinión de un personaje
+#' @param aspectos_llaveOpinion Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
+#' @param cat_regular Vector que contiene los valores relacionados a las opiniones 'regulares' o neutras
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
 #'
 #' @return
 #' @export
 #'
 #' @examples
-analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo, diseno, diccionario){
-  if(llave_opinion ==  "") llaves <- candidatos else llaves <- paste(llave_opinion, candidatos,sep = "_")
+#' analizar_saldoRegion(patron_llaveOpinion = "opinion", aspectos_llaveOpinion = candidatos, ns_nc = "Ns/Nc", cat_negativo = c("Muy mala", "Mala"), cat_regular = "Regular", cat_positivo = c("Buena", "Muy buena"), diseno = Preguntas$Regiones$diseno, diccionario = Preguntas$Regiones$diccionario)
+analizar_saldoRegion <- function(patron_llaveOpinion, aspectos_llaveOpinion, ns_nc, cat_negativo, cat_regular, cat_positivo, diseno, diccionario){
+  if(patron_llaveOpinion ==  "") llaves <- candidatos else llaves <- paste(patron_llaveOpinion, candidatos,sep = "_")
 
   res <- llaves %>% map_df(~{
     survey::svytable(survey::make.formula(c(.x,"region")), design = diseno) %>%
@@ -325,14 +329,13 @@ analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo
   if(is.null(names(candidatos))){
     res <- res %>%
       left_join(
-        diccionario %>% select(aspecto = llaves, tema)
+        diccionario %>% select(aspecto = llaves, tema), by = "aspecto"
       )
   } else{
     res <- res %>% mutate(tema = names(candidatos[match(aspecto, candidatos)]))
   }
   return(res)
 }
-
 #' Calcular valor más frecuente por región de acuerdo al diseño muestral
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
