@@ -14,7 +14,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           bd_correcciones = NULL,
-                          preguntas = NULL,
+                          Graficas = NULL,
                           shp_completo = NULL,
                           shp = NULL,
                           tipo_encuesta = NULL,
@@ -103,7 +103,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-                            self$preguntas <- Pregunta2$new(encuesta = self)
+                            self$Graficas <- Graficas$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
                             beepr::beep()
@@ -1525,10 +1525,10 @@ Pregunta <- R6::R6Class("Pregunta",
 #'Esta es la clase de Pregunta2
 #'@export
 #'
-Pregunta2 <- R6::R6Class(classname = "Pregunta2",
+Graficas <- R6::R6Class(classname = "Graficas",
                          public = list(
                            encuesta = NULL,
-                           Grafica = NULL,
+                           Descriptiva = NULL,
                            Regiones = NULL,
                            Modelo = NULL,
                            Cruce = NULL,
@@ -1541,7 +1541,7 @@ Pregunta2 <- R6::R6Class(classname = "Pregunta2",
                              self$tema <- tema
                              private$crear_shp_region()
 
-                             self$Grafica <- Grafica$new(diseno = self$encuesta$muestra$diseno,
+                             self$Descriptiva <- Descriptiva$new(diseno = self$encuesta$muestra$diseno,
                                                          diccionario = self$encuesta$cuestionario$diccionario,
                                                          tema = self$tema,
                                                          graficadas = self$graficadas)
@@ -1584,7 +1584,7 @@ Pregunta2 <- R6::R6Class(classname = "Pregunta2",
 #'Esta es la clase de Grafica
 #'@export
 #'
-Grafica <- R6::R6Class(classname = "Grafica",
+Descriptiva <- R6::R6Class(classname = "Descriptiva",
                        public = list(
                          diseno = NULL,
                          diccionario = NULL,
