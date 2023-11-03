@@ -28,7 +28,7 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Descriptiva-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$new(diseno, diccionario = NULL, tema, graficadas)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$new(diseno, diccionario = NULL, tema, graficadas = NULL)}\if{html}{\out{</div>}}
 }
 
 }

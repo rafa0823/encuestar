@@ -24,7 +24,7 @@ Esta es la clase de Especial
 \if{latex}{\out{\hypertarget{method-Especial-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Especial$new(diseno, diccionario = NULL, tema, graficadas)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Especial$new(diseno, diccionario = NULL, tema, graficadas = NULL)}\if{html}{\out{</div>}}
 }
 
 }

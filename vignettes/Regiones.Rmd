@@ -1,8 +1,8 @@
 ---
-title: "Clase Regiones"
+title: "Gráficas por regiones o estratos"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Clase Regiones}
+  %\VignetteIndexEntry{Gráficas por regiones o estratos}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,49 +10,65 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.asp = .6, fig.width = 12, out.width="100%", dpi = 300
+  comment = "#>"
 )
 ```
 
 ```{r setup}
-library(encuestar)
+# library(encuestar)
 library(dplyr)
-# usethis::load_all()
-```
-
-```{r correcciones_data}
-datos_demo <- datos_demo |> 
-  mutate(across(contains("evaluacion_"), ~as.numeric(.x)),
-         region = sample(c("uno", "dos", "tres"), replace = T, nrow(datos_demo)))
-
-cuestionario_demo <-  cuestionario_demo|> 
-  mutate(tema = if_else(llaves =="evaluacion_amlo", "AMLO", tema),
-         tema = if_else(llaves =="evaluacion_rutilio", "Rutilio", tema)
-  )
+devtools::load_all()
 ```
 
 ```{r clase_regiones}
-diseno <- survey::svydesign(ids = ~1, data = datos_demo)
+diseno <- survey::svydesign(ids = ~1, data = datos_demo |> mutate(region = sample(x = seq.int(1:6), size  = n(), replace = T)))
 
-reg <- Regiones$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
+Gr <- Graficas$new(encuesta = encuesta_demo, tema = tema_default)
+
+options(survey.lonely.psu = "remove")
 
 ```
 
-# Heatmap de conocimiento por región
+# Mapa ganador
 
-```{r}
-reg$heatmap_conocimiento(llave_conocimiento = "conocimiento",
-                         candidatos = c("era", "manuelita", "carlos"),
-                         respuesta = "Sí", orden_horizontal = c("uno", "dos", "tres")
-)
+```{r, fig.width=11, fig.height=11}
+Gr$Regiones$mapa_ganador(variable = "candidato_preferencia", lugar = 1)
 ```
 
-# Heatmap de saldo opinión
+# Mapa degradado numérico
 
-```{r}
-reg$heatmap_saldoOpinion(llave_opinion = "opinion", candidatos = c("adan", "carlos", "ebrad"),
-                         orden_horizontal = c("uno", "dos", "tres"), ns_nc = "Ns/Nc (No leer)",
-                         cat_negativo = c("Mala"), cat_positivo = "Buena", cat_regular = "Regular (No leer)")
+```{r, fig.width=11, fig.height=11}
+
+Gr$Regiones$mapa_degradadoNumerico(variable = "evaluacion_amlo")
 ```
 
+# Heatmao conocimiento
+
+```{r, fig.width=11, fig.height=11}
+candidatos <- cuestionario_demo |>
+  filter(grepl(pattern = "Bloque 3", x = bloque)) |>
+  distinct(llaves) |>
+  pull() |>
+  gsub(pattern = "conocimiento_", replacement = "")
+
+Gr$Regiones$heatmap_conocimiento(patron_llaveConocimiento = "conocimiento",
+                                        candidatos = candidatos,
+                                        respuesta = "Sí")
+```
+
+# Heatmap saldoOpinion
+```{r, fig.width=11, fig.height=11}
+candidatos <- cuestionario_demo |>
+  filter(grepl(pattern = "Bloque 5", x = bloque)) |>
+  filter(grepl(pattern = "opinion", x = llaves)) |>
+  distinct(llaves) |>
+  pull() |>
+  gsub(pattern = "opinion_", replacement = "")
+
+Gr$Regiones$heatmap_saldoOpinion(patron_llaveOpinion = "opinion",
+                                        candidatos = candidatos,
+                                        ns_nc = "Ns/Nc",
+                                        cat_negativo = c("Muy mala", "Mala"),
+                                        cat_regular = "Regular",
+                                        cat_positivo = c("Buena", "Muy buena"))
+```

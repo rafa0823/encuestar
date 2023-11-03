@@ -1,0 +1,57 @@
+---
+title: "Modelos"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Modelos}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+# library(encuestar)
+library(dplyr)
+devtools::load_all()
+```
+
+```{r correcciones_data}
+datos_demo <- datos_demo |> mutate(across(contains("evaluacion_"), ~as.numeric(.x)))
+cuestionario_demo <-  cuestionario_demo|> 
+  mutate(tema = if_else(llaves =="evaluacion_amlo", "AMLO", tema),
+         tema = if_else(llaves =="evaluacion_rutilio", "Rutilio", tema)
+  )
+```
+
+```{r clase_grafica}
+diseno <- survey::svydesign(ids = ~1, data = datos_demo)
+
+Md <- Modelo$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
+
+```
+
+# Correspondencia
+```{r}
+
+Md$correspondencia(var1 = "sexo", var2 = "preferencia_candidatopresidencia", legenda1 = "a", legenda2 = "b", colores = c("red", "blue"))
+
+```
+
+# Componentes principales
+```{r}
+
+Md$componentesPrincipales(variables = c("sexo", "conocimiento_era"))
+
+```
+
+# Black box
+```{r}
+
+Md$blackBox(vars = "sexo", stimuli = "edad")
+
+```

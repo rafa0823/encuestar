@@ -1590,7 +1590,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                          diccionario = NULL,
                          tema = NULL,
                          graficadas = NULL,
-                         initialize = function(diseno, diccionario = NULL, tema, graficadas){
+                         initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
                            self$diseno <- diseno
                            self$diccionario <- diccionario
                            # self$shp <- shp
@@ -1819,7 +1819,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                           diccionario = NULL,
                           tema = NULL,
                           graficadas = NULL,
-                          initialize = function(diseno, diccionario = NULL, tema, graficadas){
+                          initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
                             self$diseno <- diseno
                             self$diccionario <- diccionario
                             self$tema <- tema
@@ -1951,7 +1951,7 @@ Especial <- R6::R6Class(classname = "Especial",
                             diccionario = NULL,
                             tema = NULL,
                             graficadas = NULL,
-                            initialize = function(diseno, diccionario = NULL, tema, graficadas){
+                            initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
                               self$diseno <- diseno
                               self$diccionario <- diccionario
                               self$tema <- tema
@@ -2063,7 +2063,7 @@ Modelo <- R6::R6Class(classname = "Modelo",
                           diccionario = NULL,
                           tema = NULL,
                           graficadas = NULL,
-                          initialize = function(diseno, diccionario = NULL, tema, graficadas){
+                          initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
                             self$diseno <- diseno
                             self$diccionario <- diccionario
                             self$tema <- tema
