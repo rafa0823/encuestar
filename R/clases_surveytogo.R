@@ -1565,7 +1565,11 @@ Graficas <- R6::R6Class(classname = "Graficas",
                                                            diccionario = self$encuesta$cuestionario$diccionario,
                                                            tema = self$tema,
                                                            graficadas = self$graficadas)
-                           }),
+                           },
+                           # faltantes = function(){
+                           #   gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
+                           # }
+                           ),
                          private = list(
                            shp_region = NULL,
                            crear_shp_region = function(){
