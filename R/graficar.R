@@ -747,7 +747,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 #'
 #' @examples
 #' graficar_candidato_partido(bases, clientes = c("era", "sasil"), tipo_conoce = "intervalos", colores_candidato = colores_candidato, colores_partido = colores_partido, tema = self$tema)
-graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
+graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
@@ -815,7 +815,7 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
 
-  a+ b+ plot_layout(widths = c(.2,.8))
+  a + b + patchwork::plot_layout(widths = c(.2,.8))
 
 }
 
@@ -865,27 +865,33 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
 }
 
 analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, diseno, colores =NULL){
+
   if(is.null(legenda1)) legenda1 <- var1
   if(is.null(legenda2)) legenda2 <- var2
   if(is.null(colores)) colores <- c("#DE6400","#023047")
 
   formula <- survey::make.formula(c(var1,var2))
-  aux <- survey::svytable(formula, design = diseno) %>% tibble::as_tibble() %>%
-    tidyr::pivot_wider(names_from = var2, values_from = "n") %>% tibble::column_to_rownames(var = var1)
+  aux <- survey::svytable(formula, design = diseno) %>%
+    tibble::as_tibble() %>%
+    tidyr::pivot_wider(names_from = var2, values_from = "n") %>%
+    tibble::column_to_rownames(var = var1)
 
 
   # chisq.test(aux)
   res.ca <- FactoMineR::CA(aux, graph = F)
   eig <- factoextra::get_eigenvalue(res.ca)[, 2]
 
-  res.ca$col$coord %>% as_tibble(rownames = "respuesta") %>% janitor::clean_names() %>%
-    select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda2) %>%
-    bind_rows(
-      res.ca$row$coord %>% as_tibble(rownames = "respuesta") %>%
-        janitor::clean_names() %>%
-        select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda1)
-    ) %>% ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable",
-                            label = "respuesta", repel = T) +
+  res.ca$col$coord %>%
+    as_tibble(rownames = "respuesta") %>%
+    janitor::clean_names() %>%
+    select(respuesta,num_range("dim_",1:2)) %>%
+    mutate(variable = legenda2) %>%
+    bind_rows(res.ca$row$coord %>%
+                as_tibble(rownames = "respuesta") %>%
+                janitor::clean_names() %>%
+                select(respuesta,num_range("dim_",1:2)) %>%
+                mutate(variable = legenda1)) %>%
+    ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable", label = "respuesta", repel = T) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_hline(yintercept = 0, linetype = "dashed") +
     labs(x = scales::percent(eig[1]/100,accuracy = .1),
@@ -904,23 +910,31 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 
 }
 
-#' Title
+#' Graficar conocimiento de personajes por región o estrato
 #'
-#' @param bd
+#' @param bd Base de datos resultado de la función 'analizar_conocimientoRegion'
+#' @param ordenRegiones Vector que indica el orden de las columnas del geom_tile
+#' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_conocimiento_region <- function(bd, orden_horizontal){
-
-  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
-
-  bd %>%
-    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
+#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
+graficar_conocimientoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
+  if(is.null(ordenRegiones)) {
+    ordenRegiones <- bd |>
+      ungroup() |>
+      distinct(region) |>
+      mutate(region = stringr::str_wrap(string = region, width = salto_labelRegiones)) |>
+      pull() |>
+      stringr::str_wrap(width = salto_labelRegiones)
+  }
+  g <- bd %>%
+    ggplot(aes(x = factor(region |> stringr::str_wrap(width = salto_labelRegiones), levels = ordenRegiones),
                y = forcats::fct_reorder(tema %>%  str_wrap(60), pct),
                fill = pct)) +
-    geom_tile()+
+    geom_tile() +
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
     theme(panel.grid = element_blank(),
@@ -933,23 +947,34 @@ graficar_conocimiento_region <- function(bd, orden_horizontal){
     # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
     ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
                               aes(label =pct %>%  scales::percent(accuracy = 1)))
+  return(g)
 }
 
-#' Title
+#' Graficar saldo de opinión asociado a personajes por región o estrato
 #'
-#' @param bd
+#' @param bd Base de datos resultado de la función 'analizar_saldoRegion'
+#' @param ordenRegiones Vector que indica el orden de las columnas del geom_tile
+#' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_saldo_region <- function(bd, orden_horizontal){
+#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
+graficar_saldoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
 
-  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
+  if(is.null(ordenRegiones)) {
+    ordenRegiones <- bd |>
+      ungroup() |>
+      distinct(region) |>
+      mutate(region = stringr::str_wrap(string = region, width = salto_labelRegiones)) |>
+      pull() |>
+      stringr::str_wrap(width = salto_labelRegiones)
+  }
 
-  bd %>%
-    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
-               y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
+  g <- bd %>%
+    ggplot(aes(x = factor(region %>% stringr::str_wrap(width = salto_labelRegiones), levels = ordenRegiones),
+               y = forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
                fill = saldo)) +
     geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
@@ -965,33 +990,46 @@ graficar_saldo_region <- function(bd, orden_horizontal){
     # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
     ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
                               aes(label =saldo %>%  scales::percent(accuracy = 1)))
+
+  return(g)
 }
-
-
-#' Title
+#' Graficar mapa por categorías
 #'
-#' @param bd
-#' @param var
+#' @param bd Base de datos resultado de la función 'calcular_ganadorRegion
+#' @param variable Variable categórica a graficar
+#' @param categorica Si la variable es categórica, cambia la posición del 'legend.position'
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_mapa_region <- function(bd, var){
-  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .3, alpha = .8, color = "white") +
-    theme_minimal() +
-    theme(axis.line = element_blank(),
-          axis.ticks = element_blank(),
-          panel.grid = element_blank(),
-          legend.position = "bottom",
-          axis.text = element_blank(),
-          plot.title = element_text(hjust = 0,
-                                    size = rel(1.1),
-                                    # face = "bold",
-                                    colour = "#4C5B61"),
-          text = element_text(family = "Poppins", size=14))
+graficar_mapaRegiones <- function(bd, variable, categorica = T){
+  g <- bd %>%
+    ggplot() +
+    geom_sf(aes(fill = !!rlang::sym(variable)), size = .3, alpha = .8, color = "white") +
+    theme_minimal()
+  if(categorica == F)
+  {
+    g <- g + theme(axis.line = element_blank(),
+                   axis.ticks = element_blank(),
+                   panel.grid = element_blank(),
+                   legend.position = "right",
+                   axis.text = element_blank(),
+                   text = element_text(family = "Poppins", size = 14))
+  }
+  else
+  {
+    g <- g +
+      labs(fill = "") +
+      theme(axis.line = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            legend.position = "bottom",
+            axis.text = element_blank(),
+            text = element_text(family = "Poppins", size = 14))
+  }
+  return(g)
 }
-
 #' Title
 #'
 #' @param lst
@@ -1134,7 +1172,21 @@ graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", l
   return(g)
 }
 
-graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+#' Graficar cruce de una variable vs múltiples variables
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#' @param line_rich Argumento de la función 'geom_textline'
+#' @param line_linewidth Argumento de la función 'geom_textline'
+#' @param line_hjust Argumento de la función 'geom_textline'
+#' @param line_vjust Argumento de la función 'geom_textline'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
   g <- bd |>
     ggplot(aes(x=!!rlang::sym(cruce),
                y=mean)) +
@@ -1143,7 +1195,7 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
                                     label=(variable)),
                                 linewidth=line_linewidth, hjust = line_hjust,
                                 vjust = line_vjust, rich = line_rich,
-                                size=6, family = familia) +
+                                size = 6, family = "Poppins") +
     scale_y_continuous(labels=scales::percent) +
     labs(color = NULL)
 
@@ -1157,7 +1209,19 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
 
 }
 
-graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
+#' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#' @param color Color usado en el parámetro 'fill' de la función 'aes' de ggplot2
+#' @param filter Filtro aplicable al parámetro 'cruce'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 
   if(!is.null(filter)) {
 
@@ -1175,25 +1239,37 @@ graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
     coord_flip() +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
-  if(vartype=="cv"){
+  if(vartype == "cv"){
     g <- g +
       ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
                                color="white",
-                               family = familia)
+                               family = "Poppins")
 
 
   }else{
     g <- g +
       ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
                                color="white",
-                               family = familia)
+                               family = "Poppins")
 
   }
   return(g)
 
 }
 
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filter){
+#' Graficar cruce de una variable vs otra con opción a filtro
+#'
+#' @param bd Base de datos producto de la función 'analizar_cruceBrechas'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param variable Variable secundaria para hacer análisis con la primaria
+#' @param vartype
+#' @param filter Filtro aplicable al parámetro 'cruce'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter){
 
   if(!is.null(filter)) {
 
@@ -1208,19 +1284,19 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filte
     treemapify::geom_treemap(alpha=0.7) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
-  if(vartype=="cv"){
+  if(vartype == "cv"){
 
     g <- g +
       treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
                         place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                         color="white",
-                        family = familia)
+                        family = "Poppins")
   }else{
     g <- g +
       treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
                         place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                         color="white",
-                        family = familia)
+                        family = "Poppins")
 
   }
 

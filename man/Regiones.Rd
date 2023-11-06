@@ -12,7 +12,6 @@ Esta es la clase de Regiones
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Regiones-new}{\code{Regiones$new()}}
-\item \href{#method-Regiones-mapa_regiones}{\code{Regiones$mapa_regiones()}}
 \item \href{#method-Regiones-mapa_ganador}{\code{Regiones$mapa_ganador()}}
 \item \href{#method-Regiones-mapa_degradadoNumerico}{\code{Regiones$mapa_degradadoNumerico()}}
 \item \href{#method-Regiones-heatmap_conocimiento}{\code{Regiones$heatmap_conocimiento()}}
@@ -27,15 +26,6 @@ Esta es la clase de Regiones
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regiones$new(diseno, diccionario = NULL, shp = NULL, tema)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Regiones-mapa_regiones"></a>}}
-\if{latex}{\out{\hypertarget{method-Regiones-mapa_regiones}{}}}
-\subsection{Method \code{mapa_regiones()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regiones$mapa_regiones()}\if{html}{\out{</div>}}
 }
 
 }
@@ -63,10 +53,11 @@ Esta es la clase de Regiones
 \subsection{Method \code{heatmap_conocimiento()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regiones$heatmap_conocimiento(
-  llave_conocimiento,
+  patron_llaveConocimiento,
   candidatos,
   respuesta,
-  orden_horizontal
+  ordenRegiones = NULL,
+  salto_labelRegiones = 5
 )}\if{html}{\out{</div>}}
 }
 
@@ -77,13 +68,14 @@ Esta es la clase de Regiones
 \subsection{Method \code{heatmap_saldoOpinion()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regiones$heatmap_saldoOpinion(
-  llave_opinion = "",
+  patron_llaveOpinion,
   candidatos,
   ns_nc,
   cat_negativo,
   cat_regular,
   cat_positivo,
-  orden_horizontal
+  ordenRegiones = NULL,
+  salto_labelRegiones = 5
 )}\if{html}{\out{</div>}}
 }
 
