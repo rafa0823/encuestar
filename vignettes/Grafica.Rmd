@@ -1,0 +1,93 @@
+---
+title: "Gráficas descriptivas"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Gráficas descriptivas}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.asp = .6, fig.width = 12, out.width="100%", dpi = 300
+)
+```
+
+```{r setup}
+# library(encuestar)
+library(dplyr)
+devtools::load_all()
+```
+
+```{r correcciones_data}
+datos_demo <- datos_demo |> mutate(across(contains("evaluacion_"), ~as.numeric(.x)))
+cuestionario_demo <-  cuestionario_demo|> 
+  mutate(tema = if_else(llaves =="evaluacion_amlo", "AMLO", tema),
+         tema = if_else(llaves =="evaluacion_rutilio", "Rutilio", tema)
+  )
+```
+
+
+```{r clase_grafica}
+diseno <- survey::svydesign(ids = ~1, data = datos_demo)
+
+gr <- Descriptiva$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
+
+```
+
+# Gauge numérica
+
+```{r}
+gr$gauge_numerica(codigo = "evaluacion_amlo", color = "red", escala = c(0, 11), size_text_pct = 18)
+
+```
+
+# Gauge categórica
+
+```{r}
+gr$gauge_categorica(codigo = "persona_lenguaindigena", filtro = "respuesta == 'Sí'", color = "red", escala = c(0, 1), size_text_pct = 18)
+
+```
+
+# Barras categórica
+
+```{r}
+gr$barras_categorica(codigo = "problema_masimportante", 
+                     salto = 20)
+
+```
+
+# Barras numérica
+
+```{r}
+gr$barras_numerica(patron_inicial = "conocimiento",
+                   aspectos = c("era", "sasil"), filtro = "respuesta == 'Sí'",
+                   salto = 20, porcentajes_fuera = F)
+
+```
+
+# Barras multirespuesta
+
+```{r}
+gr$barras_multirespuesta()
+
+```
+
+# Intervalo numérica
+
+```{r}
+gr$intervalo_numerica(patron = "evaluacion", aspectos = c("amlo", "rutilio"), escala = c(0, 10))
+
+```
+
+# Nube de texto
+```{r}
+# La implementación funciona fuera del paquete pero no en modo desarrollo
+
+# gr$nube_texto(codigo = "problema_masimportante_otro",
+#               palabrasVacias = c("muy", "anteriores", "mas", "todas", "falta"),
+#               total_palabras = 15)
+
+```

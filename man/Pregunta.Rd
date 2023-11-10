@@ -13,7 +13,6 @@ Esta es la clase de pregunta
 \itemize{
 \item \href{#method-Pregunta-new}{\code{Pregunta$new()}}
 \item \href{#method-Pregunta-graficar}{\code{Pregunta$graficar()}}
-\item \href{#method-Pregunta-categorica_gauge}{\code{Pregunta$categorica_gauge()}}
 \item \href{#method-Pregunta-multirespuesta}{\code{Pregunta$multirespuesta()}}
 \item \href{#method-Pregunta-regiones_shp}{\code{Pregunta$regiones_shp()}}
 \item \href{#method-Pregunta-correspondencia}{\code{Pregunta$correspondencia()}}
@@ -60,17 +59,8 @@ Esta es la clase de pregunta
   llave_conocimiento,
   llave_opinion,
   llave_xq,
-  parametros = list(tit = "")
+  parametros = list(tit = "", porcentajes_afuera = F, desplazar_porcentajes = 0.01)
 )}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Pregunta-categorica_gauge"></a>}}
-\if{latex}{\out{\hypertarget{method-Pregunta-categorica_gauge}{}}}
-\subsection{Method \code{categorica_gauge()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Pregunta$categorica_gauge(llave, filtro, color, size_text_pct)}\if{html}{\out{</div>}}
 }
 
 }
@@ -188,7 +178,7 @@ Esta es la clase de pregunta
 \if{latex}{\out{\hypertarget{method-Pregunta-sankey}{}}}
 \subsection{Method \code{sankey()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Pregunta$sankey(var1, var2)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$sankey(var1, var2, size_text_cat = 8)}\if{html}{\out{</div>}}
 }
 
 }
@@ -274,7 +264,8 @@ Esta es la clase de pregunta
   variables,
   vartype = "cv",
   valor_variables,
-  color
+  color,
+  filter = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -284,7 +275,7 @@ Esta es la clase de pregunta
 \if{latex}{\out{\hypertarget{method-Pregunta-cruce_bloque}{}}}
 \subsection{Method \code{cruce_bloque()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_bloque(cruce, variable, vartype = "cv")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_bloque(cruce, variable, vartype = "cv", filter = NULL)}\if{html}{\out{</div>}}
 }
 
 }

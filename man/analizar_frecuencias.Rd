@@ -7,13 +7,17 @@
 analizar_frecuencias(diseno, pregunta)
 }
 \arguments{
-\item{diseno}{Diseño muestral que contiene la información de pesos de cada individuo}
+\item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas}
 
-\item{pregunta}{Nombre de la variable asociada al análisis de la muestra}
+\item{pregunta}{Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos}
 }
 \value{
 \item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
 }
 \description{
 Analizar frecuencias
+}
+\examples{
+analizar_frecuencias(diseno = as_survey_design(diseno), pregunta = sexo)
+analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), pregunta = sexo)
 }

@@ -46,6 +46,7 @@ Create a person
   quitar_vars = NA,
   muestra = NA,
   auditoria_telefonica = NA,
+  bd_correcciones = NULL,
   cuestionario = NA,
   shp = NA,
   tipo_encuesta = NA,
@@ -92,7 +93,7 @@ Create a person
 \subsection{Method \code{exportar_entregable()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$exportar_entregable(
-  carpeta = "Entregables",
+  carpeta = "entregables",
   agregar = NULL,
   quitar = NULL
 )}\if{html}{\out{</div>}}
