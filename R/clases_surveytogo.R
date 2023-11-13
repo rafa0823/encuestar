@@ -14,7 +14,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           bd_correcciones = NULL,
-                          Graficas = NULL,
+                          preguntas = NULL,
                           shp_completo = NULL,
                           shp = NULL,
                           tipo_encuesta = NULL,
@@ -103,7 +103,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-                            self$Graficas <- Graficas$new(encuesta = self)
+                            self$preguntas <- Graficas$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
                             beepr::beep()

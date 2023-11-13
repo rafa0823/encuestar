@@ -423,10 +423,10 @@ server <- function(input, output, session) {
         mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
                color = "#7BF739")
     }
-    shp_efectivas <- ent_c |>
-      mutate(fecha = lubridate::as_date(Date)) |>
-      filter(lubridate::as_date(isolate(input$mapa_fecha_input[1])) <= fecha) |>
-      filter(fecha <= lubridate::as_date(isolate(input$mapa_fecha_input[2])))
+    shp_efectivas <- ent_c #|>
+      # mutate(fecha = lubridate::as_date(Date)) |>
+      # filter(lubridate::as_date(isolate(input$mapa_fecha_input[1])) <= fecha) |>
+      # filter(fecha <= lubridate::as_date(isolate(input$mapa_fecha_input[2])))
 
     return(list(shp_efectivas))
 
