@@ -1,8 +1,8 @@
 ---
-title: "Clase Grafica"
+title: "Gráficas descriptivas"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Clase Grafica}
+  %\VignetteIndexEntry{Gráficas descriptivas}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,9 +16,9 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(encuestar)
+# library(encuestar)
 library(dplyr)
-# usethis::load_all()
+devtools::load_all()
 ```
 
 ```{r correcciones_data}
@@ -33,34 +33,61 @@ cuestionario_demo <-  cuestionario_demo|>
 ```{r clase_grafica}
 diseno <- survey::svydesign(ids = ~1, data = datos_demo)
 
-gr <- Grafica$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
+gr <- Descriptiva$new(diseno = diseno, diccionario = cuestionario_demo, tema = tema_default)
 
-```
-
-# Barras categórica
-
-```{r}
-gr$barras_categorica(codigo = problema_masimportante, 
-                     salto = 20)
-
-```
-# Barras numérica
-
-```{r, dpi = 300, out.width="100%", out.height="50%"}
-gr$barras_numerica(llave = evaluacion, aspectos = c("amlo", "rutilio"))
 ```
 
 # Gauge numérica
 
 ```{r}
-gr$gauge_numerica(codigo = evaluacion_amlo, color = "red", escala = c(0, 11), size_text_pct = 18)
+gr$gauge_numerica(codigo = "evaluacion_amlo", color = "red", escala = c(0, 11), size_text_pct = 18)
 
 ```
 
 # Gauge categórica
 
 ```{r}
-gr$gauge_categorica(codigo = persona_lenguaindigena, filtro = "respuesta == 'Sí'", color = "red", escala = c(0, 1), size_text_pct = 18)
+gr$gauge_categorica(codigo = "persona_lenguaindigena", filtro = "respuesta == 'Sí'", color = "red", escala = c(0, 1), size_text_pct = 18)
 
 ```
 
+# Barras categórica
+
+```{r}
+gr$barras_categorica(codigo = "problema_masimportante", 
+                     salto = 20)
+
+```
+
+# Barras numérica
+
+```{r}
+gr$barras_numerica(patron_inicial = "conocimiento",
+                   aspectos = c("era", "sasil"), filtro = "respuesta == 'Sí'",
+                   salto = 20, porcentajes_fuera = F)
+
+```
+
+# Barras multirespuesta
+
+```{r}
+gr$barras_multirespuesta()
+
+```
+
+# Intervalo numérica
+
+```{r}
+gr$intervalo_numerica(patron = "evaluacion", aspectos = c("amlo", "rutilio"), escala = c(0, 10))
+
+```
+
+# Nube de texto
+```{r}
+# La implementación funciona fuera del paquete pero no en modo desarrollo
+
+# gr$nube_texto(codigo = "problema_masimportante_otro",
+#               palabrasVacias = c("muy", "anteriores", "mas", "todas", "falta"),
+#               total_palabras = 15)
+
+```
