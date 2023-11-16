@@ -155,7 +155,14 @@ Encuesta <- R6::R6Class("Encuesta",
                                      edad = sample(18:100,size = n, replace = T))
                             #formato de base
                             respuestas <- respuestas %>%
-                              mutate(Srvyr=NA, Date = NA, INT15 = NA, T_Q = NA)
+                              mutate(Srvyr = NA,
+                                     Date = sample(x = seq(from = lubridate::today(),
+                                                           to = lubridate::today() + lubridate::days(3),
+                                                           by = "days"),
+                                                   size = nrow(respuestas),
+                                                   replace = T),
+                                     INT15 = NA,
+                                     T_Q = NA)
 
                             respuestas <- respuestas %>%
                               relocate(Srvyr, Date, .before = Longitude) %>%
@@ -1967,7 +1974,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                         grupo_positivo,
                                                         grupo_negativo,
                                                         orden_resp,
-                                                        colores_opinion = c("red", "yellow", "green", "gray70"),
+                                                        colores_opinion = c("red", "yellow", "green"),
+                                                        color_nsnc = "gray70",
                                                         color_burbuja = "blue",
                                                         caption_opinion = "",
                                                         caption_nsnc = "Ns/Nc",
@@ -2008,6 +2016,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                        size_text_cat = size_text_cat,
                                                                        orden_resp = orden_resp,
                                                                        colores = colores_opinion,
+                                                                       color_nsnc = color_nsnc,
                                                                        burbuja = burbuja,
                                                                        color_burbuja = color_burbuja,
                                                                        salto = salto,

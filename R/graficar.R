@@ -637,6 +637,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        grupo_positivo,
                                        grupo_negativo,
                                        colores,
+                                       color_nsnc,
                                        burbuja,
                                        color_burbuja,
                                        caption_opinion,
@@ -692,8 +693,8 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     coord_flip()+
     labs(fill= NULL , y= NULL, x = NULL, caption = caption_opinion) +
     theme_minimal() +
-    geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
-    geom_hline(yintercept = 0, color = "gray", size= .6)+
+    geom_hline(yintercept = 0, color = "#FFFFFF", size= .6) +
+    geom_hline(yintercept = 0, color = "gray", size= .6) +
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema() +
     theme(axis.text.y = element_text(size = size_text_cat),
@@ -703,7 +704,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
   if(!is.null(ns_nc)){
     b <- aux %>%  filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores[4])+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc)+
       coord_flip()+
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
                                hjust = -.1)+
@@ -1122,12 +1123,12 @@ graficar_crucePuntos = function(bd, cruce, vartype){
   g <- bd |>
     ggplot(aes(x=reorder(variable,mean), xend=variable,
                color=!!rlang::sym(cruce))) +
-    geom_vline(aes(xintercept = variable), linetype = "dashed",
-               color = "gray60", size=.5) +
     geom_point(aes(y=mean),
                shape=19,  size=6) +
     geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
                    linetype="solid", color="black", linewidth=.5) +
+    geom_vline(aes(xintercept = variable), linetype = "dashed",
+               color = "gray60", size=.5) +
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
 
