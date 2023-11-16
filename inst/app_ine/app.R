@@ -25,13 +25,18 @@ preguntas <- read_rds("data/clase_pregunta.rda")
 diseno <- preguntas$encuesta$muestra$muestra
 shp <- preguntas$encuesta$shp_completo
 bd <- preguntas$encuesta$respuestas$base
-enc_shp <- readr::read_rds("data/enc_shp.rda")
+enc_shp <- readr::read_rds("data/enc_shp.rda") %>%
+  mutate(interior_cluster = dplyr::if_else(condition = (as.numeric(distancia) != 0),
+                                           true = "Fuera",
+                                           false = "Dentro"))
 eliminadas <- preguntas$encuesta$respuestas$eliminadas
 eliminadas_shp <- eliminadas %>% filter(!is.na(Longitude)) %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
 
 corregidas_shp <- preguntas$encuesta$respuestas$cluster_corregido %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
 mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
+
+Sys.setlocale(locale = "es_ES.UTF-8")
 
 # equipos <- readr::read_rds("data/clusters_por_equipo")
 
@@ -177,21 +182,52 @@ ui <- dashboardPage(
   dashboardBody(
     useShinyjs(),
     tabItems(
-      tabItem("mapa",
+      tabItem(
+        tabName = "mapa",
+        fluidPage(
+          title = "Mapa",
+          fluidRow(
+            column(
+              width = 12,
               leafletOutput(outputId = "mapa_principal", height = 850),
               absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
                             draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
                             width = 330, height = "auto",
-                            HTML("<button data-toggle='collapse' data-target='#demo'>Min/max</button>"),
-                            tags$div(id = 'demo',  class="collapse",
-                                     selectInput("cluster", "Cluster", c("Seleccione..."= "",sort(unique(diseno$muestra[[diseno$ultimo_nivel]][[u_nivel_tipo]])))
+                            HTML(text = "<button data-toggle='collapse' data-target='#demo'>Menú (mostrar/ocultar)</button>"),
+                            tags$div(id = 'demo',
+                                     class = "collapse",
+                                     dateRangeInput(inputId = "mapa_fecha_input",
+                                                    label = h3("Rango de fechas"),
+                                                    language = "es",
+                                                    separator = "a",
+                                                    format = "MM-dd",
+                                                    start = lubridate::as_date(min(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
+                                                    end = lubridate::as_date(max(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
+                                                    min = lubridate::as_date(min(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
+                                                    max = lubridate::as_date(max(enc_shp |> as_tibble() |> distinct(Date) |> pull()))),
+                                     actionButton(inputId = "filtrar_fechas", label = "Filtrar fechas"),
+                                     selectInput(inputId = "cluster", label = h3("Cluster"), choices = c("Seleccione..." = "", sort(unique(diseno$muestra[[diseno$ultimo_nivel]][[u_nivel_tipo]])))),
+                                     fluidRow(
+                                       column(
+                                         width = 6,
+                                         h3("Ubicación")
+                                       )
                                      ),
-                                     actionButton("filtrar","Filtrar"),
-                                     gt_output("faltantes"),
+                                     fluidRow(
+                                       column(
+                                         width = 12,
+                                         textInput(inputId = "coord_input", label = h4("Coordenadas"), value = "", width = "75%"),
+                                       )
+                                     ),
+                                     actionButton(inputId = "filtrar", label = "Buscar"),
+                                     gt_output(outputId = "faltantes"),
                                      hr(),
                                      actionButton("regresar", "Regresar")
                             )
               )
+            )
+          )
+        )
       ),
       tabItem("entrevistas",
               h2("Total de entrevistas realizadas"),
@@ -370,6 +406,32 @@ server <- function(input, output, session) {
 
   # Pestaña "Mapa" ----------------------------------------------------------
 
+  entrevistas_efectivas <- reactive({
+    # input$filtrar
+    input$filtrar_fechas
+
+    if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
+      ent_c <- enc_shp %>%
+        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
+               color = dplyr::if_else(condition = as.numeric(distancia) == 0,
+                                      true = "#7BF739",
+                                      false = "purple")
+               ) %>%
+        arrange(distancia)
+    } else {
+      ent_c <- enc_shp %>%
+        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
+               color = "#7BF739")
+    }
+    shp_efectivas <- ent_c #|>
+      # mutate(fecha = lubridate::as_date(Date)) |>
+      # filter(lubridate::as_date(isolate(input$mapa_fecha_input[1])) <= fecha) |>
+      # filter(fecha <= lubridate::as_date(isolate(input$mapa_fecha_input[2])))
+
+    return(list(shp_efectivas))
+
+  })
+
   output$mapa_principal <- renderLeaflet({
 
     nombres_region <- diseno$poblacion$marco_muestral |>
@@ -377,100 +439,221 @@ server <- function(input, output, session) {
       arrange(region) |>
       mutate(nombre_region = paste("Región ", strata_1, sep = ""))
 
-    # pal <- colorFactor(topo.colors(n_distinct(mapa_base$strata_1)), domain = unique(mapa_base$strata_1))
+    avance_clusters <- hecho |>
+      group_by(cluster) |>
+      summarise(across(.cols = c(hecho, cuota), .fns = ~ sum(.x, na.rm = T))) |>
+      mutate(pct = hecho/cuota,
+             cuartil = dplyr::case_when(pct <= 0.25 ~ "<=50%",
+                                        0.5 < pct & pct <= 1.0 ~ "50% <= 100%",
+                                        T ~ "Excedida"))
 
-    pal <- colorFactor(topo.colors(n_distinct(nombres_region$nombre_region)), domain = unique(nombres_region$nombre_region))
+    faltan_shp <- faltan_shp |>
+      left_join(avance_clusters, by = c("cluster_2" = "cluster"))
 
-    if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
-      pal2 <- leaflet::colorBin(palette = c("blue", "yellow", "orange"),
-                                domain = unique(enc_shp %>% filter(as.numeric(distancia) != 0) %>% pull(distancia)), bins = 5)
-      ent_c <- enc_shp %>%
-        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
-               color = if_else(as.numeric(distancia) == 0, "green", pal2(distancia))) %>%
-        arrange(distancia)
-    } else{
-      ent_c <- enc_shp %>%
-        mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
-               color = "green")
-    }
+    pal_region <- leaflet::colorFactor(palette = topo.colors(n_distinct(nombres_region$nombre_region)), domain = unique(nombres_region$nombre_region))
 
+    pal_efectivas <- leaflet::colorFactor(palette = c("#7BF739", "purple"), domain = c("Dentro", "Fuera"))
 
-    pal_n <- leaflet::colorNumeric(colorRampPalette(c("red","white","blue"))(3),
-                                   domain = faltan_shp$n)
+    pal_faltantes <- leaflet::colorFactor(palette = c("red", "green", "orange"), levels = c("<=50%", "50% <= 100%", "Excedida"), domain = faltan_shp$cuartil, ordered = T)
 
     map <- mapa_base %>%
-      left_join(nombres_region |>
-                  select(strata_1, nombre_region), by = "strata_1") |>
+      left_join(nombres_region |> select(strata_1, nombre_region), by = "strata_1") |>
       leaflet() %>%
       addProviderTiles("CartoDB.Positron") %>%
-      # addPolygons(color = ~pal(strata_1), opacity = 1, fill = T, fillOpacity = 0.1) %>%
-      # addLegend(pal = pal, values = ~strata_1, position = "bottomleft", title = "Región") %>%
-      addPolygons(color = ~pal(nombre_region), opacity = 1, fill = T, fillOpacity = 0.1) %>%
-      addLegend(pal = pal, values = ~nombre_region, position = "bottomleft", title = "Región") %>%
+      addPolygons(color = ~pal_region(nombre_region), opacity = 1, fill = T, fillOpacity = 0.1) %>%
+      addLegend(pal = pal_region, values = ~nombre_region, position = "bottomleft", title = "Región") %>%
       shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
-      addPolygons(data = faltan_shp, fillColor = ~pal_n(n), fillOpacity = 1,stroke = F,
-                  label = ~glue::glue("Encuestas faltantes: {n}"), group = "Encuestas faltantes") %>%
-      addLegend(pal = pal_n, values = faltan_shp$n, title = "Encuestas faltantes",
-                group = "Encuestas faltantes",position = "bottomleft") %>%
-      addCircleMarkers(data = ent_c,
-                       color = ~color, stroke = F,
-                       label = ~label, group = "Entrevistas")  %>%
-      addCircleMarkers(data = eliminadas_shp, stroke = F, color = "#FF715B", fillOpacity = 1,
-                       label = ~glue::glue("{SbjNum} - {Srvyr}"), group = "Eliminadas", clusterOptions = markerClusterOptions()) %>%
-      addCircleMarkers(data = corregidas_shp, stroke = F, color = "yellow", fillOpacity = 1,
-                       popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"), group = "Cluster corregido", clusterOptions = markerClusterOptions()) %>%
-      addLegend(position = "bottomright", colors = "green", labels = "Dentro de cluster")
+      addPolygons(data = faltan_shp,
+                  fillColor = ~ pal_faltantes(cuartil),
+                  fillOpacity = 1,
+                  stroke = F,
+                  label = ~glue::glue("Cuota cubierta: {scales::percent(pct, accuracy = 1.)} Entrevistas faltantes: {n}"),
+                  group = "Encuestas faltantes") %>%
+      addLegend(pal = pal_faltantes,
+                values = faltan_shp$cuartil,
+                title = "Cuota cubierta",
+                group = "Encuestas faltantes",
+                position = "bottomleft") %>%
+      addCircleMarkers(data = entrevistas_efectivas()[[1]],
+                       color = ~color,
+                       stroke = F,
+                       label = ~label,
+                       group = "Entrevistas") %>%
+      addLegend(position = "bottomleft",
+                pal = pal_efectivas,
+                values = entrevistas_efectivas()[[1]]$interior_cluster,
+                na.label = "Indefinido",
+                title = "Dentro de cluster") %>%
+      addCircleMarkers(data = corregidas_shp,
+                       stroke = F,
+                       color = "yellow",
+                       fillOpacity = 1,
+                       popup = ~glue::glue("{SbjNum} - {Srvyr} - {Date} ≤<br> cluster reportado: {anterior} <br> cluster corregido: {nueva}"),
+                       group = "Cluster corregido",
+                       clusterOptions = markerClusterOptions())
 
-    if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
-      map <- map %>% addLegend(data = enc_shp %>% filter(as.numeric(distancia) != 0),
-                               position = "bottomright", pal = pal2, values = ~distancia,
-                               title = "Distancia (m)")
+    if (nrow(eliminadas_shp) > 0) {
+
+      map <- map |>
+        addCircleMarkers(data = eliminadas_shp,
+                         stroke = F,
+                         color = "#FF715B",
+                         fillOpacity = 1,
+                         label = ~glue::glue("{SbjNum} - {Srvyr}"),
+                         group = "Eliminadas",
+                         clusterOptions = markerClusterOptions())
     }
 
-    map %>% addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"),
-                             overlayGroups = c("Encuestas faltantes"), options = layersControlOptions()) %>%
+    map <- map %>%
+      addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"),
+                       overlayGroups = c("Encuestas faltantes"),
+                       options = layersControlOptions(), position = "topleft") %>%
       hideGroup("Encuestas faltantes")
 
+    return(map)
+
   })
+
+  cluster_actual <- reactiveVal(value = "")
 
   proxy_mapa_principal <- leafletProxy("mapa_principal")
 
-  observeEvent(input$filtrar,{
+  observeEvent(input$filtrar, {
 
-    bbox <-  aulr %>% filter(!!rlang::sym(u_nivel_tipo) == !!input$cluster) %>% sf::st_bbox()
+    if(input$cluster != cluster_actual()) {
 
-    proxy_mapa_principal %>% flyToBounds(bbox[[1]],bbox[[2]],bbox[[3]],bbox[[4]])
+      if(input$cluster != "") {
+
+        if(!(is.na(coordenadas()[1]$latitud) & is.na(coordenadas()[2]$longitud))) {
+
+          bbox <- aulr %>%
+            filter(!!rlang::sym(u_nivel_tipo) == !!input$cluster) %>%
+            sf::st_bbox()
+
+          proxy_mapa_principal %>%
+            flyToBounds(bbox[[1]], bbox[[2]], bbox[[3]], bbox[[4]]) %>%
+            addMarkers(lat = coordenadas()[1]$latitud, lng = coordenadas()[2]$longitud)
+
+          cluster_actual(input$cluster)
+
+        } else {
+
+          bbox <- aulr %>%
+            filter(!!rlang::sym(u_nivel_tipo) == !!input$cluster) %>%
+            sf::st_bbox()
+
+          proxy_mapa_principal %>%
+            flyToBounds(bbox[[1]], bbox[[2]], bbox[[3]], bbox[[4]])
+
+          cluster_actual(input$cluster)
+
+        }
+
+      } else {
+
+        if(!(is.na(coordenadas()[1]$latitud) & is.na(coordenadas()[2]$longitud))) {
+
+          proxy_mapa_principal %>%
+            flyToBounds(bbox_qro[[1]], bbox_qro[[2]], bbox_qro[[3]], bbox_qro[[4]]) %>%
+            addMarkers(lat = coordenadas()[1]$latitud, lng = coordenadas()[2]$longitud)
+
+          cluster_actual(input$cluster)
+
+        } else {
+
+          proxy_mapa_principal %>%
+            flyToBounds(bbox_qro[[1]], bbox_qro[[2]], bbox_qro[[3]], bbox_qro[[4]])
+
+          cluster_actual(input$cluster)
+
+        }
+
+      }
+
+    } else {
+
+      if(input$cluster != "") {
+
+        if(!(is.na(coordenadas()[1]$latitud) & is.na(coordenadas()[2]$longitud))) {
+
+          proxy_mapa_principal %>%
+            addMarkers(lat = coordenadas()[1]$latitud, lng = coordenadas()[2]$longitud)
+
+          cluster_actual(input$cluster)
+
+
+        } else {
+
+          proxy_mapa_principal
+
+          cluster_actual(input$cluster)
+
+        }
+
+      } else {
+
+        if(!(is.na(coordenadas()[1]$latitud) & is.na(coordenadas()[2]$longitud))) {
+
+          proxy_mapa_principal %>%
+            addMarkers(lat = coordenadas()[1]$latitud, lng = coordenadas()[2]$longitud)
+
+          cluster_actual(input$cluster)
+
+
+        } else {
+
+          proxy_mapa_principal
+
+          cluster_actual(input$cluster)
+
+        }
+
+      }
+
+    }
 
   })
 
-  observeEvent(input$regresar,{
-    proxy %>% flyToBounds(bbox_qro[[1]],bbox_qro[[2]],bbox_qro[[3]],bbox_qro[[4]])
+  observeEvent(input$regresar, {
+    proxy_mapa_principal %>%
+      flyToBounds(bbox_qro[[1]],bbox_qro[[2]],bbox_qro[[3]],bbox_qro[[4]])
   })
 
-  output$faltantes <- render_gt({
-
-    req(input$filtrar)
-    validate(need(input$cluster != "", message =  "Escoja un cluster"))
+  balance_cluster <- reactive({
+    input$filtrar
 
     balance_cluster <- hecho %>%
-      filter(cluster == !!input$cluster) |>
+      filter(cluster == !!isolate(input$cluster)) |>
       group_by(cluster) |>
       summarise(across(.cols = c(cuota, hecho, faltan), .fns = ~ sum(.x)))
 
     hecho %>%
-      filter(cluster == !!input$cluster) %>%
+      filter(cluster == !!isolate(input$cluster)) %>%
       select(sexo, edad, faltan) %>%
       mutate(edad = gsub(pattern = "([0-9])([A-Z])([0-9])", replacement = "\\1 a \\3", x = edad),
              edad = gsub(pattern = "Y", replacement = " y ", x = edad)) |>
-      pivot_wider(names_from = sexo, values_from = faltan) %>%
-      replace_na(list(Mujer = 0, Hombre = 0)) %>%
-      rename(Edad = edad) |>
-      gt() %>%
-      tab_header(title = md(glue::glue("**Cluster {input$cluster}**")),
-                 subtitle = glue::glue("Cuota: {balance_cluster$cuota}   Hecho: {balance_cluster$hecho}   Faltan: {balance_cluster$faltan}")) |>
-      tab_spanner(label = "Entrevistas faltanes por edad y sexo", columns = c(Edad, Hombre, Mujer))
+      tidyr::pivot_wider(names_from = sexo, values_from = faltan) %>%
+      tidyr::replace_na(list(Mujer = 0, Hombre = 0)) %>%
+      rename(Edad = edad)
+  })
 
-    })
+  output$faltantes <- render_gt({
+    req(nrow(balance_cluster()) > 0)
+    balance_cluster() %>%
+      gt() %>%
+      tab_header(title = md(glue::glue("**Cluster {isolate(input$cluster)}**")),
+                 subtitle = glue::glue("Cuota: {balance_cluster()$cuota}   Hecho: {balance_cluster()$hecho}   Faltan: {balance_cluster()$faltan}")) |>
+      tab_spanner(label = "Entrevistas faltanes por edad y sexo", columns = c(Edad, Hombre, Mujer))
+  })
+
+  coordenadas <- reactive({
+    input$filtrar
+
+    coord <- tidyr::separate(data = tibble(coord = isolate(input$coord_input)), col = coord, into = c("lat", "lon"), sep = ", ")
+
+    list(latitud = as.double(coord$lat),
+         longitud = as.double(coord$lon))
+  })
 
   # Pestaña "Entrevistas" ---------------------------------------------------
 

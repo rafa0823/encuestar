@@ -17,10 +17,11 @@ Esta es la clase de muestra
 \item \href{#method-Muestra-revisar_sexo}{\code{Muestra$revisar_sexo()}}
 \item \href{#method-Muestra-revisar_rango_edad}{\code{Muestra$revisar_rango_edad()}}
 \item \href{#method-Muestra-diseno_region}{\code{Muestra$diseno_region()}}
-\item \href{#method-Muestra-regresar_diseno_completo}{\code{Muestra$regresar_diseno_completo()}}
+\item \href{#method-Muestra-regresar_diseno_original}{\code{Muestra$regresar_diseno_original()}}
 \item \href{#method-Muestra-agregar_calibracion}{\code{Muestra$agregar_calibracion()}}
 \item \href{#method-Muestra-revisar_calibracion}{\code{Muestra$revisar_calibracion()}}
 \item \href{#method-Muestra-comparar_calibraciones}{\code{Muestra$comparar_calibraciones()}}
+\item \href{#method-Muestra-elegir_calibracion}{\code{Muestra$elegir_calibracion()}}
 \item \href{#method-Muestra-clone}{\code{Muestra$clone()}}
 }
 }
@@ -85,11 +86,11 @@ Esta es la clase de muestra
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Muestra-regresar_diseno_completo"></a>}}
-\if{latex}{\out{\hypertarget{method-Muestra-regresar_diseno_completo}{}}}
-\subsection{Method \code{regresar_diseno_completo()}}{
+\if{html}{\out{<a id="method-Muestra-regresar_diseno_original"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-regresar_diseno_original}{}}}
+\subsection{Method \code{regresar_diseno_original()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Muestra$regresar_diseno_completo()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$regresar_diseno_original()}\if{html}{\out{</div>}}
 }
 
 }
@@ -117,6 +118,15 @@ Esta es la clase de muestra
 \subsection{Method \code{comparar_calibraciones()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$comparar_calibraciones(variables, valor_variables, vartype)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Muestra-elegir_calibracion"></a>}}
+\if{latex}{\out{\hypertarget{method-Muestra-elegir_calibracion}{}}}
+\subsection{Method \code{elegir_calibracion()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Muestra$elegir_calibracion(nombre)}\if{html}{\out{</div>}}
 }
 
 }

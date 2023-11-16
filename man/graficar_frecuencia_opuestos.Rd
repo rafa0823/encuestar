@@ -16,6 +16,8 @@ graficar_frecuencia_opuestos(
 )
 }
 \arguments{
+\item{bd}{Base de datos (ya procesada)}
+
 \item{titulo}{Es un parámetro obligatorio para el título de la gráfica}
 
 \item{grupo1}{vector: es el grupo que saldrá del lado derecho del plot}
@@ -27,5 +29,5 @@ graficar_frecuencia_opuestos(
 \item{color2}{Color de las barras del grupo 2}
 }
 \description{
-@param bd  Base de datos (ya procesada)
+Title
 }

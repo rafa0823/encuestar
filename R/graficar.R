@@ -1,55 +1,48 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
-#' Para graficar frecuencias simples
+#' Gráfica de barras horizontales ordenadas
 #'
-#' @param bd Debe provenir de la función de analizar_frecuencias
-#' @param titulo Es un parámetro obligatorio para el título de la gráfica
-#' @param familia Familia tipográfica de los elementos del plot
-#' @param color_etiqueta Color de la letra de las etiquetas de datos
-#' @param nota Si de desea añadir una nota al pie del plot
-#' @param colores Vector de colores del plot
+#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
+#' @param salto Número entero, se aplica un stringr::str_wrap a la variable categórica.
+#' @param porcentajes_fuera Si es T, las labels de los porcentajes aparecen fuera (o sobre) las barras.
+#' @param desplazar_porcentajes Si porcentajes_fuera es T, este parametro ajusta las etiquetas de texto.
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' graficar_barras(bd, salto = 13)
+#' graficar_barras(bd, porcentajes_fuera = T, desplazar_porcentajes = 0.1)
 
-graficar_barras_frecuencia <- function(bd,
-                                       titulo,
-                                       salto = 20,
-                                       porcentajes_afuera,
-                                       desplazar_porcentajes,
-                                       nota = "",
-                                       tema){
+graficar_barras <- function(bd,
+                            salto = 20,
+                            porcentajes_fuera = F,
+                            desplazar_porcentajes = 0){
 
-  g_aux <-  bd %>%
+  g <-  bd %>%
     ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
                y  = media,
                fill=respuesta)) +
     ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha= .8, width = .45)
 
-  if (porcentajes_afuera == F) {
+  if (porcentajes_fuera == F) {
 
-    g_aux <- g_aux +
-      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T, family = tema()$text$family)
+    g <- g +
+      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T)
+
+  }
+
+  if (porcentajes_fuera == T) {
+
+    g <- g +
+      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
 
   }
 
-  if (porcentajes_afuera == T) {
-
-    g_aux <- g_aux +
-      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes, family = tema()$text$family)
-
-  }
-  g <- g_aux +
+  g <- g +
     coord_flip() +
-    labs(title = titulo,
-         x = NULL,
-         y = NULL,
-         caption = nota) +
-
+    labs(x = NULL, y = NULL) +
     scale_y_continuous(labels=scales::percent_format(accuracy = 1)) +
-
     theme(legend.position = "none")
 
   return(g)
@@ -103,7 +96,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("orden", "etiqueta"))
 
 #' Title
 #'
-#'  @param bd  Base de datos (ya procesada)
+#' @param bd  Base de datos (ya procesada)
 #' @param titulo Es un parámetro obligatorio para el título de la gráfica
 #' @param grupo1 vector: es el grupo que saldrá del lado derecho del plot
 #' @param grupo2 vector: es el grupo que saldrá del lado izquierdo del plot
@@ -233,25 +226,29 @@ graficar_aspectos_frecuencias <- function(bd,
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
-#' Title
+#' Graficar gauge
 #'
-#' @param bd  Base de datos (ya procesada)
-#' @param color Color de la barra
-#' @param maximo Número máximo en la escala
+#' @param bd  Base de datos con un único row. La variable a considerar se llama "media"
+#' @param color_principal Color principal de la barra
+#' @param color_secundario Color secundario de la barra
+#' @param escala Máximo y mínimo de los valores que puede tomar "media"
+#' @param size_text_pct Tamaño del texto dentro del gauge
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "red", escala = c(0, 10), size_text_pct = 8)
+#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "pink", color_secundario = "brown", escala = c(1, 7), size_text_pct = 14)
 
-graficar_gauge_promedio <- function(bd, color = "#850D2D", escala = c(0, 10), size_text_pct){
+graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", escala, size_text_pct){
 
   g <- bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
-              fill = color,  color = "white", alpha= .95) +
+              fill = color_principal,  color = "white", alpha= .95) +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = escala[2]),
-              fill = "grey90", color = "white")
+              fill = color_secundario, color = "white")
 
   if(escala[2] == 1) {
 
@@ -307,15 +304,28 @@ graficar_barras_numerica<- function(bd){
                              contrast = T)
 }
 
-graficar_intervalo_numerica<- function(bd, tema, point_size, text_point_size){
+#' Graficar intervalos numérica
+#'
+#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
+#' @param point_size Tamaño del punto que indica el promedio de la estimación.
+#' @param text_point_size Tamaño del texto que acompaña el valor de la estimación
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_intervalo_numerica(bd = bd, point_size = 2, text_point_size = 14)
+graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, text_point_size = 8){
+
   bd %>%
     ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40), media))) +
     geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size) +
-    coord_flip()+
+    coord_flip() +
     labs(title = NULL,
          x = NULL,
          y = "Promedio")+
-    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, family = tema()$text$family, size = text_point_size)
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, size = text_point_size) +
+    scale_y_continuous(limits = c(escala[1], escala[2]))
 
 }
 
@@ -596,7 +606,35 @@ graficar_estratos_aspectos <- function(bd, titulo = NULL,
 }
 
 
-graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
+#' Graficar candidato opinión
+#'
+#' @param bd Base de datos con estructura producida por analizar_frecuencias_aspectos.
+#' @param ns_nc Valor de la variable 'respuesta' asociado a "No sabe" o "No contesta" en la pregunta relativa.
+#' @param regular Valor de la variable 'respuesta' asociado a "Regular" en la pregunta relativa.
+#' @param grupo_positivo Conjunto de valores de la  variable 'respuesta' considerados como positivos.
+#' @param grupo_negativo Conjunto de valores de la  variable 'respuesta' considerados como negativos
+#' @param colores Vector ordenado de colores asociados al grupo negativo, regular y positivo.
+#' @param burbuja Base de datos con estructura producida por analizar_frecuencias_aspectos filtrada por un valor de interés. Disponible en el enviroment.
+#' @param color_burbuja Color de los puntos asociados a la base de datos 'burbuja'
+#' @param caption_opinion Caption de la gráfica que visualiza los datos de bd
+#' @param caption_nsnc Caption de la gráfica que visualiza los datos de bd separando el valor asociado a "No sabe" o "No contesta" en la pregunta relativa.
+#' @param caption_burbuja Caption de la gráfica que visualiza los datos de burbuja
+#' @param size_caption_opinion Tamaño del texto del caption_opinion
+#' @param size_caption_nsnc Tamaño del texto del caption_nsnc
+#' @param size_caption_burbuja Tamaño del texto del caption_burbuja
+#' @param size_text_cat Tamaño del texto de las categorías diferentes categorías de la variable 'tema' de la base de datos 'bd'
+#' @param orden_resp Vector ordenado de los posibles valores de la variable 'respuesta'
+#' @param salto Parámetro usado por la función str_wrap de la paquetería stringr aplicado a la variable 'tema' de la base 'bd'
+#' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
+#'
+#' @return
+#' @import patchwork
+#' @export
+#'
+#' @examples
+#' graficar_candidato_opinion(bd, ns_nc = "Ns/Nc", regular = "Regular", grupo_positivo = "Buena", grupo_negativo = "Mala", colores = c("red", "yellow", "green", "gray70"), burbuja = burbuja, color_burbuja = "blue", caption_opinion = "", caption_nsnc = "Ns/Nc", caption_burbuja = "Nivel de conocimiento", size_caption_opinion = 12, size_caption_nsnc = 12, size_caption_burbuja = 12, size_caption_cat = 12, orden_resp = c("Mala", "Regular", "Buena"), tema = self$tema)
+graficar_candidato_opinion <- function(bd, ns_nc, regular,
+                                       grupo_positivo,
                                        grupo_negativo,
                                        colores,
                                        burbuja,
@@ -646,7 +684,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
     mutate(respuesta = factor(respuesta, levels = orden_resp)) |>
     ggplot(aes(x  = factor(tema, orden), fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
-    ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
+    ggchicklet::geom_chicklet(width =.6, alpha =.9)+
     scale_fill_manual(values = colores)+
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema()$text$family,
                              min.size = 8,
@@ -665,7 +703,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
   if(!is.null(ns_nc)){
     b <- aux %>%  filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores["Ns/Nc"] |> as_tibble() |> pull())+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores[4])+
       coord_flip()+
       ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
                                hjust = -.1)+
@@ -694,17 +732,22 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,grupo_positivo,
 }
 
 
-#' Title
+#' Graficar el partido político con el que asocian a uno o varios personajes
 #'
-#' @param bases
+#' @param bases Lista. 'bases$conoce' contiene la estimación del conocimiento sobre algún personaje. 'bases$partido' tiene la información sobre la asociación a un partido político por personaje
+#' @param cliente Vector de códigos cortos que asocian a un personaje con una variable. Por ejemplo, 'personajeC' resaltará entre el conjunto 'personajeA', 'personajeB', 'personajeC'.
+#' @param tipo_conoce Tipo de gráfica a mostrar en la estimación de conocimiento. De forma predeterminada son barras, el otro valor son 'intervalos'
+#' @param colores_candidato Vector que asigna un color a un candidato de acuerdo al nombre largo (tema)
+#' @param solo_respondidos Logical. Omite los partidos en los cuales el personaje no tiene ninguna asociación
+#' @param colores_partido Vector que asigna un color a cada partido de acuerdo al nombre largo (tema)
+#' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
 #'
 #' @return
-#' @import patchwork
 #' @export
 #'
 #' @examples
-#'
-graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos, colores_partido,tema){
+#' graficar_candidato_partido(bases, clientes = c("era", "sasil"), tipo_conoce = "intervalos", colores_candidato = colores_candidato, colores_partido = colores_partido, tema = self$tema)
+graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
@@ -772,58 +815,83 @@ graficar_candidato_partido <- function(bases, cliente, tipo_conoce, colores_cand
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
 
-  a+ b+ plot_layout(widths = c(.2,.8))
+  a + b + patchwork::plot_layout(widths = c(.2,.8))
 
 }
 
-graficar_candidato_saldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"),
-                                     grupo_negativo = c("Mala", "Muy mala"), familia){
+#' Graficar saldo de opinión por personaje
+#'
+#' @param bd Base de datos resultado de la función 'calcular_saldoOpinion'.
+#' @param grupo_positivo Valores posibles dentro de la variable 'grupo' que los identifica de manera arbitraria como positivos.
+#' @param grupo_negativo Valores posibles dentro de la variable 'grupo' que los identifica de manera arbitraria como negativos.
+#' @param color_positivo Color asociado al grupo positivo.
+#' @param color_negativo Color asociado al grupo negativo.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_candidato_saldo(bd, grupo_positivo = "Buena", grupo_negativo = "Mala")
+#' graficar_candidato_saldo(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "orange", color_negativo = "brown")
+graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "green", color_negativo = "red"){
 
-  g <- bd %>% ggplot(aes(x  =forcats::fct_reorder(tema, saldo), fill = grupo,
-                         y =saldo
-  )) +
-    ggchicklet::geom_chicklet(stat = "identity", width =.6, alpha =.9)+
-    coord_flip()+
-    scale_fill_manual(values = c("Negativa" = "#FB8500",
-                                 "Positiva" = "#126782"))+
-    geom_text(aes(label = scales::percent(saldo,accuracy = 1)), family = familia,
-              position = position_stack(.5,reverse = T), vjust = .5)
-
-  if("p_calve" %in% names(bd)) g <- g + geom_text(aes(label = p_calve),
-                                                  hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
-
-  g +
+  g <- bd %>%
+    ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = saldo, fill = grupo)) +
+    ggchicklet::geom_chicklet(width =.6, alpha =.9) +
+    ggfittext::geom_bar_text(aes(label = scales::percent(saldo, accuracy = 1)), contrast = T, family = "Poppins") +
+    coord_flip() +
+    scale_fill_manual(values = c("Negativa" = color_negativo,
+                                 "Positiva" = color_positivo)) +
     lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
     theme_minimal()+
     theme(legend.position = "bottom",
           panel.grid.minor.y = element_blank(),
           panel.grid.major.y = element_blank())+
-    labs(y = "Saldo", x = NULL, fill = NULL)
+    labs(x = NULL, fill = NULL)
+
+  # if("p_calve" %in% names(bd)) g <- g + geom_text(aes(label = p_calve),
+  #                                                 hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
+  #
+  # g +
+  #   lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
+  #   theme_minimal()+
+  #   theme(legend.position = "bottom",
+  #         panel.grid.minor.y = element_blank(),
+  #         panel.grid.major.y = element_blank())+
+  #   labs(y = "Saldo", x = NULL, fill = NULL)
+
+  return(g)
 
 }
 
 analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, diseno, colores =NULL){
+
   if(is.null(legenda1)) legenda1 <- var1
   if(is.null(legenda2)) legenda2 <- var2
   if(is.null(colores)) colores <- c("#DE6400","#023047")
 
   formula <- survey::make.formula(c(var1,var2))
-  aux <- survey::svytable(formula, design = diseno) %>% tibble::as_tibble() %>%
-    tidyr::pivot_wider(names_from = var2, values_from = "n") %>% tibble::column_to_rownames(var = var1)
+  aux <- survey::svytable(formula, design = diseno) %>%
+    tibble::as_tibble() %>%
+    tidyr::pivot_wider(names_from = var2, values_from = "n") %>%
+    tibble::column_to_rownames(var = var1)
 
 
   # chisq.test(aux)
   res.ca <- FactoMineR::CA(aux, graph = F)
   eig <- factoextra::get_eigenvalue(res.ca)[, 2]
 
-  res.ca$col$coord %>% as_tibble(rownames = "respuesta") %>% janitor::clean_names() %>%
-    select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda2) %>%
-    bind_rows(
-      res.ca$row$coord %>% as_tibble(rownames = "respuesta") %>%
-        janitor::clean_names() %>%
-        select(respuesta,num_range("dim_",1:2)) %>% mutate(variable = legenda1)
-    ) %>% ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable",
-                            label = "respuesta", repel = T) +
+  res.ca$col$coord %>%
+    as_tibble(rownames = "respuesta") %>%
+    janitor::clean_names() %>%
+    select(respuesta,num_range("dim_",1:2)) %>%
+    mutate(variable = legenda2) %>%
+    bind_rows(res.ca$row$coord %>%
+                as_tibble(rownames = "respuesta") %>%
+                janitor::clean_names() %>%
+                select(respuesta,num_range("dim_",1:2)) %>%
+                mutate(variable = legenda1)) %>%
+    ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable", label = "respuesta", repel = T) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     geom_hline(yintercept = 0, linetype = "dashed") +
     labs(x = scales::percent(eig[1]/100,accuracy = .1),
@@ -842,23 +910,31 @@ analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, d
 
 }
 
-#' Title
+#' Graficar conocimiento de personajes por región o estrato
 #'
-#' @param bd
+#' @param bd Base de datos resultado de la función 'analizar_conocimientoRegion'
+#' @param ordenRegiones Vector que indica el orden de las columnas del geom_tile
+#' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_conocimiento_region <- function(bd, orden_horizontal){
-
-  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
-
-  bd %>%
-    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
+#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
+graficar_conocimientoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
+  if(is.null(ordenRegiones)) {
+    ordenRegiones <- bd |>
+      ungroup() |>
+      distinct(region) |>
+      mutate(region = stringr::str_wrap(string = region, width = salto_labelRegiones)) |>
+      pull() |>
+      stringr::str_wrap(width = salto_labelRegiones)
+  }
+  g <- bd %>%
+    ggplot(aes(x = factor(region |> stringr::str_wrap(width = salto_labelRegiones), levels = ordenRegiones),
                y = forcats::fct_reorder(tema %>%  str_wrap(60), pct),
                fill = pct)) +
-    geom_tile()+
+    geom_tile() +
     labs(y = NULL, x= NULL, fill = "Porcentaje")+
     theme_minimal()+
     theme(panel.grid = element_blank(),
@@ -871,23 +947,34 @@ graficar_conocimiento_region <- function(bd, orden_horizontal){
     # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
     ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
                               aes(label =pct %>%  scales::percent(accuracy = 1)))
+  return(g)
 }
 
-#' Title
+#' Graficar saldo de opinión asociado a personajes por región o estrato
 #'
-#' @param bd
+#' @param bd Base de datos resultado de la función 'analizar_saldoRegion'
+#' @param ordenRegiones Vector que indica el orden de las columnas del geom_tile
+#' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_saldo_region <- function(bd, orden_horizontal){
+#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
+graficar_saldoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
 
-  orden_horizontal <- orden_horizontal %>% stringr::str_wrap(5)
+  if(is.null(ordenRegiones)) {
+    ordenRegiones <- bd |>
+      ungroup() |>
+      distinct(region) |>
+      mutate(region = stringr::str_wrap(string = region, width = salto_labelRegiones)) |>
+      pull() |>
+      stringr::str_wrap(width = salto_labelRegiones)
+  }
 
-  bd %>%
-    ggplot(aes(x = factor(region %>% stringr::str_wrap(5), levels = orden_horizontal),
-               y =forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
+  g <- bd %>%
+    ggplot(aes(x = factor(region %>% stringr::str_wrap(width = salto_labelRegiones), levels = ordenRegiones),
+               y = forcats::fct_reorder(tema %>% stringr::str_wrap(60),saldo),
                fill = saldo)) +
     geom_tile() +
     scale_fill_gradient2(low = "orange", mid = "white", high = "blue")+
@@ -903,33 +990,46 @@ graficar_saldo_region <- function(bd, orden_horizontal){
     # scale_fill_continuous(labels = scales::percent_format(accuracy = 1) )+
     ggfittext::geom_fit_text( grow = F,reflow = F,contrast = T,
                               aes(label =saldo %>%  scales::percent(accuracy = 1)))
+
+  return(g)
 }
-
-
-#' Title
+#' Graficar mapa por categorías
 #'
-#' @param bd
-#' @param var
+#' @param bd Base de datos resultado de la función 'calcular_ganadorRegion
+#' @param variable Variable categórica a graficar
+#' @param categorica Si la variable es categórica, cambia la posición del 'legend.position'
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_mapa_region <- function(bd, var){
-  bd %>% ggplot() + geom_sf(aes(fill = {{var}}), size = .3, alpha = .8, color = "white") +
-    theme_minimal() +
-    theme(axis.line = element_blank(),
-          axis.ticks = element_blank(),
-          panel.grid = element_blank(),
-          legend.position = "bottom",
-          axis.text = element_blank(),
-          plot.title = element_text(hjust = 0,
-                                    size = rel(1.1),
-                                    # face = "bold",
-                                    colour = "#4C5B61"),
-          text = element_text(family = "Poppins", size=14))
+graficar_mapaRegiones <- function(bd, variable, categorica = T){
+  g <- bd %>%
+    ggplot() +
+    geom_sf(aes(fill = !!rlang::sym(variable)), size = .3, alpha = .8, color = "white") +
+    theme_minimal()
+  if(categorica == F)
+  {
+    g <- g + theme(axis.line = element_blank(),
+                   axis.ticks = element_blank(),
+                   panel.grid = element_blank(),
+                   legend.position = "right",
+                   axis.text = element_blank(),
+                   text = element_text(family = "Poppins", size = 14))
+  }
+  else
+  {
+    g <- g +
+      labs(fill = "") +
+      theme(axis.line = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid = element_blank(),
+            legend.position = "bottom",
+            axis.text = element_blank(),
+            text = element_text(family = "Poppins", size = 14))
+  }
+  return(g)
 }
-
 #' Title
 #'
 #' @param lst
@@ -958,7 +1058,19 @@ graficar_blackbox_1d <- function(lst){
       text = element_text(family = "Poppins", size=14))
 }
 
-graficar_morena <- function(atr, atributos, p, thm){
+#' Graficar metodología de MORENA con un geom_tile
+#'
+#' @param atr Base de datos producto de la función 'analizar_morena'.
+#' @param cliente Vector de códigos cortos relacionados a los personajes a los cuales se les aplicó la batería de preguntas de MORENA.
+#' @param atributos Vector de códigos de cortos que identifican los diferentes atributos contenidos en la metodología de MORENA.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_morena(atr, personajes = c("era", "sasil"), atributos = c("honesto", "opinion"))
+#' graficar_morena(atr, personajes = c("era", "sasil", "jaac"), atributos = atributos)
+graficar_morena <- function(atr, personajes, atributos){
 
   orden <- atr %>%
     distinct(tema, atributo, puntos, .keep_all = T) %>%
@@ -968,24 +1080,46 @@ graficar_morena <- function(atr, atributos, p, thm){
     arrange(n, preferencia, votaria) %>%
     pull(tema)
 
-  atr %>%
-    ggplot(aes(x = atributo, y = factor(tema, orden), fill = media, label = scales::percent(media, p))) +
+  g <- atr %>%
+    ggplot(aes(x = atributo, y = factor(tema, orden), fill = media, label = scales::percent(media, 1.))) +
     geom_tile() +
-    ggfittext::geom_fit_text(contrast = T, family = thm()$text$family) +
+    ggfittext::geom_fit_text(contrast = T, family = "Poppins") +
     geom_label(data = atr %>% filter(puntos!=0), aes(label = puntos),
-               color = "black", vjust = 0, nudge_y = -.5, fill = "white", family = thm()$text$family) +
+               color = "black", vjust = 0, nudge_y = -.5, fill = "white", family = "Poppins") +
     geom_text(data = atr %>% count(tema, wt = puntos),
               aes(label = n, x  ="Puntaje", y = tema),
-              inherit.aes = F, family = thm()$text$family) +
+              inherit.aes = F, family = "Poppins") +
     scale_fill_continuous(labels = scales::percent) +
     labs(x = NULL, y = NULL, fill = "Porcentaje") +
     theme_minimal() +
-    theme(legend.position = "none")
+    theme(legend.position = "none") +
+    scale_x_discrete(position = "top",
+                     limits = c("opinion", atributos$atributo, "buencandidato", "votaria", "preferencia", "Puntaje"),
+                     labels = c("Opinión\npositiva", "Honestidad", "Respeta \nderecho\nmujeres",
+                                "Cercano\na la\ngente", "Conoce el\nEstado", "Cumple", "Buen\ncandidato",
+                                "Disposición\na\nvotar", "Preferencia\ncomo\ncandidato/a", "Puntaje\nfinal")) +
+    scale_fill_gradient(low = "white", high = "#A6032F", labels = scales::percent) +
+    theme(plot.caption = element_text(family = "Poppins", size = 14),
+          axis.text.x = element_text(family = "Poppins", size = 10),
+          axis.text.y = element_text(family = "Poppins", size = 14), panel.grid = element_blank())
+
+  return(g)
 
 }
 
-graficar_cruce_puntos <- function(bd, cruce, vartype){
-  bd |>
+#' Graficar cruce de una variable vs varias variables
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
+graficar_crucePuntos = function(bd, cruce, vartype){
+  g <- bd |>
     ggplot(aes(x=reorder(variable,mean), xend=variable,
                color=!!rlang::sym(cruce))) +
     geom_vline(aes(xintercept = variable), linetype = "dashed",
@@ -996,18 +1130,36 @@ graficar_cruce_puntos <- function(bd, cruce, vartype){
                    linetype="solid", color="black", linewidth=.5) +
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
+
+  return(g)
 }
 
-graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+#' Graficar cruce de una variable vs otra con opción a filtro
+#'
+#' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
+#' @param var1 Variable principal por la cual se hace el cruce
+#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
+#' @param vartype
+#' @param line_rich Argumento de la función 'geom_textline'
+#' @param line_linewidth Argumento de la función 'geom_textline'
+#' @param line_hjust Argumento de la función 'geom_textline'
+#' @param line_vjust Argumento de la función 'geom_textline'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
+graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F, line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
   g <- bd |>
     ggplot(aes(x=!!rlang::sym(var1),
                y=coef)) +
     geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
                                     group=!!rlang::sym(var2_filtro),
                                     label=!!rlang::sym(var2_filtro)),
-                                linewidth=line_linewidth, hjust = line_hjust,
+                                linewidth = line_linewidth, hjust = line_hjust,
                                 vjust = line_vjust, rich = line_rich,
-                                size=6, family = familia) +
+                                size=6, family = "Poppins") +
     scale_y_continuous(labels=scales::percent) +
     labs(color = NULL)
 
@@ -1020,7 +1172,21 @@ graficar_cruce_2vbrechas <- function(bd, var1, var2_filtro, vartype, line_rich, 
   return(g)
 }
 
-graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust, familia){
+#' Graficar cruce de una variable vs múltiples variables
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#' @param line_rich Argumento de la función 'geom_textline'
+#' @param line_linewidth Argumento de la función 'geom_textline'
+#' @param line_hjust Argumento de la función 'geom_textline'
+#' @param line_vjust Argumento de la función 'geom_textline'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
   g <- bd |>
     ggplot(aes(x=!!rlang::sym(cruce),
                y=mean)) +
@@ -1029,7 +1195,7 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
                                     label=(variable)),
                                 linewidth=line_linewidth, hjust = line_hjust,
                                 vjust = line_vjust, rich = line_rich,
-                                size=6, family = familia) +
+                                size = 6, family = "Poppins") +
     scale_y_continuous(labels=scales::percent) +
     labs(color = NULL)
 
@@ -1043,7 +1209,19 @@ graficar_cruce_multibrechas <- function(bd, cruce, vartype, line_rich, line_line
 
 }
 
-graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
+#' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#' @param color Color usado en el parámetro 'fill' de la función 'aes' de ggplot2
+#' @param filter Filtro aplicable al parámetro 'cruce'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 
   if(!is.null(filter)) {
 
@@ -1061,25 +1239,37 @@ graficar_cruce_barras <-  function(bd, cruce, vartype, color, familia, filter){
     coord_flip() +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
-  if(vartype=="cv"){
+  if(vartype == "cv"){
     g <- g +
       ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
                                color="white",
-                               family = familia)
+                               family = "Poppins")
 
 
   }else{
     g <- g +
       ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
                                color="white",
-                               family = familia)
+                               family = "Poppins")
 
   }
   return(g)
 
 }
 
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filter){
+#' Graficar cruce de una variable vs otra con opción a filtro
+#'
+#' @param bd Base de datos producto de la función 'analizar_cruceBrechas'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param variable Variable secundaria para hacer análisis con la primaria
+#' @param vartype
+#' @param filter Filtro aplicable al parámetro 'cruce'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter){
 
   if(!is.null(filter)) {
 
@@ -1094,21 +1284,76 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, familia, filte
     treemapify::geom_treemap(alpha=0.7) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
-  if(vartype=="cv"){
+  if(vartype == "cv"){
 
     g <- g +
       treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
                         place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                         color="white",
-                        family = familia)
+                        family = "Poppins")
   }else{
     g <- g +
       treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
                         place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                         color="white",
-                        family = familia)
+                        family = "Poppins")
 
   }
 
   return(g)
+}
+
+#' Graficar sankey
+#'
+#' @param bd Base de datos procesada con la función analizar_sankey
+#' @param size_text_cat Tamaño del texto mostrado en cada nodo el sankey
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
+graficar_sankey = function(bd, size_text_cat){
+
+  g <- bd |>
+    ggsankey::make_long(-n, value = n) |>
+    ggplot(aes(x = x,
+               value = value,
+               next_x = next_x,
+               node = node,
+               next_node = next_node,
+               fill = factor(node))) +
+    ggsankey::geom_sankey() +
+    ggsankey::geom_sankey_label(data = . %>% filter(x == names(bd)[1]),
+                                aes(label = node, color = node),
+                                hjust = 1.0, fill = "white", size = size_text_cat) +
+    ggsankey::geom_sankey_label(data = . %>% filter(x == names(bd)[2]),
+                                aes(label = node, color = node),
+                                hjust = -0.2, fill = "white", size = size_text_cat) +
+    labs(fill = "") +
+    guides(color = "none") +
+    theme(legend.position = "bottom")
+
+  return(g)
+
+}
+
+#' Graficar nube de palabras clave
+#'
+#' @param bd Base de datos procesada con la estructura "palabras", "n", y "colores"
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_nubePalabras_hc(bd = tibble(palabras = c("hola"), n = c(2), colores = c("#619CFF")))
+graficar_nubePalabras_hc = function(bd){
+
+  hc <- bd |>
+    highcharter::hchart(highcharter::hcaes(x = palabras, weight = log(n), acolor = colores),
+                        type= "wordcloud") %>%
+    highcharter::hc_chart(style = list(fontFamily = "Poppins"))
+
+  return(hc)
+
 }

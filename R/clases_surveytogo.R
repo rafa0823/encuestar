@@ -103,7 +103,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-                            self$preguntas <- Pregunta$new(encuesta = self)
+                            self$preguntas <- Graficas$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
                             beepr::beep()
@@ -147,7 +147,7 @@ Encuesta <- R6::R6Class("Encuesta",
                               transmute(SECCION = as.character(cluster_2)) %>%
                               bind_cols(st_coordinates(.)) %>%
                               as_tibble() %>% select(-geometry) %>% rename(Longitude = X, Latitude = Y) %>% bind_cols(respuestas) %>%
-                              rownames_to_column(var = "SbjNum") %>% mutate(SbjNum = as.numeric(SbjNum))
+                              tibble::rownames_to_column(var = "SbjNum") %>% mutate(SbjNum = as.numeric(SbjNum))
                             #simular sexo y edad para postestratificación
                             respuestas <- respuestas %>%
                               mutate(sexo = sample(c("Hombre", "Mujer"),
@@ -1207,7 +1207,7 @@ Pregunta <- R6::R6Class("Pregunta",
                                   } else{
                                     stop(glue::glue("Alguna o todas las llaves {paste(aspectos_aux, collapse = ', ')} no existe en el diccionario"))
                                   }
-                                } else{
+                                } else {
                                   warning(glue::glue("Las llaves {paste(aspectos_aux, collapse = ', ')} ya fueron graficadas con anterioridad"))
                                 }
 
@@ -1521,6 +1521,620 @@ Pregunta <- R6::R6Class("Pregunta",
                           }
 
                         ))
+
+#'Esta es la clase de Pregunta2
+#'@export
+#'
+Graficas <- R6::R6Class(classname = "Graficas",
+                         public = list(
+                           encuesta = NULL,
+                           Descriptiva = NULL,
+                           Regiones = NULL,
+                           Modelo = NULL,
+                           Cruce = NULL,
+                           Especial = NULL,
+                           tema = NULL,
+                           graficadas = NULL,
+                           initialize = function(encuesta, tema = tema_default){
+
+                             self$encuesta <- encuesta
+                             self$tema <- tema
+                             private$crear_shp_region()
+
+                             self$Descriptiva <- Descriptiva$new(diseno = self$encuesta$muestra$diseno,
+                                                         diccionario = self$encuesta$cuestionario$diccionario,
+                                                         tema = self$tema,
+                                                         graficadas = self$graficadas)
+
+                             self$Regiones <- Regiones$new(diseno = self$encuesta$muestra$diseno,
+                                                           diccionario = self$encuesta$cuestionario$diccionario,
+                                                           shp = private$shp_region,
+                                                           tema = self$tema)
+
+                             self$Modelo <- Modelo$new(diseno = self$encuesta$muestra$diseno,
+                                                       diccionario = self$encuesta$cuestionario$diccionario,
+                                                       tema = self$tema,
+                                                       graficadas = self$graficadas)
+
+                             self$Cruce <- Cruce$new(diseno = self$encuesta$muestra$diseno,
+                                                     diccionario = self$encuesta$cuestionario$diccionario,
+                                                     tema = self$tema,
+                                                     graficadas = self$graficadas)
+
+                             self$Especial <- Especial$new(diseno = self$encuesta$muestra$diseno,
+                                                           diccionario = self$encuesta$cuestionario$diccionario,
+                                                           tema = self$tema,
+                                                           graficadas = self$graficadas)
+                           },
+                           faltantes = function(){
+                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
+                           }
+                           ),
+                         private = list(
+                           shp_region = NULL,
+                           crear_shp_region = function(){
+                             sf_use_s2(T)
+                             private$shp_region <- self$encuesta$shp_completo$shp$MUNICIPIO %>%
+                               left_join(
+                                 self$encuesta$muestra$muestra$poblacion$marco_muestral %>%
+                                   distinct(region, MUNICIPIO), by = "MUNICIPIO"
+                               ) %>% group_by(region) %>% summarise(n()) %>%
+                               sf::st_buffer(dist = 0)
+                             sf_use_s2(F)
+                           }
+                         )
+)
+
+#'Esta es la clase de Grafica
+#'@export
+#'
+Descriptiva <- R6::R6Class(classname = "Descriptiva",
+                       public = list(
+                         diseno = NULL,
+                         diccionario = NULL,
+                         tema = NULL,
+                         graficadas = NULL,
+                         initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
+                           self$diseno <- diseno
+                           self$diccionario <- diccionario
+                           # self$shp <- shp
+                           self$tema <- tema
+                           self$graficadas <- graficadas
+                         },
+                         gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
+
+                           llave_aux <- codigo
+                           if(!(llave_aux %in% self$graficadas)){
+                             if(llave_aux %in% self$diccionario$llaves){
+                               self$graficadas <- self$graficadas %>% append(llave_aux)
+                             } else {
+                               stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                             }
+                           } else {
+                             warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           }
+
+                           bd_estimacion <- encuestar:::analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}})
+
+                           tema <- self$diccionario |>
+                             filter(llaves == rlang::ensym(codigo)) |>
+                             pull(tema)
+
+                           bd_estimacion |>
+                             mutate(tema = tema) |>
+                             encuestar:::graficar_gauge(color_principal = color,
+                                            escala = escala,
+                                            size_text_pct = size_text_pct)
+
+                         },
+                         gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 1), size_text_pct = 14){
+
+                           if(is.null(filtro)) {
+
+                             stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
+
+                           }
+
+                           else {
+
+                             llave_aux <- codigo
+                             if(!(llave_aux %in% self$graficadas)){
+                               if(llave_aux %in% self$diccionario$llaves){
+                                 self$graficadas <- self$graficadas %>% append(llave_aux)
+                               } else {
+                                 stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                               }
+                             } else {
+                               warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                             }
+
+                             bd_estimacion <- encuestar:::analizar_frecuencias(diseno = self$diseno, pregunta = {{codigo}}) |>
+                               filter(eval(rlang::parse_expr(filtro)))
+
+                             tema <- self$diccionario |>
+                               filter(llaves == rlang::ensym(codigo)) |>
+                               pull(tema)
+
+                             bd_estimacion %>%
+                               mutate(tema = tema) |>
+                               encuestar:::graficar_gauge(color_principal = color,
+                                                          escala = escala,
+                                                          size_text_pct = size_text_pct)
+                           }
+
+                         },
+                         barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                           llave_aux <- codigo
+                           if(!(llave_aux %in% self$graficadas)){
+                             if(llave_aux %in% self$diccionario$llaves){
+                               self$graficadas <- self$graficadas %>% append(llave_aux)
+                             } else {
+                               stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                             }
+                           } else {
+                             warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           }
+
+                           tema <- self$diccionario |>
+                             filter(llaves == rlang::ensym(codigo)) |>
+                             pull(tema)
+
+                           encuestar:::analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
+                             mutate(tema = tema) |>
+                             encuestar:::graficar_barras(salto = salto,
+                                                         porcentajes_fuera = porcentajes_fuera,
+                                                         desplazar_porcentajes = desplazar_porcentajes) +
+                             self$tema()
+
+                         },
+                         barras_numerica = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                           # llave_aux <- paste(patron_inicial, aspectos, sep = "_")
+
+                           # llaves_aux %>%
+                           # purrr::walk(.x = ., .f = ~ print(paste(.x, "hola", sep = "")))
+                           # comprobar_variableGraficada = function(variable, variablesGraficadas, variablesDiccionario) {
+                           #
+                           #   if(!(variable %in% variablesGraficadas)) {
+                           #     if(variable %in% variablesDiccionario) {
+                           #       variablesGraficadas <- variablesGraficadas %>% append(variable)
+                           #     }
+                           #     else {
+                           #       stop(glue::glue("La llave {variable} no existe en el diccionario"))
+                           #     }
+                           #   }
+                           #   else {
+                           #     warning(glue::glue("La llave {variable} ya fue graficada con anterioridad"))
+                           #   }
+                           # }
+                           # comprobar_variableGraficada(variable = "candidato_preferencia", variablesGraficadas = self$graficadas, variablesDiccionario = self$diccionario$llaves)
+
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
+                           if(is.null(filtro) | is.null(aspectos)) {
+
+                             stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro` o indique los aspectos correctos."))
+
+                           } else {
+
+                             tema <- self$diccionario |>
+                               filter(llaves == rlang::ensym(patron_inicial)) |>
+                               pull(pregunta)
+
+                             bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                                                        diccionario = self$diccionario,
+                                                                                        patron_pregunta = {{patron_inicial}},
+                                                                                        aspectos = aspectos) |>
+                               left_join(self$diccionario |> select(llaves, tema), by = c("aspecto" = "llaves")) |>
+                               filter(eval(rlang::parse_expr(filtro))) |>
+                               transmute(respuesta = tema, media)
+
+                             bd_estimacion |>
+                               encuestar:::graficar_barras(salto = salto,
+                                               porcentajes_fuera = porcentajes_fuera,
+                                               desplazar_porcentajes = desplazar_porcentajes) +
+                               self$tema()
+
+                           }
+
+                         },
+                         barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                             # analizar_frecuencia_multirespuesta(diseno = self$diseno,
+                             #                                          patron_inicial) %>%
+                             # graficar_barras(salto = salto,
+                             #                 porcentajes_fuera = porcentajes_fuera,
+                             #                 desplazar_porcentajes = desplazar_porcentajes) +
+                             #   self$tema()
+
+                           print("En desarrollo. Cambiar datos demo.")
+
+                         },
+                         barras_texto = function(){},
+                         intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
+
+                           # llave_aux <- codigo
+                           # if(!(llave_aux %in% self$graficadas)){
+                           #   if(llave_aux %in% self$diccionario$llaves){
+                           #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                           #   } else {
+                           #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                           #   }
+                           # } else {
+                           #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           # }
+
+                           bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(diseno = self$diseno, diccionario = self$diccionario, patron_pregunta = {{patron}}, aspectos = aspectos) %>%
+                             left_join(self$diccionario %>% select(aspecto = llaves, tema = llaves), by = "aspecto")
+
+                           bd_estimacion |>
+                             encuestar:::graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
+                             self$tema()
+
+
+                         },
+                         nube_texto = function(codigo, palabrasVacias = NULL, total_palabras = 15, colores = c("#619CFF", "#FFFF33", "#00BA38")){
+
+                           llave_aux <- codigo
+                           if(!(llave_aux %in% self$graficadas)){
+                             if(llave_aux %in% self$diccionario$llaves){
+                               self$graficadas <- self$graficadas %>% append(llave_aux)
+                             } else {
+                               stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                             }
+                           } else {
+                             warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                           }
+
+                           nubeImg <- encuestar:::analizar_respuestaAbierta(bd = self$diseno$variables, variable = codigo,
+                                                                            palabrasVacias = palabrasVacias, totalPalabras = total_palabras,
+                                                                            colores = colores) |>
+                             encuestar:::graficar_nubePalabras_hc()
+
+                           dest_folder <- "data/nubeTexto"
+
+                           if(!file.exists(dest_folder)) dir.create(dest_folder)
+
+                           htmlwidgets::saveWidget(widget = nubeImg, file = paste(dest_folder, codigo, ".html", sep = ""))
+                           webshot::webshot(url = paste(dest_folder, codigo, ".html", sep = ""), delay = 5,
+                                            file = paste(dest_folder, codigo, ".png", sep = ""), vwidth = 600*5, vheight = 600*5/1.41)
+
+                           print(paste("El objeto se ha generado en el archivo ",
+                                       paste(dest_folder, codigo, ".png'", sep = ""), sep = ""))
+
+                         }
+                       ))
+
+#'Esta es la clase de Cruce
+#'@export
+#'
+Cruce <- R6::R6Class(classname = "Cruce",
+                        public = list(
+                          diseno = NULL,
+                          diccionario = NULL,
+                          tema = NULL,
+                          graficadas = NULL,
+                          initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
+                            self$diseno <- diseno
+                            self$diccionario <- diccionario
+                            self$tema <- tema
+                            self$graficadas <- graficadas
+                          },
+                          sankey_categorica = function(variables = NULL, size_text_cat = 8){
+
+                            if(is.null(variables)) {
+
+                              stop(paste("Especifique las variables a analizar con el argumento `variables`"))
+
+                            } else {
+
+                              # llave_aux <- quo_name(enquo(codigo))
+                              # if(!(llave_aux %in% self$graficadas)){
+                              #   if(llave_aux %in% self$encuesta$cuestionario$diccionario$llaves){
+                              #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                              #   } else {
+                              #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                              #   }
+                              # } else {
+                              #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                              # }
+
+                              bd_estimacion <- analizar_sankey(diseno = self$diseno, var_1 = variables[1], var_2 = variables[2])
+
+                              graficar_sankey(bd = bd_estimacion, size_text_cat = size_text_cat) +
+                                self$tema()
+
+                            }
+
+                          },
+                          puntos = function(cruce, variables, vartype = "se", valor_variables){
+                            bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(self$diseno),
+                                                                              cruce = cruce, variables = variables,vartype = vartype,
+                                                                              valor_variables = valor_variables) |>
+                              left_join(self$diccionario, by = c("variable" = "llaves"))
+
+                            encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
+                              self$tema()
+
+                          },
+                          brechasDuales = function(var1, var2_filtro, filtro, vartype = "cv", line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+
+                            encuestar:::analizar_cruceBrechas(diseno = srvyr::as_survey_design(self$diseno),
+                                                              var1 = var1,
+                                                              var2_filtro = var2_filtro,
+                                                              filtro = filtro,
+                                                              vartype = vartype) |>
+                              encuestar:::graficar_cruce_brechasDuales(var1 = var1,var2_filtro = var2_filtro, vartype = vartype,
+                                                                       line_rich = line_rich,
+                                                                       line_linewidth = line_linewidth,
+                                                                       line_hjust = line_hjust,
+                                                                       line_vjust = line_vjust) +
+                              self$tema()
+                          },
+                          brechasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+
+                            encuestar:::analizar_crucePuntos(srvyr::as_survey_design(self$diseno),
+                                                             cruce = por_grupo,
+                                                             variables = variables, vartype = vartype, valor_variables = valor_variables) %>%
+                              {
+                                if(vartype == "cv"){
+                                  mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
+                                                           `cv` >.30 ~ "**",
+                                                           TRUE ~""))
+                                } else {
+                                  .
+                                }
+                              } |>
+                              left_join(self$diccionario,
+                                        join_by(variable == llaves)) |> select(-variable) |>
+                              rename(variable = tema) %>%
+                              encuestar:::graficar_cruce_brechasMultiples(cruce = por_grupo, vartype = vartype,
+                                                                          line_rich = line_rich,
+                                                                          line_linewidth = line_linewidth,
+                                                                          line_hjust = line_hjust,
+                                                                          line_vjust = line_vjust) +
+                              self$tema()
+
+                          },
+                          barrasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, color = "green", filter = NULL){
+
+                            encuestar:::analizar_crucePuntos(srvyr::as_survey_design(self$diseno),
+                                                             cruce = por_grupo,
+                                                             variables = variables, vartype = vartype,
+                                                             valor_variables = valor_variables) %>%
+                              {
+                                if(vartype == "cv"){
+                                  mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
+                                                           `cv` >.30 ~ "**",
+                                                           TRUE ~""))
+                                } else{
+                                  .
+                                }
+                              } |>
+                              left_join(self$diccionario,
+                                        join_by(variable == llaves)) |> select(-variable) |>
+                              rename(variable = tema) |>
+                              encuestar:::graficar_cruce_barrasMultiples(cruce = por_grupo,
+                                                                         vartype = vartype,
+                                                                         color = color,
+                                                                         filter = filter) +
+                              self$tema()
+
+                          },
+                          bloques = function(cruce, variable, vartype = "cv", filter = NULL){
+                            encuestar:::analizar_cruceBrechas(srvyr::as_survey_design(self$diseno),
+                                                              var1 = cruce,
+                                                              var2_filtro = variable,
+                                                              filtro = NULL,
+                                                              vartype = vartype) |>
+                              graficar_cruce_bloques(cruce = cruce,
+                                                     variable = variable,
+                                                     vartype = vartype,
+                                                     filter = filter) +
+                              self$tema()
+                          }
+                        ))
+
+#'Esta es la clase de Especial
+#'@export
+#'
+Especial <- R6::R6Class(classname = "Especial",
+                          public = list(
+                            diseno = NULL,
+                            diccionario = NULL,
+                            tema = NULL,
+                            graficadas = NULL,
+                            initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
+                              self$diseno <- diseno
+                              self$diccionario <- diccionario
+                              self$tema <- tema
+                              self$graficadas <- graficadas
+                            },
+                            candidatoOpinion = function(patron_inicial, aspectos,
+                                                        ns_nc = "Ns/Nc",
+                                                        regular = "Regular",
+                                                        llave_burbuja = "conocimiento",
+                                                        filtro_burbuja = "respuesta == 'Sí'",
+                                                        grupo_positivo,
+                                                        grupo_negativo,
+                                                        orden_resp,
+                                                        colores_opinion = c("red", "yellow", "green", "gray70"),
+                                                        color_burbuja = "blue",
+                                                        caption_opinion = "",
+                                                        caption_nsnc = "Ns/Nc",
+                                                        caption_burbuja = "Conocimiento",
+                                                        size_caption_opinion = 12,
+                                                        size_caption_nsnc = 14,
+                                                        size_caption_burbuja = 14,
+                                                        size_text_cat = 16,
+                                                        burbuja = T,
+                                                        salto = 20){
+
+                              if(!is.na(llave_burbuja)){
+                                burbuja <- analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                                         diccionario = self$diccionario,
+                                                                         patron_pregunta = llave_burbuja,
+                                                                         aspectos = aspectos) %>%
+                                  filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
+                                  left_join(self$diccionario %>% select(aspecto = llaves, tema))
+                              } else {
+                                burbuja <- NA
+                              }
+
+                              encuestar:::analizar_frecuencias_aspectos(diseno = self$diseno,
+                                                                        diccionario = self$diccionario,
+                                                                        patron_pregunta = patron_inicial,
+                                                                        aspectos = aspectos) |>
+                                left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
+                                encuestar:::graficar_candidato_opinion(ns_nc = ns_nc,
+                                                                       regular = regular,
+                                                                       grupo_positivo= grupo_positivo,
+                                                                       grupo_negativo = grupo_negativo,
+                                                                       caption_opinion = caption_opinion,
+                                                                       caption_nsnc = caption_nsnc,
+                                                                       caption_burbuja = caption_burbuja,
+                                                                       size_caption_opinion = size_caption_opinion,
+                                                                       size_caption_nsnc = size_caption_nsnc,
+                                                                       size_caption_burbuja = size_caption_burbuja,
+                                                                       size_text_cat = size_text_cat,
+                                                                       orden_resp = orden_resp,
+                                                                       colores = colores_opinion,
+                                                                       burbuja = burbuja,
+                                                                       color_burbuja = color_burbuja,
+                                                                       salto = salto,
+                                                                       tema = self$tema)
+
+                            },
+                            candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
+
+                              encuestar:::analizar_candidatoPartido(diseno = self$diseno,
+                                                                    diccionario = self$diccionario,
+                                                                    llave_partido = llave_partido,
+                                                                    llave_conocimiento = llave_conocimiento,
+                                                                    respuesta_conoce = respuesta_conoce,
+                                                                    candidatos = candidatos,
+                                                                    corte_otro = corte_otro) %>%
+                                purrr::map(~.x %>%
+                                             left_join(self$diccionario %>% select(aspecto = llaves, tema))
+                                ) %>%
+                                encuestar:::graficar_candidatoPartido(cliente = cliente,
+                                                                      tipo_conoce = "intervalos",
+                                                                      colores_candidato = colores_candidatos,
+                                                                      colores_partido = colores_partido,
+                                                                      solo_respondidos = T,
+                                                                      tema = self$tema)
+                            },
+                            candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
+
+                              bd_saldo <- encuestar:::analizar_saldoOpinion(diseno = self$diseno,
+                                                                            diccionario = self$diccionario,
+                                                                            llave_opinion = llave_opinion,
+                                                                            candidatos = candidatos,
+                                                                            grupo_positivo = positivos,
+                                                                            grupo_negativo = negativos)
+
+                              encuestar:::graficar_candidatoSaldo(bd = bd_saldo,
+                                                                  grupo_positivo = positivos,
+                                                                  grupo_negativo = negativos,
+                                                                  color_positivo = color_positivo,
+                                                                  color_negativo = color_negativo) +
+                                self$tema()
+
+                            },
+                            metodo_morena = function(personajes, atributos){
+                              encuestar:::analizar_morena(diseno = self$diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
+                                encuestar:::graficar_morena(personajes = personajes, atributos = atributos)
+                            }
+                          ))
+
+#'Esta es la clase de Modelo
+#'@export
+#'
+Modelo <- R6::R6Class(classname = "Modelo",
+                        public = list(
+                          diseno = NULL,
+                          diccionario = NULL,
+                          tema = NULL,
+                          graficadas = NULL,
+                          initialize = function(diseno, diccionario = NULL, tema, graficadas = NULL){
+                            self$diseno <- diseno
+                            self$diccionario <- diccionario
+                            self$tema <- tema
+                            self$graficadas <- graficadas
+                          },
+                          correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
+                            analisis_correspondencia(var1 = var1, var2 = var2, legenda1 = legenda1, legenda2 = legenda2, diseno = self$diseno, colores = colores)
+                          },
+                          componentesPrincipales = function(variables){
+                            pc <- survey::svyprcomp(survey::make.formula(variables),
+                                                    design= self$diseno,
+                                                    scale=TRUE, scores=TRUE)
+                            factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
+                          },
+                          blackBox = function(vars, stimuli){
+
+                            self$diseno$variables %>%
+                              as_tibble() |>
+                              analizar_blackbox_1d(vars, stimuli) %>%
+                              graficar_blackbox_1d()
+
+                          }
+                        ))
+
+#'Esta es la clase de Regiones
+#'@export
+#'
+Regiones <- R6::R6Class(classname = "Regiones",
+                       public = list(
+                         diseno = NULL,
+                         diccionario = NULL,
+                         shp = NULL,
+                         tema = NULL,
+                         initialize = function(diseno, diccionario = NULL, shp = NULL, tema){
+                           self$diseno <- diseno
+                           self$diccionario <- diccionario
+                           self$shp <- shp
+                           self$tema <- tema
+                         },
+                         mapa_ganador = function(variable, lugar = 1){
+                           encuestar:::calcular_ganadorRegion(diseno = self$diseno,
+                                                              regiones = self$shp,
+                                                              variable = {{variable}},
+                                                              lugar = lugar) %>%
+                             encuestar:::graficar_mapaRegiones(variable = {{variable}})
+                         },
+                         mapa_degradadoNumerico = function(variable){
+                           encuestar:::analizar_frecuenciasRegion(regiones = self$shp,
+                                                                  variable = {{variable}},
+                                                                  diseno = self$diseno) %>%
+                             encuestar:::graficar_mapaRegiones(variable = {{variable}}, categorica = F)
+                         },
+                         heatmap_conocimiento = function(patron_llaveConocimiento, candidatos, respuesta, ordenRegiones = NULL, salto_labelRegiones = 5){
+                           bd_analizar_conocimientoRegion <- encuestar:::analizar_conocimientoRegion(patron_llaveConocimiento = patron_llaveConocimiento, aspectos_llaveConocimiento = candidatos, filtro_respuestaConocimiento = respuesta, diseno = self$diseno, diccionario = self$diccionario)
+                           encuestar:::graficar_conocimientoRegion(bd = bd_analizar_conocimientoRegion, ordenRegiones = ordenRegiones, salto_labelRegiones = salto_labelRegiones)
+                         },
+                         heatmap_saldoOpinion = function(patron_llaveOpinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo,
+                                                         ordenRegiones = NULL, salto_labelRegiones = 5){
+                           encuestar:::analizar_saldoRegion(patron_llaveOpinion = patron_llaveOpinion, aspectos_llaveOpinion = candidatos, ns_nc = ns_nc, cat_negativo = cat_negativo, cat_regular = cat_regular, cat_positivo = cat_positivo, diseno = self$diseno, diccionario = self$diccionario) %>%
+                           encuestar:::graficar_saldoRegion(ordenRegiones = ordenRegiones, salto_labelRegiones = salto_labelRegiones)
+
+                         },
+                         mapa_resaltarRegion = function(region, color){
+                           self$shp %>%
+                             mutate(color = if_else(region %in% !!region, color, "gray70")) %>%
+                             ggplot(aes(fill = color)) + geom_sf(color = "black") +scale_fill_identity() +
+                             theme_void() + labs(tit = region)
+                         }
+                       ))
 
 #' Title
 #'

@@ -2,13 +2,26 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_frecuencias_aspectos}
 \alias{analizar_frecuencias_aspectos}
-\title{Title}
+\title{Analizar frecuencias aspectos}
 \usage{
-analizar_frecuencias_aspectos(encuesta, pregunta, aspectos)
+analizar_frecuencias_aspectos(diseno, diccionario, patron_pregunta, aspectos)
 }
 \arguments{
-\item{aspectos}{}
+\item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
+
+\item{diccionario}{Cuestionario de la encuesta en formato de procesamiento requerido}
+
+\item{patron_pregunta}{Patrón que comparten las variables a analizar.}
+
+\item{aspectos}{Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.}
+}
+\value{
+\item{estimacion} {Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
 }
 \description{
-Title
+Analizar frecuencias aspectos
+}
+\examples{
+analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "opinion", aspectos = c("amlo", "claudia", "ebrard"))
+analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "conocimiento", aspectos = c("amlo", "claudia", "ebrard"))
 }

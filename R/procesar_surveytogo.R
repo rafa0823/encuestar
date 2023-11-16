@@ -1,19 +1,21 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
 
-#' Title
+#' Analizar frecuencias
 #'
-#' @param encuesta
-#' @param pregunta
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas
+#' @param pregunta Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos
 #'
 #' @return
 #' \item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
 #' @export
 #'
 #' @examples
+#' analizar_frecuencias(diseno = as_survey_design(diseno), pregunta = sexo)
+#' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), pregunta = sexo)
 
 analizar_frecuencias <- function(diseno, pregunta){
-
-  estimacion <- survey::svymean(enquo(pregunta),
+  estimacion <- survey::svymean(survey::make.formula(pregunta),
+    # enquo(pregunta),
                                 design = diseno, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
     rename(media=2, ee=3) %>%
@@ -34,49 +36,60 @@ analizar_frecuencias <- function(diseno, pregunta){
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 
-#' Title
+#' Analizar frecuencias aspectos
 #'
-#' @param encuesta
-#' @param pregunta
-#' @param aspectos
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param patron_pregunta Patrón que comparten las variables a analizar.
+#' @param aspectos Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
 #'
 #' @return
+#' \item{estimacion} {Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
 #' @export
 #'
 #' @examples
+#' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "opinion", aspectos = c("amlo", "claudia", "ebrard"))
+#' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "conocimiento", aspectos = c("amlo", "claudia", "ebrard"))
+analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
 
-analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
+  # ja <- try(
+  #   rlang::expr_text(ensym(patron_pregunta)),T
+  # )
 
   ja <- try(
-    rlang::expr_text(ensym(pregunta)),T
+    patron_pregunta, T
   )
 
   if(class(ja) != "try-error"){
-    p <- rlang::expr_text(ensym(pregunta))
+    # p <- rlang::expr_text(ensym(patron_pregunta))
+    p <- patron_pregunta
     llaves <- glue::glue("{p}_{aspectos}")
   } else{
     llaves <- aspectos
   }
 
-
   estimaciones <- map_df(llaves,
                          ~{
                            if(class(ja) != "try-error"){
-                             aux <- encuesta$cuestionario$diccionario %>% tidyr::unnest(respuestas) %>% filter(grepl(.x,respuestas)) %>% pull(respuestas) %>% str_replace("\\s*\\{[^\\)]+\\} ","")
+                             aux <- diccionario %>%
+                               tidyr::unnest(respuestas) %>%
+                               filter(grepl(.x,respuestas)) %>%
+                               pull(respuestas) %>%
+                               str_replace("\\s*\\{[^\\)]+\\} ","")
                            } else{
                              aux <- .x
                            }
                            if(length(aux) == 0) aux <- .x
                            prev <- survey::svymean(survey::make.formula(.x),
-                                                   design = encuesta$muestra$diseno, na.rm = T)
+                                                   design = diseno, na.rm = T)
 
                            prev %>%
                              tibble::as_tibble(rownames = "respuesta") %>%
                              rename(media=2, ee=3) %>%
-                             left_join(
-                               prev %>% confint() %>% tibble::as_tibble(rownames = "respuesta") %>%
-                                 rename(inf=2, sup=3)
-                             ) %>%
+                             left_join(prev %>%
+                                         confint() %>%
+                                         tibble::as_tibble(rownames = "respuesta") %>%
+                                         rename(inf=2, sup=3), by = "respuesta") %>%
                              mutate(
                                aspecto = aux,
                                respuesta = stringr::str_replace(
@@ -88,66 +101,87 @@ analizar_frecuencias_aspectos <- function(encuesta, pregunta, aspectos){
                                                               .fun = max))
                          })
 
-  p <- encuesta$cuestionario$diccionario %>%
-    filter(llaves %in% !!llaves) %>% transmute(pregunta, aspecto = as.character(llaves))
-  estimaciones <- estimaciones %>% mutate(aspecto = as.character(aspecto)) %>% left_join(p)
+  p <- diccionario %>%
+    filter(llaves %in% !!llaves) %>%
+    transmute(pregunta, aspecto = as.character(llaves))
+
+  estimaciones <- estimaciones %>%
+    mutate(aspecto = as.character(aspecto)) %>%
+    left_join(p, by = c("aspecto"))
 }
 
+#' Analizar partido asociado a un candidato
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param llave_partido Patrón que comparten las variables asociadas a las preguntas que relacionan un personaje con un partido político
+#' @param llave_conocimiento Patrón que comparten las variables relacionadas a preguntas sobre el conocimiento de un personaje
+#' @param respuesta_conoce Filtro sobre el cuál se evalúa la asociación de un personaje a un partído político
+#' @param candidatos Vector de nombres cortos asociados a uno o más personajes sobre los cuáles se preguntó su asociación partidista
+#' @param corte_otro Parámetro 'prop' de la función 'fct_lump' de la paquetería 'forcats' usado para agrupar valores pequeños de partidos políticos
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_candidatoPartido(diseno = self%diseno, llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí", candidatos = c("era", "sasil"))
+analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
 
-analizar_candidato_partido <- function(diseno, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
-  partido <- paste(llave_partido,candidatos,sep = "_")
-  conoce <- paste(llave_conocimiento,candidatos, sep = "_")
+  conoce <- paste(llave_conocimiento, candidatos, sep = "_")
+  llaves_partido <- paste(llave_partido, candidatos,sep = "_")
 
-  conoce <- purrr::map_df(.x = conoce,.f = ~{
-    aux <- survey::svymean(survey::make.formula(.x),
-                           design = diseno, na.rm = T)
-    int <- aux %>% confint()
-    aux %>%
-      tibble::as_tibble(rownames = "respuesta") %>%
-      rename(media=2, ee=3) %>%
-      left_join(
-        int %>% tibble::as_tibble(rownames = "respuesta") %>% rename(inf = 2, sup = 3)
-      ) %>%
-      mutate(
-        aspecto = .x,
-        respuesta = stringr::str_replace(
-          pattern = .x,
-          replacement = "",
-          string = respuesta))
-  }) %>% filter(respuesta == respuesta_conoce)
+  conoce <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_conocimiento, aspectos = candidatos) |>
+    filter(respuesta == respuesta_conoce)
 
-  partido <- purrr::map_df(.x = partido,.f = ~{
-    survey::svymean(survey::make.formula(.x),
-                    design = diseno, na.rm = T) %>%
-      tibble::as_tibble(rownames = "respuesta") %>%
-      rename(media=2, ee=3) %>%
-      mutate(
-        aspecto = .x,
-        respuesta = stringr::str_replace(
-          pattern = .x,
-          replacement = "",
-          string = respuesta),
-        respuesta=forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) %>%
-      count(respuesta, aspecto, wt = media, name = "media") %>% arrange(desc(media))
-  }) %>%
+  partido <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_partido, aspectos = candidatos) |>
+    mutate(respuesta = as.character(respuesta),
+           respuesta = forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) |>
+    count(respuesta, aspecto, wt = media, name = "media") %>%
+    group_by(aspecto) |>
+    mutate(respuesta = forcats::fct_reorder(.f = respuesta, .x = media, .fun = max)) |>
+    ungroup() |>
+    arrange(aspecto, desc(media)) |>
+    group_by(aspecto) %>%
+    mutate(sup = cumsum(media),
+           inf = lag(sup, default = 0),
+           label = (inf +sup)/2)
 
-    group_by(aspecto) %>% mutate(sup = cumsum(media),
-                                 inf = lag(sup, default = 0),
-                                 label = (inf +sup)/2)
+  bases <- list(conoce = conoce, partido = partido)
 
-  bases <- list(conoce = conoce, partido =  partido)
-
-  return(list(conoce = conoce, partido =  partido))
+  return(list(conoce = conoce, partido = partido))
 }
 
-organizar_opinion_saldo <- function(bd, llave_opinion, grupo_positivo, grupo_negativo){
-  bd %>%
-    mutate(!!rlang::sym(llave_opinion) := case_when(respuesta %in% grupo_positivo ~"Positiva",
-                                                    respuesta %in% grupo_negativo ~"Negativa",
-    )) %>% filter(!is.na(!!rlang::sym(llave_opinion))) %>%
-    mutate(persona = stringr::str_replace(aspecto, glue::glue("{llave_opinion}_"), "")) %>%
-    count(persona,tema, grupo = !!rlang::sym(llave_opinion), wt = media, name = "saldo") %>%
+#' Calcular el saldo de opinión por personaje
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param candidatos Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
+#' @param llave_opinion Patrón que comparten las variables asociadas a las preguntas sobre la opinión pública hacia un personaje.
+#' @param grupo_positivo Conjunto de valores de la variable opinión tratados como positivos.
+#' @param grupo_negativo Conjunto de valores de la variable opinión tratados como negativos
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' calcular_saldoOpinion(bd, llave_opinion = "opinion", grupo_positivo = "Buena", grupo_negativo = "Mala")
+#' calcular_saldoOpinion(bd, llave_opinion = "op", grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"))
+analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos, grupo_positivo, grupo_negativo){
+
+  llave_op = paste(llave_opinion) # BUG
+
+  bd <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_op, aspectos = candidatos) |>
+    left_join(diccionario |> select(aspecto = llaves, tema), by = "aspecto")
+
+  res <- bd %>%
+    mutate(!!rlang::sym(llave_op) := case_when(respuesta %in% grupo_positivo ~"Positiva",
+                                                    respuesta %in% grupo_negativo ~"Negativa",)) %>%
+    filter(!is.na(!!rlang::sym(llave_op))) %>%
+    mutate(persona = stringr::str_replace(aspecto, glue::glue("{llave_op}_"), "")) %>%
+    count(persona, tema, grupo = !!rlang::sym(llave_op), wt = media, name = "saldo") %>%
     mutate(saldo = if_else(grupo == "Negativa", -saldo, saldo))
+
+  return(res)
 }
 
 ordenar_opinion_xq <- function(base, llave_opinion, llave_xq, aspectos, grupo_positivo, grupo_negativo){
@@ -242,47 +276,50 @@ analizar_frecuencia_region <- function(variable, diseno, diccionario){
     )
 }
 
-#' Title
+#' Analizar conocimiento de personajes por region
 #'
-#' @param llave
-#' @param variable
-#' @param respuesta
-#' @param diseno
-#' @param diccionario
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param patron_llaveConocimiento Patrón que comparten las variables asociadas al conocimiento de un personaje
+#' @param filtro_respuestaConocimiento Filtro aplicado a las variables asociadas al conocimiento
+#' @param aspectos_llaveConocimiento Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-analizar_conocimiento_region <- function(llave, variable, respuesta, diseno, diccionario){
-  junto <- paste(llave, variable, sep = "_")
-
-  junto %>%
-    map_df(~{
-      survey::svytable(survey::make.formula(c(.x,"region")), design = diseno) %>%
-        as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n))%>% mutate(aspecto = .x) %>%
-        filter(!!rlang::sym(.x) == respuesta) %>% select(-1)
-    }) %>%
-    left_join(
-      diccionario %>% select(aspecto = llaves, tema)
-    )
+#' bd_analizar_conocimientoRegion <- analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento", aspectos_llaveConocimiento = candidatos, filtro_respuestaConocimiento = "Sí", diseno = Preguntas$Regiones$diseno, diccionario = cuestionario_demo)
+analizar_conocimientoRegion <- function(patron_llaveConocimiento, aspectos_llaveConocimiento, filtro_respuestaConocimiento, diseno, diccionario){
+  junto <- paste(patron_llaveConocimiento, aspectos_llaveConocimiento, sep = "_")
+  tbl <- junto %>%
+    purrr::map_df(~{survey::svytable(survey::make.formula(c(.x, "region")), design = diseno) %>%
+        as_tibble() %>%
+        group_by(region) %>%
+        mutate(pct = n/sum(n)) %>%
+        mutate(aspecto = .x) %>%
+        filter(!!rlang::sym(.x) == filtro_respuestaConocimiento) %>%
+        select(-1)}) %>%
+    left_join(diccionario %>% select(aspecto = llaves, tema), by = "aspecto")
+  return(tbl)
 }
-
-#' Title
+#' Analizar saldo de opinión de personajes en cada región o estrato
 #'
-#' @param llave_opinion
-#' @param candidatos
-#' @param diseno
-#' @param ns_nc
-#' @param cat_negativo
-#' @param cat_positivo
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param ns_nc Cadena de texto que identifica los valores relacionados al "No sabe" o "No contesta"
+#' @param cat_negativo Vector que contiene los valores relacionados a las opiniones 'negativas'
+#' @param cat_positivo Vector que contiene los valores relacionados a las opiniones 'positivas'
+#' @param patron_llaveConocimiento Patrón que comparten las variables asociadas a la opinión de un personaje
+#' @param aspectos_llaveOpinion Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
+#' @param cat_regular Vector que contiene los valores relacionados a las opiniones 'regulares' o neutras
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
 #'
 #' @return
 #' @export
 #'
 #' @examples
-analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo, cat_regular, cat_positivo, diseno, diccionario){
-  if(llave_opinion ==  "") llaves <- candidatos else llaves <- paste(llave_opinion, candidatos,sep = "_")
+#' analizar_saldoRegion(patron_llaveOpinion = "opinion", aspectos_llaveOpinion = candidatos, ns_nc = "Ns/Nc", cat_negativo = c("Muy mala", "Mala"), cat_regular = "Regular", cat_positivo = c("Buena", "Muy buena"), diseno = Preguntas$Regiones$diseno, diccionario = Preguntas$Regiones$diccionario)
+analizar_saldoRegion <- function(patron_llaveOpinion, aspectos_llaveOpinion, ns_nc, cat_negativo, cat_regular, cat_positivo, diseno, diccionario){
+  if(patron_llaveOpinion ==  "") llaves <- candidatos else llaves <- paste(patron_llaveOpinion, candidatos,sep = "_")
 
   res <- llaves %>% map_df(~{
     survey::svytable(survey::make.formula(c(.x,"region")), design = diseno) %>%
@@ -296,49 +333,60 @@ analizar_saldo_region <- function(llave_opinion, candidatos, ns_nc, cat_negativo
   if(is.null(names(candidatos))){
     res <- res %>%
       left_join(
-        diccionario %>% select(aspecto = llaves, tema)
+        diccionario %>% select(aspecto = llaves, tema), by = "aspecto"
       )
   } else{
     res <- res %>% mutate(tema = names(candidatos[match(aspecto, candidatos)]))
   }
   return(res)
 }
-
-#' Title
+#' Calcular valor más frecuente por región de acuerdo al diseño muestral
 #'
-#' @param var
-#' @param diseno
-#'
-#' @return
-#' @export
-#'
-#' @examples
-
-analizar_ganador_region <- function(regiones, var, lugar, diseno){
-  formula <- survey::make.formula(c("region", rlang::expr_text(ensym(var))))
-
-  regiones %>% left_join(
-    survey::svytable(formula, design = diseno) %>% as_tibble %>%
-      group_by(region) %>% filter(dense_rank(-n) == lugar)
-  )
-}
-#' Title
-#'
-#' @param var
-#' @param diseno
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param regiones Shape file de las regiones-estrato de la encuesta
+#' @param lugar Primer lugar del promedio por región de la variable "variable" usando la función dense_rank
+#' @param variable Variable a obtener la estimación estimación por región
+#' @param lugar Lugar del top de las estimaciones por región
 #'
 #' @return
 #' @export
 #'
 #' @examples
-analizar_promedio_region <- function(regiones, var, diseno){
-  formula <- survey::make.formula(rlang::expr_text(ensym(var)))
-  regiones %>% left_join(
-    survey::svyby(formula, ~region, design = diseno,FUN = survey::svymean, na.rm  = T) %>%
-      as_tibble()
-  )
-}
+#' calcular_ganadorRegion(regiones = shp, variable = "voto_partido", lugar = lugar, diseno = diseno)
+calcular_ganadorRegion <- function(diseno, regiones, variable, lugar){
+  bd_topEstimaciones <- encuestar:::analizar_frecuenciasRegion(regiones = regiones, variable = variable, diseno = diseno) |>
+    janitor::clean_names() |>
+    as_tibble() |>
+    select(!c(geometry, n)) |>
+    select(!contains("se")) |>
+    tidyr::pivot_longer(cols = !region, names_to = rlang::expr_text(ensym(variable)), values_to = "estimacion") |>
+    group_by(region) %>%
+    filter(dense_rank(-estimacion) == lugar)
+  tbl <- regiones %>%
+    left_join(bd_topEstimaciones, by = "region")
+  return(tbl)
 
+}
+#' Analizar estimaciones frecuentistas por región
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param regiones Shape file de las regiones-estrato de la encuesta
+#' @param variable Variable a obtener la estimación estimación por región
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_frecuenciasRegion(regiones = shp, variable = "voto_partido", diseno = diseno)
+analizar_frecuenciasRegion <- function(regiones, variable, diseno){
+  variable = variable
+  formula <- survey::make.formula(rlang::expr_text(ensym(variable)))
+  tbl <- regiones %>%
+    left_join(
+    survey::svyby(formula, ~region, design = diseno, FUN = survey::svymean, na.rm  = T) %>%
+      as_tibble(), by = "region")
+  return(tbl)
+}
 #' Title
 #'
 #' @param bd
@@ -394,10 +442,23 @@ analizar_blackbox_1d <- function(bd, vars, stimuli){
   )
 }
 
-analizar_morena <- function(encuesta, personajes, atributos){
+#' Analizar metodología de MORENA
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
+#' @param personajes Vector de nombres cortos asociados a uno o más personajes sobre los cuáles se preguntó la batería de MORENA
+#' @param atributos Tibble que contiene los atributos y los puntos que obtiene el ganador de cada atributo
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_morena(diseno = diseno, diccionario = diccionario, personajes = c("era", "sasil"), atributos = atributos)
+#' analizar_morena(diseno = diseno, diccionario = diccionario, personajes = c("era", "sasil", "jaac"), atributos = atributos)
+analizar_morena <- function(diseno, diccionario, personajes, atributos){
 
   #opinión positiva
-  o_p <- analizar_frecuencias_aspectos(encuesta$encuesta, opinion, personajes) %>%
+  o_p <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = "opinion", aspectos = personajes) %>%
     filter(respuesta == "Buena") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo", "personaje"), remove = F) %>%
@@ -405,32 +466,33 @@ analizar_morena <- function(encuesta, personajes, atributos){
 
   #atributos
   atr_p <- atributos %>%
-    pmap_df(function(atributo, puntos){
-      analizar_frecuencias_aspectos(encuesta$encuesta, !!rlang::sym(atributo), personajes) %>%
-        filter(respuesta %in% c("Mucho", "Algo")) %>% mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
+    purrr::pmap_df(function(atributo, puntos){
+      encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = atributo, aspectos = personajes) %>%
+        filter(respuesta %in% c("Mucho", "Algo")) %>%
+        mutate(media = if_else(respuesta == "Algo", media *.5,media)) %>%
         group_by(aspecto) %>%
         summarise(media = sum(media)) %>%
         mutate(ganador = media == max(media),
-               puntos = if_else(ganador,puntos,0)) %>%
-        separate(aspecto, c("atributo", "personaje"),remove = F)
+               puntos = if_else(ganador, puntos, 0)) %>%
+        separate(aspecto, c("atributo", "personaje"), remove = F)
     })
 
   #buen candidato
-  cand <- analizar_frecuencias_aspectos(encuesta$encuesta, buencandidato, personajes) %>%
+  cand <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = "buencandidato", aspectos = personajes) %>%
     filter(respuesta == "Sí") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 1, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #votaria
-  voto <- analizar_frecuencias_aspectos(encuesta$encuesta, votaria, personajes) %>%
+  voto <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = "votaria", aspectos = personajes) %>%
     filter(respuesta == "Sí votaría") %>%
     mutate(ganador = media == max(media), puntos = if_else(ganador, 2, 0)) %>%
     separate(aspecto, c("atributo","personaje"),remove = F) %>%
     select(atributo, personaje, media, ganador, puntos, aspecto)
 
   #preferencia
-  pref <- analizar_frecuencias(encuesta$encuesta, candidato_preferencia) %>%
+  pref <- encuestar:::analizar_frecuencias(diseno = diseno, pregunta = "candidato_preferencia") %>%
     filter(!respuesta %in% c("Ns/Nc", "Ninguno", "Otro")) %>%
     mutate(ganador = media == max(media),
            puntos = if_else(ganador, 2.75, 0)) %>%
@@ -441,7 +503,7 @@ analizar_morena <- function(encuesta, personajes, atributos){
     bind_rows(atr_p) %>%
     bind_rows(cand) %>%
     bind_rows(voto) %>%
-    left_join(dicc %>% select(llaves, tema), by = c("aspecto" = "llaves")) %>%
+    left_join(diccionario %>% select(llaves, tema), by = c("aspecto" = "llaves")) %>%
     bind_rows(pref)
 
   return(atr)
@@ -468,11 +530,24 @@ analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
 
 }
 
-analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, valor_variables){
+#' Analizar cruce por puntos
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param cruce Variable principal por la cual hacer análisis
+#' @param variables Variables secundarias para hacer análisis con la primaria
+#' @param vartype
+#' @param valor_variables Filtro aplicado a las variables secundarias
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_crucePuntos(diseno = diseno, cruce = "rurub", variables = c("conocimiento_era", "conocimiento_sasil"), vartype = "cv", valor_variables = "Sí")
+analizar_crucePuntos = function(diseno, cruce, variables, vartype, valor_variables){
 
   variables <- enquos(variables)
 
-  res <- encuesta_diseño |>
+  res <- diseno |>
     group_by(!!rlang::sym(cruce)) |>
     summarise(across(!!!variables,
                      ~ srvyr::survey_mean(.x == !!valor_variables, vartype = vartype, na.rm = TRUE),
@@ -487,9 +562,22 @@ analizar_cruce_puntos <-  function(encuesta_diseño, cruce, variables, vartype, 
   return(res)
 }
 
-analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtro, vartype){
+#' Analizar cruce entre dos variables
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param cruce Variable principal por la cual hacer análisis
+#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
+#' @param filtro Filtro aplicable a la variable secundaria
+#' @param vartype
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_cruceBrechas(diseno = diseno, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia", filtro = c("Sasil de León",  "Eduardo Ramírez Aguilar"), vartype = "cv")
+analizar_cruceBrechas = function(diseno, var1, var2_filtro, filtro, vartype){
 
-  encuesta_diseño %>%
+  diseno %>%
     group_by(!!rlang::sym(var1), !!rlang::sym(var2_filtro)) |>
     summarise(srvyr::survey_mean(na.rm=T, vartype = vartype)) %>%
     {
@@ -507,4 +595,58 @@ analizar_cruce_2vbrechas <-  function(encuesta_diseño, var1, var2_filtro, filtr
         .
       }
     }
+}
+
+#' Analizar sankey
+#'
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param var_1 Nombre de la variable primer variable a analizar contenida en el diseño muestral
+#' @param var_2 Nombre de la variable segunda variable a analizar contenida en el diseño muestral
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_sankey(diseno = as_survey_design(diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
+#' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
+analizar_sankey = function(diseno, var_1, var_2){
+
+  estimacion <- survey::svytable(survey::make.formula(c(var1 = var_1, var2 = var_2)),
+                            design = diseno) %>%
+    tibble::as_tibble()
+
+  return(estimacion)
+
+}
+
+#' Analizar respuestas abiertas
+#'
+#' @param bd Base de datos en formato largo a analizar en formato largo.
+#' @param variable Variable cuyos valores son cadenas de texto.
+#' @param palabrasVacias Conjunto de palabras a omitir del lenguajes español.
+#' @param totalPalabras Total de palabras a segregar
+#' @param colores Vector de colores en orden descendente de relevancia.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' analizar_respuestaAbierta(bd, variable = opinion_amlo, palabrasVacias = c("muy", "de"), totalPalabras = 15, colores = c("green", "blue", "yellow"))
+analizar_respuestaAbierta = function(bd, variable, palabrasVacias, totalPalabras, colores = c("green", "blue", "yellow")){
+
+  res <- tidytext::unnest_tokens(tbl = bd %>% as_tibble(),
+                                  output = palabras,
+                                  input = variable) %>%
+    as_tibble() |>
+    count(palabras, sort = T) %>%
+    anti_join(tibble(palabras = c(stopwords::stopwords("es"), palabrasVacias)), by = c("palabras")) %>%
+    mutate(colores = case_when(n <= quantile(n, probs = .75) ~ colores[3],
+                               n > quantile(n, probs = .75) & n <= quantile(n, probs=.90) ~ colores[2],
+                               n > quantile(n, probs = .90) ~ colores[1],
+                               T ~ NA_character_ )) %>%
+    na.omit(palabras) |>
+    slice(1:totalPalabras)
+
+  return(res)
+
 }
