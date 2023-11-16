@@ -1670,7 +1670,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                            }
 
                          },
-                         barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+                         barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01){
 
                            llave_aux <- codigo
                            if(!(llave_aux %in% self$graficadas)){
@@ -1689,6 +1689,10 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                            encuestar:::analizar_frecuencias(self$diseno, pregunta = {{codigo}}) |>
                              mutate(tema = tema) |>
+                             mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = media, other_level = "Otros"),
+                                    respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
+                             group_by(respuesta) |>
+                             summarise(media = sum(media)) |>
                              encuestar:::graficar_barras(salto = salto,
                                                          porcentajes_fuera = porcentajes_fuera,
                                                          desplazar_porcentajes = desplazar_porcentajes) +
@@ -1937,7 +1941,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                               self$tema()
 
                           },
-                          bloques = function(cruce, variable, vartype = "cv", filter = NULL){
+                          bloques = function(cruce, variable, vartype = "cv", filter = NULL, linea_grosor = 2, linea_color = "white"){
                             encuestar:::analizar_cruceBrechas(srvyr::as_survey_design(self$diseno),
                                                               var1 = cruce,
                                                               var2_filtro = variable,
@@ -1946,7 +1950,9 @@ Cruce <- R6::R6Class(classname = "Cruce",
                               graficar_cruce_bloques(cruce = cruce,
                                                      variable = variable,
                                                      vartype = vartype,
-                                                     filter = filter) +
+                                                     filter = filter,
+                                                     linea_grosor = linea_grosor,
+                                                     linea_color = linea_grosor) +
                               self$tema()
                           }
                         ))
