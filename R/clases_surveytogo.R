@@ -155,7 +155,14 @@ Encuesta <- R6::R6Class("Encuesta",
                                      edad = sample(18:100,size = n, replace = T))
                             #formato de base
                             respuestas <- respuestas %>%
-                              mutate(Srvyr=NA, Date = NA, INT15 = NA, T_Q = NA)
+                              mutate(Srvyr = NA,
+                                     Date = sample(x = seq(from = lubridate::today(),
+                                                           to = lubridate::today() + lubridate::days(3),
+                                                           by = "days"),
+                                                   size = nrow(respuestas),
+                                                   replace = T),
+                                     INT15 = NA,
+                                     T_Q = NA)
 
                             respuestas <- respuestas %>%
                               relocate(Srvyr, Date, .before = Longitude) %>%
