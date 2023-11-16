@@ -1860,9 +1860,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                             bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(self$diseno),
                                                                               cruce = cruce, variables = variables,vartype = vartype,
                                                                               valor_variables = valor_variables) |>
-                              left_join(self$diccionario, by = c("variable" = "llaves")) |>
-                              select(-variable) |>
-                              rename(variable = tema)
+                              left_join(self$diccionario, by = c("variable" = "llaves"))
 
                             encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
                               self$tema()
