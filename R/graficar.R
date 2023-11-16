@@ -449,7 +449,8 @@ tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF
      plot.subtitle = element_text(hjust = 0,
                                   size = rel(1),
                                   face = "bold",
-                                  colour = "#C5C5C5"),
+                                  colour = "#C5C5C5",
+                                  family = "Poppins"),
      plot.margin = unit(c(1, 1, 1, 1), "lines"),
      strip.text=element_text(colour ="#2C423F")))
 }
@@ -706,7 +707,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
       ggplot(aes(x = factor(tema, orden), y = media))+
       ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc)+
       coord_flip()+
-      ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
+      ggfittext::geom_bar_text(aes(label = etiqueta), color = "#2C423F",
                                hjust = -.1)+
       labs(y = NULL, x = NULL, caption = caption_nsnc)+
       scale_y_continuous(n.breaks = 2) +
@@ -1270,7 +1271,7 @@ graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 #' @export
 #'
 #' @examples
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter){
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_grosor, linea_color){
 
   if(!is.null(filter)) {
 
@@ -1280,9 +1281,9 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter){
   }
 
   g <- bd |>
-    ggplot(aes(area=coef,
-               fill=!!rlang::sym(variable))) +
+    ggplot(aes(area=coef, fill=!!rlang::sym(variable))) +
     treemapify::geom_treemap(alpha=0.7) +
+    treemapify::geom_treemap_subgroup_border(aes(subgroup = coef), size = linea_grosor, color = linea_color) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
   if(vartype == "cv"){
