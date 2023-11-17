@@ -1509,7 +1509,7 @@ Pregunta <- R6::R6Class("Pregunta",
                               self$tema()
                           },
 
-                          cruce_bloque = function(cruce, variable, vartype = "cv", filter=NULL){
+                          cruce_bloque = function(cruce, variable, vartype = "cv", filter=NULL, linea_grosor, linea_color){
                             encuestar:::analizar_cruce_2vbrechas(srvyr::as_survey_design(self$encuesta$muestra$diseno),
                                                                  var1 = cruce,
                                                                  var2_filtro = variable,
@@ -1519,6 +1519,8 @@ Pregunta <- R6::R6Class("Pregunta",
                                                                  variable = variable,
                                                                  vartype = vartype,
                                                                  filter=filter,
+                                                                 linea_grosor = linea_grosor,
+                                                                 linea_color = linea_grosor,
                                                                  familia = self$tema()$text$family)
 
                           },
@@ -1952,7 +1954,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                      vartype = vartype,
                                                      filter = filter,
                                                      linea_grosor = linea_grosor,
-                                                     linea_color = linea_grosor) +
+                                                     linea_color = linea_color) +
                               self$tema()
                           }
                         ))

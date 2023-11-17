@@ -1281,9 +1281,9 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
   }
 
   g <- bd |>
-    ggplot(aes(area=coef, fill=!!rlang::sym(variable))) +
+    ggplot(aes(area=coef, fill=!!rlang::sym(variable), subgroup = coef)) +
     treemapify::geom_treemap(alpha=0.7) +
-    treemapify::geom_treemap_subgroup_border(aes(subgroup = coef), size = linea_grosor, color = linea_color) +
+    treemapify::geom_treemap_subgroup_border(aes(), size = linea_grosor, color = linea_color) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
   if(vartype == "cv"){
