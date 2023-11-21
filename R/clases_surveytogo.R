@@ -14,7 +14,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           bd_correcciones = NULL,
-                          preguntas = NULL,
+                          Graficas = NULL,
                           shp_completo = NULL,
                           shp = NULL,
                           tipo_encuesta = NULL,
@@ -103,7 +103,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-                            self$preguntas <- Graficas$new(encuesta = self)
+                            self$Graficas <- Graficas$new(encuesta = self)
 
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
                             beepr::beep()
@@ -2170,7 +2170,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                dir.create(dir)
                                dir.create(glue::glue("{dir}/data"))
                              }
-                             readr::write_rds(encuesta$preguntas, glue::glue("{dir}/data/clase_pregunta.rda"))
+                             readr::write_rds(encuesta$Graficas, glue::glue("{dir}/data/clase_pregunta.rda"))
                              # readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseno.rda"))
                              # readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
                              # readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
