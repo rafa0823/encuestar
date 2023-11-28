@@ -259,8 +259,7 @@ ui <- bslib::page_navbar(
           actionButton(
             inputId = "filtrar",
             label = "Buscar"),
-          gt_output(
-            outputId = "faltantes")
+          gt_output(outputId = "faltantes")
         ),
         leafletOutput(outputId = "mapa_principal")
       )
