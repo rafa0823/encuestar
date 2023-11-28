@@ -340,7 +340,7 @@ ui <- bslib::page_navbar(
         )
       )
     ),
-    icon = icon("poll")
+    icon = icon("bar-chart")
   ),
   bslib::nav_panel(
     title = "Encuestadores",
@@ -366,7 +366,7 @@ ui <- bslib::page_navbar(
         shinycssloaders::withSpinner(plotOutput("corregidas_encuestador")),
         shinycssloaders::withSpinner(plotOutput("prom_tiempo_encuestador")),
         shinycssloaders::withSpinner(plotOutput("duracion_entrevistas")),
-        icon = icon("person")),
+        icon = icon("users")),
       bslib::nav_panel(
         title = "Individual",
         value = "Individual",
