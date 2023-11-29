@@ -359,7 +359,7 @@ ui <- bslib::page_navbar(
         shinycssloaders::withSpinner(highchartOutput("eliminadas_encuestador")),
         shinycssloaders::withSpinner(highchartOutput("corregidas_encuestador")),
         shinycssloaders::withSpinner(plotOutput("prom_tiempo_encuestador")),
-        shinycssloaders::withSpinner(plotOutput("duracion_entrevistas")),
+        shinycssloaders::withSpinner(highchartOutput("duracion_entrevistas")),
         icon = icon("users")),
       bslib::nav_panel(
         title = "Individual",
@@ -1066,16 +1066,23 @@ server <- function(input, output, session) {
 
   })
 
-  output$duracion_entrevistas <- renderPlot({
+  output$duracion_entrevistas <- renderHighchart({
 
-    g <- efectivas_filter_encuestadores() %>%
-      transmute(duracion = as.double(VEnd - VStart)) %>%
-      # filter(duracion <= lubridate::as.duration("60 mins")) %>%
-      filter(duracion <= 60) %>%
-      ggplot(aes(x = duracion)) +
-      geom_histogram(bins = 120, fill = "blue") +
-      labs(x = "Duración (minutos)", y = "Entrevistas", title = "Duración de las entrevistas") +
-      theme_minimal()
+    bd_plot <- efectivas_filter_encuestadores() %>%
+      mutate(duracion = as.double(VEnd - VStart))
+
+    g <- hchart(density(bd_plot$duracion),
+                color = 'teal',
+                name = 'Distribución de duración de las entrevistas',
+                type = "line") %>%
+      hc_plotOptions(series = list(animation = FALSE)) |>
+      hc_yAxis(title = "Duración") |>
+      hc_yAxis(
+        labels = list(
+          formatter = JS("function() { return this.value * 100 + '%'; }")
+        ),
+        tickInterval = 0.05
+      )
 
     return(g)
 
