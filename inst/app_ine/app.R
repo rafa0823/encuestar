@@ -82,42 +82,39 @@ entrevistas <- function(diseno, enc, u_nivel, u_nivel_tipo){
   return(list(hecho = hecho, por_hacer = por_hacer))
 }
 
-graficar_entrevistas <- function(bd_efectivas, bd_eliminadas, bd_corregidas){
+graficar_historico <- function(bd_efectivas, bd_eliminadas, bd_corregidas){
 
-  bd_hechas <- bd_efectivas %>% as_tibble %>%
-    count(fecha = lubridate::floor_date(Date, "day")) %>%
-    rename("Hechas" = n)
+  hist_efectivas <- bd_efectivas %>%
+    as_tibble %>%
+    count(fecha = lubridate::as_date(Date)) |>
+    rename("tot_hechas" = n)
 
-  bd_eliminadas <- bd_eliminadas %>% as_tibble %>%
-    count(fecha = lubridate::floor_date(Date, "day")) %>%
-    rename("Eliminadas" = n)
+  hist_eliminadas <- bd_eliminadas %>%
+    as_tibble %>%
+    count(fecha = lubridate::as_date(Date)) |>
+    rename("tot_eliminadas" = n)
 
-  bd_corregidas <- bd_corregidas %>% as_tibble %>%
-    count(fecha = lubridate::floor_date(Date, "day")) %>%
-    rename("Corregidas" = n)
+  hist_corregidas <- bd_corregidas %>%
+    as_tibble %>%
+    count(fecha = lubridate::as_date(Date)) |>
+    rename("tot_corregidas" = n)
 
-  bd_plot <- bd_hechas %>%
-    left_join(bd_eliminadas, by = "fecha") %>%
-    left_join(bd_corregidas, by = "fecha") %>%
-    tidyr::pivot_longer(cols = !fecha, names_to = "tipo", values_to = "n") %>%
-    mutate(color = case_when(tipo == "Hechas" ~ "#0EEB79",
-                             tipo == "Eliminadas" ~ "red",
-                             tipo == "Corregidas" ~ "orange"))
+  bd_plot <- hist_efectivas %>%
+    left_join(hist_eliminadas, by = "fecha") %>%
+    left_join(hist_corregidas, by = "fecha") |>
+    mutate(fecha = stringr::str_to_title(string = gsub(pattern = "\\.", replacement = "", x = format(fecha, "%b-%d"))))
 
-  g <- bd_plot %>%
-    ggplot(aes(x = fecha, y = n, color = color)) +
-    geom_point() +
-    geom_line() +
-    ggrepel::geom_text_repel(aes(label = n), show.legend = F, size = 8) +
-    scale_color_identity(labels = c("#0EEB79" = "Hechas", "red" = "Eliminadas", "orange" = "Corregidas"),
-                         guide = "legend") +
-    scale_x_datetime(date_breaks = "1 day", date_labels = "%d %b") +
-    labs(x = NULL, y = "Entrevistas") +
-    theme_minimal() +
-    theme(legend.position = "bottom",
-          legend.title = element_blank(),
-          legend.text = element_text(size = 16),
-          axis.text = element_text(size = 14))
+  g <- highchart() |>
+    hc_xAxis(categories = bd_plot$fecha, labels = list(style = list(fontSize = "18px"))) |>
+    hc_yAxis(labels = list(style = list(fontSize = "18px"))) |>
+    hc_add_series(name = "Efectivas", data = bd_plot$tot_hechas, type = "line", color = "green") |>
+    hc_add_series(name = "Efectivas", data = bd_plot$tot_hechas, type = "scatter", color = "green", showInLegend = FALSE) |>
+    hc_add_series(name = "Corregidas", data = bd_plot$tot_corregidas, type = "line", color = "orange") |>
+    hc_add_series(name = "Corregidas", data = bd_plot$tot_corregidas, type = "scatter", color = "orange", showInLegend = FALSE) |>
+    hc_add_series(name = "Eliminadas", data = bd_plot$tot_eliminadas, type = "line", color = "red") |>
+    hc_add_series(name = "Eliminadas", data = bd_plot$tot_eliminadas, type = "scatter", color = "red", showInLegend = FALSE) |>
+    hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, format = "{point.y}", style = list(fontSize = "24px")))) |>
+    hc_legend(itemStyle = list(fontSize = "24px"))
 
   return(g)
 
@@ -125,14 +122,12 @@ graficar_entrevistas <- function(bd_efectivas, bd_eliminadas, bd_corregidas){
 
 graficar_barras <- function(bd, color){
 
-  g <- bd %>%
-    ggplot(aes(x = reorder(str_to_title(Srvyr), n), y = n)) +
-    ggchicklet::geom_chicklet(fill = color) +
-    ggfittext::geom_bar_text(show.legend = F, contrast = T, size = 14) +
-    scale_y_continuous(breaks = NULL) +
-    coord_flip() +
-    theme_minimal() +
-    theme(legend.position = "none", axis.text = element_text(size = 14))
+  g <- highchart() |>
+    hc_xAxis(categories = bd$Srvyr, labels = list(style = list(fontSize = "18px"))) |>
+    hc_yAxis(labels = list(style = list(fontSize = "18px"))) |>
+    hc_add_series(data = bd$n, type = "bar", color = color, showInLegend = FALSE) |>
+    hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, format = "{point.y}", style = list(fontSize = "24px")))) |>
+    hc_legend(itemStyle = list(fontSize = "24px"))
 
   return(g)
 }
@@ -294,13 +289,13 @@ ui <- bslib::page_navbar(
               striped = T,
               total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
               status = "success"),
-            shinycssloaders::withSpinner(plotOutput(outputId = "avance_region"))
+            shinycssloaders::withSpinner(highchartOutput(outputId = "avance_region"))
           ),
           bslib::accordion_panel(
             title = "Histórico de entrevistas",
             value = "Histórico de entrevistas",
             shinycssloaders::withSpinner(
-              plotOutput(outputId = "hechas")),
+              highchartOutput(outputId = "historico")),
             bslib::value_box(
               title = "Entrevistas efectivas",
               value = textOutput(outputId = "hecho_totales"),
@@ -329,11 +324,11 @@ ui <- bslib::page_navbar(
           bslib::accordion_panel(
             title = "Balance de entrevistas",
             value = "Balance de entrevistas",
-            shinycssloaders::withSpinner(plotOutput("por_hacer")),
+            shinycssloaders::withSpinner(highchartOutput("por_hacer")),
             shinycssloaders::withSpinner(plotOutput("por_hacer_cuotas"))),
           bslib::accordion_panel(
-            title = "Distribución sexo vs rango de edad",
-            value = "Distribución sexo vs rango de edad",
+            title = "Distribución por edad y sexo",
+            value = "Distribución por edad y sexo",
             shinycssloaders::withSpinner(plotOutput("sexo")),
             shinycssloaders::withSpinner(plotOutput("rango_edad")))
         )
@@ -361,8 +356,8 @@ ui <- bslib::page_navbar(
       bslib::nav_panel(
         title = "General",
         value = "General",
-        shinycssloaders::withSpinner(plotOutput("eliminadas_encuestador")),
-        shinycssloaders::withSpinner(plotOutput("corregidas_encuestador")),
+        shinycssloaders::withSpinner(highchartOutput("eliminadas_encuestador")),
+        shinycssloaders::withSpinner(highchartOutput("corregidas_encuestador")),
         shinycssloaders::withSpinner(plotOutput("prom_tiempo_encuestador")),
         shinycssloaders::withSpinner(plotOutput("duracion_entrevistas")),
         icon = icon("users")),
@@ -666,30 +661,6 @@ server <- function(input, output, session) {
 
   # Pestaña "Entrevistas" ---------------------------------------------------
 
-  output$tot_hechas <- renderPlot({
-
-    bd_plot <- tibble("hechas" = bd |>  nrow(),
-                      "totales" = (diseno$niveles  |> filter(nivel == 0) |> pull(unidades))*diseno$n_0) |>
-      pivot_longer(cols = everything(), names_to = "tipo", values_to = "n") |>
-      mutate(control = "Entrevistas")
-
-    g <- bd_plot |>
-      ggplot(aes(x = control, y = n, fill = reorder(tipo, -n))) +
-      geom_col() +
-      ggfittext::geom_bar_text(aes(label = n), position = "stack", contrast = T, size = 16) +
-      coord_flip() +
-      theme_minimal() +
-      labs(title = "Total de entrevistas realizadas") +
-      scale_fill_manual(values = c("hechas" = "blue", "totales" = "red"),
-                        labels = c("hechas" = "Hechas", "totales" = "Totales"),
-                        name = "") +
-      theme(axis.title.x = element_blank(), legend.position = "bottom",
-            axis.title.y = element_blank(), text = element_text(size = 16))
-
-    return(g)
-
-  })
-
   efectivas_filter <- eventReactive(c(bd, input$municipio),{
 
     bd %>%
@@ -746,11 +717,46 @@ server <- function(input, output, session) {
         }}
   })
 
-  output$hechas <- renderPlot({
+  ## Progreso ----------------------------------------------------------------
 
-    graficar_entrevistas(bd_efectivas = efectivas_filter(),
-                         bd_eliminadas = eliminadas_filter(),
-                         bd_corregidas = corregidas_filter())
+  output$avance_region <- renderHighchart({
+
+    clusters_en_muestra <- diseno$poblacion$marco_muestral |>
+      distinct(strata_1, region, cluster_2)
+
+    datos_de_levantamiento <- por_hacer |>
+      group_by(cluster) |>
+      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x)))
+
+    bd_plot <- clusters_en_muestra |>
+      inner_join(datos_de_levantamiento, by = c("cluster_2" = "cluster")) |>
+      group_by(region, strata_1) |>
+      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
+      mutate(pct = hecho/cuota) |>
+      arrange(desc(pct)) |>
+      mutate(por_hacer = pmax(0, por_hacer),
+             region = paste("Región ", strata_1, sep = ""))
+
+    g <- highchart() |>
+      hc_xAxis(categories = bd_plot$region, labels = list(style = list(fontSize = "18px"))) |>
+      hc_yAxis(labels = list(style = list(fontSize = "18px"))) |>
+      hc_add_series(name = "Faltante", data = bd_plot$por_hacer, type = "bar", color = gray70, zIndex = 1, stacking = "normal") |>
+      hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, inside = FALSE, format = "{point.y}", style = list(fontSize = "24px"))), align = "right") |>
+      hc_add_series(name = "Hecho", data = bd_plot$hecho, type = "bar", color = PRINCIPAL, zIndex = 2, stacking = "normal") |>
+      hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, inside = TRUE, format = "{point.y}", style = list(fontSize = "24px")))) |>
+      hc_legend(itemStyle = list(fontSize = "24px", reversed = TRUE))
+
+    return(g)
+
+  })
+
+  ## Histórico ---------------------------------------------------------------
+
+  output$historico <- renderHighchart({
+
+    graficar_historico(bd_efectivas = efectivas_filter(),
+                       bd_eliminadas = eliminadas_filter(),
+                       bd_corregidas = corregidas_filter())
 
   })
 
@@ -798,21 +804,51 @@ server <- function(input, output, session) {
 
   })
 
-  output$por_hacer <- renderPlot({
-    aux <- por_hacer_filter() %>% count(cluster, wt = por_hacer, name = "encuestas") %>%
-      mutate(color = if_else(encuestas > 0, "#5BC0EB", "#C3423F"))
+  ## Balance de entrevistas -------------------------------------------------
 
-    aux %>%
-      ggplot(aes(y = forcats::fct_reorder(factor(cluster), encuestas), x = encuestas)) +
-      geom_col(aes(fill = color)) +
-      geom_label(aes(label = encuestas)) +
-      scale_fill_identity() +
-      # annotate("label", x = aux %>% filter(encuestas == max(encuestas)) %>% pull(encuestas),
-      #          y = aux %>% filter(encuestas == min(encuestas)) %>% pull(cluster) %>% factor(),
-      #          size = 9,
-      #          label = glue::glue("{scales::comma(sum(aux$encuestas))} entrevistas por hacer"),
-      #          hjust = "inward", vjust = "inward") +
-      theme_minimal() + ylab("cluster") + xlab("entrevistas por hacer")
+  output$por_hacer <- renderHighchart({
+
+    bd_inicial <- por_hacer_filter() %>%
+      count(cluster, wt = por_hacer, name = "total") |>
+      mutate(cluster = as.character(cluster),
+             tipo = dplyr::case_when(total < 0 ~ "Faltantes",
+                                     total > 0 ~ "Excedidos",
+                                     total == 0 ~ "Completos"))
+
+    bd_categoricas <- bd_inicial |>
+      count(tipo, name = "total") |>
+      mutate(tipo = factor(x = tipo, levels = rev(c("Faltantes", "Excedidos", "Completos"))),
+             color = case_when(tipo == "Faltantes" ~  "#FF0000",
+                               tipo == "Excedidos" ~ "#FFA500",
+                               tipo == "Completos" ~ "#0000FF"))
+
+    bd_drilldown <- bd_inicial |>
+      group_nest(tipo) |>
+      mutate(tipo = factor(x = tipo, levels = rev(c("Faltantes", "Excedidos", "Completos"))),
+             id = tipo,
+             type = "bar",
+             data = purrr::map(.x = data, .f = mutate, name = cluster, y = total),
+             data = map(data, list_parse))
+
+    g <- hchart(
+      object = bd_categoricas,
+      type = "bar",
+      hcaes(x = tipo, y = total, name = tipo, color = color, drilldown = tipo),
+      name = "Entrevistas",
+      colorByPoint = TRUE) |>
+      hc_drilldown(
+        allowPointDrilldown = TRUE,
+        series = list_parse(bd_drilldown)) |>
+      hc_xAxis(
+        title = ""
+      ) |>
+      hc_yAxis(
+        title = "",
+        labels = list(enable = FALSE)) |>
+      hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, inside = FALSE, format = "{point.y}", style = list(fontSize = "24px"))))
+
+    return(g)
+
   })
 
   output$por_hacer_cuotas <- renderPlot({
@@ -834,6 +870,8 @@ server <- function(input, output, session) {
       labs(fill = "Entrevistas \n por hacer", y = NULL, x = NULL) + theme_minimal()
   })
 
+  ## Distribución por edad y sexo -------------------------------------------
+
   output$sexo <- renderPlot({
     preguntas$encuesta$muestra$revisar_sexo()
 
@@ -843,74 +881,6 @@ server <- function(input, output, session) {
 
   output$rango_edad <- renderPlot({
     preguntas$encuesta$muestra$revisar_rango_edad()
-  })
-
-  output$descargar_resumen <- downloadHandler(filename = function(){
-    paste("cuotas_por_municipio_", format(Sys.time(), "%Y_%m_%d-%H_%M"), ".xlsx", sep = "")
-  },
-  content = function(file){
-
-    df_mun <- hecho %>%
-      group_by(Municipio) %>%
-      summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T)))
-
-    df_mun_cluster <- hecho %>%
-      group_by(Municipio, cluster) %>%
-      summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T))) |>
-      ungroup()
-
-    wb <- openxlsx::createWorkbook()
-
-    openxlsx::addWorksheet(wb, sheetName = "municipios")
-    openxlsx::writeData(wb, df_mun, sheet = "municipios")
-
-    openxlsx::addWorksheet(wb, sheetName = "municipios_cluster")
-    openxlsx::writeData(wb, df_mun_cluster, sheet = "municipios_cluster")
-
-    openxlsx::saveWorkbook(wb, file = file)
-
-  },
-  contentType = "file/xlsx"
-  )
-
-  output$avance_region <- renderPlot({
-
-    clusters_en_muestra <- diseno$poblacion$marco_muestral |>
-      distinct(strata_1, region, cluster_2)
-
-    datos_de_levantamiento <- por_hacer |>
-      group_by(cluster) |>
-      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x)))
-
-    bd_plot <- clusters_en_muestra |>
-      inner_join(datos_de_levantamiento, by = c("cluster_2" = "cluster")) |>
-      group_by(region, strata_1) |>
-      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
-      mutate(pct = hecho/cuota) |>
-      arrange(desc(pct)) |>
-      mutate(region = paste("Región ", strata_1, sep = ""))
-
-    g <- bd_plot %>%
-      ungroup() %>%
-      ggplot(aes(x = reorder(region, pct))) +
-      ggchicklet::geom_chicklet(aes(y = cuota, fill = "Cuota"), width = 0.6) +
-      geom_text(aes(y = cuota, label = cuota), hjust = -0.5) +
-      ggchicklet::geom_chicklet(aes(y = hecho, fill = "Hecho"), width = 0.6) +
-      ggfittext::geom_bar_text(aes(y = hecho, label = paste(hecho, " (", scales::percent(x = pct, accuracy = 1.), ")", sep = "")), contrast = T) +
-      coord_flip() +
-      labs(x = "", y = "Total de entrevistas", fill = "") +
-      scale_fill_manual(values = c("Cuota" = "gray70", "Hecho" = PRINCIPAL)) +
-      guides(fill = guide_legend(reverse = TRUE)) +
-      theme_minimal() +
-      theme(panel.grid = element_blank(),
-            text = element_text(size = 24),
-            legend.position = "bottom",
-            axis.text.x = element_text(family = "Poppins", size = 18),
-            axis.text.y = element_text(family = "Poppins", size = 18),
-            axis.title.x = element_text(hjust = 1.0))
-
-    return(g)
-
   })
 
   output$descargar_region <- downloadHandler(filename = function(){
@@ -1048,7 +1018,7 @@ server <- function(input, output, session) {
     indice_promedio(indice_promedio() + 1)
   })
 
-  output$eliminadas_encuestador <- renderPlot({
+  output$eliminadas_encuestador <- renderHighchart({
 
     lista <- eliminadas_filter_encuestadores() %>%
       count(Srvyr) %>%
@@ -1066,14 +1036,13 @@ server <- function(input, output, session) {
 
     aux <- lista %>% purrr::pluck(pag) %>% select(Srvyr, n)
 
-    g <- graficar_barras(bd = aux, color = "red") +
-      labs(x = NULL, y = "Eliminadas", title = "Entrevistas eliminadas por encuestador")
+    g <- graficar_barras(bd = aux, color = "red")
 
     return(g)
 
   })
 
-  output$corregidas_encuestador <- renderPlot({
+  output$corregidas_encuestador <- renderHighchart({
 
     lista <- corregidas_filter_encuestadores() %>%
       count(Srvyr) %>%
@@ -1091,8 +1060,7 @@ server <- function(input, output, session) {
 
     aux <- lista %>% purrr::pluck(pag) %>% select(Srvyr, n)
 
-    g <- graficar_barras(bd = aux, color = "orange") +
-      labs(x = NULL, y = "Corregidas", title = "Entrevistas corregidas por encuestador")
+    g <- graficar_barras(bd = aux, color = "orange")
 
     return(g)
 
@@ -1157,31 +1125,6 @@ server <- function(input, output, session) {
       labs(x = NULL, y = "Minutos", title = "Duración promedio de las entrevistas") +
       theme_minimal() +
       theme(legend.position = "none", axis.text = element_text(size = 14))
-
-    return(g)
-
-  })
-
-  output$razon_el <- renderPlot({
-
-    bd_razones <- preguntas$encuesta$respuestas$eliminadas %>%
-
-      {
-        if(input$municipio_encuestadores != "Todos"){
-
-          filter(., Muni == input$municipio_encuestadores)
-
-        } else{
-          .
-        }
-      } %>%
-      count(razon) %>%
-      mutate(pct = n/sum(n)) %>%
-      rename(Srvyr = razon) %>%
-      select(Srvyr, n)
-
-    g <- graficar_barras(bd = bd_razones, color = "blue") +
-      labs(x = NULL, y = NULL, title = "Razones para eliminar entrevistas")
 
     return(g)
 
