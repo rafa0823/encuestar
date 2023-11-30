@@ -20,6 +20,7 @@ library(shinyjs)
 library(encuestar)
 library(highcharter)
 library(bslib)
+library(googleway)
 
 options(survey.lonely.psu ="remove")
 preguntas <- read_rds("data/clase_pregunta.rda")
@@ -36,6 +37,9 @@ eliminadas_shp <- eliminadas %>% filter(!is.na(Longitude)) %>% st_as_sf(coords =
 corregidas_shp <- preguntas$encuesta$respuestas$cluster_corregido %>% st_as_sf(coords = c("Longitude", "Latitude"),crs = 4326)
 mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
+
+mza_select <- shp$shp$MANZANA |>
+  inner_join(diseno$muestra$MZA |> unnest(data))
 
 Sys.setlocale(locale = "es_ES.UTF-8")
 
@@ -393,7 +397,36 @@ ui <- bslib::page_navbar(
               theme = value_box_theme(bg = "green")))),
         icon = icon("person"))),
     icon = icon("users")
-  )
+  )#,
+  # bslib::nav_panel(
+  #   title = "Rutas",
+  #   bslib::card(
+  #     full_screen = T,
+  #     card_header("Ruta"),
+  #     bslib::layout_sidebar(
+  #       sidebar = sidebar(
+  #         open = "closed",
+  #         textInput(
+  #           inputId = "origen",
+  #           label = "Origen"),
+  #         textInput(
+  #           inputId = "destino",
+  #           label =  "Destino"),
+  #         actionButton(
+  #           inputId = "ruta",
+  #           label = "Obtener ruta"),
+  #         actionButton(
+  #           inputId = "borrar",
+  #           label = "Borrar"),
+  #         textInput(
+  #           inputId = "link",
+  #           label = "Link")
+  #       ),
+  #       google_mapOutput("map")
+  #     )
+  #   ),
+  #   icon = icon("map")
+  # )
 )
 
 # SERVER ------------------------------------------------------------------
@@ -1300,6 +1333,66 @@ server <- function(input, output, session) {
     return(g)
 
   })
+
+
+  # Pestaña rutas -----------------------------------------------------------
+
+  output$map <- renderGoogle_map({
+    google_map(key = "AIzaSyAbm2CrJU_75lY8BN8vFeXzu6hL6VRwnm0",
+               event_return_type = "list") |>
+      googleway::add_transit() |>
+      add_polygons(data = mza_select)
+  })
+
+  ruta <- reactiveValues(origen = NULL, destino = NULL)
+
+  observeEvent(input$map_polygon_click, {
+
+    if(is.null(ruta$origen)){
+      ruta$origen <- paste(input$map_polygon_click$lat, input$map_polygon_click$lon, sep = ", ")
+      updateTextInput(session, inputId = "origen", value = ruta$origen)
+    } else{
+      ruta$destino <- paste(input$map_polygon_click$lat, input$map_polygon_click$lon, sep = ", ")
+      updateTextInput(session, inputId = "destino", value = ruta$destino)
+    }
+
+    print(ruta)
+  })
+
+  observeEvent(input$ruta,{
+    puntos_c <- c(ruta$origen, ruta$destino) |>
+      paste(collapse = "/")
+
+    dir <- glue::glue("https://www.google.com.mx/maps/dir/{puntos_c}")
+
+    updateTextInput(session, inputId = "link", value = dir)
+  })
+
+  observeEvent(input$ruta,{
+    ja <- google_directions(origin = ruta$origen,
+                            destination = ruta$destino,
+                            key = "AIzaSyCMsjm9t1KNqtpp10HGjOQpucc_LJpbgMU",
+                            departure_time = 'now')
+
+    df <- data.frame(decode_pl(ja$routes$overview_polyline$points))
+
+    google_map_update(map_id = "map") |>
+      add_polylines(data = df, lon = "lon", lat = "lat", stroke_weight = 5, update_map_view = F)
+
+  })
+
+  observeEvent(input$borrar,{
+    ruta$origen <- NULL
+    ruta$destino <- NULL
+
+    updateTextInput(session, inputId = "origen", value = "")
+    updateTextInput(session, inputId = "destino", value = "")
+    updateTextInput(session, inputId = "link", value = "")
+
+    google_map_update(map_id = "map") |>
+      clear_polylines()
+  })
+
 
 }
 
