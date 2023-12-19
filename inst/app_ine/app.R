@@ -19,6 +19,8 @@ library(gt)
 library(shinyjs)
 library(encuestar)
 library(highcharter)
+library(bslib)
+library(googleway)
 
 options(survey.lonely.psu ="remove")
 preguntas <- read_rds("data/clase_pregunta.rda")
@@ -36,9 +38,10 @@ corregidas_shp <- preguntas$encuesta$respuestas$cluster_corregido %>% st_as_sf(c
 mapa_base <- read_rds("data/mapa_base.rda")
 bbox_qro <- st_bbox(shp$shp$MUN)
 
-Sys.setlocale(locale = "es_ES.UTF-8")
+mza_select <- shp$shp$MANZANA |>
+  inner_join(diseno$muestra$MZA |> unnest(data))
 
-# equipos <- readr::read_rds("data/clusters_por_equipo")
+Sys.setlocale(locale = "es_ES.UTF-8")
 
 # funciones ---------------------------------------------------------------
 
@@ -83,42 +86,39 @@ entrevistas <- function(diseno, enc, u_nivel, u_nivel_tipo){
   return(list(hecho = hecho, por_hacer = por_hacer))
 }
 
-graficar_entrevistas <- function(bd_efectivas, bd_eliminadas, bd_corregidas){
+graficar_historico <- function(bd_efectivas, bd_eliminadas, bd_corregidas){
 
-  bd_hechas <- bd_efectivas %>% as_tibble %>%
-    count(fecha = lubridate::floor_date(Date, "day")) %>%
-    rename("Hechas" = n)
+  hist_efectivas <- bd_efectivas %>%
+    as_tibble %>%
+    count(fecha = lubridate::as_date(Date)) |>
+    rename("tot_hechas" = n)
 
-  bd_eliminadas <- bd_eliminadas %>% as_tibble %>%
-    count(fecha = lubridate::floor_date(Date, "day")) %>%
-    rename("Eliminadas" = n)
+  hist_eliminadas <- bd_eliminadas %>%
+    as_tibble %>%
+    count(fecha = lubridate::as_date(Date)) |>
+    rename("tot_eliminadas" = n)
 
-  bd_corregidas <- bd_corregidas %>% as_tibble %>%
-    count(fecha = lubridate::floor_date(Date, "day")) %>%
-    rename("Corregidas" = n)
+  hist_corregidas <- bd_corregidas %>%
+    as_tibble %>%
+    count(fecha = lubridate::as_date(Date)) |>
+    rename("tot_corregidas" = n)
 
-  bd_plot <- bd_hechas %>%
-    left_join(bd_eliminadas, by = "fecha") %>%
-    left_join(bd_corregidas, by = "fecha") %>%
-    tidyr::pivot_longer(cols = !fecha, names_to = "tipo", values_to = "n") %>%
-    mutate(color = case_when(tipo == "Hechas" ~ "#0EEB79",
-                             tipo == "Eliminadas" ~ "red",
-                             tipo == "Corregidas" ~ "orange"))
+  bd_plot <- hist_efectivas %>%
+    left_join(hist_eliminadas, by = "fecha") %>%
+    left_join(hist_corregidas, by = "fecha") |>
+    mutate(fecha = stringr::str_to_title(string = gsub(pattern = "\\.", replacement = "", x = format(fecha, "%b-%d"))))
 
-  g <- bd_plot %>%
-    ggplot(aes(x = fecha, y = n, color = color)) +
-    geom_point() +
-    geom_line() +
-    ggrepel::geom_text_repel(aes(label = n), show.legend = F, size = 8) +
-    scale_color_identity(labels = c("#0EEB79" = "Hechas", "red" = "Eliminadas", "orange" = "Corregidas"),
-                         guide = "legend") +
-    scale_x_datetime(date_breaks = "1 day", date_labels = "%d %b") +
-    labs(x = NULL, y = "Entrevistas") +
-    theme_minimal() +
-    theme(legend.position = "bottom",
-          legend.title = element_blank(),
-          legend.text = element_text(size = 16),
-          axis.text = element_text(size = 14))
+  g <- highchart() |>
+    hc_xAxis(categories = bd_plot$fecha, labels = list(style = list(fontSize = "18px"))) |>
+    hc_yAxis(labels = list(style = list(fontSize = "18px"))) |>
+    hc_add_series(name = "Efectivas", data = bd_plot$tot_hechas, type = "line", color = "green") |>
+    hc_add_series(name = "Efectivas", data = bd_plot$tot_hechas, type = "scatter", color = "green", showInLegend = FALSE) |>
+    hc_add_series(name = "Corregidas", data = bd_plot$tot_corregidas, type = "line", color = "orange") |>
+    hc_add_series(name = "Corregidas", data = bd_plot$tot_corregidas, type = "scatter", color = "orange", showInLegend = FALSE) |>
+    hc_add_series(name = "Eliminadas", data = bd_plot$tot_eliminadas, type = "line", color = "red") |>
+    hc_add_series(name = "Eliminadas", data = bd_plot$tot_eliminadas, type = "scatter", color = "red", showInLegend = FALSE) |>
+    hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, format = "{point.y}", style = list(fontSize = "24px")))) |>
+    hc_legend(itemStyle = list(fontSize = "24px"))
 
   return(g)
 
@@ -126,16 +126,73 @@ graficar_entrevistas <- function(bd_efectivas, bd_eliminadas, bd_corregidas){
 
 graficar_barras <- function(bd, color){
 
-  g <- bd %>%
-    ggplot(aes(x = reorder(str_to_title(Srvyr), n), y = n)) +
-    ggchicklet::geom_chicklet(fill = color) +
-    ggfittext::geom_bar_text(show.legend = F, contrast = T, size = 14) +
-    scale_y_continuous(breaks = NULL) +
-    coord_flip() +
-    theme_minimal() +
-    theme(legend.position = "none", axis.text = element_text(size = 14))
+  g <- highchart() |>
+    hc_xAxis(categories = bd$Srvyr, labels = list(style = list(fontSize = "18px"))) |>
+    hc_yAxis(labels = list(style = list(fontSize = "18px"))) |>
+    hc_add_series(data = bd$n, type = "bar", color = color, showInLegend = FALSE) |>
+    hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, format = "{point.y}", style = list(fontSize = "24px")))) |>
+    hc_legend(itemStyle = list(fontSize = "24px"))
 
   return(g)
+}
+
+graficar_mapa_clusters <- function(lflt = NULL, bd, nivel, muestra, shp){
+
+  nivel <- if(nivel == "MANZANA"){
+    "MZA"
+  } else nivel
+
+  pal <- if(nivel == "MUNICIPIO"){
+    colorFactor(topo.colors(n_distinct(muestra$strata_1)), domain = unique(muestra$strata_1))
+  } else {
+    pal <- colorFactor(palette = c("black", "gray80", "gray80"), domain = c("LOCALIDAD", "SECCION", "Cluster"), levels = c("LOCALIDAD", "SECCION", "Cluster"), ordered = T, na.color = "blue")
+  }
+
+  mapa <- if(is.null(lflt)){
+    shp %>% purrr::pluck(nivel) %>%
+      left_join(muestra %>% distinct(MUNICIPIO,strata_1)) %>%
+      group_by(strata_1) %>% summarise(n()) %>%
+      sf::st_buffer(dist = 0) %>%
+      leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
+      addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
+      addLegend(pal = pal, values = ~strata_1, position = "bottomleft")
+  } else{
+    if(nivel == "MUNICIPIO"){
+      lflt %>% addPolygons(data = shp %>% purrr::pluck(nivel) %>% inner_join(muestra %>% distinct(across(all_of(nivel)), .keep_all = T)),
+                           fillColor = ~pal(strata_1), color = "black", opacity = 1, weight = 1, fillOpacity = 1, label = ~glue::glue("Municipio: {NOMBRE_MUN}"))
+    } else{
+      if(nivel == "MANZANA"){
+        mapear <- shp %>% purrr::pluck(nivel) %>% inner_join(muestra %>% distinct(across(all_of(nivel)), .keep_all = T))
+
+        lflt %>%
+          addCircleMarkers(data = mapear %>% filter(sf::st_geometry_type(.) == "POINT"),
+                           label = ~glue::glue("Localidad: {MANZANA}"), opacity = 1, fillOpacity = 1,
+                           fillColor = "#f72585", color = "black", weight = 1) %>%
+          addLegend(position = "bottomright", colors = "#f72585", labels = "Localidades rurales")
+
+      } else{
+        mapear <- shp %>% purrr::pluck(nivel) %>% inner_join(muestra %>% distinct(across(all_of(nivel)), .keep_all = T))
+
+        nivel_muestra <- mapear %>% as_tibble %>% select(contains("cluster")) %>% names %>% parse_number %>% max
+
+        popup_cluster <- paste0("cluster_",nivel,": ", as_tibble(mapear)[[paste("cluster",nivel,sep = "_")]])
+        popup_mun <- paste("Municipio: ", mapear$NOMBRE_MUN)
+        mapa <- lflt %>%
+          addPolygons(data = mapear,
+                      stroke = T,
+                      color = "black",
+                      fillColor = ~pal(nivel),
+                      fillOpacity = .1,
+                      weight = 1,
+                      opacity = 1,
+                      popup = paste(popup_mun, popup_cluster, sep = "<br>")
+          ) %>%
+          addLegend(title = "Nivel", na.label = "Sin nivel", data = mapear, pal = pal, values = c("SECCION" = "Cluster"), position = "bottomleft")
+      }
+    }
+  }
+
+  return(mapa)
 }
 
 # Parámetros --------------------------------------------------------------
@@ -161,242 +218,215 @@ faltan_shp <- aulr %>%
 
 # UI ----------------------------------------------------------------------
 
-ui <- dashboardPage(
-  dashboardHeader(title = diseno$poblacion$nombre),
-  dashboardSidebar(
-    sidebarMenu(
-      menuItem(
-        "Mapa", tabName = "mapa", icon = icon("map")
-      ),
-      menuItem(
-        "Entrevistas", tabName = "entrevistas", icon = icon("poll")
-      ),
-      menuItem(
-        "Encuestadores", tabName = "encuestadores", icon = icon("users")
-      ),
-      menuItem(
-        "Auditoría", tabName = "auditoria", icon = icon("search")
+ui <- bslib::page_navbar(
+  useShinyjs(),
+  title = diseno$poblacion$nombre,
+  bslib::nav_spacer(),
+  bslib::nav_panel(
+    title = "Mapa principal",
+    bslib::card(
+      full_screen = T,
+      card_header("Mapa principal"),
+      layout_sidebar(
+        sidebar = sidebar(
+          title = "Menú",
+          open = "closed",
+          id = "control_mapa",
+          dateRangeInput(
+            inputId = "mapa_fecha_input",
+            label = "Rango de fechas",
+            language = "es",
+            separator = "a",
+            format = "MM-dd",
+            start = lubridate::as_date(min(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
+            end = lubridate::as_date(max(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
+            min = lubridate::as_date(min(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
+            max = lubridate::as_date(max(enc_shp |> as_tibble() |> distinct(Date) |> pull()))),
+          actionButton(
+            inputId = "filtrar_fechas",
+            label = "Filtrar fechas"),
+          selectInput(
+            inputId = "cluster",
+            label = "Cluster",
+            choices = c("Seleccione..." = "",
+                        sort(unique(diseno$muestra[[diseno$ultimo_nivel]][[u_nivel_tipo]])))),
+          h6("Mostrar ubicación"),
+          textInput(
+            inputId = "coord_input",
+            label = "Coordenadas",
+            value = ""),
+          actionButton(
+            inputId = "filtrar",
+            label = "Buscar"),
+          gt_output(outputId = "faltantes")
+        ),
+        leafletOutput(outputId = "mapa_principal")
       )
-    )
+    ),
+    icon = icon("map")
   ),
-  dashboardBody(
-    useShinyjs(),
-    tabItems(
-      tabItem(
-        tabName = "mapa",
-        fluidPage(
-          title = "Mapa",
-          fluidRow(
-            column(
-              width = 12,
-              leafletOutput(outputId = "mapa_principal", height = 850),
-              absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                            draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
-                            width = 330, height = "auto",
-                            HTML(text = "<button data-toggle='collapse' data-target='#demo'>Menú (mostrar/ocultar)</button>"),
-                            tags$div(id = 'demo',
-                                     class = "collapse",
-                                     dateRangeInput(inputId = "mapa_fecha_input",
-                                                    label = h3("Rango de fechas"),
-                                                    language = "es",
-                                                    separator = "a",
-                                                    format = "MM-dd",
-                                                    start = lubridate::as_date(min(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
-                                                    end = lubridate::as_date(max(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
-                                                    min = lubridate::as_date(min(enc_shp |> as_tibble() |> distinct(Date) |> pull())),
-                                                    max = lubridate::as_date(max(enc_shp |> as_tibble() |> distinct(Date) |> pull()))),
-                                     actionButton(inputId = "filtrar_fechas", label = "Filtrar fechas"),
-                                     selectInput(inputId = "cluster", label = h3("Cluster"), choices = c("Seleccione..." = "", sort(unique(diseno$muestra[[diseno$ultimo_nivel]][[u_nivel_tipo]])))),
-                                     fluidRow(
-                                       column(
-                                         width = 6,
-                                         h3("Ubicación")
-                                       )
-                                     ),
-                                     fluidRow(
-                                       column(
-                                         width = 12,
-                                         textInput(inputId = "coord_input", label = h4("Coordenadas"), value = "", width = "75%"),
-                                       )
-                                     ),
-                                     actionButton(inputId = "filtrar", label = "Buscar"),
-                                     gt_output(outputId = "faltantes"),
-                                     hr(),
-                                     actionButton("regresar", "Regresar")
-                            )
-              )
-            )
-          )
+  bslib::nav_panel(
+    title = "Progreso",
+    bslib::card(
+      full_screen = T,
+      card_header("Entrevistas"),
+      layout_sidebar(
+        sidebar = sidebar(
+          title = "Menú",
+          downloadButton(
+            outputId = "descargar_region",
+            label = "Descargar resumen por region"),
+          selectInput(
+            inputId = "municipio",
+            label =  "Municipio",
+            choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))),
+            selected = "Todos")),
+        bslib::accordion(
+          open = c("Progreso"),
+          bslib::accordion_panel(
+            title = "Progreso",
+            value = "Progreso",
+            progressBar(
+              id = "enc_hechas",
+              value = nrow(bd),
+              display_pct = T,
+              striped = T,
+              total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
+              status = "success"),
+            shinycssloaders::withSpinner(highchartOutput(outputId = "avance_region"))
+          ),
+          bslib::accordion_panel(
+            title = "Histórico de entrevistas",
+            value = "Histórico de entrevistas",
+            shinycssloaders::withSpinner(
+              highchartOutput(outputId = "historico")),
+            bslib::value_box(
+              title = "Entrevistas efectivas",
+              value = textOutput(outputId = "hecho_totales"),
+              bsicons::bs_icon(name = "check-square-fill"),
+              showcase_layout = "top right",
+              theme = value_box_theme(bg = "green")),
+            bslib::value_box(
+              title = "Entrevistas faltantes",
+              value = textOutput(outputId = "faltantes_totales"),
+              bsicons::bs_icon(name = "clock"),
+              showcase_layout = "top right",
+              theme = value_box_theme(bg = "yellow")),
+            bslib::value_box(
+              title = "Entrevistas de más",
+              value = textOutput(outputId = "excedentes_totales"),
+              bsicons::bs_icon(name = "exclamation-triangle"),
+              showcase_layout = "top right",
+              theme = value_box_theme(bg = "orange")),
+            bslib::value_box(
+              title = "Entrevistas eliminadas",
+              value = textOutput(outputId = "eliminadas_totales"),
+              bsicons::bs_icon(name = "x-octagon"),
+              showcase_layout = "top right",
+              theme = value_box_theme(bg = "red")),
+          ),
+          bslib::accordion_panel(
+            title = "Balance de entrevistas",
+            value = "Balance de entrevistas",
+            shinycssloaders::withSpinner(highchartOutput("por_hacer")),
+            shinycssloaders::withSpinner(plotOutput("por_hacer_cuotas"))),
+          bslib::accordion_panel(
+            title = "Distribución por edad y sexo",
+            value = "Distribución por edad y sexo",
+            shinycssloaders::withSpinner(plotOutput("sexo")),
+            shinycssloaders::withSpinner(plotOutput("rango_edad")))
         )
-      ),
-      tabItem("entrevistas",
-              h2("Total de entrevistas realizadas"),
-              fluidRow(
-                column(12,
-                       progressBar(id = "enc_hechas", value = nrow(bd), display_pct = T, striped = T,
-                                   total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
-                                   status = "success"
-                       )
-                )
-              ),
-              h2("Avance por región"),
-              fluidRow(
-                column(width = 3, offset = 9,
-                       downloadButton(outputId = "descargar_region", "Descargar resumen por region")
-                )
-              ),
-              hr(),
-              fluidRow(
-                column(width = 12,
-                       shinycssloaders::withSpinner((plotOutput(outputId = "avance_region", height = 600)))
-                )
-              ),
-              hr(),
-              fluidRow(
-                column(width = 3,
-                       selectInput(inputId = "municipio", "Municipio",
-                                   choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos")
-                )
-              ),
-              h2("Histórico de entrevistas"),
-              fluidRow(
-                column(12,
-                       shinycssloaders::withSpinner(plotOutput("hechas", height = 400))
-                )
-              ),
-              hr(),
-              fluidRow(
-                column(3,
-                       valueBoxOutput(outputId = "hecho_totales", width = NULL)
-                ),
-                column(3,
-                       valueBoxOutput(outputId = "faltantes_totales", width = NULL)
-                ),
-                column(3,
-                       valueBoxOutput(outputId = "excedentes_totales", width = NULL)
-                ),
-                column(3,
-                       valueBoxOutput(outputId = "eliminadas_totales", width = NULL)
-                )
-              ),
-              h2("Balance de entrevistas"),
-              fluidRow(
-                column(6, withSpinner(plotOutput("por_hacer", height = 1200))),
-                column(6, withSpinner(plotOutput("por_hacer_cuotas", height = 1200)))
-              ),
-              h2("Distribución sexo vs rango de edad"),
-              fluidRow(
-                column(6,
-                       withSpinner(plotOutput("sexo")),
-                ),
-                column(6,
-                       withSpinner(plotOutput("rango_edad"))
-                )
-              )
-      ),
-      tabItem("auditoria",
-              fluidRow(
-                column(6, selectInput(inputId = "vars", "Variable", choices = sort(preguntas$encuesta$auditar)))
-              ),
-              fluidRow(
-                plotOutput("grafica", height = 600)
-              )
-      ),
-      tabItem("encuestadores",
-              tabsetPanel(type = "tabs",
-                          tabPanel("General",
-                                   h2("Estadísticas generales de los encuestadores"),
-                                   fluidRow(
-                                     column(width = 3,
-                                            selectInput(inputId = "municipio_encuestadores", "Municipio",
-                                                        choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos")
-                                     )
-                                   ),
-                                   fluidRow(
-                                     fluidRow(
-                                       column(6,
-                                              shinycssloaders::withSpinner(plotOutput("eliminadas_encuestador", height = 450))
-                                       ),
-                                       column(6,
-                                              shinycssloaders::withSpinner(plotOutput("corregidas_encuestador", height = 450))
-                                       )
-                                     ),
-                                     fluidRow(
-                                       column(6,
-                                              actionButton(inputId = "siguiente_eliminadas", label = "Siguiente")
-                                       ),
-                                       column(6,
-                                              actionButton(inputId = "siguiente_corregidas", label = "Siguiente")
-                                       )
-                                     )
-                                   ),
-                                   hr(),
-                                   fluidRow(
-                                     fluidRow(
-                                       column(6,
-                                              shinycssloaders::withSpinner(plotOutput("prom_tiempo_encuestador", height = 400))
-                                       ),
-                                       column(6,
-                                              shinycssloaders::withSpinner(plotOutput("duracion_entrevistas", height = 400))
-                                       )
-                                     ),
-                                     fluidRow(
-                                       column(6,
-                                              actionButton(inputId = "siguiente_promedio", label = "Siguiente")
-                                       )
-                                     )
-                                   ),
-                                   hr(),
-                                   fluidRow(
-                                     column(6,
-                                            shinycssloaders::withSpinner(plotOutput("razon_el", height = 400))
-                                     ),
-                                     column(6,
-                                            shinycssloaders::withSpinner(DTOutput("eliminadas"))
-                                     )
-                                   )
-                          ),
-                          tabPanel("Individual",
-                                   h2("Estadísticas particulares por encuestador"),
-                                   fluidRow(
-                                     column(width = 3,
-                                            selectInput(inputId = "encuestador", "Encuestador",
-                                                        choices = c("Seleccionar", sort(unique(bd$Srvyr))), selected = "Seleccionar")
-                                     )
-                                   ),
-                                   fluidRow(
-                                     column(width = 4,
-                                            valueBoxOutput(outputId = "eliminadas_individual", width = NULL)
-                                     ),
-                                     column(width = 4,
-                                            valueBoxOutput(outputId = "corregidas_individual", width = NULL)
-                                     ),
-                                     column(width = 4,
-                                            valueBoxOutput(outputId = "efectivas_individual", width = NULL)
-                                     )
-                                   ),
-                                   hr(),
-                                   fluidRow(
-                                     leafletOutput(outputId = "mapa_auditoria", height = 850),
-                                     absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                                                   draggable = TRUE, top = 60, left = "auto", right = 20, bottom = "auto",
-                                                   width = 330, height = "auto"
-                                                   # HTML("<button data-toggle='collapse' data-target='#demo'>Min/max</button>"),
-                                                   # tags$div(id = 'demo',  class="collapse",
-                                                   #          selectInput("cluster", "Cluster", c("Seleccione..."= "",sort(unique(diseno$muestra[[diseno$ultimo_nivel]][[u_nivel_tipo]])))
-                                                   #          ),
-                                                   #          actionButton("filtrar","Filtrar"),
-                                                   #          gt_output("faltantes"),
-                                                   #          hr(),
-                                                   #          actionButton("regresar", "Regresar")
-                                                   # )
-                                     )
-                                   )
-                          )
-              )
       )
-    )
-  )
+    ),
+    icon = icon("bar-chart")
+  ),
+  bslib::nav_panel(
+    title = "Encuestadores",
+    value = "Encuestadores",
+    full_screen = T,
+    bslib::navset_card_tab(
+      selected = "General",
+      title = "Encuestadores",
+      full_screen = T,
+      sidebar = sidebar(
+        open = "closed",
+        selectInput(
+          inputId = "municipio_encuestadores", "Municipio",
+          choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos"),
+        selectInput(inputId = "encuestador",
+                    label = "Encuestador",
+                    choices = c("Seleccionar", sort(unique(bd$Srvyr))),
+                    selected = "Seleccionar")),
+      bslib::nav_panel(
+        title = "General",
+        value = "General",
+        shinycssloaders::withSpinner(highchartOutput("eliminadas_encuestador")),
+        shinycssloaders::withSpinner(highchartOutput("corregidas_encuestador")),
+        shinycssloaders::withSpinner(plotOutput("prom_tiempo_encuestador")),
+        shinycssloaders::withSpinner(highchartOutput("duracion_entrevistas")),
+        icon = icon("users")),
+      bslib::nav_panel(
+        title = "Individual",
+        value = "Individual",
+        bslib::accordion(
+          open = c("Entrevistas del encuestador"),
+          bslib::accordion_panel(
+            title = "Entrevistas del encuestador",
+            value = "Entrevistas del encuestador",
+            leafletOutput(outputId = "mapa_auditoria")),
+          bslib::accordion_panel(
+            title = "Puntaje del encuestador",
+            value = "Puntaje del encuestador",
+            bslib::value_box(
+              title = "Entrevistas eliminadas",
+              value = textOutput(outputId = "eliminadas_individual"),
+              bsicons::bs_icon(name = "x-octagon"),
+              showcase_layout = "top right",
+              theme = value_box_theme(bg = "red")),
+            bslib::value_box(
+              title = "Entrevistas corregidas",
+              value = textOutput(outputId = "corregidas_individual"),
+              bsicons::bs_icon(name = "clock"),
+              showcase_layout = "top right",
+              theme = value_box_theme(bg = "orange")),
+            bslib::value_box(
+              title = "Entrevistas efectivas",
+              value = textOutput(outputId = "efectivas_individual"),
+              bsicons::bs_icon(name = "check-square-fill"),
+              showcase_layout = "top right",
+              theme = value_box_theme(bg = "green")))),
+        icon = icon("person"))),
+    icon = icon("users")
+  )#,
+  # bslib::nav_panel(
+  #   title = "Rutas",
+  #   bslib::card(
+  #     full_screen = T,
+  #     card_header("Ruta"),
+  #     bslib::layout_sidebar(
+  #       sidebar = sidebar(
+  #         open = "closed",
+  #         textInput(
+  #           inputId = "origen",
+  #           label = "Origen"),
+  #         textInput(
+  #           inputId = "destino",
+  #           label =  "Destino"),
+  #         actionButton(
+  #           inputId = "ruta",
+  #           label = "Obtener ruta"),
+  #         actionButton(
+  #           inputId = "borrar",
+  #           label = "Borrar"),
+  #         textInput(
+  #           inputId = "link",
+  #           label = "Link")
+  #       ),
+  #       google_mapOutput("map")
+  #     )
+  #   ),
+  #   icon = icon("map")
+  # )
 )
 
 # SERVER ------------------------------------------------------------------
@@ -407,7 +437,6 @@ server <- function(input, output, session) {
   # Pestaña "Mapa" ----------------------------------------------------------
 
   entrevistas_efectivas <- reactive({
-    # input$filtrar
     input$filtrar_fechas
 
     if(enc_shp %>% filter(as.numeric(distancia) != 0) %>% nrow() > 0){
@@ -416,17 +445,17 @@ server <- function(input, output, session) {
                color = dplyr::if_else(condition = as.numeric(distancia) == 0,
                                       true = "#7BF739",
                                       false = "purple")
-               ) %>%
+        ) %>%
         arrange(distancia)
     } else {
       ent_c <- enc_shp %>%
         mutate(label = paste(!!rlang::sym(u_nivel$variable), Srvyr, SbjNum, sep= "-"),
                color = "#7BF739")
     }
-    shp_efectivas <- ent_c #|>
-      # mutate(fecha = lubridate::as_date(Date)) |>
-      # filter(lubridate::as_date(isolate(input$mapa_fecha_input[1])) <= fecha) |>
-      # filter(fecha <= lubridate::as_date(isolate(input$mapa_fecha_input[2])))
+    shp_efectivas <- ent_c |>
+      mutate(fecha = lubridate::as_date(Date)) |>
+      filter(lubridate::as_date(isolate(input$mapa_fecha_input[1])) <= fecha) |>
+      filter(fecha <= lubridate::as_date(isolate(input$mapa_fecha_input[2])))
 
     return(list(shp_efectivas))
 
@@ -458,32 +487,39 @@ server <- function(input, output, session) {
 
     map <- mapa_base %>%
       left_join(nombres_region |> select(strata_1, nombre_region), by = "strata_1") |>
-      leaflet() %>%
+      leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
       addProviderTiles("CartoDB.Positron") %>%
-      addPolygons(color = ~pal_region(nombre_region), opacity = 1, fill = T, fillOpacity = 0.1) %>%
-      addLegend(pal = pal_region, values = ~nombre_region, position = "bottomleft", title = "Región") %>%
-      shp$graficar_mapa(bd = diseno$muestra, nivel = u_nivel %>% pull(variable)) %>%
+      addPolygons(color = ~pal_region(nombre_region),
+                  opacity = 1,
+                  fill = T,
+                  fillOpacity = 0.1) %>%
+      # addLegend(pal = pal_region,
+      #           values = ~nombre_region,
+      #           position = "bottomleft",
+      #           title = "Región") %>%
+      shp$graficar_mapa(bd = diseno$muestra,
+                        nivel = u_nivel %>% pull(variable)) %>%
       addPolygons(data = faltan_shp,
                   fillColor = ~ pal_faltantes(cuartil),
                   fillOpacity = 1,
                   stroke = F,
                   label = ~glue::glue("Cuota cubierta: {scales::percent(pct, accuracy = 1.)} Entrevistas faltantes: {n}"),
                   group = "Encuestas faltantes") %>%
-      addLegend(pal = pal_faltantes,
-                values = faltan_shp$cuartil,
-                title = "Cuota cubierta",
-                group = "Encuestas faltantes",
-                position = "bottomleft") %>%
+      # addLegend(pal = pal_faltantes,
+      #           values = faltan_shp$cuartil,
+      #           title = "Cuota cubierta",
+      #           group = "Encuestas faltantes",
+      #           position = "bottomleft") %>%
       addCircleMarkers(data = entrevistas_efectivas()[[1]],
                        color = ~color,
                        stroke = F,
                        label = ~label,
                        group = "Entrevistas") %>%
-      addLegend(position = "bottomleft",
-                pal = pal_efectivas,
-                values = entrevistas_efectivas()[[1]]$interior_cluster,
-                na.label = "Indefinido",
-                title = "Dentro de cluster") %>%
+      # addLegend(position = "bottomleft",
+      #           pal = pal_efectivas,
+      #           values = entrevistas_efectivas()[[1]]$interior_cluster,
+      #           na.label = "Indefinido",
+      #           title = "Dentro de cluster") %>%
       addCircleMarkers(data = corregidas_shp,
                        stroke = F,
                        color = "yellow",
@@ -507,7 +543,8 @@ server <- function(input, output, session) {
     map <- map %>%
       addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"),
                        overlayGroups = c("Encuestas faltantes"),
-                       options = layersControlOptions(), position = "topleft") %>%
+                       options = layersControlOptions(),
+                       position = "bottomright") %>%
       hideGroup("Encuestas faltantes")
 
     return(map)
@@ -657,30 +694,6 @@ server <- function(input, output, session) {
 
   # Pestaña "Entrevistas" ---------------------------------------------------
 
-  output$tot_hechas <- renderPlot({
-
-    bd_plot <- tibble("hechas" = bd |>  nrow(),
-                      "totales" = (diseno$niveles  |> filter(nivel == 0) |> pull(unidades))*diseno$n_0) |>
-      pivot_longer(cols = everything(), names_to = "tipo", values_to = "n") |>
-      mutate(control = "Entrevistas")
-
-    g <- bd_plot |>
-      ggplot(aes(x = control, y = n, fill = reorder(tipo, -n))) +
-      geom_col() +
-      ggfittext::geom_bar_text(aes(label = n), position = "stack", contrast = T, size = 16) +
-      coord_flip() +
-      theme_minimal() +
-      labs(title = "Total de entrevistas realizadas") +
-      scale_fill_manual(values = c("hechas" = "blue", "totales" = "red"),
-                        labels = c("hechas" = "Hechas", "totales" = "Totales"),
-                        name = "") +
-      theme(axis.title.x = element_blank(), legend.position = "bottom",
-            axis.title.y = element_blank(), text = element_text(size = 16))
-
-    return(g)
-
-  })
-
   efectivas_filter <- eventReactive(c(bd, input$municipio),{
 
     bd %>%
@@ -737,23 +750,59 @@ server <- function(input, output, session) {
         }}
   })
 
-  output$hechas <- renderPlot({
+  ## Progreso ----------------------------------------------------------------
 
-    graficar_entrevistas(bd_efectivas = efectivas_filter(), bd_eliminadas = eliminadas_filter(), bd_corregidas = corregidas_filter())
+  output$avance_region <- renderHighchart({
+
+    clusters_en_muestra <- diseno$poblacion$marco_muestral |>
+      distinct(strata_1, region, cluster_2)
+
+    datos_de_levantamiento <- por_hacer |>
+      group_by(cluster) |>
+      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x)))
+
+    bd_plot <- clusters_en_muestra |>
+      inner_join(datos_de_levantamiento, by = c("cluster_2" = "cluster")) |>
+      group_by(region, strata_1) |>
+      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
+      mutate(pct = hecho/cuota) |>
+      arrange(desc(pct)) |>
+      mutate(por_hacer = pmax(0, por_hacer),
+             region = paste("Región ", strata_1, sep = ""))
+
+    g <- highchart() |>
+      hc_xAxis(categories = bd_plot$region, labels = list(style = list(fontSize = "18px"))) |>
+      hc_yAxis(labels = list(style = list(fontSize = "18px"))) |>
+      hc_add_series(name = "Faltante", data = bd_plot$por_hacer, type = "bar", color = gray70, zIndex = 1, stacking = "normal") |>
+      hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, inside = FALSE, format = "{point.y}", style = list(fontSize = "24px"))), align = "right") |>
+      hc_add_series(name = "Hecho", data = bd_plot$hecho, type = "bar", color = PRINCIPAL, zIndex = 2, stacking = "normal") |>
+      hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, inside = TRUE, format = "{point.y}", style = list(fontSize = "24px")))) |>
+      hc_legend(itemStyle = list(fontSize = "24px", reversed = TRUE))
+
+    return(g)
 
   })
 
-  output$hecho_totales <- renderValueBox({
+  ## Histórico ---------------------------------------------------------------
 
-    res <- hecho_filter() %>%
+  output$historico <- renderHighchart({
+
+    graficar_historico(bd_efectivas = efectivas_filter(),
+                       bd_eliminadas = eliminadas_filter(),
+                       bd_corregidas = corregidas_filter())
+
+  })
+
+  output$hecho_totales <- renderText({
+
+    hecho_filter() %>%
       summarise(hecho = sum(hecho)) |>
       pull() |>
       scales::comma()
 
-    valueBox(value = res, subtitle = glue::glue("Entrevistas efectivas en total"), color = "green")
   })
 
-  output$faltantes_totales <- renderValueBox({
+  output$faltantes_totales <- renderText({
 
     res <- por_hacer_filter() %>%
       summarise(por_hacer = sum(por_hacer)) |>
@@ -762,10 +811,11 @@ server <- function(input, output, session) {
 
     res <- pmax(0, res)
 
-    valueBox(value = res, subtitle = glue::glue("Entrevistas por hacer en total"), color = "yellow")
+    return(res)
+
   })
 
-  output$excedentes_totales <- renderValueBox({
+  output$excedentes_totales <- renderText({
 
     res <- hecho_filter() %>%
       summarise(excedentes = sum(faltan)) |>
@@ -773,33 +823,65 @@ server <- function(input, output, session) {
       pull() |>
       scales::comma()
 
-    valueBox(value = res, subtitle = glue::glue("Entrevistas hechas de más en total"), color = "orange")
+    return(res)
+
   })
 
-  output$eliminadas_totales <- renderValueBox({
+  output$eliminadas_totales <- renderText({
 
     res <- eliminadas_filter() %>%
       nrow() |>
       scales::comma()
 
-    valueBox(value = res, subtitle = glue::glue("Entrevistas eliminadas en total"), color = "red")
+    return(res)
+
   })
 
-  output$por_hacer <- renderPlot({
-    aux <- por_hacer_filter() %>% count(cluster, wt = por_hacer, name = "encuestas") %>%
-      mutate(color = if_else(encuestas > 0, "#5BC0EB", "#C3423F"))
+  ## Balance de entrevistas -------------------------------------------------
 
-    aux %>%
-      ggplot(aes(y = forcats::fct_reorder(factor(cluster), encuestas), x = encuestas)) +
-      geom_col(aes(fill = color)) +
-      geom_label(aes(label = encuestas)) +
-      scale_fill_identity() +
-      # annotate("label", x = aux %>% filter(encuestas == max(encuestas)) %>% pull(encuestas),
-      #          y = aux %>% filter(encuestas == min(encuestas)) %>% pull(cluster) %>% factor(),
-      #          size = 9,
-      #          label = glue::glue("{scales::comma(sum(aux$encuestas))} entrevistas por hacer"),
-      #          hjust = "inward", vjust = "inward") +
-      theme_minimal() + ylab("cluster") + xlab("entrevistas por hacer")
+  output$por_hacer <- renderHighchart({
+
+    bd_inicial <- por_hacer_filter() %>%
+      count(cluster, wt = por_hacer, name = "total") |>
+      mutate(cluster = as.character(cluster),
+             tipo = dplyr::case_when(total < 0 ~ "Faltantes",
+                                     total > 0 ~ "Excedidos",
+                                     total == 0 ~ "Completos"))
+
+    bd_categoricas <- bd_inicial |>
+      count(tipo, name = "total") |>
+      mutate(tipo = factor(x = tipo, levels = rev(c("Faltantes", "Excedidos", "Completos"))),
+             color = case_when(tipo == "Faltantes" ~  "#FF0000",
+                               tipo == "Excedidos" ~ "#FFA500",
+                               tipo == "Completos" ~ "#0000FF"))
+
+    bd_drilldown <- bd_inicial |>
+      group_nest(tipo) |>
+      mutate(tipo = factor(x = tipo, levels = rev(c("Faltantes", "Excedidos", "Completos"))),
+             id = tipo,
+             type = "bar",
+             data = purrr::map(.x = data, .f = mutate, name = cluster, y = total),
+             data = map(data, list_parse))
+
+    g <- hchart(
+      object = bd_categoricas,
+      type = "bar",
+      hcaes(x = tipo, y = total, name = tipo, color = color, drilldown = tipo),
+      name = "Entrevistas",
+      colorByPoint = TRUE) |>
+      hc_drilldown(
+        allowPointDrilldown = TRUE,
+        series = list_parse(bd_drilldown)) |>
+      hc_xAxis(
+        title = ""
+      ) |>
+      hc_yAxis(
+        title = "",
+        labels = list(enable = FALSE)) |>
+      hc_plotOptions(series = list(dataLabels = list(enabled = TRUE, inside = FALSE, format = "{point.y}", style = list(fontSize = "24px"))))
+
+    return(g)
+
   })
 
   output$por_hacer_cuotas <- renderPlot({
@@ -821,6 +903,8 @@ server <- function(input, output, session) {
       labs(fill = "Entrevistas \n por hacer", y = NULL, x = NULL) + theme_minimal()
   })
 
+  ## Distribución por edad y sexo -------------------------------------------
+
   output$sexo <- renderPlot({
     preguntas$encuesta$muestra$revisar_sexo()
 
@@ -830,73 +914,6 @@ server <- function(input, output, session) {
 
   output$rango_edad <- renderPlot({
     preguntas$encuesta$muestra$revisar_rango_edad()
-  })
-
-  output$descargar_resumen <- downloadHandler(filename = function(){
-    paste("cuotas_por_municipio_", format(Sys.time(), "%Y_%m_%d-%H_%M"), ".xlsx", sep = "")
-  },
-  content = function(file){
-
-    df_mun <- hecho %>%
-      group_by(Municipio) %>%
-      summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T)))
-
-    df_mun_cluster <- hecho %>%
-      group_by(Municipio, cluster) %>%
-      summarise(across(c(hecho, cuota, faltan), ~ sum(.x, na.rm = T))) |>
-      ungroup()
-
-    wb <- openxlsx::createWorkbook()
-
-    openxlsx::addWorksheet(wb, sheetName = "municipios")
-    openxlsx::writeData(wb, df_mun, sheet = "municipios")
-
-    openxlsx::addWorksheet(wb, sheetName = "municipios_cluster")
-    openxlsx::writeData(wb, df_mun_cluster, sheet = "municipios_cluster")
-
-    openxlsx::saveWorkbook(wb, file = file)
-
-  },
-  contentType = "file/xlsx"
-  )
-
-  output$avance_region <- renderPlot({
-
-    clusters_en_muestra <- diseno$poblacion$marco_muestral |>
-      distinct(strata_1, region, cluster_2)
-
-    datos_de_levantamiento <- por_hacer |>
-      group_by(cluster) |>
-      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x)))
-
-    bd_plot <- clusters_en_muestra |>
-      inner_join(datos_de_levantamiento, by = c("cluster_2" = "cluster")) |>
-      group_by(region, strata_1) |>
-      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
-      mutate(pct = hecho/cuota) |>
-      arrange(desc(pct)) |>
-      mutate(region = paste("Región ", strata_1, sep = ""))
-
-    g <- bd_plot %>%
-      ggplot() +
-      ggchicklet::geom_chicklet(aes(x = reorder(region, pct), y = cuota, fill = "A"), show.legend = T) +
-      geom_text(aes(x = reorder(region, pct), y = cuota, label = cuota), hjust = -0.5) +
-      ggchicklet::geom_chicklet(aes(x = reorder(region, pct), y = hecho, fill = "B"), show.legend = T) +
-      ggfittext::geom_bar_text(aes(x = reorder(region, pct), y = hecho,
-                                   label = paste(hecho, " (", scales::percent(x = pct, accuracy = 1.), ")", sep = "")
-                                   # label = hecho
-      ), vjust = 2.5, contrast = T) +
-      coord_flip() +
-      labs(x = "", y = "Entrevistas", fill = "") +
-      scale_fill_manual(values = c("A" = "gray70", "B" = PRINCIPAL),
-                        labels = c("A" = "Cuota", "B" = "Hecho")) +
-      theme_minimal() +
-      theme(panel.grid = element_blank(), text = element_text(size = 24), legend.position = "bottom",
-            axis.text.x = element_text(family = "Poppins", size = 18),
-            axis.text.y = element_text(family = "Poppins", size = 18))
-
-    return(g)
-
   })
 
   output$descargar_region <- downloadHandler(filename = function(){
@@ -957,14 +974,6 @@ server <- function(input, output, session) {
   },
   contentType = "file/xlsx"
   )
-
-  # Pestaña "Auditoría" -----------------------------------------------------
-
-  output$grafica <- renderPlot({
-
-    preguntas$graficar(llave = !!rlang::sym(input$vars), "frecuencia", parametros = list(salto = 10, tit = "", porcentajes_afuera = F))
-
-  })
 
   # Pestaña "Encuestadores" -------------------------------------------------
 
@@ -1042,7 +1051,7 @@ server <- function(input, output, session) {
     indice_promedio(indice_promedio() + 1)
   })
 
-  output$eliminadas_encuestador <- renderPlot({
+  output$eliminadas_encuestador <- renderHighchart({
 
     lista <- eliminadas_filter_encuestadores() %>%
       count(Srvyr) %>%
@@ -1060,14 +1069,13 @@ server <- function(input, output, session) {
 
     aux <- lista %>% purrr::pluck(pag) %>% select(Srvyr, n)
 
-    g <- graficar_barras(bd = aux, color = "red") +
-      labs(x = NULL, y = "Eliminadas", title = "Entrevistas eliminadas por encuestador")
+    g <- graficar_barras(bd = aux, color = "red")
 
     return(g)
 
   })
 
-  output$corregidas_encuestador <- renderPlot({
+  output$corregidas_encuestador <- renderHighchart({
 
     lista <- corregidas_filter_encuestadores() %>%
       count(Srvyr) %>%
@@ -1085,23 +1093,29 @@ server <- function(input, output, session) {
 
     aux <- lista %>% purrr::pluck(pag) %>% select(Srvyr, n)
 
-    g <- graficar_barras(bd = aux, color = "orange") +
-      labs(x = NULL, y = "Corregidas", title = "Entrevistas corregidas por encuestador")
+    g <- graficar_barras(bd = aux, color = "orange")
 
     return(g)
 
   })
 
-  output$duracion_entrevistas <- renderPlot({
+  output$duracion_entrevistas <- renderHighchart({
 
-    g <- efectivas_filter_encuestadores() %>%
-      transmute(duracion = as.double(VEnd - VStart)) %>%
-      # filter(duracion <= lubridate::as.duration("60 mins")) %>%
-      filter(duracion <= 60) %>%
-      ggplot(aes(x = duracion)) +
-      geom_histogram(bins = 120, fill = "blue") +
-      labs(x = "Duración (minutos)", y = "Entrevistas", title = "Duración de las entrevistas") +
-      theme_minimal()
+    bd_plot <- efectivas_filter_encuestadores() %>%
+      mutate(duracion = as.double(VEnd - VStart))
+
+    g <- hchart(density(bd_plot$duracion),
+                color = 'teal',
+                name = 'Distribución de duración de las entrevistas',
+                type = "line") %>%
+      hc_plotOptions(series = list(animation = FALSE)) |>
+      hc_yAxis(title = "Duración") |>
+      hc_yAxis(
+        labels = list(
+          formatter = JS("function() { return this.value * 100 + '%'; }")
+        ),
+        tickInterval = 0.05
+      )
 
     return(g)
 
@@ -1156,31 +1170,6 @@ server <- function(input, output, session) {
 
   })
 
-  output$razon_el <- renderPlot({
-
-    bd_razones <- preguntas$encuesta$respuestas$eliminadas %>%
-
-      {
-        if(input$municipio_encuestadores != "Todos"){
-
-          filter(., Muni == input$municipio_encuestadores)
-
-        } else{
-          .
-        }
-      } %>%
-      count(razon) %>%
-      mutate(pct = n/sum(n)) %>%
-      rename(Srvyr = razon) %>%
-      select(Srvyr, n)
-
-    g <- graficar_barras(bd = bd_razones, color = "blue") +
-      labs(x = NULL, y = NULL, title = "Razones para eliminar entrevistas")
-
-    return(g)
-
-  })
-
   output$eliminadas <- renderDT({
 
     eliminadas_filter_encuestadores() %>% select(SbjNum, Fecha= Date, Encuestador = Srvyr) %>%
@@ -1193,80 +1182,6 @@ server <- function(input, output, session) {
                     language = list(url = "//cdn.datatables.net/plug-ins/1.10.11/i18n/Spanish.json")))
 
   ## Estadísticas individuales ----------------------------------------------
-
-  output$efectivas_individual <- renderValueBox({
-
-    req(input$encuestador != "Seleccionar")
-
-    res <- bd %>%
-      count(Srvyr) %>%
-      filter(Srvyr == input$encuestador) %>%
-      pull(n)
-
-    res <- pmax(0, res)
-
-    valueBox(value = res, subtitle = glue::glue('Entrevistas efectivas'), color = "green")
-
-  })
-
-  output$corregidas_individual <- renderValueBox({
-
-    req(input$encuestador != "Seleccionar")
-
-    res <- corregidas_shp %>%
-      as_tibble %>%
-      left_join(bd %>% distinct(SbjNum, MUNI), by = "SbjNum") %>%
-      count(Srvyr) %>%
-      tidyr::complete(Srvyr = preguntas$encuesta$muestra$diseno$variables |> distinct(Srvyr) |> pull(),
-                      fill = list(n = 0)) |>
-      filter(Srvyr == input$encuestador) %>%
-      pull(n)
-
-    res <- pmax(0, res)
-
-    valueBox(value = res, subtitle = glue::glue('Entrevistas corregidas'), color = "orange")
-
-  })
-
-  output$eliminadas_individual <- renderValueBox({
-
-    req(input$encuestador != "Seleccionar")
-
-    aux <- eliminadas %>%
-      count(Srvyr) %>%
-      filter(Srvyr == input$encuestador)
-
-    if(nrow(aux) != 0) {
-
-      res <- aux %>% pull(n)
-
-    }
-
-    if(nrow(aux) == 0) {
-
-      res <- nrow(aux)
-
-    }
-
-    res <- pmax(0, res)
-
-    valueBox(value = res, subtitle = glue::glue('Entrevistas eliminadas'), color = "red")
-
-  })
-
-  output$duracion_individual <- renderPlot({
-
-    g <- efectivas_filter_encuestadores() %>%
-      transmute(duracion = as.double(VEnd - VStart)) %>%
-      filter(duracion <= 60) %>%
-      ggplot(aes(x = duracion)) +
-      geom_histogram(bins = 120, fill = "blue") +
-      labs(x = "Duración (minutos)", y = "Entrevistas", title = "Duración de las entrevistas") +
-      theme_minimal()
-
-    return(g)
-
-  })
 
   output$mapa_auditoria <- renderLeaflet({
 
@@ -1344,6 +1259,140 @@ server <- function(input, output, session) {
   })
 
   proxy <- leafletProxy("mapa_auditoria")
+
+  output$eliminadas_individual <- renderText({
+
+    req(input$encuestador != "Seleccionar")
+
+    aux <- eliminadas %>%
+      count(Srvyr) %>%
+      filter(Srvyr == input$encuestador)
+
+    if(nrow(aux) != 0) {
+
+      res <- aux %>% pull(n)
+
+    }
+
+    if(nrow(aux) == 0) {
+
+      res <- nrow(aux)
+
+    }
+
+    res <- pmax(0, res)
+
+    return(res)
+
+  })
+
+  output$corregidas_individual <- renderText({
+
+    req(input$encuestador != "Seleccionar")
+
+    res <- corregidas_shp %>%
+      as_tibble %>%
+      left_join(bd %>% distinct(SbjNum, MUNI), by = "SbjNum") %>%
+      count(Srvyr) %>%
+      tidyr::complete(Srvyr = preguntas$encuesta$muestra$diseno$variables |> distinct(Srvyr) |> pull(),
+                      fill = list(n = 0)) |>
+      filter(Srvyr == input$encuestador) %>%
+      pull(n)
+
+    res <- pmax(0, res)
+
+    return(res)
+
+  })
+
+  output$efectivas_individual <- renderText({
+
+    req(input$encuestador != "Seleccionar")
+
+    res <- bd %>%
+      count(Srvyr) %>%
+      filter(Srvyr == input$encuestador) %>%
+      pull(n)
+
+    res <- pmax(0, res)
+
+    return(res)
+
+  })
+
+  output$duracion_individual <- renderPlot({
+
+    g <- efectivas_filter_encuestadores() %>%
+      transmute(duracion = as.double(VEnd - VStart)) %>%
+      filter(duracion <= 60) %>%
+      ggplot(aes(x = duracion)) +
+      geom_histogram(bins = 120, fill = "blue") +
+      labs(x = "Duración (minutos)", y = "Entrevistas", title = "Duración de las entrevistas") +
+      theme_minimal()
+
+    return(g)
+
+  })
+
+
+  # Pestaña rutas -----------------------------------------------------------
+
+  output$map <- renderGoogle_map({
+    google_map(key = "AIzaSyAbm2CrJU_75lY8BN8vFeXzu6hL6VRwnm0",
+               event_return_type = "list") |>
+      googleway::add_transit() |>
+      add_polygons(data = mza_select)
+  })
+
+  ruta <- reactiveValues(origen = NULL, destino = NULL)
+
+  observeEvent(input$map_polygon_click, {
+
+    if(is.null(ruta$origen)){
+      ruta$origen <- paste(input$map_polygon_click$lat, input$map_polygon_click$lon, sep = ", ")
+      updateTextInput(session, inputId = "origen", value = ruta$origen)
+    } else{
+      ruta$destino <- paste(input$map_polygon_click$lat, input$map_polygon_click$lon, sep = ", ")
+      updateTextInput(session, inputId = "destino", value = ruta$destino)
+    }
+
+    print(ruta)
+  })
+
+  observeEvent(input$ruta,{
+    puntos_c <- c(ruta$origen, ruta$destino) |>
+      paste(collapse = "/")
+
+    dir <- glue::glue("https://www.google.com.mx/maps/dir/{puntos_c}")
+
+    updateTextInput(session, inputId = "link", value = dir)
+  })
+
+  observeEvent(input$ruta,{
+    ja <- google_directions(origin = ruta$origen,
+                            destination = ruta$destino,
+                            key = "AIzaSyCMsjm9t1KNqtpp10HGjOQpucc_LJpbgMU",
+                            departure_time = 'now')
+
+    df <- data.frame(decode_pl(ja$routes$overview_polyline$points))
+
+    google_map_update(map_id = "map") |>
+      add_polylines(data = df, lon = "lon", lat = "lat", stroke_weight = 5, update_map_view = F)
+
+  })
+
+  observeEvent(input$borrar,{
+    ruta$origen <- NULL
+    ruta$destino <- NULL
+
+    updateTextInput(session, inputId = "origen", value = "")
+    updateTextInput(session, inputId = "destino", value = "")
+    updateTextInput(session, inputId = "link", value = "")
+
+    google_map_update(map_id = "map") |>
+      clear_polylines()
+  })
+
 
 }
 
