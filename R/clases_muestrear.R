@@ -1,3 +1,4 @@
+# comentario de prueba
 # Muestreo <- R6::R6Class(
 #   classname = "Muestra",
 #   public = list(
