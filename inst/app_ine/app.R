@@ -490,7 +490,14 @@ server <- function(input, output, session) {
 
     pal_faltantes <- leaflet::colorFactor(palette = c("red", "green", "orange"), levels = c("<=50%", "50% <= 100%", "Excedida"), domain = faltan_shp$cuartil, ordered = T)
 
-    pal_rezago <- leaflet::colorFactor(palette = c("red", "orange", "yellow", "green"), levels = c("Alto rezago", "Medio-alto rezago", "Medio rezago", "Bajo rezago"), domain = faltan_shp$rezago, ordered = T, na.color =  "#B3B3B3")
+    color_rezagoBajo = "#fe938c"
+    color_rezagoAlto = "#4281a4"
+    color_rezagoMedioalto = "#9cafb7"
+    color_rezagoMedio = "#ead2ac"
+
+    pal_rezago <- leaflet::colorFactor(palette = c(color_rezagoAlto, color_rezagoMedioalto, color_rezagoMedio, color_rezagoBajo),
+                                       levels = c("Alto rezago", "Medio-alto rezago", "Medio rezago", "Bajo rezago"),
+                                       domain = faltan_shp$rezago, ordered = T, na.color =  "#B3B3B3")
 
     map <- mapa_base %>%
       left_join(nombres_region |> select(strata_1, nombre_region), by = "strata_1") |>
