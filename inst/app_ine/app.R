@@ -24,6 +24,7 @@ library(googleway)
 
 options(survey.lonely.psu ="remove")
 preguntas <- read_rds("data/clase_pregunta.rda")
+catalogo_seccion_cluster <- read_rds("data/catalogo_seccion_cluster.rda")
 diseno <- preguntas$encuesta$muestra$muestra
 shp <- preguntas$encuesta$shp_completo
 bd <- preguntas$encuesta$respuestas$base
@@ -42,6 +43,8 @@ mza_select <- shp$shp$MANZANA |>
   inner_join(diseno$muestra$MZA |> unnest(data))
 
 Sys.setlocale(locale = "es_ES.UTF-8")
+
+secciones_rezago <- read_rds(file = "../Insumos/clasificacion_seccion_rezago.rds")
 
 # funciones ---------------------------------------------------------------
 
@@ -477,13 +480,17 @@ server <- function(input, output, session) {
                                         T ~ "Excedida"))
 
     faltan_shp <- faltan_shp |>
-      left_join(avance_clusters, by = c("cluster_2" = "cluster"))
+      left_join(avance_clusters, by = c("cluster_2" = "cluster")) |>
+      left_join(secciones_rezago |>
+                  mutate(seccion = as.character(seccion)), by = c("SECCION" = "seccion"))
 
     pal_region <- leaflet::colorFactor(palette = topo.colors(n_distinct(nombres_region$nombre_region)), domain = unique(nombres_region$nombre_region))
 
     pal_efectivas <- leaflet::colorFactor(palette = c("#7BF739", "purple"), domain = c("Dentro", "Fuera"))
 
     pal_faltantes <- leaflet::colorFactor(palette = c("red", "green", "orange"), levels = c("<=50%", "50% <= 100%", "Excedida"), domain = faltan_shp$cuartil, ordered = T)
+
+    pal_rezago <- leaflet::colorFactor(palette = c("red", "orange", "yellow", "green"), levels = c("Alto rezago", "Medio-alto rezago", "Medio rezago", "Bajo rezago"), domain = faltan_shp$rezago, ordered = T, na.color =  "#B3B3B3")
 
     map <- mapa_base %>%
       left_join(nombres_region |> select(strata_1, nombre_region), by = "strata_1") |>
@@ -505,6 +512,12 @@ server <- function(input, output, session) {
                   stroke = F,
                   label = ~glue::glue("Cuota cubierta: {scales::percent(pct, accuracy = 1.)} Entrevistas faltantes: {n}"),
                   group = "Encuestas faltantes") %>%
+      addPolygons(data = faltan_shp,
+                  fillColor = ~ pal_rezago(rezago),
+                  fillOpacity = 0.5,
+                  stroke = F,
+                  label = ~rezago,
+                  group = "Rezago") %>%
       # addLegend(pal = pal_faltantes,
       #           values = faltan_shp$cuartil,
       #           title = "Cuota cubierta",
@@ -542,10 +555,10 @@ server <- function(input, output, session) {
 
     map <- map %>%
       addLayersControl(baseGroups = c("Entrevistas", "Eliminadas", "Cluster corregido"),
-                       overlayGroups = c("Encuestas faltantes"),
+                       overlayGroups = c("Rezago", "Encuestas faltantes"),
                        options = layersControlOptions(),
                        position = "bottomright") %>%
-      hideGroup("Encuestas faltantes")
+      hideGroup(c("Rezago", "Encuestas faltantes"))
 
     return(map)
 

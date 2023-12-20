@@ -2185,6 +2185,11 @@ Auditoria <- R6::R6Class("Auditoria",
                                filter(!is.na(Longitude) | !is.na(Latitude)) %>%
                                sf::st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
                              readr::write_rds(enc_shp, glue::glue("{dir}/data/enc_shp.rda"))
+                             # Calcular la relacióin entre cluster y seccion
+                             encuesta$muestra$muestra$poblacion$marco_muestral |>
+                               distinct(SECCION, cluster_2) |>
+                               readr::write_rds(glue::glue("{dir}/data/catalogo_seccion_cluster.rda"))
+
                              # readr::write_excel_csv(encuesta$respuestas$eliminadas, glue::glue("{dir}/data/eliminadas.csv"))
                              if(tipo_encuesta == "inegi"){
                                file.copy(overwrite = T,
