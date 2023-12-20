@@ -23,6 +23,7 @@ library(bslib)
 
 options(survey.lonely.psu ="remove")
 preguntas <- read_rds("data/clase_pregunta.rda")
+catalogo_seccion_cluster <- read_rds("data/catalogo_seccion_cluster.rda")
 diseno <- preguntas$encuesta$muestra$muestra
 shp <- preguntas$encuesta$shp_completo
 bd <- preguntas$encuesta$respuestas$base
