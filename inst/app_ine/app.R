@@ -480,7 +480,9 @@ server <- function(input, output, session) {
                                         T ~ "Excedida"))
 
     faltan_shp <- faltan_shp |>
-      left_join(avance_clusters, by = c("cluster_2" = "cluster")) |>
+      left_join(avance_clusters, by = c("cluster_2" = "cluster"))
+
+    shp_secciones_rezago <- shp$shp$SECCION |>
       left_join(secciones_rezago |>
                   mutate(seccion = as.character(seccion)), by = c("SECCION" = "seccion"))
 
@@ -490,14 +492,14 @@ server <- function(input, output, session) {
 
     pal_faltantes <- leaflet::colorFactor(palette = c("red", "green", "orange"), levels = c("<=50%", "50% <= 100%", "Excedida"), domain = faltan_shp$cuartil, ordered = T)
 
-    color_rezagoBajo = "#fe938c"
-    color_rezagoAlto = "#4281a4"
-    color_rezagoMedioalto = "#9cafb7"
-    color_rezagoMedio = "#ead2ac"
+    color_rezagoAlto = "#e7298a"
+    color_rezagoMedioalto = "#fb8072"
+    color_rezagoMedio = "#e6ab02"
+    color_rezagoBajo = "#1b9e77"
 
     pal_rezago <- leaflet::colorFactor(palette = c(color_rezagoAlto, color_rezagoMedioalto, color_rezagoMedio, color_rezagoBajo),
                                        levels = c("Alto rezago", "Medio-alto rezago", "Medio rezago", "Bajo rezago"),
-                                       domain = faltan_shp$rezago, ordered = T, na.color =  "#B3B3B3")
+                                       domain = shp_secciones_rezago$rezago, ordered = T, na.color =  "#B3B3B3")
 
     map <- mapa_base %>%
       left_join(nombres_region |> select(strata_1, nombre_region), by = "strata_1") |>
@@ -519,9 +521,9 @@ server <- function(input, output, session) {
                   stroke = F,
                   label = ~glue::glue("Cuota cubierta: {scales::percent(pct, accuracy = 1.)} Entrevistas faltantes: {n}"),
                   group = "Encuestas faltantes") %>%
-      addPolygons(data = faltan_shp,
+      addPolygons(data = shp_secciones_rezago,
                   fillColor = ~ pal_rezago(rezago),
-                  fillOpacity = 0.5,
+                  fillOpacity = 1,
                   stroke = F,
                   label = ~rezago,
                   group = "Rezago") %>%
