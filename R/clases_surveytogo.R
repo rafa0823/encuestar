@@ -1978,7 +1978,7 @@ Especial <- R6::R6Class(classname = "Especial",
                             candidatoOpinion = function(patron_inicial, aspectos,
                                                         ns_nc = "Ns/Nc",
                                                         regular = "Regular",
-                                                        llave_burbuja = "conocimiento",
+                                                        llave_burbuja = NA,
                                                         filtro_burbuja = "respuesta == 'Sí'",
                                                         grupo_positivo,
                                                         grupo_negativo,
@@ -1997,9 +1997,9 @@ Especial <- R6::R6Class(classname = "Especial",
                                                         salto = 20){
 
                               if(!is.na(llave_burbuja)){
-                                burbuja <- analizar_frecuencias_aspectos(diseno = self$diseno,
+                                burbuja <- encuestar::analizar_frecuencias_aspectos(diseno = self$diseno,
                                                                          diccionario = self$diccionario,
-                                                                         patron_pregunta = llave_burbuja,
+                                                                         patron_pregunta = patron_inicial,
                                                                          aspectos = aspectos) %>%
                                   filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
                                   left_join(self$diccionario %>% select(aspecto = llaves, tema))
