@@ -1763,14 +1763,12 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                          },
                          barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
 
-                             # analizar_frecuencia_multirespuesta(diseno = self$diseno,
-                             #                                          patron_inicial) %>%
-                             # graficar_barras(salto = salto,
-                             #                 porcentajes_fuera = porcentajes_fuera,
-                             #                 desplazar_porcentajes = desplazar_porcentajes) +
-                             #   self$tema()
-
-                           print("En desarrollo. Cambiar datos demo.")
+                           encuestar:::analizar_frecuencia_multirespuesta(diseno = self$diseno,
+                                                                          patron_inicial) %>%
+                             encuestar:::graficar_barras(salto = salto,
+                                                         porcentajes_fuera = porcentajes_fuera,
+                                                         desplazar_porcentajes = desplazar_porcentajes) +
+                             self$tema()
 
                          },
                          barras_texto = function(){},
@@ -1997,14 +1995,14 @@ Especial <- R6::R6Class(classname = "Especial",
                                                         salto = 20){
 
                               if(!is.na(llave_burbuja)){
-                                burbuja <- encuestar::analizar_frecuencias_aspectos(diseno = self$diseno,
+                                bd_burbuja <- encuestar::analizar_frecuencias_aspectos(diseno = self$diseno,
                                                                          diccionario = self$diccionario,
-                                                                         patron_pregunta = patron_inicial,
+                                                                         patron_pregunta = llave_burbuja,
                                                                          aspectos = aspectos) %>%
                                   filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
                                   left_join(self$diccionario %>% select(aspecto = llaves, tema))
                               } else {
-                                burbuja <- NA
+                                bd_burbuja <- NA
                               }
 
                               encuestar:::analizar_frecuencias_aspectos(diseno = self$diseno,
@@ -2026,7 +2024,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                        orden_resp = orden_resp,
                                                                        colores = colores_opinion,
                                                                        color_nsnc = color_nsnc,
-                                                                       burbuja = burbuja,
+                                                                       burbuja = bd_burbuja,
                                                                        color_burbuja = color_burbuja,
                                                                        salto = salto,
                                                                        tema = self$tema)

@@ -514,7 +514,9 @@ analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
 
   aux <- diseno$variables %>%
     tibble::rownames_to_column() %>%
+    as_tibble() |>
     mutate(weight = weights(diseno)) %>%
+    select(rowname, contains(patron_inicial), weight) |>
     pivot_longer(-c(rowname, weight)) %>%
     filter(!is.na(value)) %>%
     mutate(seleccion = 1) %>%
