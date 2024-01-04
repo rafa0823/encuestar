@@ -1946,7 +1946,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                             encuestar:::analizar_cruceBrechas(srvyr::as_survey_design(self$diseno),
                                                               var1 = cruce,
                                                               var2_filtro = variable,
-                                                              filtro = NULL,
+                                                              filtro = filter,
                                                               vartype = vartype) |>
                               graficar_cruce_bloques(cruce = cruce,
                                                      variable = variable,
