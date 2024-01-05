@@ -487,7 +487,7 @@ calcular_muestra_nivel <- function(diseño, nivel){
     }
   }
 
-  bd <- if(is.null(diseño$muestra_obj)) diseño$MarcoMuestral else diseño$muestra_obj %>% purrr::pluck(length(diseño$muestra_obj)) %>% tidyr::unnest(data)
+  bd <- if(is.null(diseño$muestra)) diseño$MarcoMuestral else diseño$muestra %>% purrr::pluck(length(diseño$muestra)) %>% tidyr::unnest(data)
   # bd <- diseño$MarcoMuestral
   muestra  <- bd %>%
     agrupar_nivel(nivel_secundario) %>%
@@ -565,8 +565,8 @@ cuotas_ine <- function(diseño, ajustar){
     transmute(paste(tipo,nivel,sep = "_")) %>%
     pull(1)
 
-  muestra <- diseño$muestra_obj %>%
-    purrr::pluck(length(diseño$muestra_obj))
+  muestra <- diseño$muestra %>%
+    purrr::pluck(length(diseño$muestra))
 
   bd <- diseño$MarcoMuestral %>%
     semi_join(muestra %>% distinct(!!rlang::sym(u_cluster)))
@@ -667,7 +667,7 @@ plan <- function(diseño){
             Manzanas = NA,
             Entrevistas = diseño$niveles %>% filter(nivel == 0) %>% pull(unidades) * diseño$entrevistas_por_upm) %>%
     add_row(llave = "Resultado",
-            Manzanas = diseño$muestra_obj %>% purrr::pluck(diseño$ultimo_nivel) %>% nrow,
+            Manzanas = diseño$muestra %>% purrr::pluck(diseño$ultimo_nivel) %>% nrow,
             Entrevistas = sum(diseño$cuotas$n)) %>%
     tidyr::pivot_longer(-llave, names_to = "total") %>%
     na.omit() %>%
@@ -688,7 +688,7 @@ plan <- function(diseño){
 #'
 #' @examples
 revision_ine <- function(self, prop_vars = NULL, var_extra = NULL){
-  bd <- self$muestra_obj %>%
+  bd <- self$muestra %>%
     purrr::pluck("SECCION") %>%
     mutate(data = map(data, ~.x %>%
                         select(SECCION, contains("strata"), contains("cluster"),
@@ -811,7 +811,7 @@ google_maps_ine <- function(diseño, shp, zoom, dir = "Mapas"){
 
   u_nivel <- diseño$niveles %>% filter(nivel == diseño$ultimo_nivel)
   u_cluster <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
-  bd <- diseño$muestra_obj %>% purrr::pluck(length(diseño$muestra_obj)) %>% tidyr::unnest(data)
+  bd <- diseño$muestra %>% purrr::pluck(length(diseño$muestra)) %>% tidyr::unnest(data)
 
   cluster <- bd %>% distinct(!!rlang::sym(u_cluster)) %>% pull(1)
   ya <- list.files(path=dir) %>% gsub('^.*_\\s*|\\s*.png.*$', '', .)
@@ -883,7 +883,7 @@ sustituir_muestra_ine <- function(diseño, shp, id, zoom, dir, ajustar_cuotas){
   nivel_anterior <- diseño$niveles %>% filter(nivel == diseño$ultimo_nivel -1) %>%
     transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
   # muestra del nivel
-  muestra <- diseño$muestra_obj[[t_nivel]]
+  muestra <- diseño$muestra[[t_nivel]]
   # conjnuto seleccionado
   subcluster <- muestra %>% filter(!!rlang::sym(nivel) == id) %>% pull(nivel_anterior)
   #nueva muestra
@@ -899,12 +899,12 @@ sustituir_muestra_ine <- function(diseño, shp, id, zoom, dir, ajustar_cuotas){
 
   # nuevo$data %>% pluck(1,"NOM_MUN")
   ####podría haber un error aquí#######
-  manzanas <- diseño$muestra_obj$MZA %>% filter(!!rlang::sym(nivel) == id) %>% nrow
+  manzanas <- diseño$muestra$MZA %>% filter(!!rlang::sym(nivel) == id) %>% nrow
   nuevas_manzanas <- nuevo %>% tidyr::unnest(data) %>% slice_sample(n = manzanas) %>%
     group_by(across(strata_1:total),cluster_0) %>% tidyr::nest()
   #####################################
   #recalcular n_i$cluster_0
-  cl0_quitar <- diseño$muestra_obj$MZA %>% filter(!!rlang::sym(nivel) == id) %>% pull(cluster_0)
+  cl0_quitar <- diseño$muestra$MZA %>% filter(!!rlang::sym(nivel) == id) %>% pull(cluster_0)
   enc_0 <- diseño$n_i$cluster_0 %>% filter(cluster_0 %in% cl0_quitar) %>% pull(n_0)
   if(length(cl0_quitar) != nrow(nuevas_manzanas)) stop(glue::glue("Volver a correr. La {t_nivel} muestreada no tiene el mismo número de manzanas que la que desea sustituir."))
   diseño$n_i$cluster_0 <- diseño$n_i$cluster_0 %>% filter(!cluster_0 %in% nuevas_manzanas$cluster_0) %>%
@@ -913,8 +913,8 @@ sustituir_muestra_ine <- function(diseño, shp, id, zoom, dir, ajustar_cuotas){
         mutate(n_0 = enc_0)
     ) %>% arrange(cluster_0)
   #sustituir muestra
-  diseño$muestra_obj[[t_nivel]] <- diseño$muestra_obj[[t_nivel]] %>% filter(!!rlang::sym(nivel) != id) %>% bind_rows(nuevo)
-  diseño$muestra_obj$MZA <- diseño$muestra_obj$MZA %>% filter(!!rlang::sym(nivel) != id) %>% bind_rows(nuevas_manzanas)
+  diseño$muestra[[t_nivel]] <- diseño$muestra[[t_nivel]] %>% filter(!!rlang::sym(nivel) != id) %>% bind_rows(nuevo)
+  diseño$muestra$MZA <- diseño$muestra$MZA %>% filter(!!rlang::sym(nivel) != id) %>% bind_rows(nuevas_manzanas)
   #calcular cuota del nuevo
 
   aux_cuotas <- encuestar:::cuotas_ine(diseño, ajustar = ajustar_cuotas)
