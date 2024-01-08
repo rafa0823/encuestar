@@ -1,0 +1,9 @@
+2023-12-11
+	-Muestrear: La población (marco muestral) como parámetro de usuario entra en desuso pues dicho insumo se 
+	construye a partir de todos los shp's y la lista nominal.
+2023-12-12
+	-Hay un error en Muesra_ejemplo$Cartogrfia con shp_df, shp_dl
+	-Hacer funcionar 'agregar_nivel'
+2023-12-19
+	-El objeto diseño$muestra_obj$MZA está mal construido. No se reproducen los resultados de la la
+	paquetería anterior.
