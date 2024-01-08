@@ -648,6 +648,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        size_caption_nsnc,
                                        size_caption_burbuja,
                                        size_text_cat,
+                                       size_pct,
                                        orden_resp,
                                        salto = 200,
                                        tema){
@@ -689,7 +690,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     ggchicklet::geom_chicklet(width =.6, alpha =.9)+
     scale_fill_manual(values = colores)+
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema()$text$family,
-                             min.size = 8,
+                             size = size_pct,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
     coord_flip()+
     labs(fill= NULL , y= NULL, x = NULL, caption = caption_opinion) +
