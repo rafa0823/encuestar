@@ -1556,10 +1556,10 @@ Graficas <- R6::R6Class(classname = "Graficas",
                                                          tema = self$tema,
                                                          graficadas = self$graficadas)
 
-                             self$Regiones <- Regiones$new(diseno = self$encuesta$muestra$diseno,
-                                                           diccionario = self$encuesta$cuestionario$diccionario,
-                                                           shp = private$shp_region,
-                                                           tema = self$tema)
+                             # self$Regiones <- Regiones$new(diseno = self$encuesta$muestra$diseno,
+                             #                               diccionario = self$encuesta$cuestionario$diccionario,
+                             #                               shp = private$shp_region,
+                             #                               tema = self$tema)
 
                              self$Modelo <- Modelo$new(diseno = self$encuesta$muestra$diseno,
                                                        diccionario = self$encuesta$cuestionario$diccionario,
@@ -2221,5 +2221,3 @@ Auditoria <- R6::R6Class("Auditoria",
                              rsconnect::deployApp(self$dir,...)
                            }
                          ))
-
-# comentario de prueba
