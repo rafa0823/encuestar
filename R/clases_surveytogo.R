@@ -2221,3 +2221,5 @@ Auditoria <- R6::R6Class("Auditoria",
                              rsconnect::deployApp(self$dir,...)
                            }
                          ))
+
+# Comentario de prueba
