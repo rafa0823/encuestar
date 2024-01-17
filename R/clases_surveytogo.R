@@ -604,7 +604,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               if(tipo_encuesta == "ine"){
                                 self$base <- self$base %>%
                                   mutate(rango_edad = cut(as.numeric(edad), c(17,24,39,59,Inf),
-                                                          labels = c("18A24","25A39","40A60","60YMAS")),
+                                                          labels = c("18A24","25A39","40A59","60YMAS")),
                                          sexo = if_else(sexo == "Mujer", "F", "M"))
                               }
 
