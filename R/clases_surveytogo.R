@@ -103,7 +103,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-                            self$Graficas <- Graficas$new(encuesta = self)
+                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL)
 
                             # Shiny app de auditoria
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
@@ -1538,6 +1538,8 @@ Pregunta <- R6::R6Class("Pregunta",
 Graficas <- R6::R6Class(classname = "Graficas",
                         public = list(
                           encuesta = NULL,
+                          diseno = NULL,
+                          diccionario = NULL,
                           Descriptiva = NULL,
                           Regiones = NULL,
                           Modelo = NULL,
@@ -1545,13 +1547,26 @@ Graficas <- R6::R6Class(classname = "Graficas",
                           Especial = NULL,
                           tema = NULL,
                           graficadas = NULL,
-                          initialize = function(encuesta, tema = tema_default){
+                          initialize = function(encuesta, diseno, diccionario, tema = tema_default){
 
                             self$encuesta <- encuesta
+
+                            self$diseno <- diseno
+                            if(!is.null(self$encuesta)){
+
+                              self$diccionario <- self$encuesta$cuestionario$diccionario
+
+                            } else {
+
+                              self$diccionario <- diccionario
+
+                            }
+
                             self$tema <- tema
 
                             self$Descriptiva <- Descriptiva$new(encuesta = self$encuesta,
-                                                                diccionario = self$encuesta$cuestionario$diccionario,
+                                                                diseno = self$diseno,
+                                                                diccionario = self$diccionario,
                                                                 tema = self$tema,
                                                                 graficadas = self$graficadas)
 
@@ -1565,14 +1580,23 @@ Graficas <- R6::R6Class(classname = "Graficas",
                                                           tema = self$tema,
                                                           graficadas = self$graficadas)
 
-                            self$Regiones <- Regiones$new(encuesta = self$encuesta,
-                                                          diccionario = self$encuesta$cuestionario$diccionario,
-                                                          tema = self$tema)
+                            if(!is.null(self$encuesta)) {
 
-                            self$Modelo <- Modelo$new(diseno = self$encuesta$muestra$diseno,
-                                                      diccionario = self$encuesta$cuestionario$diccionario,
-                                                      tema = self$tema,
-                                                      graficadas = self$graficadas)
+                              self$Regiones <- Regiones$new(encuesta = self$encuesta,
+                                                            diccionario = self$encuesta$cuestionario$diccionario,
+                                                            tema = self$tema)
+
+                              self$Modelo <- Modelo$new(diseno = self$encuesta$muestra$diseno,
+                                                        diccionario = self$encuesta$cuestionario$diccionario,
+                                                        tema = self$tema,
+                                                        graficadas = self$graficadas)
+
+                            } else {
+
+                              self$Regiones <- NULL
+                              self$Modelo <- NULL
+
+                            }
                           },
                           faltantes = function(){
                             gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
@@ -1715,7 +1739,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                              encuestar:::graficar_barras(salto = salto,
                                                          porcentajes_fuera = porcentajes_fuera,
                                                          desplazar_porcentajes = desplazar_porcentajes) +
-                             self$tema()
+                             self$tema
 
                          },
                          barras_numerica = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
@@ -1782,7 +1806,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                encuestar:::graficar_barras(salto = salto,
                                                porcentajes_fuera = porcentajes_fuera,
                                                desplazar_porcentajes = desplazar_porcentajes) +
-                               self$tema()
+                               self$tema
 
                            }
 
@@ -1804,7 +1828,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                              encuestar:::graficar_barras(salto = salto,
                                                          porcentajes_fuera = porcentajes_fuera,
                                                          desplazar_porcentajes = desplazar_porcentajes) +
-                             self$tema()
+                             self$tema
 
                          },
                          barras_texto = function(){},
@@ -1836,7 +1860,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                            bd_estimacion |>
                              encuestar:::graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
-                             self$tema()
+                             self$tema
 
 
                          },
@@ -1931,7 +1955,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                               bd_estimacion <- analizar_sankey(diseno = diseno, var_1 = variables[1], var_2 = variables[2])
 
                               graficar_sankey(bd = bd_estimacion, size_text_cat = size_text_cat) +
-                                self$tema()
+                                self$tema
 
                             }
 
@@ -1954,7 +1978,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                               left_join(self$diccionario, by = c("variable" = "llaves"))
 
                             encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
-                              self$tema()
+                              self$tema
 
                           },
                           brechasDuales = function(var1, var2_filtro, filtro, vartype = "cv", line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
@@ -1979,7 +2003,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                                        line_linewidth = line_linewidth,
                                                                        line_hjust = line_hjust,
                                                                        line_vjust = line_vjust) +
-                              self$tema()
+                              self$tema
                           },
                           brechasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
 
@@ -2013,7 +2037,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                                           line_linewidth = line_linewidth,
                                                                           line_hjust = line_hjust,
                                                                           line_vjust = line_vjust) +
-                              self$tema()
+                              self$tema
 
                           },
                           barrasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, color = "green", filter = NULL){
@@ -2048,7 +2072,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                                          vartype = vartype,
                                                                          color = color,
                                                                          filter = filter) +
-                              self$tema()
+                              self$tema
 
                           },
                           bloques = function(cruce, variable, vartype = "cv", filter = NULL, linea_grosor = 2, linea_color = "white"){
@@ -2074,7 +2098,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                      filter = filter,
                                                      linea_grosor = linea_grosor,
                                                      linea_color = linea_color) +
-                              self$tema()
+                              self$tema
                           }
                         ))
 
@@ -2218,7 +2242,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                   grupo_negativo = negativos,
                                                                   color_positivo = color_positivo,
                                                                   color_negativo = color_negativo) +
-                                self$tema()
+                                self$tema
 
                             },
                             metodo_morena = function(personajes, atributos){
