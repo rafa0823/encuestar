@@ -449,7 +449,8 @@ tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF
      plot.subtitle = element_text(hjust = 0,
                                   size = rel(1),
                                   face = "bold",
-                                  colour = "#C5C5C5"),
+                                  colour = "#C5C5C5",
+                                  family = "Poppins"),
      plot.margin = unit(c(1, 1, 1, 1), "lines"),
      strip.text=element_text(colour ="#2C423F")))
 }
@@ -637,6 +638,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        grupo_positivo,
                                        grupo_negativo,
                                        colores,
+                                       color_nsnc,
                                        burbuja,
                                        color_burbuja,
                                        caption_opinion,
@@ -646,6 +648,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        size_caption_nsnc,
                                        size_caption_burbuja,
                                        size_text_cat,
+                                       size_pct,
                                        orden_resp,
                                        salto = 200,
                                        tema){
@@ -687,13 +690,13 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     ggchicklet::geom_chicklet(width =.6, alpha =.9)+
     scale_fill_manual(values = colores)+
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema()$text$family,
-                             min.size = 8,
+                             size = size_pct,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
     coord_flip()+
     labs(fill= NULL , y= NULL, x = NULL, caption = caption_opinion) +
     theme_minimal() +
-    geom_hline(yintercept = 0, color = "#FFFFFF", size= .6)+
-    geom_hline(yintercept = 0, color = "gray", size= .6)+
+    geom_hline(yintercept = 0, color = "#FFFFFF", size= .6) +
+    geom_hline(yintercept = 0, color = "gray", size= .6) +
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema() +
     theme(axis.text.y = element_text(size = size_text_cat),
@@ -703,9 +706,9 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
   if(!is.null(ns_nc)){
     b <- aux %>%  filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = colores[4])+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc)+
       coord_flip()+
-      ggfittext::geom_bar_text(aes(label = etiqueta), family = tema()$text$family,
+      ggfittext::geom_bar_text(aes(label = etiqueta), color = "#2C423F",
                                hjust = -.1)+
       labs(y = NULL, x = NULL, caption = caption_nsnc)+
       scale_y_continuous(n.breaks = 2) +
@@ -1122,12 +1125,12 @@ graficar_crucePuntos = function(bd, cruce, vartype){
   g <- bd |>
     ggplot(aes(x=reorder(variable,mean), xend=variable,
                color=!!rlang::sym(cruce))) +
-    geom_vline(aes(xintercept = variable), linetype = "dashed",
-               color = "gray60", size=.5) +
     geom_point(aes(y=mean),
                shape=19,  size=6) +
     geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
                    linetype="solid", color="black", linewidth=.5) +
+    geom_vline(aes(xintercept = variable), linetype = "dashed",
+               color = "gray60", size=.5) +
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
 
@@ -1269,7 +1272,7 @@ graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 #' @export
 #'
 #' @examples
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter){
+graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_grosor, linea_color){
 
   if(!is.null(filter)) {
 
@@ -1279,9 +1282,9 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter){
   }
 
   g <- bd |>
-    ggplot(aes(area=coef,
-               fill=!!rlang::sym(variable))) +
+    ggplot(aes(area=coef, fill=!!rlang::sym(variable), subgroup = coef)) +
     treemapify::geom_treemap(alpha=0.7) +
+    treemapify::geom_treemap_subgroup_border(aes(), size = linea_grosor, color = linea_color) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
   if(vartype == "cv"){
