@@ -675,7 +675,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
       ggplot(aes(y = tema,
                  x = factor(1))) + geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
-      tema() +
+      tema +
       labs(caption = caption_burbuja) +
       theme(legend.position = "none", panel.grid.major.x = element_blank(),
             axis.text = element_blank(), axis.line.x = element_blank(),
@@ -689,7 +689,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
     ggchicklet::geom_chicklet(width =.6, alpha =.9)+
     scale_fill_manual(values = colores)+
-    ggfittext::geom_fit_text(aes(label = etiqueta), family = tema()$text$family,
+    ggfittext::geom_fit_text(aes(label = etiqueta), family = tema$text$family,
                              size = size_pct,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
     coord_flip()+
@@ -698,7 +698,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6) +
     geom_hline(yintercept = 0, color = "gray", size= .6) +
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
-    theme(legend.position = "bottom") %+replace% tema() +
+    theme(legend.position = "bottom") %+replace% tema +
     theme(axis.text.y = element_text(size = size_text_cat),
           plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc), legend.key.size = unit(1, units = "cm")) +
     scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
@@ -712,7 +712,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                hjust = -.1)+
       labs(y = NULL, x = NULL, caption = caption_nsnc)+
       scale_y_continuous(n.breaks = 2) +
-      tema() +
+      tema +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
             axis.text.x = element_blank(), axis.line.x = element_blank(),
             plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc))
