@@ -103,7 +103,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         rake = self$rake)
 
                             #Preguntas
-                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL)
+                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_default())
 
                             # Shiny app de auditoria
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
@@ -1547,7 +1547,7 @@ Graficas <- R6::R6Class(classname = "Graficas",
                           Especial = NULL,
                           tema = NULL,
                           graficadas = NULL,
-                          initialize = function(encuesta, diseno, diccionario, tema = tema_default){
+                          initialize = function(encuesta, diseno, diccionario, tema = encuestar:::tema_default()){
 
                             self$encuesta <- encuesta
 
@@ -1571,12 +1571,14 @@ Graficas <- R6::R6Class(classname = "Graficas",
                                                                 graficadas = self$graficadas)
 
                             self$Cruce <- Cruce$new(encuesta = self$encuesta,
-                                                    diccionario = self$encuesta$cuestionario$diccionario,
+                                                    diseno = self$diseno,
+                                                    diccionario = self$diccionario,
                                                     tema = self$tema,
                                                     graficadas = self$graficadas)
 
                             self$Especial <- Especial$new(encuesta = self$encuesta,
-                                                          diccionario = self$encuesta$cuestionario$diccionario,
+                                                          diseno = self$diseno,
+                                                          diccionario = self$diccionario,
                                                           tema = self$tema,
                                                           graficadas = self$graficadas)
 
