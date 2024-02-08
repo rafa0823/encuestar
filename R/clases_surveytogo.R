@@ -2141,7 +2141,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                         size_text_cat = 16,
                                                         size_pct = 12,
                                                         burbuja = T,
-                                                        salto = 20){
+                                                        salto = 20,
+                                                        mostrar_nsnc = T){
 
                               if(is.null(self$diseno)) {
 
@@ -2188,7 +2189,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                        burbuja = bd_burbuja,
                                                                        color_burbuja = color_burbuja,
                                                                        salto = salto,
-                                                                       tema = self$tema)
+                                                                       tema = self$tema,
+                                                                       mostrar_nsnc = mostrar_nsnc)
 
                             },
                             candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
