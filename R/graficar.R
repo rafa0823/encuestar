@@ -651,7 +651,8 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        size_pct,
                                        orden_resp,
                                        salto = 200,
-                                       tema){
+                                       tema,
+                                       mostrar_nsnc = T){
 
   if(!is.null(ns_nc)){
     bd <- bd %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
@@ -718,9 +719,18 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
             plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc))
 
     if(!all(is.na(burbuja))){
-      final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
+      if(mostrar_nsnc) {
+        final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
+      } else {
+        final <-a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol= 3)
+      }
     } else{
-      final <-a + b + plot_layout(widths = c(.8, .2))
+      if(mostrar_nsnc) {
+        final <-a + b + plot_layout(widths = c(.8, .2))
+      } else {
+        final <-a
+      }
+
     }
 
   } else{
