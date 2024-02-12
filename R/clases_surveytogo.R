@@ -1596,7 +1596,10 @@ Graficas <- R6::R6Class(classname = "Graficas",
                             } else {
 
                               self$Regiones <- NULL
-                              self$Modelo <- NULL
+                              self$Modelo <- Modelo$new(diseno = self$diseno,
+                                                        diccionario = self$diccionario,
+                                                        tema = self$tema,
+                                                        graficadas = self$graficadas)
 
                             }
                           },
@@ -2401,32 +2404,14 @@ Modelo <- R6::R6Class(classname = "Modelo",
                         },
                         correspondencia = function(var1, var2, legenda1 = NULL, legenda2 = NULL, colores = NULL){
 
-                          if(is.null(self$diseno)) {
 
-                            diseno <- self$encuesta$muestra$diseno
-
-                          } else {
-
-                            diseno <- self$diseno
-
-                          }
-
-                          analisis_correspondencia(var1 = var1, var2 = var2, legenda1 = legenda1, legenda2 = legenda2, diseno = diseno, colores = colores)
+                          analisis_correspondencia(var1 = var1, var2 = var2, legenda1 = legenda1, legenda2 = legenda2, diseno = self$diseno, colores = colores)
                         },
                         componentesPrincipales = function(variables){
 
-                          if(is.null(self$diseno)) {
-
-                            diseno <- self$encuesta$muestra$diseno
-
-                          } else {
-
-                            diseno <- self$diseno
-
-                          }
 
                           pc <- survey::svyprcomp(survey::make.formula(variables),
-                                                  design = diseno,
+                                                  design = self$diseno,
                                                   scale=TRUE, scores=TRUE)
                           factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
                         },
