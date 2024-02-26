@@ -10,7 +10,6 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
 Depends: 
     R (>= 2.10)
 Imports: 
-    basicspace,
     beepr,
     dplyr,
     factoextra,
@@ -62,6 +61,7 @@ VignetteBuilder:
     knitr
 Remotes:
     hrbrmstr/ggchicklet
+    davidsjoberg/ggsankey
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
