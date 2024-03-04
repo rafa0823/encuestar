@@ -42,8 +42,7 @@ graficar_barras <- function(bd,
   g <- g +
     coord_flip() +
     labs(x = NULL, y = NULL) +
-    scale_y_continuous(labels=scales::percent_format(accuracy = 1)) +
-    theme(legend.position = "none")
+    scale_y_continuous(labels=scales::percent_format(accuracy = 1))
 
   return(g)
 
@@ -1135,18 +1134,38 @@ graficar_crucePuntos = function(bd, cruce, vartype){
   g <- bd |>
     ggplot(aes(x=reorder(variable,mean), xend=variable,
                color=!!rlang::sym(cruce))) +
-    geom_point(aes(y=mean),
-               shape=19,  size=6) +
     geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
                    linetype="solid", color="black", linewidth=.5) +
     geom_vline(aes(xintercept = variable), linetype = "dashed",
                color = "gray60", size=.5) +
+    geom_point(aes(y=mean),
+               shape=19,  size=6) +
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
-
   return(g)
 }
-
+#' Graficar cruce de una variable vs varias variables pero filtradas
+#'
+#' @param orden_variablePrincipal Factor de la variable principal
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_puntosMultiples = function(bd, orden_variablePrincipal) {
+  bd |>
+  ggplot(aes(x = factor(variablePrincipal, levels = orden_variablePrincipal), y = mean,
+             color = tema, group = variablePrincipal)) +
+    geom_line(color="#a2d2ff",linewidth=4.5,alpha=0.5) +
+    geom_point(size=7) +
+    scale_y_continuous(labels=scales::percent) +
+    coord_flip() +
+    labs(color = "") +
+    theme(legend.title =element_blank(),
+          axis.text = element_text(size=15),
+          legend.text = element_text(size=14))
+}
 #' Graficar cruce de una variable vs otra con opción a filtro
 #'
 #' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'

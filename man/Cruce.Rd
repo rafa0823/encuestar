@@ -14,6 +14,7 @@ Esta es la clase de Cruce
 \item \href{#method-Cruce-new}{\code{Cruce$new()}}
 \item \href{#method-Cruce-sankey_categorica}{\code{Cruce$sankey_categorica()}}
 \item \href{#method-Cruce-puntos}{\code{Cruce$puntos()}}
+\item \href{#method-Cruce-puntosMultiples}{\code{Cruce$puntosMultiples()}}
 \item \href{#method-Cruce-brechasDuales}{\code{Cruce$brechasDuales()}}
 \item \href{#method-Cruce-brechasMultiples}{\code{Cruce$brechasMultiples()}}
 \item \href{#method-Cruce-barrasMultiples}{\code{Cruce$barrasMultiples()}}
@@ -26,7 +27,13 @@ Esta es la clase de Cruce
 \if{latex}{\out{\hypertarget{method-Cruce-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$new(diseno, diccionario = NULL, tema, graficadas = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$new(
+  encuesta = NULL,
+  diseno = NULL,
+  diccionario = NULL,
+  tema,
+  graficadas = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -45,6 +52,22 @@ Esta es la clase de Cruce
 \subsection{Method \code{puntos()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Cruce$puntos(cruce, variables, vartype = "se", valor_variables)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Cruce-puntosMultiples"></a>}}
+\if{latex}{\out{\hypertarget{method-Cruce-puntosMultiples}{}}}
+\subsection{Method \code{puntosMultiples()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$puntosMultiples(
+  variablePrincipal,
+  variablesSecundarias,
+  valor_variblesSecundarias,
+  orden_variablePrincipal,
+  invertirVariables = F,
+  vartype = "cv"
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -105,7 +128,14 @@ Esta es la clase de Cruce
 \if{latex}{\out{\hypertarget{method-Cruce-bloques}{}}}
 \subsection{Method \code{bloques()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$bloques(cruce, variable, vartype = "cv", filter = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$bloques(
+  cruce,
+  variable,
+  vartype = "cv",
+  filter = NULL,
+  linea_grosor = 2,
+  linea_color = "white"
+)}\if{html}{\out{</div>}}
 }
 
 }

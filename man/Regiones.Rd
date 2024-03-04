@@ -17,6 +17,8 @@ Esta es la clase de Regiones
 \item \href{#method-Regiones-heatmap_conocimiento}{\code{Regiones$heatmap_conocimiento()}}
 \item \href{#method-Regiones-heatmap_saldoOpinion}{\code{Regiones$heatmap_saldoOpinion()}}
 \item \href{#method-Regiones-mapa_resaltarRegion}{\code{Regiones$mapa_resaltarRegion()}}
+\item \href{#method-Regiones-crear_shp_regiones}{\code{Regiones$crear_shp_regiones()}}
+\item \href{#method-Regiones-resaltar_region}{\code{Regiones$resaltar_region()}}
 \item \href{#method-Regiones-clone}{\code{Regiones$clone()}}
 }
 }
@@ -25,7 +27,7 @@ Esta es la clase de Regiones
 \if{latex}{\out{\hypertarget{method-Regiones-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regiones$new(diseno, diccionario = NULL, shp = NULL, tema)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regiones$new(encuesta = NULL, diseno = NULL, diccionario = NULL, tema)}\if{html}{\out{</div>}}
 }
 
 }
@@ -86,6 +88,24 @@ Esta es la clase de Regiones
 \subsection{Method \code{mapa_resaltarRegion()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regiones$mapa_resaltarRegion(region, color)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Regiones-crear_shp_regiones"></a>}}
+\if{latex}{\out{\hypertarget{method-Regiones-crear_shp_regiones}{}}}
+\subsection{Method \code{crear_shp_regiones()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Regiones$crear_shp_regiones()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Regiones-resaltar_region"></a>}}
+\if{latex}{\out{\hypertarget{method-Regiones-resaltar_region}{}}}
+\subsection{Method \code{resaltar_region()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Regiones$resaltar_region(color)}\if{html}{\out{</div>}}
 }
 
 }
