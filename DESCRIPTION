@@ -61,7 +61,8 @@ Suggests:
 VignetteBuilder: 
     knitr
 Remotes:
-    hrbrmstr/ggchicklet
+    hrbrmstr/ggchicklet,
+    davidsjoberg/ggsankey
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)

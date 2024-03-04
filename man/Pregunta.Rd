@@ -275,7 +275,14 @@ Esta es la clase de pregunta
 \if{latex}{\out{\hypertarget{method-Pregunta-cruce_bloque}{}}}
 \subsection{Method \code{cruce_bloque()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_bloque(cruce, variable, vartype = "cv", filter = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Pregunta$cruce_bloque(
+  cruce,
+  variable,
+  vartype = "cv",
+  filter = NULL,
+  linea_grosor,
+  linea_color
+)}\if{html}{\out{</div>}}
 }
 
 }

@@ -24,7 +24,13 @@ Esta es la clase de Especial
 \if{latex}{\out{\hypertarget{method-Especial-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Especial$new(diseno, diccionario = NULL, tema, graficadas = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Especial$new(
+  encuesta = NULL,
+  diseno = NULL,
+  diccionario = NULL,
+  tema,
+  graficadas = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -38,12 +44,13 @@ Esta es la clase de Especial
   aspectos,
   ns_nc = "Ns/Nc",
   regular = "Regular",
-  llave_burbuja = "conocimiento",
+  llave_burbuja = NA,
   filtro_burbuja = "respuesta == 'Sí'",
   grupo_positivo,
   grupo_negativo,
   orden_resp,
-  colores_opinion = c("red", "yellow", "green", "gray70"),
+  colores_opinion = c("red", "yellow", "green"),
+  color_nsnc = "gray70",
   color_burbuja = "blue",
   caption_opinion = "",
   caption_nsnc = "Ns/Nc",
@@ -52,8 +59,10 @@ Esta es la clase de Especial
   size_caption_nsnc = 14,
   size_caption_burbuja = 14,
   size_text_cat = 16,
+  size_pct = 12,
   burbuja = T,
-  salto = 20
+  salto = 20,
+  mostrar_nsnc = T
 )}\if{html}{\out{</div>}}
 }
 

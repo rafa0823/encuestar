@@ -4,7 +4,15 @@
 \alias{graficar_cruce_bloques}
 \title{Graficar cruce de una variable vs otra con opción a filtro}
 \usage{
-graficar_cruce_bloques(bd, cruce, variable, vartype, filter)
+graficar_cruce_bloques(
+  bd,
+  cruce,
+  variable,
+  vartype,
+  filter,
+  linea_grosor,
+  linea_color
+)
 }
 \arguments{
 \item{bd}{Base de datos producto de la función 'analizar_cruceBrechas'}

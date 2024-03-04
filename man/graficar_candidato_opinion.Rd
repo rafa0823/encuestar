@@ -11,6 +11,7 @@ graficar_candidato_opinion(
   grupo_positivo,
   grupo_negativo,
   colores,
+  color_nsnc,
   burbuja,
   color_burbuja,
   caption_opinion,
@@ -20,9 +21,11 @@ graficar_candidato_opinion(
   size_caption_nsnc,
   size_caption_burbuja,
   size_text_cat,
+  size_pct,
   orden_resp,
   salto = 200,
-  tema
+  tema,
+  mostrar_nsnc = T
 )
 }
 \arguments{

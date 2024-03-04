@@ -1811,7 +1811,10 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                encuestar:::graficar_barras(salto = salto,
                                                porcentajes_fuera = porcentajes_fuera,
                                                desplazar_porcentajes = desplazar_porcentajes) +
-                               self$tema
+                               self$tema +
+                               theme(legend.position = "none",
+                                     axis.text.x = element_text(size = 14),
+                                     plot.caption = element_text(size = 12))
 
                            }
 
@@ -1980,9 +1983,51 @@ Cruce <- R6::R6Class(classname = "Cruce",
                             bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(diseno),
                                                                               cruce = cruce, variables = variables,vartype = vartype,
                                                                               valor_variables = valor_variables) |>
-                              left_join(self$diccionario, by = c("variable" = "llaves"))
+                              left_join(self$diccionario |>
+                                           distinct(llaves, tema), by = c("variable" = "llaves")) |>
+                              select(!variable) |>
+                              rename(variable = tema)
 
                             encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
+                              self$tema
+
+                          },
+                          puntosMultiples = function(variablePrincipal, variablesSecundarias, valor_variblesSecundarias, orden_variablePrincipal, invertirVariables = F, vartype = "cv") {
+                            if(is.null(self$diseno)) {
+
+                              diseno <- self$encuesta$muestra$diseno
+
+                            } else {
+
+                              diseno <- self$diseno
+
+                            }
+
+                            bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(diseno),
+                                                                              cruce = variablePrincipal,
+                                                                              variables = variablesSecundarias,
+                                                                              vartype = vartype,
+                                                                              valor_variables = valor_variblesSecundarias) |>
+                              left_join(self$diccionario |>
+                                          distinct(llaves, tema), by = c("variable" = "llaves")) |>
+                              select(!variable) |>
+                              rename("variablePrincipal" := variablePrincipal)
+
+                            bd_estimacion <-
+                              if(invertirVariables) {
+                                bd_estimacion |>
+                                transmute(aux = variablePrincipal,
+                                          variablePrincipal = tema,
+                                          tema = aux,
+                                          mean,
+                                          cv) |>
+                                  select(!aux)
+                              } else {
+                                bd_estimacion
+                              }
+
+                            bd_estimacion |>
+                              encuestar:::graficar_cruce_puntosMultiples(orden_variablePrincipal) +
                               self$tema
 
                           },
