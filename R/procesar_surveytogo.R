@@ -31,7 +31,6 @@ analizar_frecuencias <- function(diseno, pregunta){
     )
 
   return(estimacion)
-
 }
 
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))

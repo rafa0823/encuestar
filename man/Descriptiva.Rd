@@ -28,7 +28,13 @@ Esta es la clase de Grafica
 \if{latex}{\out{\hypertarget{method-Descriptiva-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$new(diseno, diccionario = NULL, tema, graficadas = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$new(
+  encuesta = NULL,
+  diseno = NULL,
+  diccionario = NULL,
+  tema,
+  graficadas = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -70,7 +76,8 @@ Esta es la clase de Grafica
   codigo,
   salto = 20,
   porcentajes_fuera = F,
-  desplazar_porcentajes = 0
+  desplazar_porcentajes = 0,
+  pct_otros = 0.01
 )}\if{html}{\out{</div>}}
 }
 

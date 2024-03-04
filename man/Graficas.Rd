@@ -12,6 +12,7 @@ Esta es la clase de Pregunta2
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Graficas-new}{\code{Graficas$new()}}
+\item \href{#method-Graficas-faltantes}{\code{Graficas$faltantes()}}
 \item \href{#method-Graficas-clone}{\code{Graficas$clone()}}
 }
 }
@@ -20,7 +21,16 @@ Esta es la clase de Pregunta2
 \if{latex}{\out{\hypertarget{method-Graficas-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Graficas$new(encuesta, tema = tema_default)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Graficas$new(encuesta, diseno, diccionario, tema = encuestar:::tema_default())}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Graficas-faltantes"></a>}}
+\if{latex}{\out{\hypertarget{method-Graficas-faltantes}{}}}
+\subsection{Method \code{faltantes()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Graficas$faltantes()}\if{html}{\out{</div>}}
 }
 
 }

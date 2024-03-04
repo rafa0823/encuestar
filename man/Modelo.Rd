@@ -23,7 +23,13 @@ Esta es la clase de Modelo
 \if{latex}{\out{\hypertarget{method-Modelo-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Modelo$new(diseno, diccionario = NULL, tema, graficadas = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Modelo$new(
+  encuesta = NULL,
+  diseno = NULL,
+  diccionario = NULL,
+  tema,
+  graficadas = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }
