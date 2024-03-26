@@ -171,7 +171,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           },
 
                           error_muestral_maximo = function(quitar_patron = NULL){
-                            aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiples")
+                            aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiple")
                             if(!is.null(quitar_patron)) {
                               quitar_patron <- paste(quitar_patron, collapse = "|")
                               aux <- aux %>% filter(!grepl(quitar_patron, x = llaves))
