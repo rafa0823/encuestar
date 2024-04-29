@@ -46,7 +46,6 @@ Imports:
     survey,
     tibble,
     tidyr,
-    tidytext,
     treemapify,
     utils,
     webshot,

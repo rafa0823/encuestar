@@ -42,7 +42,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 #' @param aspectos Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
 #'
 #' @return
-#' \item{estimacion} {Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
+#' \item{estimacion}{Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
 #' @export
 #'
 #' @examples
