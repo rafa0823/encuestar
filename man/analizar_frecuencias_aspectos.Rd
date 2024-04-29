@@ -16,7 +16,7 @@ analizar_frecuencias_aspectos(diseno, diccionario, patron_pregunta, aspectos)
 \item{aspectos}{Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.}
 }
 \value{
-\item{estimacion} {Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
+\item{estimacion}{Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
 }
 \description{
 Analizar frecuencias aspectos
