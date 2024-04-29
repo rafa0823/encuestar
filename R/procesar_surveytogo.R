@@ -514,6 +514,41 @@ analizar_sankey = function(diseno, var_1, var_2){
 
 }
 
+#' Calcular proporciones por categorias de respuestas abiartas
+#'
+#' @param disenoDiseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' @param llave_categorias Nombre de la variable que contiene las categorias de respuestas abiertas
+#' @param separacion_multicategoria Cadena de texto que separa las categorias multiples
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calcular_proporciones_nube <- function(diseno, llave_categorias, separacion_multicategoria = ">>>"){
+  diseno |>
+    group_by(!!rlang::sym(llave_categorias)) |>
+    summarise(total = srvyr::survey_total(na.rm = T, vartype = NULL)) |>
+    tibble::rownames_to_column(var = "id") %>%
+    mutate_at(vars(2), .funs = ~gsub(pattern = separacion_multicategoria,
+                                     replacement = "-",
+                                     x = .)) |>
+    tidyr::separate_rows(!!rlang::sym(llave_categorias), sep = "-") |>
+    srvyr::filter(!!rlang::sym(llave_categorias) != "sin_categoria") |>
+    group_by(!!rlang::sym(llave_categorias)) |>
+    summarise(total = sum(total,na.rm = T)) %>%
+    rename(categoria = !!rlang::sym(colnames(.)[1])) |>
+    filter(!categoria %in% c("sin_categoria","")) %>%
+    mutate(total = as.integer(round(total)),
+           categoria = stringr::str_to_sentence(categoria)) |>
+    arrange(desc(total)) |>
+    mutate(pct = total/sum(total),
+           acum = cumsum(pct),
+           cuartil = dplyr::case_when(0 <= acum & acum < 0.25 ~ 1,
+                                      0.25 <= acum & acum < 0.50 ~ 2,
+                                      0.50 <= acum & acum < 0.75 ~ 3,
+                                      0.75 <= acum & acum <= 1.00 ~ 4))
+}
+
 analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, diseno, colores =NULL){
 
   if(is.null(legenda1)) legenda1 <- var1
