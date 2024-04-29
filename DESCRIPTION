@@ -27,7 +27,6 @@ Imports:
     glue,
     grid,
     highcharter,
-    htmlwidgets,
     janitor,
     lemon,
     officer,
@@ -48,7 +47,6 @@ Imports:
     tidyr,
     treemapify,
     utils,
-    webshot,
     yesno
 Suggests: 
     knitr,

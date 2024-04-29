@@ -1197,46 +1197,6 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                              self$tema
 
 
-                         },
-                         nube_texto = function(codigo, palabrasVacias = NULL, total_palabras = 15, colores = c("#619CFF", "#FFFF33", "#00BA38")){
-
-                           llave_aux <- codigo
-                           if(!(llave_aux %in% self$graficadas)){
-                             if(llave_aux %in% self$diccionario$llaves){
-                               self$graficadas <- self$graficadas %>% append(llave_aux)
-                             } else {
-                               stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                             }
-                           } else {
-                             warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                           }
-
-                           if(is.null(self$diseno)) {
-
-                             diseno <- self$encuesta$muestra$diseno
-
-                           } else {
-
-                             diseno <- self$diseno
-
-                           }
-
-                           nubeImg <- encuestar:::analizar_respuestaAbierta(bd = diseno$variables, variable = codigo,
-                                                                            palabrasVacias = palabrasVacias, totalPalabras = total_palabras,
-                                                                            colores = colores) |>
-                             encuestar:::graficar_nubePalabras_hc()
-
-                           dest_folder <- "data/nubeTexto"
-
-                           if(!file.exists(dest_folder)) dir.create(dest_folder)
-
-                           htmlwidgets::saveWidget(widget = nubeImg, file = paste(dest_folder, codigo, ".html", sep = ""))
-                           webshot::webshot(url = paste(dest_folder, codigo, ".html", sep = ""), delay = 5,
-                                            file = paste(dest_folder, codigo, ".png", sep = ""), vwidth = 600*5, vheight = 600*5/1.41)
-
-                           print(paste("El objeto se ha generado en el archivo ",
-                                       paste(dest_folder, codigo, ".png'", sep = ""), sep = ""))
-
                          }
                        ))
 

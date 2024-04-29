@@ -19,7 +19,6 @@ Esta es la clase de Grafica
 \item \href{#method-Descriptiva-barras_multirespuesta}{\code{Descriptiva$barras_multirespuesta()}}
 \item \href{#method-Descriptiva-barras_texto}{\code{Descriptiva$barras_texto()}}
 \item \href{#method-Descriptiva-intervalo_numerica}{\code{Descriptiva$intervalo_numerica()}}
-\item \href{#method-Descriptiva-nube_texto}{\code{Descriptiva$nube_texto()}}
 \item \href{#method-Descriptiva-clone}{\code{Descriptiva$clone()}}
 }
 }
@@ -132,20 +131,6 @@ Esta es la clase de Grafica
   escala = c(0, 10),
   point_size = 1,
   text_point_size = 8
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Descriptiva-nube_texto"></a>}}
-\if{latex}{\out{\hypertarget{method-Descriptiva-nube_texto}{}}}
-\subsection{Method \code{nube_texto()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$nube_texto(
-  codigo,
-  palabrasVacias = NULL,
-  total_palabras = 15,
-  colores = c("#619CFF", "#FFFF33", "#00BA38")
 )}\if{html}{\out{</div>}}
 }
 
