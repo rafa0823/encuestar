@@ -12,7 +12,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "l
 #' @examples
 #' analizar_frecuencias(diseno = as_survey_design(diseno), pregunta = sexo)
 #' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), pregunta = sexo)
-
 analizar_frecuencias <- function(diseno, pregunta){
   estimacion <- survey::svymean(survey::make.formula(pregunta),
     # enquo(pregunta),
@@ -50,7 +49,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
 #' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "opinion", aspectos = c("amlo", "claudia", "ebrard"))
 #' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "conocimiento", aspectos = c("amlo", "claudia", "ebrard"))
 analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
-
   # ja <- try(
   #   rlang::expr_text(ensym(patron_pregunta)),T
   # )
@@ -183,90 +181,6 @@ analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos
   return(res)
 }
 
-ordenar_opinion_xq <- function(base, llave_opinion, llave_xq, aspectos, grupo_positivo, grupo_negativo){
-  opiniones <- paste(llave_opinion, aspectos, sep = "_")
-  xqs <- paste(llave_xq, aspectos, sep = "_")
-
-  base %>%
-    select(SbjNum, all_of(c(opiniones, xqs))) %>%
-    pivot_longer(-SbjNum) %>% separate(name, c("llave", "persona")) %>%
-    mutate(llave = stringr::str_replace(string = llave, replacement = "texto",pattern = llave_xq)) %>%
-    pivot_wider(names_from = llave, values_from = value) %>%
-    filter_all(all_vars(!is.na(.))) %>%
-    mutate(grupo = case_when(!!rlang::sym(llave_opinion) %in% grupo_positivo ~"Positiva",
-                             !!rlang::sym(llave_opinion) %in% grupo_negativo ~"Negativa",
-    )) %>% filter(!is.na((grupo)))
-}
-
-#cada opinion entre candidatos
-combinaciones_opiniones <- function(bd_texto, n_palabras){
-  opinion <- bd_texto %>% split(.$grupo) %>% map_df(~{
-    data_corpus <- corpus(.x, text_field = "texto") %>%
-      tokens( remove_punct = TRUE) %>%
-      tokens_remove(stopwords("spanish")) %>% tokens_group(groups = persona) %>%
-      dfm()
-
-    .x$persona %>% unique %>% map_df(~{
-      textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(persona = .x) %>%
-        slice(seq_len(n_palabras))
-    }) %>% mutate(grupo = unique(.x$grupo))
-  }) %>% group_by(persona, grupo) %>% summarise(p_calve = paste(feature, collapse = "\n"))
-}
-
-#cada opinion por candidatos
-combinaciones_candidatos <- function(bd_texto, n_palabras){
-  opinion <- bd_texto %>% split(.$persona) %>% map_df(~{
-    data_corpus <- corpus(.x, text_field = "texto") %>%
-      tokens( remove_punct = TRUE) %>%
-      tokens_remove(stopwords("spanish")) %>% tokens_group(groups = grupo) %>%
-      dfm()
-
-    .x$grupo %>% unique %>% map_df(~{
-      textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x) %>%
-        slice(seq_len(n_palabras))
-    }) %>% mutate(persona = unique(.x$persona))
-  }) %>% group_by(persona, grupo) %>% summarise(p_calve = paste(feature, collapse = "\n"))
-}
-
-#todas las combinaciones
-combinaciones_todas <- function(bd_texto, n_palabras){
-  aux_junto <- bd_texto %>% unite(junto,persona,grupo)
-
-  data_corpus <- corpus(aux_junto, text_field = "texto") %>%
-    tokens( remove_punct = TRUE) %>%
-    tokens_remove(stopwords("spanish")) %>% tokens_group(groups = junto) %>%
-    dfm()
-
-  aux_junto$junto %>% unique %>% map_df(~{
-    textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x) %>%
-      slice(seq_len(n_palabras))
-  }) %>% group_by(grupo)%>% summarise(p_calve = paste(feature, collapse = "\n")) %>%
-    separate(grupo, into = c("persona","grupo"))
-}
-
-#' Title
-#'
-#' @param bd_texto
-#' @param tipo
-#' @param n_palabras
-#'
-#' @return
-#' @export
-#' @import quanteda quanteda.textstats
-#' @examples
-pclave_combinaciones_saldo <- function(bd_texto, tipo, n_palabras){
-  if(tipo == "opiniones"){
-    res <- combinaciones_opiniones(bd_texto, n_palabras)
-  }
-  if(tipo == "candidatos"){
-    res <- combinaciones_candidatos(bd_texto, n_palabras)
-  }
-  if(tipo == "todas"){
-    res <- combinaciones_todas(bd_texto, n_palabras)
-  }
-  return(res)
-}
-
 analizar_frecuencia_region <- function(variable, diseno, diccionario){
   survey::svytable(survey::make.formula(c(variable,"region")), design = diseno) %>%
     as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>% mutate(llaves = variable) %>%
@@ -385,26 +299,6 @@ analizar_frecuenciasRegion <- function(regiones, variable, diseno){
     survey::svyby(formula, ~region, design = diseno, FUN = survey::svymean, na.rm  = T) %>%
       as_tibble(), by = "region")
   return(tbl)
-}
-#' Title
-#'
-#' @param bd
-#' @param var
-#'
-#' @return
-#' @export
-#'
-#' @examples
-analizar_pclave_region <- function(bd, var){
-
-  data_corpus <- corpus(bd, text_field = var) %>%
-    tokens( remove_punct = TRUE) %>%
-    tokens_remove(stopwords("spanish")) %>% tokens_group(groups = region) %>%
-    dfm()
-
-  bd$region %>% unique %>% map_df(~{
-    textstat_keyness(data_corpus, measure = "lr", target =.x) %>%  tibble() %>% mutate(grupo = .x)
-  }) %>% group_by(grupo) %>% summarise(pclave = paste(feature,collapse = ", "))
 }
 
 #' Title
@@ -620,34 +514,48 @@ analizar_sankey = function(diseno, var_1, var_2){
 
 }
 
-#' Analizar respuestas abiertas
-#'
-#' @param bd Base de datos en formato largo a analizar en formato largo.
-#' @param variable Variable cuyos valores son cadenas de texto.
-#' @param palabrasVacias Conjunto de palabras a omitir del lenguajes español.
-#' @param totalPalabras Total de palabras a segregar
-#' @param colores Vector de colores en orden descendente de relevancia.
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' analizar_respuestaAbierta(bd, variable = opinion_amlo, palabrasVacias = c("muy", "de"), totalPalabras = 15, colores = c("green", "blue", "yellow"))
-analizar_respuestaAbierta = function(bd, variable, palabrasVacias, totalPalabras, colores = c("green", "blue", "yellow")){
+analisis_correspondencia <- function(var1, var2, legenda1=NULL, legenda2=NULL, diseno, colores =NULL){
 
-  res <- tidytext::unnest_tokens(tbl = bd %>% as_tibble(),
-                                  output = palabras,
-                                  input = variable) %>%
-    as_tibble() |>
-    count(palabras, sort = T) %>%
-    anti_join(tibble(palabras = c(stopwords::stopwords("es"), palabrasVacias)), by = c("palabras")) %>%
-    mutate(colores = case_when(n <= quantile(n, probs = .75) ~ colores[3],
-                               n > quantile(n, probs = .75) & n <= quantile(n, probs=.90) ~ colores[2],
-                               n > quantile(n, probs = .90) ~ colores[1],
-                               T ~ NA_character_ )) %>%
-    na.omit(palabras) |>
-    slice(1:totalPalabras)
+  if(is.null(legenda1)) legenda1 <- var1
+  if(is.null(legenda2)) legenda2 <- var2
+  if(is.null(colores)) colores <- c("#DE6400","#023047")
 
-  return(res)
+  formula <- survey::make.formula(c(var1,var2))
+  aux <- survey::svytable(formula, design = diseno) %>%
+    tibble::as_tibble() %>%
+    tidyr::pivot_wider(names_from = var2, values_from = "n") %>%
+    tibble::column_to_rownames(var = var1)
+
+
+  # chisq.test(aux)
+  res.ca <- FactoMineR::CA(aux, graph = F)
+  eig <- factoextra::get_eigenvalue(res.ca)[, 2]
+
+  res.ca$col$coord %>%
+    as_tibble(rownames = "respuesta") %>%
+    janitor::clean_names() %>%
+    select(respuesta,num_range("dim_",1:2)) %>%
+    mutate(variable = legenda2) %>%
+    bind_rows(res.ca$row$coord %>%
+                as_tibble(rownames = "respuesta") %>%
+                janitor::clean_names() %>%
+                select(respuesta,num_range("dim_",1:2)) %>%
+                mutate(variable = legenda1)) %>%
+    ggpubr::ggscatter(x = "dim_1", y = "dim_2", color = "variable", label = "respuesta", repel = T) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(x = scales::percent(eig[1]/100,accuracy = .1),
+         y = scales::percent(eig[2]/100,accuracy = .1),
+         color = ""
+    ) +
+    scale_color_manual(values = colores) +
+    lemon::scale_x_symmetric() +
+    lemon::scale_y_symmetric() +
+    theme(axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          panel.grid.major.x = element_line(colour = "#C5C5C5",linetype = "dotted"),
+          panel.grid.major.y = element_line(colour = "#C5C5C5",linetype = "dotted"))
 
 }
