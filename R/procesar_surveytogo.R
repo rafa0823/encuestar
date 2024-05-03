@@ -14,7 +14,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "l
 #' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), pregunta = sexo)
 analizar_frecuencias <- function(diseno, pregunta){
   estimacion <- survey::svymean(survey::make.formula(pregunta),
-    # enquo(pregunta),
+                                # enquo(pregunta),
                                 design = diseno, na.rm = T) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
     rename(media=2, ee=3) %>%
@@ -172,7 +172,7 @@ analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos
 
   res <- bd %>%
     mutate(!!rlang::sym(llave_op) := case_when(respuesta %in% grupo_positivo ~"Positiva",
-                                                    respuesta %in% grupo_negativo ~"Negativa",)) %>%
+                                               respuesta %in% grupo_negativo ~"Negativa",)) %>%
     filter(!is.na(!!rlang::sym(llave_op))) %>%
     mutate(persona = stringr::str_replace(aspecto, glue::glue("{llave_op}_"), "")) %>%
     count(persona, tema, grupo = !!rlang::sym(llave_op), wt = media, name = "saldo") %>%
@@ -296,8 +296,8 @@ analizar_frecuenciasRegion <- function(regiones, variable, diseno){
   formula <- survey::make.formula(rlang::expr_text(ensym(variable)))
   tbl <- regiones %>%
     left_join(
-    survey::svyby(formula, ~region, design = diseno, FUN = survey::svymean, na.rm  = T) %>%
-      as_tibble(), by = "region")
+      survey::svyby(formula, ~region, design = diseno, FUN = survey::svymean, na.rm  = T) %>%
+        as_tibble(), by = "region")
   return(tbl)
 }
 
@@ -494,9 +494,8 @@ analizar_cruceBrechas = function(diseno, var1, var2_filtro, filtro, vartype){
 
 #' Analizar sankey
 #'
+#' @param variables Vector que contiene las llaves de las cuales se va a hacer el cruce
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
-#' @param var_1 Nombre de la variable primer variable a analizar contenida en el diseño muestral
-#' @param var_2 Nombre de la variable segunda variable a analizar contenida en el diseño muestral
 #'
 #' @return
 #' @export
@@ -504,14 +503,18 @@ analizar_cruceBrechas = function(diseno, var1, var2_filtro, filtro, vartype){
 #' @examples
 #' analizar_sankey(diseno = as_survey_design(diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
 #' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
-analizar_sankey = function(diseno, var_1, var_2){
+analizar_sankey = function(diseno, variables){
+  if(length(variables) == 2) {
+    vec_variables <- c(var1 = variables[[1]], var2 = variables[[2]])
+  }
 
-  estimacion <- survey::svytable(survey::make.formula(c(var1 = var_1, var2 = var_2)),
-                            design = diseno) %>%
-    tibble::as_tibble()
-
-  return(estimacion)
-
+  if(length(variables) == 3) {
+    vec_variables <- c(var1 = variables[[1]], var2 = variables[[2]], var3 = variables[[3]])
+  }
+  survey::svytable(survey::make.formula(vec_variables),
+                     design = diseno) %>%
+    tibble::as_tibble() |>
+    ggsankey::make_long(-n, value = n)
 }
 
 #' Calcular proporciones por categorias de respuestas abiartas
