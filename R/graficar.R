@@ -271,7 +271,8 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema +
     theme(axis.text.y = element_text(size = size_text_cat),
-          plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc), legend.key.size = unit(1, units = "cm")) +
+          plot.caption = element_text(hjust = 0.5, size = size_caption_opinion),
+          legend.key.size = unit(1, units = "cm")) +
     scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
@@ -679,8 +680,8 @@ graficar_crucePuntos = function(bd, cruce, vartype){
 #' @examples
 graficar_cruce_puntosMultiples = function(bd, orden_variablePrincipal) {
   bd |>
-  ggplot(aes(x = factor(variablePrincipal, levels = orden_variablePrincipal), y = mean,
-             color = tema, group = variablePrincipal)) +
+    ggplot(aes(x = factor(variablePrincipal, levels = orden_variablePrincipal), y = mean,
+               color = tema, group = variablePrincipal)) +
     geom_line(color="#a2d2ff",linewidth=4.5,alpha=0.5) +
     geom_point(size=7) +
     scale_y_continuous(labels=scales::percent) +
@@ -844,15 +845,15 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
 
     g <- g +
       treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
-                        place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
-                        color="white",
-                        family = "Poppins")
+                                    place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
+                                    color="white",
+                                    family = "Poppins")
   }else{
     g <- g +
       treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
-                        place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
-                        color="white",
-                        family = "Poppins")
+                                    place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
+                                    color="white",
+                                    family = "Poppins")
 
   }
 
@@ -863,37 +864,42 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
 #'
 #' @param bd Base de datos procesada con la función analizar_sankey
 #' @param size_text_cat Tamaño del texto mostrado en cada nodo el sankey
+#' @param variables Vector que contiene las llaves de las cuales se va a hacer el cruce
+#' @param colores Argumento usado por scale_fill_manual y sclae_color_manual
 #'
 #' @return
 #' @export
 #'
 #' @examples
 #' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
-graficar_sankey = function(bd, size_text_cat){
-
-  g <- bd |>
-    ggsankey::make_long(-n, value = n) |>
+graficar_sankey = function(bd, variables, colores, size_text_cat){
+    bd |>
     ggplot(aes(x = x,
                value = value,
                next_x = next_x,
                node = node,
                next_node = next_node,
-               fill = factor(node))) +
+               fill = node)) +
     ggsankey::geom_sankey() +
-    ggsankey::geom_sankey_label(data = . %>% filter(x == names(bd)[1]),
-                                aes(label = node, color = node),
-                                hjust = 1.0, fill = "white", size = size_text_cat) +
-    ggsankey::geom_sankey_label(data = . %>% filter(x == names(bd)[2]),
-                                aes(label = node, color = node),
-                                hjust = -0.2, fill = "white", size = size_text_cat) +
-    labs(fill = "") +
-    guides(color = "none") +
-    theme(legend.position = "bottom")
-
-  return(g)
-
+    ggsankey::geom_sankey_text(data = bd |> filter(x  == variables[1]),
+                               aes(label = stringr::str_wrap(string = node, width = 30),
+                                   color = node),
+                               size = size_text_cat,
+                               show.legend = F,
+                               hjust = 2) +
+    ggsankey::geom_sankey_text(data = bd |> filter(x  == variables[2]),
+                               aes(label = stringr::str_wrap(string = node, width = 30),
+                                   color = node),
+                               size = size_text_cat,
+                               show.legend = F,
+                               hjust = -1) +
+    guides(color = "none", fill = "none") +
+    scale_fill_manual(values = colores) +
+    scale_color_manual(values = colores) +
+    encuestar::tema_default() +
+    theme(legend.position = "none",
+          axis.text.y = element_blank())
 }
-
 #' Graficar nube de palabras
 #'
 #' @param bd Base de datos con la estructura generada por calcular_proporciones_nubes
