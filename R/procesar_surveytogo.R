@@ -503,7 +503,7 @@ analizar_cruceBrechas = function(diseno, var1, var2_filtro, filtro, vartype){
 #' @examples
 #' analizar_sankey(diseno = as_survey_design(diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
 #' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
-analizar_sankey = function(diseno, variables){
+analizar_sankey = function(diseno, variables, filtro_var1, filtro_var2){
   if(length(variables) == 2) {
     vec_variables <- c(var1 = variables[[1]], var2 = variables[[2]])
   }
@@ -511,9 +511,28 @@ analizar_sankey = function(diseno, variables){
   if(length(variables) == 3) {
     vec_variables <- c(var1 = variables[[1]], var2 = variables[[2]], var3 = variables[[3]])
   }
-  survey::svytable(survey::make.formula(vec_variables),
+  res <-
+    survey::svytable(survey::make.formula(vec_variables),
                      design = diseno) %>%
-    tibble::as_tibble() |>
+    tibble::as_tibble()
+
+  if(!is.null(filtro_var1)) {
+
+    res <-
+      res |>
+      filter(!(!!rlang::sym(variables[[1]]) %in% filtro_var1))
+
+  }
+
+  if(!is.null(filtro_var2)) {
+
+    res <-
+      res |>
+      filter(!(!!rlang::sym(variables[[2]]) %in% filtro_var2))
+
+  }
+
+  res |>
     ggsankey::make_long(-n, value = n)
 }
 

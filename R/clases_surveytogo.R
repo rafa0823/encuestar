@@ -26,6 +26,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           rake = NA,
                           mantener_falta_coordenadas = NULL,
                           n_simulaciones = NA,
+                          dir_app = NULL,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
@@ -44,7 +45,8 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 auditar = NA,
                                                 sin_peso = F,
                                                 rake = T,
-                                                mantener_falta_coordenadas = F
+                                                mantener_falta_coordenadas = F,
+                                                dir_app = "auditoria"
                           ) {
                             sf_use_s2(F)
                             tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
@@ -106,7 +108,8 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_default())
 
                             # Shiny app de auditoria
-                            self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta)
+                            self$dir_app <- dir_app
+                            self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta, dir = self$dir_app)
                             beepr::beep()
                             return(print(match_dicc_base(self, self$quitar_vars), n = Inf))
                           },
@@ -1217,7 +1220,9 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          self$tema <- tema
                          self$graficadas <- graficadas
                        },
-                       sankey_categorica = function(variables = NULL, colores, size_text_cat = 8){
+                       sankey_categorica = function(variables = NULL, colores, size_text_cat = 6,
+                                                    omitir_valores_variable1 = NULL,
+                                                    omitir_valores_variable2 = NULL){
 
                          if(is.null(variables)) {
 
@@ -1235,12 +1240,15 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                            }
 
-                           bd_estimacion <- analizar_sankey(diseno = diseno, variables = variables)
+                           bd_estimacion <- encuestar:::analizar_sankey(diseno = diseno,
+                                                                        variables = variables,
+                                                                        filtro_var1 = omitir_valores_variable1,
+                                                                        filtro_var2 = omitir_valores_variable2)
 
-                           graficar_sankey(bd = bd_estimacion,
-                                           variables = variables,
-                                           colores = colores,
-                                           size_text_cat = size_text_cat)
+                           encuestar:::graficar_sankey(bd = bd_estimacion,
+                                                       variables = variables,
+                                                       colores = colores,
+                                                       size_text_cat = size_text_cat)
                          }
                        },
                        puntos = function(cruce, variables, vartype = "se", valor_variables){
@@ -1773,7 +1781,7 @@ Modelo <- R6::R6Class(classname = "Modelo",
 Auditoria <- R6::R6Class("Auditoria",
                          public = list(
                            dir = NULL,
-                           initialize = function(encuesta, tipo_encuesta, dir = "auditoria"){
+                           initialize = function(encuesta, tipo_encuesta, dir){
                              if(!file.exists(dir)){
                                dir.create(dir)
                              }
