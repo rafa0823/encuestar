@@ -55,7 +55,8 @@ Create a person
   auditar = NA,
   sin_peso = F,
   rake = T,
-  mantener_falta_coordenadas = F
+  mantener_falta_coordenadas = F,
+  dir_app = "auditoria"
 )}\if{html}{\out{</div>}}
 }
 

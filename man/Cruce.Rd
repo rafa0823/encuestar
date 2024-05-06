@@ -42,7 +42,13 @@ Esta es la clase de Cruce
 \if{latex}{\out{\hypertarget{method-Cruce-sankey_categorica}{}}}
 \subsection{Method \code{sankey_categorica()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$sankey_categorica(variables = NULL, size_text_cat = 8)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$sankey_categorica(
+  variables = NULL,
+  colores,
+  size_text_cat = 6,
+  omitir_valores_variable1 = NULL,
+  omitir_valores_variable2 = NULL
+)}\if{html}{\out{</div>}}
 }
 
 }

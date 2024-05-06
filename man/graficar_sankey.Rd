@@ -4,10 +4,14 @@
 \alias{graficar_sankey}
 \title{Graficar sankey}
 \usage{
-graficar_sankey(bd, size_text_cat)
+graficar_sankey(bd, variables, colores, size_text_cat)
 }
 \arguments{
 \item{bd}{Base de datos procesada con la función analizar_sankey}
+
+\item{variables}{Vector que contiene las llaves de las cuales se va a hacer el cruce}
+
+\item{colores}{Argumento usado por scale_fill_manual y sclae_color_manual}
 
 \item{size_text_cat}{Tamaño del texto mostrado en cada nodo el sankey}
 }
