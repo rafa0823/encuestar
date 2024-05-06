@@ -22,7 +22,7 @@ Title
 \if{latex}{\out{\hypertarget{method-Auditoria-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Auditoria$new(encuesta, tipo_encuesta, dir = "auditoria")}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Auditoria$new(encuesta, tipo_encuesta, dir)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
