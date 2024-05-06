@@ -4,14 +4,12 @@
 \alias{analizar_sankey}
 \title{Analizar sankey}
 \usage{
-analizar_sankey(diseno, var_1, var_2)
+analizar_sankey(diseno, variables, filtro_var1, filtro_var2)
 }
 \arguments{
 \item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
 
-\item{var_1}{Nombre de la variable primer variable a analizar contenida en el diseño muestral}
-
-\item{var_2}{Nombre de la variable segunda variable a analizar contenida en el diseño muestral}
+\item{variables}{Vector que contiene las llaves de las cuales se va a hacer el cruce}
 }
 \description{
 Analizar sankey
