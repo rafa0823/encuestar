@@ -643,3 +643,68 @@ obtener_ubicacionEfectiva_surveyToGo <- function(bd_respuestas, id, intento_efec
     rename_with(~ gsub(pattern = as.character(intento_efectivo), replacement = "", x = .),
                 .cols = everything())
 }
+
+#' Calcular media movil de una variable
+#'
+#' @param bd_resultados
+#' @param variable
+#' @param sin_peso
+#' @param valores_interes
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calcular_mediaMovil = function(bd_resultados, variable, sin_peso, valores_interes) {
+  bd_resultados %>%
+    {
+      if(sin_peso) {
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable))
+      } else {
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)
+      }
+    }  %>%
+    group_by(hora) |>
+    complete(!!rlang::sym(variable) := valores_interes,
+             fill = list(n = 0)) |>
+    ungroup() |>
+    mutate(tot = sum(n), .by = c(hora)) |>
+    mutate(n_acum = cumsum(n),
+           tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable)),
+           !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum) |>
+    filter(!!rlang::sym(variable) %in% valores_interes) |>
+    select(hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)))
+}
+
+#' Calcular media movil de una variable por region
+#'
+#' @param bd_resultados
+#' @param variable
+#' @param sin_peso
+#' @param valores_interes
+#' @param variable_region
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calcular_mediaMovil_region = function(bd_resultados, variable, sin_peso, valores_interes, variable_region) {
+  bd_resultados %>%
+    {
+      if(sin_peso) {
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable_region), !!rlang::sym(variable))
+      } else {
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable_region), !!rlang::sym(variable), wt = peso)
+      }
+    }  %>%
+    group_by(hora, !!rlang::sym(variable_region)) |>
+    complete(!!rlang::sym(variable) := valores_interes,
+             fill = list(n = 0)) |>
+    ungroup() |>
+    mutate(tot = sum(n), .by = c(hora, !!rlang::sym(variable_region) )) |>
+    mutate(n_acum = cumsum(n),
+           tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable_region), !!rlang::sym(variable)),
+           !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum) |>
+    filter(!!rlang::sym(variable) %in% valores_interes) |>
+    select(!!rlang::sym(variable_region), hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)))
+}
