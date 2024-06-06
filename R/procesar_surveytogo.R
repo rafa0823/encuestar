@@ -654,16 +654,15 @@ obtener_ubicacionEfectiva_surveyToGo <- function(bd_respuestas, id, intento_efec
 #' @export
 #'
 #' @examples
-calcular_mediaMovil = function(bd_resultados, variable, sin_peso = T) {
-  bd_aux <-
-    if(sin_peso) {
-      bd_resultados %>%
-        count(hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable))
-    } else {
-      bd_resultados %>%
-        count(hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)
-    }
-  bd_aux %>%
+calcular_mediaMovil = function(bd_resultados, variable, sin_peso) {
+    bd_resultados %>%
+    {
+      if(sin_peso) {
+          count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable))
+      } else {
+          count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)
+      }
+    }  %>%
     group_by(hora) |>
     complete(!!rlang::sym(variable) := c("Sí"),
              fill = list(n = 0)) |>
