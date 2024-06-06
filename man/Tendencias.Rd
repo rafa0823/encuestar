@@ -14,6 +14,8 @@ Esta es la clase de Tendencias
 \item \href{#method-Tendencias-new}{\code{Tendencias$new()}}
 \item \href{#method-Tendencias-intencion_voto}{\code{Tendencias$intencion_voto()}}
 \item \href{#method-Tendencias-conocimiento}{\code{Tendencias$conocimiento()}}
+\item \href{#method-Tendencias-intencion_voto_region}{\code{Tendencias$intencion_voto_region()}}
+\item \href{#method-Tendencias-conocimiento_region}{\code{Tendencias$conocimiento_region()}}
 \item \href{#method-Tendencias-clone}{\code{Tendencias$clone()}}
 }
 }
@@ -45,6 +47,36 @@ Esta es la clase de Tendencias
   colores,
   sin_peso = T,
   valores_interes = "Sí"
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Tendencias-intencion_voto_region"></a>}}
+\if{latex}{\out{\hypertarget{method-Tendencias-intencion_voto_region}{}}}
+\subsection{Method \code{intencion_voto_region()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Tendencias$intencion_voto_region(
+  variable,
+  valores_interes,
+  colores,
+  sin_peso = T,
+  variable_region = "region"
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Tendencias-conocimiento_region"></a>}}
+\if{latex}{\out{\hypertarget{method-Tendencias-conocimiento_region}{}}}
+\subsection{Method \code{conocimiento_region()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Tendencias$conocimiento_region(
+  variables,
+  colores,
+  sin_peso = T,
+  valores_interes = "Sí",
+  variable_region = "region"
 )}\if{html}{\out{</div>}}
 }
 

@@ -1787,6 +1787,65 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted"))
                               return(g)
+                            },
+                            intencion_voto_region = function(variable, valores_interes, colores, sin_peso = T, variable_region = "region"){
+                              bd_mediaMovil <-
+                                encuestar:::calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
+                                                                       variable = variable,
+                                                                       sin_peso = sin_peso,
+                                                                       valores_interes = valores_interes,
+                                                                       variable_region = variable_region) |>
+                                rename(pct = !!rlang::sym(paste0("movil_", variable)))
+                              g <-
+                                bd_mediaMovil |>
+                                ggplot(aes(x = hora, y = pct, color = !!rlang::sym(variable))) +
+                                geom_point(size = 3) +
+                                geom_line(linewidth = 1, show.legend = F) +
+                                labs(subtitle = "Intención de voto", color = "") +
+                                scale_x_datetime(date_breaks = "1 days",
+                                                 labels = scales::date_format("%B %d")) +
+                                scale_y_continuous(labels = scales::percent) +
+                                scale_color_manual(values = colores) +
+                                tema_default() +
+                                theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
+                                                                        linetype = "dotted")) +
+                                facet_wrap(as.formula(paste0("~", variable_region)))
+                              return(g)
+                            },
+                            conocimiento_region = function(variables, colores, sin_peso = T, valores_interes = "Sí", variable_region = "region"){
+                              bd_mediaMovil <-
+                                encuestar:::calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
+                                                                       variable = variables[1],
+                                                                       sin_peso = sin_peso,
+                                                                       valores_interes = valores_interes,
+                                                                       variable_region = variable_region) |>
+                                left_join(encuestar:::calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
+                                                                                 variable = variables[2],
+                                                                                 sin_peso = sin_peso,
+                                                                                 valores_interes = valores_interes,
+                                                                                 variable_region = variable_region),
+                                          by = c("hora", variable_region)) |>
+                                tidyr::pivot_longer(cols = c(paste0("movil_", variables[1]),
+                                                             paste0("movil_", variables[2])),
+                                                    names_to = "variable",
+                                                    values_to = "pct")
+
+                              g <-
+                                bd_mediaMovil |>
+                                ggplot(aes(x = hora, y = pct, color = variable)) +
+                                geom_point(size = 3) +
+                                geom_line(linewidth = 1, show.legend = F) +
+                                labs(subtitle = "Conocimiento", color = "") +
+                                scale_color_manual(values = purrr::set_names(colores[1:2], paste0("movil_", variables)),
+                                                   labels = purrr::set_names(variables, paste0("movil_", variables))) +
+                                scale_x_datetime(date_breaks = "1 days",
+                                                 labels = scales::date_format("%B %d")) +
+                                scale_y_continuous(labels = scales::percent) +
+                                tema_default() +
+                                theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
+                                                                        linetype = "dotted")) +
+                                facet_wrap(as.formula(paste0("~", variable_region)))
+                              return(g)
                             }
                           ))
 
