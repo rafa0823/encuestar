@@ -874,6 +874,7 @@ Graficas <- R6::R6Class(classname = "Graficas",
                           Modelo = NULL,
                           Cruce = NULL,
                           Especial = NULL,
+                          Tendencias = NULL,
                           tema = NULL,
                           graficadas = NULL,
                           initialize = function(encuesta, diseno, diccionario, tema = encuestar:::tema_default()){
@@ -910,6 +911,8 @@ Graficas <- R6::R6Class(classname = "Graficas",
                                                           diccionario = self$diccionario,
                                                           tema = self$tema,
                                                           graficadas = self$graficadas)
+
+                            self$Tendencias <- Tendencias$new(encuesta = self$encuesta)
 
                             if(!is.null(self$encuesta)) {
 
@@ -1718,6 +1721,80 @@ Regiones <- R6::R6Class(classname = "Regiones",
                               labs(tit = self$encuesta$muestra$region)
                           }
                         ))
+
+#'Esta es la clase de Tendencias
+#'@export
+#'
+Tendencias <- R6::R6Class(classname = "Tendencias",
+                          public = list(
+                            encuesta = NULL,
+                            bd_resultados = NULL,
+                            initialize = function(encuesta = NULL){
+                              self$encuesta <- encuesta
+                              self$bd_resultados <- self$encuesta$respuestas$base |>
+                                mutate(peso = weights(self$encuesta$muestra$diseno))
+                            },
+                            intencion_voto = function(variable, valores_interes, colores, sin_peso = T){
+
+                              aux_resultados <-
+                                self$bd_resultados %>%
+                                {
+                                  if(sin_peso) {
+                                    count(x = ., hora = lubridate::floor_date(Date, "minutes"), !!rlang::sym(variable))
+                                  }
+                                  else {
+                                    count(x = ., hora = lubridate::floor_date(Date, "minutes"), !!rlang::sym(variable), wt = peso)
+                                  }
+                                } %>%
+                                filter(!!rlang::sym(variable) %in% valores_interes) |>
+                                group_by(hora) |>
+                                tidyr::complete(!!rlang::sym(variable) := valores_interes,
+                                                fill = list(n = 0)) |>
+                                ungroup() |>
+                                mutate(tot = sum(n), .by = c(hora)) |>
+                                mutate(n_acum = cumsum(n),
+                                       tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable)),
+                                       movil = n_acum/tot_acum)
+
+                              g <-
+                                aux_resultados |>
+                                ggplot(aes(x = hora, y = movil, color = !!rlang::sym(variable))) +
+                                geom_point() +
+                                geom_line(show.legend = F) +
+                                scale_y_continuous(labels = scales::percent) +
+                                tema_default() +
+                                labs(color = "") +
+                                scale_color_manual(values = colores)
+
+                              return(g)
+
+                            },
+                            conocimiento = function(variables, colores, sin_peso = T){
+                              bd_mediaMovil <-
+                                encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados, variable = variables[1], sin_peso = sin_peso) |>
+                                left_join(encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados, variable = variables[2], sin_peso = sin_peso), by = "hora") |>
+                                tidyr::pivot_longer(cols = c(paste0("movil_", variables[1]),
+                                                             paste0("movil_", variables[2])),
+                                                    names_to = "variable",
+                                                    values_to = "pct")
+
+                              g <-
+                                bd_mediaMovil |>
+                                ggplot(aes(x = hora, y = pct, color = variable)) +
+                                geom_point(size = 3) +
+                                geom_line(linewidth = 1) +
+                                scale_y_continuous(labels = scales::percent) +
+                                labs(subtitle = "Conocimiento", color = "") +
+                                scale_color_manual(values = purrr::set_names(colores[1:2], paste0("movil_", variables)),
+                                                   labels = purrr::set_names(variables, paste0("movil_", variables))) +
+                                scale_x_datetime(date_breaks = "1 days",
+                                                 labels = scales::date_format("%B %d")) +
+                                tema_default() +
+                                theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
+                                                                        linetype = "dotted"))
+                              return(g)
+                            }
+                          ))
 
 #'Esta es la clase de Modelo
 #'@export

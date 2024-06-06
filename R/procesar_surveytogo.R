@@ -643,3 +643,35 @@ obtener_ubicacionEfectiva_surveyToGo <- function(bd_respuestas, id, intento_efec
     rename_with(~ gsub(pattern = as.character(intento_efectivo), replacement = "", x = .),
                 .cols = everything())
 }
+
+#' Calcular media movil de una variable
+#'
+#' @param bd_resultados
+#' @param variable
+#' @param sin_peso
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calcular_mediaMovil = function(bd_resultados, variable, sin_peso = T) {
+  bd_aux <-
+    if(sin_peso) {
+      bd_resultados %>%
+        count(hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable))
+    } else {
+      bd_resultados %>%
+        count(hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)
+    }
+  bd_aux %>%
+    group_by(hora) |>
+    complete(!!rlang::sym(variable) := c("Sí"),
+             fill = list(n = 0)) |>
+    ungroup() |>
+    mutate(tot = sum(n), .by = c(hora)) |>
+    mutate(n_acum = cumsum(n),
+           tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable)),
+           !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum) |>
+    filter(!!rlang::sym(variable) %in% c("Sí")) |>
+    select(hora, !!rlang::sym(paste0("movil_", variable)))
+}
