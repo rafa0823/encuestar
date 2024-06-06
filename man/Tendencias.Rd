@@ -40,7 +40,12 @@ Esta es la clase de Tendencias
 \if{latex}{\out{\hypertarget{method-Tendencias-conocimiento}{}}}
 \subsection{Method \code{conocimiento()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Tendencias$conocimiento(variables, colores, sin_peso = T)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Tendencias$conocimiento(
+  variables,
+  colores,
+  sin_peso = T,
+  valores_interes = "Sí"
+)}\if{html}{\out{</div>}}
 }
 
 }

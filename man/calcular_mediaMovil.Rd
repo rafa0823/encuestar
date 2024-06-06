@@ -4,10 +4,10 @@
 \alias{calcular_mediaMovil}
 \title{Calcular media movil de una variable}
 \usage{
-calcular_mediaMovil(bd_resultados, variable, sin_peso = T)
+calcular_mediaMovil(bd_resultados, variable, sin_peso, valores_interes)
 }
 \arguments{
-\item{sin_peso}{}
+\item{valores_interes}{}
 }
 \description{
 Calcular media movil de una variable
