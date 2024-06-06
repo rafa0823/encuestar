@@ -1735,44 +1735,38 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 mutate(peso = weights(self$encuesta$muestra$diseno))
                             },
                             intencion_voto = function(variable, valores_interes, colores, sin_peso = T){
-
-                              aux_resultados <-
-                                self$bd_resultados %>%
-                                {
-                                  if(sin_peso) {
-                                    count(x = ., hora = lubridate::floor_date(Date, "minutes"), !!rlang::sym(variable))
-                                  }
-                                  else {
-                                    count(x = ., hora = lubridate::floor_date(Date, "minutes"), !!rlang::sym(variable), wt = peso)
-                                  }
-                                } %>%
-                                filter(!!rlang::sym(variable) %in% valores_interes) |>
-                                group_by(hora) |>
-                                tidyr::complete(!!rlang::sym(variable) := valores_interes,
-                                                fill = list(n = 0)) |>
-                                ungroup() |>
-                                mutate(tot = sum(n), .by = c(hora)) |>
-                                mutate(n_acum = cumsum(n),
-                                       tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable)),
-                                       movil = n_acum/tot_acum)
-
-                              g <-
-                                aux_resultados |>
-                                ggplot(aes(x = hora, y = movil, color = !!rlang::sym(variable))) +
-                                geom_point() +
-                                geom_line(show.legend = F) +
-                                scale_y_continuous(labels = scales::percent) +
-                                tema_default() +
-                                labs(color = "") +
-                                scale_color_manual(values = colores)
-
-                              return(g)
-
-                            },
-                            conocimiento = function(variables, colores, sin_peso = T){
                               bd_mediaMovil <-
-                                encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados, variable = variables[1], sin_peso = sin_peso) |>
-                                left_join(encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados, variable = variables[2], sin_peso = sin_peso), by = "hora") |>
+                                encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados,
+                                                                variable = variable,
+                                                                sin_peso = sin_peso,
+                                                                valores_interes = valores_interes) |>
+                                rename(pct = !!rlang::sym(paste0("movil_", variable)))
+                              g <-
+                                bd_mediaMovil |>
+                                ggplot(aes(x = hora, y = pct, color = !!rlang::sym(variable))) +
+                                geom_point(size = 3) +
+                                geom_line(linewidth = 1, show.legend = F) +
+                                labs(subtitle = "Intención de voto", color = "") +
+                                scale_x_datetime(date_breaks = "1 days",
+                                                 labels = scales::date_format("%B %d")) +
+                                scale_y_continuous(labels = scales::percent) +
+                                scale_color_manual(values = colores) +
+                                tema_default() +
+                                theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
+                                                                        linetype = "dotted"))
+                              return(g)
+                            },
+                            conocimiento = function(variables, colores, sin_peso = T, valores_interes = "Sí"){
+                              bd_mediaMovil <-
+                                encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados,
+                                                                variable = variables[1],
+                                                                sin_peso = sin_peso,
+                                                                valores_interes = valores_interes) |>
+                                left_join(encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados,
+                                                                          variable = variables[2],
+                                                                          sin_peso = sin_peso,
+                                                                          valores_interes = valores_interes),
+                                          by = "hora") |>
                                 tidyr::pivot_longer(cols = c(paste0("movil_", variables[1]),
                                                              paste0("movil_", variables[2])),
                                                     names_to = "variable",
@@ -1782,13 +1776,13 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 bd_mediaMovil |>
                                 ggplot(aes(x = hora, y = pct, color = variable)) +
                                 geom_point(size = 3) +
-                                geom_line(linewidth = 1) +
-                                scale_y_continuous(labels = scales::percent) +
+                                geom_line(linewidth = 1, show.legend = F) +
                                 labs(subtitle = "Conocimiento", color = "") +
                                 scale_color_manual(values = purrr::set_names(colores[1:2], paste0("movil_", variables)),
                                                    labels = purrr::set_names(variables, paste0("movil_", variables))) +
                                 scale_x_datetime(date_breaks = "1 days",
                                                  labels = scales::date_format("%B %d")) +
+                                scale_y_continuous(labels = scales::percent) +
                                 tema_default() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted"))

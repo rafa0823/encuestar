@@ -649,28 +649,29 @@ obtener_ubicacionEfectiva_surveyToGo <- function(bd_respuestas, id, intento_efec
 #' @param bd_resultados
 #' @param variable
 #' @param sin_peso
+#' @param valores_interes
 #'
 #' @return
 #' @export
 #'
 #' @examples
-calcular_mediaMovil = function(bd_resultados, variable, sin_peso) {
-    bd_resultados %>%
+calcular_mediaMovil = function(bd_resultados, variable, sin_peso, valores_interes) {
+  bd_resultados %>%
     {
       if(sin_peso) {
-          count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable))
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable))
       } else {
-          count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)
       }
     }  %>%
     group_by(hora) |>
-    complete(!!rlang::sym(variable) := c("Sí"),
+    complete(!!rlang::sym(variable) := valores_interes,
              fill = list(n = 0)) |>
     ungroup() |>
     mutate(tot = sum(n), .by = c(hora)) |>
     mutate(n_acum = cumsum(n),
            tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable)),
            !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum) |>
-    filter(!!rlang::sym(variable) %in% c("Sí")) |>
-    select(hora, !!rlang::sym(paste0("movil_", variable)))
+    filter(!!rlang::sym(variable) %in% valores_interes) |>
+    select(hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)))
 }
