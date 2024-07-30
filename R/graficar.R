@@ -67,7 +67,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
 graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", escala, size_text_pct){
 
-  g <- bd %>%
+  g <-
+    bd %>%
     ggplot() +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
               fill = color_principal,  color = "white", alpha= .95) +
@@ -76,8 +77,10 @@ graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", esc
 
   if(escala[2] == 1) {
 
-    g <- g + geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
-                       size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+    g <-
+      g +
+      geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
+                size = size_text_pct, family = "Poppins", nudge_y = -0.25)
 
   }
   else {
@@ -87,7 +90,8 @@ graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", esc
 
   }
 
-  g <- g +
+  g <-
+    g +
     scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
     scale_x_continuous(limits = c(0, NA)) +
     scale_y_continuous(limits = c(0, escala[2])) +
@@ -873,7 +877,7 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
 #' @examples
 #' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
 graficar_sankey = function(bd, variables, colores, size_text_cat){
-    bd |>
+  bd |>
     ggplot(aes(x = x,
                value = value,
                next_x = next_x,
@@ -935,4 +939,123 @@ graficar_nube_palabras <- function(bd, max_size, subtitulo = NULL, color = NULL)
     labs(subtitle = subtitulo) +
     encuestar::tema_default()
   return(g)
+}
+
+#' Title
+#'
+#' @param tabla_candidatoOpinion
+#' @param orden_opinion
+#'
+#' @return
+#' @export
+#'
+#' @examples
+formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
+
+  tot_opiniones <-
+    length(orden_opinion)
+
+  aux <-
+    tabla_candidatoOpinion |>
+    mutate(Candidato = stringr::str_wrap(string = Candidato, width = salto)) |>
+    left_join(tibble(Candidato = names(colores_candidato), color = colores_candidato), by = "Candidato") |>
+    flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_candidatoOpinion)) |>
+    flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) |>
+    flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
+    flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header") |>
+    flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
+    flextable::align(i = 1, j = 2, align = "center", part = "header") |>
+    flextable::border_inner_h(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_outer(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::fontsize(size = size_text_header, part = "header") |>
+    flextable::fontsize(size = size_text_body, part = "body") |>
+    flextable::font(fontname = "Poppins", part = "all") |>
+    flextable::bold(part = "header", bold = TRUE) |>
+    flextable::padding(part = "body", padding.bottom = 0, padding.top = 0) |>
+    flextable::autofit()
+
+  for(i in 2:(tot_opiniones + 1)) {
+    aux <-
+      aux %>%
+      flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
+  }
+
+  aux <-
+    aux |>
+    flextable::color(color = "white", part = "header", i = 2) |>
+    flextable::bg(i = 1, bg = color_principal, part = "header")
+
+  for(i in 1:(length(colores_candidato))) {
+    candidato <- names(colores_candidato)[i]
+    aux <-
+      aux %>%
+      flextable::bg(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
+                    j = "Candidato",
+                    bg = colores_candidato[i]) |>
+      flextable::color(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
+                       j = "Candidato", color = "white", part = "body")
+  }
+
+  return(aux)
+
+}
+
+formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var2, etiquetas,
+                                       colores_var1,
+                                       colores_var2,
+                                       size_text_header,
+                                       size_text_body,
+                                       salto){
+  aux <-
+    tabla_votoCruzado |>
+    flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_votoCruzado)) |>
+    flextable::add_header_row(top = TRUE,
+                              values = c(etiquetas[1], etiquetas[2]),
+                              colwidths = c(1, length(filtro_var2))) |>
+    flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
+    flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
+    flextable::align(i = 1, j = 2, align = "center", part = "header") |>
+    flextable::border_inner_h(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_outer(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::fontsize(size = size_text_header, part = "header") |>
+    flextable::fontsize(size = size_text_body, part = "body") |>
+    flextable::font(fontname = "Poppins", part = "all") |>
+    flextable::bold(part = "header", bold = TRUE) |>
+    flextable::padding(part = "body", padding.bottom = 0, padding.top = 0) |>
+    flextable::autofit()
+
+  for(i in 1:(length(filtro_var2))) {
+    j <- which(names(tabla_votoCruzado |>
+                       select(!var1)) == names(colores_var2)[i])
+    aux <-
+      aux %>%
+      flextable::bg(i = 2,
+                    j = j + 1,
+                    bg = colores_var2[i],
+                    part = "header")
+  }
+
+  aux <-
+    aux |>
+    flextable::color(color = "white", part = "header", i = 2) |>
+    flextable::bg(i = 1, bg = "pink", part = "header")
+
+  for(i in 1:length(colores_var1)) {
+    color <- names(colores_var1)[i]
+    aux <-
+      aux %>%
+      flextable::bg(i = eval(parse(text = paste0("~", var1, " == '", color, "'"))),
+                    j = var1,
+                    bg = colores_var1[i]) |>
+      flextable::color(i = eval(parse(text = paste0("~ ", var1, " == '", color, "'"))),
+                       j = var1,
+                       color = "white",
+                       part = "body")
+  }
+  return(aux)
+
 }
