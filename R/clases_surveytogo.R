@@ -1555,26 +1555,25 @@ Especial <- R6::R6Class(classname = "Especial",
                               diseno <- self$diseno
 
                             }
-                            tabla_candidatoOpinion <-
-                              calcular_tabla_candidatoOpinion(diseno = diseno,
-                                                              diccionario = self$diccionario,
-                                                              patron_opinion = patron_opinion,
-                                                              patron_conocimiento = patron_conocimiento,
-                                                              aspectos = aspectos,
-                                                              filtro_conocimiento = filtro_conocimiento,
-                                                              orden_opinion = orden_opinion,
-                                                              ns_nc = ns_nc,
-                                                              salto_respuestas = salto_respuestas)
 
-                            formatear_tabla_candidatoOpinion(tabla_candidatoOpinion = tabla_candidatoOpinion,
-                                                             orden_opinion = orden_opinion,
-                                                             etiquetas = etiquetas,
-                                                             colores_opinion = colores_opinion,
-                                                             color_principal = color_principal,
-                                                             colores_candidato = colores_candidato,
-                                                             size_text_header = size_text_header,
-                                                             size_text_body = size_text_body,
-                                                             salto = salto)
+                            encuestar:::calcular_tabla_candidatoOpinion(diseno = diseno,
+                                                                        diccionario = self$diccionario,
+                                                                        patron_opinion = patron_opinion,
+                                                                        patron_conocimiento = patron_conocimiento,
+                                                                        aspectos = aspectos,
+                                                                        filtro_conocimiento = filtro_conocimiento,
+                                                                        orden_opinion = orden_opinion,
+                                                                        ns_nc = ns_nc,
+                                                                        salto_respuestas = salto_respuestas) %>%
+                              encuestar:::formatear_tabla_candidatoOpinion(tabla_candidatoOpinion = tabla_candidatoOpinion,
+                                                                           orden_opinion = orden_opinion,
+                                                                           etiquetas = etiquetas,
+                                                                           colores_opinion = colores_opinion,
+                                                                           color_principal = color_principal,
+                                                                           colores_candidato = colores_candidato,
+                                                                           size_text_header = size_text_header,
+                                                                           size_text_body = size_text_body,
+                                                                           salto = salto)
 
                           },
                           candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
