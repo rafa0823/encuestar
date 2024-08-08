@@ -752,7 +752,7 @@ calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, 
   bd_opinion %>%
     {
       if(!is.na(patron_conocimiento)) {
-        left_join(bd_conocimiento, by = c("Candidato" = "tema")) |>
+        left_join(x = ., y = bd_conocimiento, by = c("Candidato" = "tema")) |>
           arrange(desc(Conocimiento))
       } else {
         arrange(., desc(.data[[names(.)[2]]]))
