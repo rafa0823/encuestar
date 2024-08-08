@@ -724,7 +724,7 @@ calcular_mediaMovil_region = function(bd_resultados, variable, sin_peso, valores
 #' @export
 #'
 #' @examples
-calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, patron_conocimiento, aspectos, filtro_conocimiento, orden_opinion, ns_nc) {
+calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, patron_conocimiento, aspectos, filtro_conocimiento, orden_opinion, ns_nc, salto_respuestas) {
 
   bd_opinion <-
     encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
@@ -735,7 +735,8 @@ calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, 
     tidyr::pivot_wider(id_cols = tema,
                        names_from = respuesta,
                        values_from = media) |>
-    select(Candidato = tema, all_of(orden_opinion), ns_nc)
+    select(Candidato = tema, all_of(orden_opinion), ns_nc) |>
+    rename_with(.fn = ~ stringr::str_wrap(string = .x, width = salto_respuestas), .cols = all_of(orden_opinion))
 
   if(!is.na(patron_conocimiento)) {
     bd_conocimiento <-

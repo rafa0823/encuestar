@@ -1040,7 +1040,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                }
 
                              },
-                             barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01){
+                             barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
 
                                llave_aux <- codigo
                                if(!(llave_aux %in% self$graficadas)){
@@ -1075,7 +1075,8 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  summarise(media = sum(media)) |>
                                  encuestar:::graficar_barras(salto = salto,
                                                              porcentajes_fuera = porcentajes_fuera,
-                                                             desplazar_porcentajes = desplazar_porcentajes) +
+                                                             desplazar_porcentajes = desplazar_porcentajes,
+                                                             orden_respuestas = orden_respuestas) +
                                  self$tema
 
                              },
@@ -1540,7 +1541,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                        color_conocimiento = "blue",
                                                        size_text_header = 18,
                                                        size_text_body = 14,
-                                                       salto = 20){
+                                                       salto = 20,
+                                                       salto_respuestas = 100){
 
                             if(is.null(self$diseno)) {
 
@@ -1559,7 +1561,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                               aspectos = aspectos,
                                                               filtro_conocimiento = filtro_conocimiento,
                                                               orden_opinion = orden_opinion,
-                                                              ns_nc = ns_nc)
+                                                              ns_nc = ns_nc,
+                                                              salto_respuestas = salto_respuestas)
 
                             formatear_tabla_candidatoOpinion(tabla_candidatoOpinion = tabla_candidatoOpinion,
                                                              orden_opinion = orden_opinion,
