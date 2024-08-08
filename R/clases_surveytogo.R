@@ -1223,9 +1223,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          self$tema <- tema
                          self$graficadas <- graficadas
                        },
-                       sankey_categorica = function(variables = NULL, colores, size_text_cat = 6,
-                                                    omitir_valores_variable1 = NULL,
-                                                    omitir_valores_variable2 = NULL){
+                       sankey_categorica = function(variables = NULL, colores, size_text_cat = 6, omitir_valores_variable1 = NULL, omitir_valores_variable2 = NULL){
 
                          if(is.null(variables)) {
 
@@ -1455,7 +1453,8 @@ Especial <- R6::R6Class(classname = "Especial",
                             self$tema <- tema
                             self$graficadas <- graficadas
                           },
-                          candidatoOpinion = function(patron_inicial, aspectos,
+                          candidatoOpinion = function(patron_inicial,
+                                                      aspectos,
                                                       ns_nc = "Ns/Nc",
                                                       regular = "Regular",
                                                       llave_burbuja = NA,
@@ -1527,6 +1526,52 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                      mostrar_nsnc = mostrar_nsnc)
 
                           },
+                          candidatoOpinion2 = function(patron_opinion,
+                                                       aspectos,
+                                                       ns_nc = "Ns/Nc",
+                                                       regular = "Regular",
+                                                       patron_conocimiento,
+                                                       filtro_conocimiento = "respuesta == 'Sí'",
+                                                       orden_opinion,
+                                                       etiquetas = c("Candidato", "Opinión"),
+                                                       colores_opinion = c("red", "yellow", "green"),
+                                                       colores_candidato = colores_candidato,
+                                                       color_principal = "#BF498A",
+                                                       color_conocimiento = "blue",
+                                                       size_text_header = 18,
+                                                       size_text_body = 14,
+                                                       salto = 20){
+
+                            if(is.null(self$diseno)) {
+
+                              diseno <- self$encuesta$muestra$diseno
+
+                            } else {
+
+                              diseno <- self$diseno
+
+                            }
+                            tabla_candidatoOpinion <-
+                              calcular_tabla_candidatoOpinion(diseno = diseno,
+                                                              diccionario = self$diccionario,
+                                                              patron_opinion = patron_opinion,
+                                                              patron_conocimiento = patron_conocimiento,
+                                                              aspectos = aspectos,
+                                                              filtro_conocimiento = filtro_conocimiento,
+                                                              orden_opinion = orden_opinion,
+                                                              ns_nc = ns_nc)
+
+                            formatear_tabla_candidatoOpinion(tabla_candidatoOpinion = tabla_candidatoOpinion,
+                                                             orden_opinion = orden_opinion,
+                                                             etiquetas = etiquetas,
+                                                             colores_opinion = colores_opinion,
+                                                             color_principal = color_principal,
+                                                             colores_candidato = colores_candidato,
+                                                             size_text_header = size_text_header,
+                                                             size_text_body = size_text_body,
+                                                             salto = salto)
+
+                          },
                           candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
 
                             if(is.null(self$diseno)) {
@@ -1595,6 +1640,54 @@ Especial <- R6::R6Class(classname = "Especial",
                             }
                             encuestar:::analizar_morena(diseno = diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
                               encuestar:::graficar_morena(personajes = personajes, atributos = atributos)
+                          },
+                          tabla_votoCruzado = function(var1,
+                                                       var2,
+                                                       filtro_var2 = NULL,
+                                                       etiquetas = c("variable 1", "variable 2"),
+                                                       colores_var1,
+                                                       colores_var2,
+                                                       size_text_header = 18,
+                                                       size_text_body = 14,
+                                                       salto = 20){
+
+                            if(is.null(self$diseno)) {
+
+                              diseno <- self$encuesta$muestra$diseno
+
+                            } else {
+
+                              diseno <- self$diseno
+
+                            }
+
+                            if(is.null(filtro_var2)) {
+                              filtro_var2 <-
+                                diseno$variables |>
+                                as_tibble() |>
+                                distinct(!!rlang::sym(var2)) |>
+                                pull()
+                            }
+
+                            bd_votoCruzado <-
+                              encuestar:::calcular_tabla_votoCruzado(diseno = diseno,
+                                                                     var1 = var1,
+                                                                     var2 = var2,
+                                                                     filtro_var2 = filtro_var2)
+
+                            tabla_salida <-
+                              encuestar:::formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
+                                                                      var1 = var1,
+                                                                      var2 = var2,
+                                                                      filtro_var2 = filtro_var2,
+                                                                      etiquetas = etiquetas,
+                                                                      colores_var1 = colores_var1,
+                                                                      colores_var2 = colores_var2,
+                                                                      size_text_header = size_text_header,
+                                                                      size_text_body = size_text_body,
+                                                                      salto = salto)
+
+                            return(tabla_salida)
                           }
                         ))
 
