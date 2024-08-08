@@ -1533,6 +1533,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                        patron_conocimiento,
                                                        filtro_conocimiento = "respuesta == 'Sí'",
                                                        orden_opinion,
+                                                       etiquetas = c("Candidato", "Opinión"),
                                                        colores_opinion = c("red", "yellow", "green"),
                                                        colores_candidato = colores_candidato,
                                                        color_principal = "#BF498A",
@@ -1550,7 +1551,6 @@ Especial <- R6::R6Class(classname = "Especial",
                               diseno <- self$diseno
 
                             }
-
                             tabla_candidatoOpinion <-
                               calcular_tabla_candidatoOpinion(diseno = diseno,
                                                               diccionario = self$diccionario,
@@ -1563,6 +1563,7 @@ Especial <- R6::R6Class(classname = "Especial",
 
                             formatear_tabla_candidatoOpinion(tabla_candidatoOpinion = tabla_candidatoOpinion,
                                                              orden_opinion = orden_opinion,
+                                                             etiquetas = etiquetas,
                                                              colores_opinion = colores_opinion,
                                                              color_principal = color_principal,
                                                              colores_candidato = colores_candidato,
@@ -1670,21 +1671,21 @@ Especial <- R6::R6Class(classname = "Especial",
 
                             bd_votoCruzado <-
                               encuestar:::calcular_tabla_votoCruzado(diseno = diseno,
-                                                         var1 = var1,
-                                                         var2 = var2,
-                                                         filtro_var2 = filtro_var2)
+                                                                     var1 = var1,
+                                                                     var2 = var2,
+                                                                     filtro_var2 = filtro_var2)
 
                             tabla_salida <-
                               encuestar:::formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
-                                                          var1 = var1,
-                                                          var2 = var2,
-                                                          filtro_var2 = filtro_var2,
-                                                          etiquetas = etiquetas,
-                                                          colores_var1 = colores_var1,
-                                                          colores_var2 = colores_var2,
-                                                          size_text_header = size_text_header,
-                                                          size_text_body = size_text_body,
-                                                          salto = salto)
+                                                                      var1 = var1,
+                                                                      var2 = var2,
+                                                                      filtro_var2 = filtro_var2,
+                                                                      etiquetas = etiquetas,
+                                                                      colores_var1 = colores_var1,
+                                                                      colores_var2 = colores_var2,
+                                                                      size_text_header = size_text_header,
+                                                                      size_text_body = size_text_body,
+                                                                      salto = salto)
 
                             return(tabla_salida)
                           }

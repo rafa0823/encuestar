@@ -737,17 +737,25 @@ calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, 
                        values_from = media) |>
     select(Candidato = tema, all_of(orden_opinion), ns_nc)
 
-  bd_conocimiento <-
-    encuestar::analizar_frecuencias_aspectos(diseno = diseno,
-                                             diccionario = diccionario,
-                                             patron_pregunta = patron_conocimiento,
-                                             aspectos = aspectos) %>%
-    filter(eval(rlang::parse_expr(filtro_conocimiento))) %>%
-    left_join(diccionario %>% select(aspecto = llaves, tema)) |>
-    select(tema, Conocimiento = media)
+  if(!is.na(patron_conocimiento)) {
+    bd_conocimiento <-
+      encuestar::analizar_frecuencias_aspectos(diseno = diseno,
+                                               diccionario = diccionario,
+                                               patron_pregunta = patron_conocimiento,
+                                               aspectos = aspectos) %>%
+      filter(eval(rlang::parse_expr(filtro_conocimiento))) %>%
+      left_join(diccionario %>% select(aspecto = llaves, tema)) |>
+      select(tema, Conocimiento = media)
+  }
 
-  bd_opinion |>
-    left_join(bd_conocimiento, by = c("Candidato" = "tema")) |>
+  bd_opinion %>%
+    {
+      if(!is.na(patron_conocimiento)) {
+        left_join(bd_conocimiento, by = c("Candidato" = "tema"))
+      } else {
+        .
+      }
+    } %>%
     mutate(across(.cols = !Candidato, .fns = ~ scales::percent(.x, accuracy = 1.)))
 
 }

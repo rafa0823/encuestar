@@ -950,7 +950,7 @@ graficar_nube_palabras <- function(bd, max_size, subtitulo = NULL, color = NULL)
 #' @export
 #'
 #' @examples
-formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
+formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, etiquetas, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
 
   tot_opiniones <-
     length(orden_opinion)
@@ -959,10 +959,23 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     tabla_candidatoOpinion |>
     mutate(Candidato = stringr::str_wrap(string = Candidato, width = salto)) |>
     left_join(tibble(Candidato = names(colores_candidato), color = colores_candidato), by = "Candidato") |>
-    flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_candidatoOpinion)) |>
-    flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) |>
-    flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-    flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header") |>
+    flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_candidatoOpinion))
+
+  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+    aux <-
+      aux %>%
+      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) %>%
+      flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
+      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header")
+  } else {
+    aux <-
+      aux %>%
+      flextable::add_header_row(top = TRUE, values = c(etiquetas[1], etiquetas[2]), colwidths = c(1, tot_opiniones + 1)) %>%
+      flextable::merge_at(i = c(1, 2), j = c(1), part = "header")
+  }
+
+  aux <-
+    aux %>%
     flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
     flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
     flextable::align(i = 1, j = 2, align = "center", part = "header") |>
@@ -976,10 +989,18 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::padding(part = "body", padding.bottom = 0, padding.top = 0) |>
     flextable::autofit()
 
-  for(i in 2:(tot_opiniones + 1)) {
-    aux <-
-      aux %>%
-      flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
+  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+    for(i in 2:(tot_opiniones + 1)) {
+      aux <-
+        aux %>%
+        flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
+    }
+  } else {
+    for(i in 2:(tot_opiniones + 2)) {
+      aux <-
+        aux %>%
+        flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
+    }
   }
 
   aux <-
@@ -987,19 +1008,21 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::color(color = "white", part = "header", i = 2) |>
     flextable::bg(i = 1, bg = color_principal, part = "header")
 
-  for(i in 1:(length(colores_candidato))) {
-    candidato <- names(colores_candidato)[i]
-    aux <-
-      aux %>%
-      flextable::bg(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
-                    j = "Candidato",
-                    bg = colores_candidato[i]) |>
-      flextable::color(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
-                       j = "Candidato", color = "white", part = "body")
+
+  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+    for(i in 1:(length(colores_candidato))) {
+      candidato <- names(colores_candidato)[i]
+      aux <-
+        aux %>%
+        flextable::bg(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
+                      j = "Candidato",
+                      bg = colores_candidato[i]) |>
+        flextable::color(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
+                         j = "Candidato", color = "white", part = "body")
+    }
+  } else {
   }
-
   return(aux)
-
 }
 
 formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var2, etiquetas,
