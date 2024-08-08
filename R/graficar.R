@@ -17,29 +17,40 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 graficar_barras <- function(bd,
                             salto = 20,
                             porcentajes_fuera = F,
-                            desplazar_porcentajes = 0){
+                            desplazar_porcentajes = 0,
+                            orden_respuestas){
 
-  g <-  bd %>%
-    ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
-               y  = media,
-               fill=respuesta)) +
-    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha= .8, width = .45)
+  g <-
+    bd %>%
+    {
+      if(length(orden_respuestas) == 1) {
+        ggplot(data = .,
+               aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
+                   y  = media,
+                   fill = respuesta))
+      } else {
+        ggplot(data = .,
+               aes(x = factor(stringr::str_wrap(respuesta, salto), levels = stringr::str_wrap(orden_respuestas, salto)),
+                   y  = media,
+                   fill = respuesta))
+      }
+    } +
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha = 0.8, width = 0.45)
 
   if (porcentajes_fuera == F) {
-
-    g <- g +
+    g <-
+      g +
       ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T)
-
   }
 
   if (porcentajes_fuera == T) {
-
-    g <- g +
+    g <-
+      g +
       geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
-
   }
 
-  g <- g +
+  g <-
+    g +
     coord_flip() +
     labs(x = NULL, y = NULL) +
     scale_y_continuous(labels=scales::percent_format(accuracy = 1))
@@ -79,14 +90,16 @@ graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", esc
 
     g <-
       g +
-      geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
-                size = size_text_pct, family = "Poppins", nudge_y = -0.25)
+      geom_text(aes(x = 0, y = 0.5, label = scales::percent(x = media, accuracy = 1.)),
+                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
 
   }
   else {
 
-    g <- g + geom_text(aes(x = 0, y = media, label = scales::comma(x = media, accuracy = 1.1)),
-                       size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+    g <-
+      g +
+      geom_text(aes(x = 0, y = 0.5, label = scales::comma(x = media, accuracy = 1.1)),
+                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
 
   }
 
