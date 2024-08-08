@@ -980,9 +980,9 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
     aux <-
       aux %>%
-      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) %>%
+      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones + 1, 1)) %>%
       flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header")
+      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones + 1), part = "header")
   } else {
     aux <-
       aux %>%
@@ -1006,7 +1006,7 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::autofit()
 
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
-    for(i in 2:(tot_opiniones + 1)) {
+    for(i in 2:(tot_opiniones + 2)) {
       aux <-
         aux %>%
         flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
