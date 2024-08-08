@@ -1476,6 +1476,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                       size_pct = 12,
                                                       burbuja = T,
                                                       salto = 20,
+                                                      salto_respuestas = 100,
                                                       mostrar_nsnc = T){
 
                             if(is.null(self$diseno)) {
@@ -1524,7 +1525,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                      color_burbuja = color_burbuja,
                                                                      salto = salto,
                                                                      tema = self$tema,
-                                                                     mostrar_nsnc = mostrar_nsnc)
+                                                                     mostrar_nsnc = mostrar_nsnc,
+                                                                     salto_respuestas = salto_respuestas)
 
                           },
                           candidatoOpinion2 = function(patron_opinion,

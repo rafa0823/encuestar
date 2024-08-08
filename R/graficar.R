@@ -239,7 +239,8 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        orden_resp,
                                        salto = 200,
                                        tema,
-                                       mostrar_nsnc = T){
+                                       mostrar_nsnc = T,
+                                       salto_respuestas){
 
   if(!is.null(ns_nc)){
     bd <- bd %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
@@ -273,10 +274,12 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
   a <- aux %>%
     {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
     mutate(respuesta = factor(respuesta, levels = orden_resp)) |>
-    ggplot(aes(x  = factor(tema, orden), fill = respuesta,
-               group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
+    ggplot(aes(x  = factor(tema, orden),
+               fill = respuesta,
+               group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)),
+               y = media)) +
     ggchicklet::geom_chicklet(width =.6, alpha =.9)+
-    scale_fill_manual(values = colores)+
+    scale_fill_manual(values = colores, labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema$text$family,
                              size = size_pct,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
