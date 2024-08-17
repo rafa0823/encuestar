@@ -1143,7 +1143,8 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  bd_estimacion |>
                                    encuestar:::graficar_barras(salto = salto,
                                                                porcentajes_fuera = porcentajes_fuera,
-                                                               desplazar_porcentajes = desplazar_porcentajes) +
+                                                               desplazar_porcentajes = desplazar_porcentajes,
+                                                               orden_respuestas = NA) +
                                    self$tema +
                                    theme(legend.position = "none",
                                          axis.text.x = element_text(size = 14),
@@ -1196,10 +1197,12 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                }
 
-                               bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = self$diccionario, patron_pregunta = {{patron}}, aspectos = aspectos) %>%
-                                 left_join(self$diccionario %>% select(aspecto = llaves, tema = llaves), by = "aspecto")
-
-                               bd_estimacion |>
+                               encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
+                                                                         diccionario = self$diccionario,
+                                                                         patron_pregunta = {{patron}},
+                                                                         aspectos = aspectos) %>%
+                                 left_join(self$diccionario %>%
+                                             select(aspecto = llaves, tema), by = "aspecto") |>
                                  encuestar:::graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
                                  self$tema
 
