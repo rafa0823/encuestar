@@ -774,6 +774,7 @@ calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, 
 #'
 #' @examples
 calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
+
   orden_var1 <-
     encuestar:::analizar_frecuencias(diseno = diseno,
                                      pregunta = var1) |>
@@ -784,8 +785,14 @@ calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
   orden_var2 <-
     encuestar:::analizar_frecuencias(diseno = diseno,
                                      pregunta = var2) |>
-    arrange(desc(media)) |>
-    filter(respuesta %in% filtro_var2) |>
+    arrange(desc(media)) %>%
+    {
+      if(!is.null(filtro_var2)) {
+        filter(.data = ., respuesta %in% filtro_var2)
+      } else {
+        .
+      }
+    } %>%
     mutate(respuesta = as.character(respuesta)) |>
     pull(respuesta)
 
@@ -808,3 +815,4 @@ calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
     select(var1, all_of(orden_var2))
   return(aux)
 }
+
