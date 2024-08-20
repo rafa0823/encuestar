@@ -1047,16 +1047,32 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
                                        size_text_header,
                                        size_text_body,
                                        salto){
+
+  ncols <-
+    {
+      if(is.null(filtro_var2)) {
+        tabla_votoCruzado |>
+          select(!var1) |>
+          ncol()
+      } else {
+        tabla_votoCruzado |>
+          select(!var1) |>
+          ncol()
+      }
+    }
+
   aux <-
     tabla_votoCruzado |>
     flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_votoCruzado)) |>
     flextable::add_header_row(top = TRUE,
                               values = c(etiquetas[1], etiquetas[2]),
-                              colwidths = c(1, length(filtro_var2))) |>
+                              colwidths = c(1, ncols)) |>
     flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
     flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
     flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
     flextable::align(i = 1, j = 2, align = "center", part = "header") |>
+    flextable::align(align = "center", part = "body") |>
+    flextable::align(j = 1, align = "left", part = "body") |>
     flextable::border_inner_h(part = "body", border = fp_border(color = "black", width = 1)) |>
     flextable::border_inner_v(part = "body", border = fp_border(color = "black", width = 1)) |>
     flextable::border_outer(part = "body", border = fp_border(color = "black", width = 1)) |>
@@ -1064,10 +1080,10 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
     flextable::fontsize(size = size_text_body, part = "body") |>
     flextable::font(fontname = "Poppins", part = "all") |>
     flextable::bold(part = "header", bold = TRUE) |>
-    flextable::padding(part = "body", padding.bottom = 0, padding.top = 0) |>
-    flextable::autofit()
+    flextable::padding(part = "body", padding.bottom = 0, padding.top = 0)
+    # ?flextable::autofit()
 
-  for(i in 1:(length(filtro_var2))) {
+  for(i in 1:(ncols)) {
     j <- which(names(tabla_votoCruzado |>
                        select(!var1)) == names(colores_var2)[i])
     aux <-
@@ -1080,8 +1096,8 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
 
   aux <-
     aux |>
-    flextable::color(color = "white", part = "header", i = 2) |>
-    flextable::bg(i = 1, bg = "pink", part = "header")
+    flextable::color(color = "black", part = "header", i = 2) |>
+    flextable::bg(i = 1, bg = "white", part = "header")
 
   for(i in 1:length(colores_var1)) {
     color <- names(colores_var1)[i]
