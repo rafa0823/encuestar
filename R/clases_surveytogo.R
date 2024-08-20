@@ -1667,13 +1667,13 @@ Especial <- R6::R6Class(classname = "Especial",
 
                             }
 
-                            if(is.null(filtro_var2)) {
-                              filtro_var2 <-
-                                diseno$variables |>
-                                as_tibble() |>
-                                distinct(!!rlang::sym(var2)) |>
-                                pull()
-                            }
+                            # if(is.null(filtro_var2)) {
+                            #   filtro_var2 <-
+                            #     diseno$variables |>
+                            #     as_tibble() |>
+                            #     distinct(!!rlang::sym(var2)) |>
+                            #     pull()
+                            # }
 
                             bd_votoCruzado <-
                               encuestar:::calcular_tabla_votoCruzado(diseno = diseno,
