@@ -240,7 +240,9 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        salto = 200,
                                        tema,
                                        mostrar_nsnc = T,
-                                       salto_respuestas){
+                                       salto_respuestas,
+                                       orden_cat = NULL,
+                                       patron_inicial = NULL){
 
   if(!is.null(ns_nc)){
     bd <- bd %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
@@ -256,6 +258,21 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
   orden <- aux %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit
+
+  if(!is.null(orden_cat)) {
+
+    orden <- aux %>%
+      ungroup() |>
+      mutate(aspecto = gsub(pattern = paste0(patron_inicial, "_"),
+                            replacement = "",
+                            x = aspecto)) |>
+      distinct(aspecto, tema) |>
+      mutate(aspecto = factor(aspecto, levels = orden_cat, ordered = TRUE)) |>
+      arrange(desc(aspecto)) |>
+      pull() |>
+      as.factor()
+
+  }
 
   if(!all(is.na(burbuja))){
     burbuja <- burbuja %>% mutate(escala = media/max(media), tema = forcats::fct_reorder(tema, media))
@@ -1068,20 +1085,20 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
                               values = c(etiquetas[1], etiquetas[2]),
                               colwidths = c(1, ncols)) |>
     flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-    flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
+    flextable::border_outer(part = "header", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(border = officer::fp_border(color = "black", width = 1), part = "header") |>
     flextable::align(i = 1, j = 2, align = "center", part = "header") |>
     flextable::align(align = "center", part = "body") |>
     flextable::align(j = 1, align = "left", part = "body") |>
-    flextable::border_inner_h(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_outer(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_h(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_outer(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
     flextable::fontsize(size = size_text_header, part = "header") |>
     flextable::fontsize(size = size_text_body, part = "body") |>
     flextable::font(fontname = "Poppins", part = "all") |>
     flextable::bold(part = "header", bold = TRUE) |>
     flextable::padding(part = "body", padding.bottom = 0, padding.top = 0)
-    # ?flextable::autofit()
+  # ?flextable::autofit()
 
   for(i in 1:(ncols)) {
     j <- which(names(tabla_votoCruzado |>
