@@ -724,7 +724,7 @@ calcular_mediaMovil_region = function(bd_resultados, variable, sin_peso, valores
 #' @export
 #'
 #' @examples
-calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, patron_conocimiento, aspectos, filtro_conocimiento, orden_opinion, ns_nc) {
+calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, patron_conocimiento, aspectos, filtro_conocimiento, orden_opinion, ns_nc, salto_respuestas) {
 
   bd_opinion <-
     encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
@@ -735,19 +735,29 @@ calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, 
     tidyr::pivot_wider(id_cols = tema,
                        names_from = respuesta,
                        values_from = media) |>
-    select(Candidato = tema, all_of(orden_opinion), ns_nc)
+    select(Candidato = tema, all_of(orden_opinion), ns_nc) |>
+    rename_with(.fn = ~ stringr::str_wrap(string = .x, width = salto_respuestas), .cols = all_of(orden_opinion))
 
-  bd_conocimiento <-
-    encuestar::analizar_frecuencias_aspectos(diseno = diseno,
-                                             diccionario = diccionario,
-                                             patron_pregunta = patron_conocimiento,
-                                             aspectos = aspectos) %>%
-    filter(eval(rlang::parse_expr(filtro_conocimiento))) %>%
-    left_join(diccionario %>% select(aspecto = llaves, tema)) |>
-    select(tema, Conocimiento = media)
+  if(!is.na(patron_conocimiento)) {
+    bd_conocimiento <-
+      encuestar::analizar_frecuencias_aspectos(diseno = diseno,
+                                               diccionario = diccionario,
+                                               patron_pregunta = patron_conocimiento,
+                                               aspectos = aspectos) %>%
+      filter(eval(rlang::parse_expr(filtro_conocimiento))) %>%
+      left_join(diccionario %>% select(aspecto = llaves, tema)) |>
+      select(tema, Conocimiento = media)
+  }
 
-  bd_opinion |>
-    left_join(bd_conocimiento, by = c("Candidato" = "tema")) |>
+  bd_opinion %>%
+    {
+      if(!is.na(patron_conocimiento)) {
+        left_join(x = ., y = bd_conocimiento, by = c("Candidato" = "tema")) |>
+          arrange(desc(Conocimiento))
+      } else {
+        arrange(., desc(.data[[names(.)[2]]]))
+      }
+    } %>%
     mutate(across(.cols = !Candidato, .fns = ~ scales::percent(.x, accuracy = 1.)))
 
 }
@@ -764,6 +774,7 @@ calcular_tabla_candidatoOpinion = function(diseno, diccionario, patron_opinion, 
 #'
 #' @examples
 calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
+
   orden_var1 <-
     encuestar:::analizar_frecuencias(diseno = diseno,
                                      pregunta = var1) |>
@@ -774,8 +785,14 @@ calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
   orden_var2 <-
     encuestar:::analizar_frecuencias(diseno = diseno,
                                      pregunta = var2) |>
-    arrange(desc(media)) |>
-    filter(respuesta %in% filtro_var2) |>
+    arrange(desc(media)) %>%
+    {
+      if(!is.null(filtro_var2)) {
+        filter(.data = ., respuesta %in% filtro_var2)
+      } else {
+        .
+      }
+    } %>%
     mutate(respuesta = as.character(respuesta)) |>
     pull(respuesta)
 
@@ -798,3 +815,4 @@ calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
     select(var1, all_of(orden_var2))
   return(aux)
 }
+

@@ -17,29 +17,40 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 graficar_barras <- function(bd,
                             salto = 20,
                             porcentajes_fuera = F,
-                            desplazar_porcentajes = 0){
+                            desplazar_porcentajes = 0,
+                            orden_respuestas){
 
-  g <-  bd %>%
-    ggplot(aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
-               y  = media,
-               fill=respuesta)) +
-    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha= .8, width = .45)
+  g <-
+    bd %>%
+    {
+      if(length(orden_respuestas) == 1) {
+        ggplot(data = .,
+               aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
+                   y  = media,
+                   fill = respuesta))
+      } else {
+        ggplot(data = .,
+               aes(x = factor(stringr::str_wrap(respuesta, salto), levels = stringr::str_wrap(orden_respuestas, salto)),
+                   y  = media,
+                   fill = respuesta))
+      }
+    } +
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha = 0.8, width = 0.45)
 
   if (porcentajes_fuera == F) {
-
-    g <- g +
+    g <-
+      g +
       ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T)
-
   }
 
   if (porcentajes_fuera == T) {
-
-    g <- g +
+    g <-
+      g +
       geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
-
   }
 
-  g <- g +
+  g <-
+    g +
     coord_flip() +
     labs(x = NULL, y = NULL) +
     scale_y_continuous(labels=scales::percent_format(accuracy = 1))
@@ -79,14 +90,16 @@ graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", esc
 
     g <-
       g +
-      geom_text(aes(x = 0, y = media, label = scales::percent(x = media, accuracy = 1.)),
-                size = size_text_pct, family = "Poppins", nudge_y = -0.25)
+      geom_text(aes(x = 0, y = 0.5, label = scales::percent(x = media, accuracy = 1.)),
+                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
 
   }
   else {
 
-    g <- g + geom_text(aes(x = 0, y = media, label = scales::comma(x = media, accuracy = 1.1)),
-                       size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+    g <-
+      g +
+      geom_text(aes(x = 0, y = 0.5, label = scales::comma(x = media, accuracy = 1.1)),
+                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
 
   }
 
@@ -226,7 +239,10 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        orden_resp,
                                        salto = 200,
                                        tema,
-                                       mostrar_nsnc = T){
+                                       mostrar_nsnc = T,
+                                       salto_respuestas,
+                                       orden_cat = NULL,
+                                       patron_inicial = NULL){
 
   if(!is.null(ns_nc)){
     bd <- bd %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
@@ -242,6 +258,21 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
   orden <- aux %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit
+
+  if(!is.null(orden_cat)) {
+
+    orden <- aux %>%
+      ungroup() |>
+      mutate(aspecto = gsub(pattern = paste0(patron_inicial, "_"),
+                            replacement = "",
+                            x = aspecto)) |>
+      distinct(aspecto, tema) |>
+      mutate(aspecto = factor(aspecto, levels = orden_cat, ordered = TRUE)) |>
+      arrange(desc(aspecto)) |>
+      pull() |>
+      as.factor()
+
+  }
 
   if(!all(is.na(burbuja))){
     burbuja <- burbuja %>% mutate(escala = media/max(media), tema = forcats::fct_reorder(tema, media))
@@ -260,10 +291,12 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
   a <- aux %>%
     {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
     mutate(respuesta = factor(respuesta, levels = orden_resp)) |>
-    ggplot(aes(x  = factor(tema, orden), fill = respuesta,
-               group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)), y =media)) +
+    ggplot(aes(x  = factor(tema, orden),
+               fill = respuesta,
+               group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)),
+               y = media)) +
     ggchicklet::geom_chicklet(width =.6, alpha =.9)+
-    scale_fill_manual(values = colores)+
+    scale_fill_manual(values = colores, labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema$text$family,
                              size = size_pct,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
@@ -950,7 +983,7 @@ graficar_nube_palabras <- function(bd, max_size, subtitulo = NULL, color = NULL)
 #' @export
 #'
 #' @examples
-formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
+formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, etiquetas, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
 
   tot_opiniones <-
     length(orden_opinion)
@@ -959,10 +992,23 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     tabla_candidatoOpinion |>
     mutate(Candidato = stringr::str_wrap(string = Candidato, width = salto)) |>
     left_join(tibble(Candidato = names(colores_candidato), color = colores_candidato), by = "Candidato") |>
-    flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_candidatoOpinion)) |>
-    flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) |>
-    flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-    flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header") |>
+    flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_candidatoOpinion))
+
+  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+    aux <-
+      aux %>%
+      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones + 1, 1)) %>%
+      flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
+      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones + 1), part = "header")
+  } else {
+    aux <-
+      aux %>%
+      flextable::add_header_row(top = TRUE, values = c(etiquetas[1], etiquetas[2]), colwidths = c(1, tot_opiniones + 1)) %>%
+      flextable::merge_at(i = c(1, 2), j = c(1), part = "header")
+  }
+
+  aux <-
+    aux %>%
     flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
     flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
     flextable::align(i = 1, j = 2, align = "center", part = "header") |>
@@ -976,10 +1022,18 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::padding(part = "body", padding.bottom = 0, padding.top = 0) |>
     flextable::autofit()
 
-  for(i in 2:(tot_opiniones + 1)) {
-    aux <-
-      aux %>%
-      flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
+  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+    for(i in 2:(tot_opiniones + 2)) {
+      aux <-
+        aux %>%
+        flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
+    }
+  } else {
+    for(i in 2:(tot_opiniones + 2)) {
+      aux <-
+        aux %>%
+        flextable::bg(i = 2, j = i , bg = colores_opinion[i-1], part = "header")
+    }
   }
 
   aux <-
@@ -987,19 +1041,21 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::color(color = "white", part = "header", i = 2) |>
     flextable::bg(i = 1, bg = color_principal, part = "header")
 
-  for(i in 1:(length(colores_candidato))) {
-    candidato <- names(colores_candidato)[i]
-    aux <-
-      aux %>%
-      flextable::bg(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
-                    j = "Candidato",
-                    bg = colores_candidato[i]) |>
-      flextable::color(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
-                       j = "Candidato", color = "white", part = "body")
+
+  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+    for(i in 1:(length(colores_candidato))) {
+      candidato <- names(colores_candidato)[i]
+      aux <-
+        aux %>%
+        flextable::bg(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
+                      j = "Candidato",
+                      bg = colores_candidato[i]) |>
+        flextable::color(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
+                         j = "Candidato", color = "white", part = "body")
+    }
+  } else {
   }
-
   return(aux)
-
 }
 
 formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var2, etiquetas,
@@ -1008,27 +1064,43 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
                                        size_text_header,
                                        size_text_body,
                                        salto){
+
+  ncols <-
+    {
+      if(is.null(filtro_var2)) {
+        tabla_votoCruzado |>
+          select(!var1) |>
+          ncol()
+      } else {
+        tabla_votoCruzado |>
+          select(!var1) |>
+          ncol()
+      }
+    }
+
   aux <-
     tabla_votoCruzado |>
     flextable::flextable(cwidth = 3, cheight = 0.7, col_keys = names(tabla_votoCruzado)) |>
     flextable::add_header_row(top = TRUE,
                               values = c(etiquetas[1], etiquetas[2]),
-                              colwidths = c(1, length(filtro_var2))) |>
+                              colwidths = c(1, ncols)) |>
     flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-    flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
+    flextable::border_outer(part = "header", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(border = officer::fp_border(color = "black", width = 1), part = "header") |>
     flextable::align(i = 1, j = 2, align = "center", part = "header") |>
-    flextable::border_inner_h(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_outer(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::align(align = "center", part = "body") |>
+    flextable::align(j = 1, align = "left", part = "body") |>
+    flextable::border_inner_h(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_outer(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
     flextable::fontsize(size = size_text_header, part = "header") |>
     flextable::fontsize(size = size_text_body, part = "body") |>
     flextable::font(fontname = "Poppins", part = "all") |>
     flextable::bold(part = "header", bold = TRUE) |>
-    flextable::padding(part = "body", padding.bottom = 0, padding.top = 0) |>
-    flextable::autofit()
+    flextable::padding(part = "body", padding.bottom = 0, padding.top = 0)
+  # ?flextable::autofit()
 
-  for(i in 1:(length(filtro_var2))) {
+  for(i in 1:(ncols)) {
     j <- which(names(tabla_votoCruzado |>
                        select(!var1)) == names(colores_var2)[i])
     aux <-
@@ -1041,8 +1113,8 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
 
   aux <-
     aux |>
-    flextable::color(color = "white", part = "header", i = 2) |>
-    flextable::bg(i = 1, bg = "pink", part = "header")
+    flextable::color(color = "black", part = "header", i = 2) |>
+    flextable::bg(i = 1, bg = "white", part = "header")
 
   for(i in 1:length(colores_var1)) {
     color <- names(colores_var1)[i]

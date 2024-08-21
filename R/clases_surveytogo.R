@@ -1040,7 +1040,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                }
 
                              },
-                             barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01){
+                             barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
 
                                llave_aux <- codigo
                                if(!(llave_aux %in% self$graficadas)){
@@ -1075,7 +1075,8 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  summarise(media = sum(media)) |>
                                  encuestar:::graficar_barras(salto = salto,
                                                              porcentajes_fuera = porcentajes_fuera,
-                                                             desplazar_porcentajes = desplazar_porcentajes) +
+                                                             desplazar_porcentajes = desplazar_porcentajes,
+                                                             orden_respuestas = orden_respuestas) +
                                  self$tema
 
                              },
@@ -1142,7 +1143,8 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  bd_estimacion |>
                                    encuestar:::graficar_barras(salto = salto,
                                                                porcentajes_fuera = porcentajes_fuera,
-                                                               desplazar_porcentajes = desplazar_porcentajes) +
+                                                               desplazar_porcentajes = desplazar_porcentajes,
+                                                               orden_respuestas = NA) +
                                    self$tema +
                                    theme(legend.position = "none",
                                          axis.text.x = element_text(size = 14),
@@ -1195,10 +1197,12 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                }
 
-                               bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = self$diccionario, patron_pregunta = {{patron}}, aspectos = aspectos) %>%
-                                 left_join(self$diccionario %>% select(aspecto = llaves, tema = llaves), by = "aspecto")
-
-                               bd_estimacion |>
+                               encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
+                                                                         diccionario = self$diccionario,
+                                                                         patron_pregunta = {{patron}},
+                                                                         aspectos = aspectos) %>%
+                                 left_join(self$diccionario %>%
+                                             select(aspecto = llaves, tema), by = "aspecto") |>
                                  encuestar:::graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
                                  self$tema
 
@@ -1475,7 +1479,9 @@ Especial <- R6::R6Class(classname = "Especial",
                                                       size_pct = 12,
                                                       burbuja = T,
                                                       salto = 20,
-                                                      mostrar_nsnc = T){
+                                                      salto_respuestas = 100,
+                                                      mostrar_nsnc = T,
+                                                      orden_cat = NULL){
 
                             if(is.null(self$diseno)) {
 
@@ -1523,7 +1529,10 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                      color_burbuja = color_burbuja,
                                                                      salto = salto,
                                                                      tema = self$tema,
-                                                                     mostrar_nsnc = mostrar_nsnc)
+                                                                     mostrar_nsnc = mostrar_nsnc,
+                                                                     salto_respuestas = salto_respuestas,
+                                                                     orden_cat = orden_cat,
+                                                                     patron_inicial = patron_inicial)
 
                           },
                           candidatoOpinion2 = function(patron_opinion,
@@ -1533,13 +1542,15 @@ Especial <- R6::R6Class(classname = "Especial",
                                                        patron_conocimiento,
                                                        filtro_conocimiento = "respuesta == 'Sí'",
                                                        orden_opinion,
+                                                       etiquetas = c("Candidato", "Opinión"),
                                                        colores_opinion = c("red", "yellow", "green"),
                                                        colores_candidato = colores_candidato,
                                                        color_principal = "#BF498A",
                                                        color_conocimiento = "blue",
                                                        size_text_header = 18,
                                                        size_text_body = 14,
-                                                       salto = 20){
+                                                       salto = 20,
+                                                       salto_respuestas = 100){
 
                             if(is.null(self$diseno)) {
 
@@ -1551,24 +1562,23 @@ Especial <- R6::R6Class(classname = "Especial",
 
                             }
 
-                            tabla_candidatoOpinion <-
-                              calcular_tabla_candidatoOpinion(diseno = diseno,
-                                                              diccionario = self$diccionario,
-                                                              patron_opinion = patron_opinion,
-                                                              patron_conocimiento = patron_conocimiento,
-                                                              aspectos = aspectos,
-                                                              filtro_conocimiento = filtro_conocimiento,
-                                                              orden_opinion = orden_opinion,
-                                                              ns_nc = ns_nc)
-
-                            formatear_tabla_candidatoOpinion(tabla_candidatoOpinion = tabla_candidatoOpinion,
-                                                             orden_opinion = orden_opinion,
-                                                             colores_opinion = colores_opinion,
-                                                             color_principal = color_principal,
-                                                             colores_candidato = colores_candidato,
-                                                             size_text_header = size_text_header,
-                                                             size_text_body = size_text_body,
-                                                             salto = salto)
+                            encuestar:::calcular_tabla_candidatoOpinion(diseno = diseno,
+                                                                        diccionario = self$diccionario,
+                                                                        patron_opinion = patron_opinion,
+                                                                        patron_conocimiento = patron_conocimiento,
+                                                                        aspectos = aspectos,
+                                                                        filtro_conocimiento = filtro_conocimiento,
+                                                                        orden_opinion = orden_opinion,
+                                                                        ns_nc = ns_nc,
+                                                                        salto_respuestas = salto_respuestas) %>%
+                              encuestar:::formatear_tabla_candidatoOpinion(orden_opinion = orden_opinion,
+                                                                           etiquetas = etiquetas,
+                                                                           colores_opinion = colores_opinion,
+                                                                           color_principal = color_principal,
+                                                                           colores_candidato = colores_candidato,
+                                                                           size_text_header = size_text_header,
+                                                                           size_text_body = size_text_body,
+                                                                           salto = salto)
 
                           },
                           candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
@@ -1660,31 +1670,31 @@ Especial <- R6::R6Class(classname = "Especial",
 
                             }
 
-                            if(is.null(filtro_var2)) {
-                              filtro_var2 <-
-                                diseno$variables |>
-                                as_tibble() |>
-                                distinct(!!rlang::sym(var2)) |>
-                                pull()
-                            }
+                            # if(is.null(filtro_var2)) {
+                            #   filtro_var2 <-
+                            #     diseno$variables |>
+                            #     as_tibble() |>
+                            #     distinct(!!rlang::sym(var2)) |>
+                            #     pull()
+                            # }
 
                             bd_votoCruzado <-
                               encuestar:::calcular_tabla_votoCruzado(diseno = diseno,
-                                                         var1 = var1,
-                                                         var2 = var2,
-                                                         filtro_var2 = filtro_var2)
+                                                                     var1 = var1,
+                                                                     var2 = var2,
+                                                                     filtro_var2 = filtro_var2)
 
                             tabla_salida <-
                               encuestar:::formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
-                                                          var1 = var1,
-                                                          var2 = var2,
-                                                          filtro_var2 = filtro_var2,
-                                                          etiquetas = etiquetas,
-                                                          colores_var1 = colores_var1,
-                                                          colores_var2 = colores_var2,
-                                                          size_text_header = size_text_header,
-                                                          size_text_body = size_text_body,
-                                                          salto = salto)
+                                                                      var1 = var1,
+                                                                      var2 = var2,
+                                                                      filtro_var2 = filtro_var2,
+                                                                      etiquetas = etiquetas,
+                                                                      colores_var1 = colores_var1,
+                                                                      colores_var2 = colores_var2,
+                                                                      size_text_header = size_text_header,
+                                                                      size_text_body = size_text_body,
+                                                                      salto = salto)
 
                             return(tabla_salida)
                           }
