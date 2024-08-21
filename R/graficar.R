@@ -1113,7 +1113,7 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
 
   aux <-
     aux |>
-    flextable::color(color = "black", part = "header", i = 2) |>
+    flextable::color(color = "white", part = "header", i = 2) |>
     flextable::bg(i = 1, bg = "white", part = "header")
 
   for(i in 1:length(colores_var1)) {
