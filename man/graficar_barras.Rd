@@ -8,7 +8,8 @@ graficar_barras(
   bd,
   salto = 20,
   porcentajes_fuera = F,
-  desplazar_porcentajes = 0
+  desplazar_porcentajes = 0,
+  orden_respuestas
 )
 }
 \arguments{

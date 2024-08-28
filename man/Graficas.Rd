@@ -2,11 +2,11 @@
 % Please edit documentation in R/clases_surveytogo.R
 \name{Graficas}
 \alias{Graficas}
-\title{Esta es la clase de Pregunta2}
+\title{Esta es la clase de Graficas}
 \description{
-Esta es la clase de Pregunta2
+Esta es la clase de Graficas
 
-Esta es la clase de Pregunta2
+Esta es la clase de Graficas
 }
 \section{Methods}{
 \subsection{Public methods}{
