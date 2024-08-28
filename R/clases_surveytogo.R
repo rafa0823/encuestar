@@ -95,6 +95,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
                                                         nivel = nivel, var_n = var_n)
+
                             # Informacion muestral
                             self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n, tipo_encuesta = self$tipo_encuesta)
                             # Diseno
@@ -104,12 +105,22 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         sin_peso = self$sin_peso,
                                                         rake = self$rake)
 
+                            print(paste0("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
+                            print(paste0("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
+                            print(paste0("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
+
                             #Preguntas
                             self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_default())
 
                             # Shiny app de auditoria
                             self$dir_app <- dir_app
                             self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta, dir = self$dir_app)
+                            file.copy(overwrite = FALSE,
+                                      from = system.file("constantes_y_funciones/constantes.R",
+                                                         package = "encuestar",
+                                                         mustWork = TRUE),
+                                      to = "R")
+                            source(file = paste0(getwd(), "/R/constantes.R"))
                             beepr::beep()
                             return(print(match_dicc_base(self, self$quitar_vars), n = Inf))
                           },
