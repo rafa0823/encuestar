@@ -76,7 +76,8 @@ Esta es la clase de Grafica
   salto = 20,
   porcentajes_fuera = F,
   desplazar_porcentajes = 0,
-  pct_otros = 0.01
+  pct_otros = 0.01,
+  orden_respuestas = NA
 )}\if{html}{\out{</div>}}
 }
 

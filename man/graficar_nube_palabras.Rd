@@ -4,16 +4,12 @@
 \alias{graficar_nube_palabras}
 \title{Graficar nube de palabras}
 \usage{
-graficar_nube_palabras(bd, max_size, subtitulo = NULL, color = NULL)
+graficar_nube_palabras(bd, max_size)
 }
 \arguments{
 \item{bd}{Base de datos con la estructura generada por calcular_proporciones_nubes}
 
 \item{max_size}{Tamano maximo de las nubes de palabras}
-
-\item{subtitulo}{Subtitulo del plot}
-
-\item{color}{Si es distinto de NULL, colorea toda la nube del mismo color}
 }
 \description{
 Graficar nube de palabras

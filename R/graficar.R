@@ -941,39 +941,20 @@ graficar_sankey = function(bd, variables, colores, size_text_cat){
 #'
 #' @param bd Base de datos con la estructura generada por calcular_proporciones_nubes
 #' @param max_size Tamano maximo de las nubes de palabras
-#' @param subtitulo Subtitulo del plot
-#' @param color Si es distinto de NULL, colorea toda la nube del mismo color
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_nube_palabras <- function(bd, max_size, subtitulo = NULL, color = NULL){
-  if(!is.null(color)) {
-    g <-
-      bd |>
-      ggplot(aes(label = categoria, size = total)) +
-      ggwordcloud::geom_text_wordcloud(area_corr = TRUE, color = color) +
-      scale_size_area(max_size = max_size) +
-      labs(subtitle = subtitulo) +
-      encuestar::tema_default()
-    return(g)
-  }
+graficar_nube_palabras = function(bd, max_size) {
   g <-
     bd |>
-    mutate(color = dplyr::case_when(cuartil == 1 ~ '#6a104d',
-                                    cuartil == 2 ~ '#802e9e',
-                                    cuartil == 3 ~ '#8447ff',
-                                    cuartil == 4 ~ '#ff8cf2')) |>
-    ggplot(aes(label = categoria, size = total, color = color)) +
+    ggplot(aes(label = categoria_corregida, size = pct, color = color)) +
     ggwordcloud::geom_text_wordcloud(area_corr = TRUE) +
-    scale_color_identity() +
     scale_size_area(max_size = max_size) +
-    labs(subtitle = subtitulo) +
-    encuestar::tema_default()
+    scale_color_identity()
   return(g)
 }
-
 #' Title
 #'
 #' @param tabla_candidatoOpinion

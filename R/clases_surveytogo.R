@@ -861,7 +861,7 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               })
 )
 
-#'Esta es la clase de Pregunta2
+#'Esta es la clase de Graficas
 #'@export
 #'
 Graficas <- R6::R6Class(classname = "Graficas",

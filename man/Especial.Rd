@@ -13,9 +13,11 @@ Esta es la clase de Especial
 \itemize{
 \item \href{#method-Especial-new}{\code{Especial$new()}}
 \item \href{#method-Especial-candidatoOpinion}{\code{Especial$candidatoOpinion()}}
+\item \href{#method-Especial-candidatoOpinion2}{\code{Especial$candidatoOpinion2()}}
 \item \href{#method-Especial-candidatoPartido}{\code{Especial$candidatoPartido()}}
 \item \href{#method-Especial-candidatoSaldo}{\code{Especial$candidatoSaldo()}}
 \item \href{#method-Especial-metodo_morena}{\code{Especial$metodo_morena()}}
+\item \href{#method-Especial-tabla_votoCruzado}{\code{Especial$tabla_votoCruzado()}}
 \item \href{#method-Especial-clone}{\code{Especial$clone()}}
 }
 }
@@ -62,7 +64,35 @@ Esta es la clase de Especial
   size_pct = 12,
   burbuja = T,
   salto = 20,
-  mostrar_nsnc = T
+  salto_respuestas = 100,
+  mostrar_nsnc = T,
+  orden_cat = NULL
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Especial-candidatoOpinion2"></a>}}
+\if{latex}{\out{\hypertarget{method-Especial-candidatoOpinion2}{}}}
+\subsection{Method \code{candidatoOpinion2()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Especial$candidatoOpinion2(
+  patron_opinion,
+  aspectos,
+  ns_nc = "Ns/Nc",
+  regular = "Regular",
+  patron_conocimiento,
+  filtro_conocimiento = "respuesta == 'Sí'",
+  orden_opinion,
+  etiquetas = c("Candidato", "Opinión"),
+  colores_opinion = c("red", "yellow", "green"),
+  colores_candidato = colores_candidato,
+  color_principal = "#BF498A",
+  color_conocimiento = "blue",
+  size_text_header = 18,
+  size_text_body = 14,
+  salto = 20,
+  salto_respuestas = 100
 )}\if{html}{\out{</div>}}
 }
 
@@ -107,6 +137,25 @@ Esta es la clase de Especial
 \subsection{Method \code{metodo_morena()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Especial$metodo_morena(personajes, atributos)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Especial-tabla_votoCruzado"></a>}}
+\if{latex}{\out{\hypertarget{method-Especial-tabla_votoCruzado}{}}}
+\subsection{Method \code{tabla_votoCruzado()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Especial$tabla_votoCruzado(
+  var1,
+  var2,
+  filtro_var2 = NULL,
+  etiquetas = c("variable 1", "variable 2"),
+  colores_var1,
+  colores_var2,
+  size_text_header = 18,
+  size_text_body = 14,
+  salto = 20
+)}\if{html}{\out{</div>}}
 }
 
 }
