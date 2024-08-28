@@ -861,7 +861,7 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               })
 )
 
-#'Esta es la clase de Pregunta2
+#'Esta es la clase de Graficas
 #'@export
 #'
 Graficas <- R6::R6Class(classname = "Graficas",
@@ -1480,7 +1480,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                       burbuja = T,
                                                       salto = 20,
                                                       salto_respuestas = 100,
-                                                      mostrar_nsnc = T){
+                                                      mostrar_nsnc = T,
+                                                      orden_cat = NULL){
 
                             if(is.null(self$diseno)) {
 
@@ -1529,7 +1530,9 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                      salto = salto,
                                                                      tema = self$tema,
                                                                      mostrar_nsnc = mostrar_nsnc,
-                                                                     salto_respuestas = salto_respuestas)
+                                                                     salto_respuestas = salto_respuestas,
+                                                                     orden_cat = orden_cat,
+                                                                     patron_inicial = patron_inicial)
 
                           },
                           candidatoOpinion2 = function(patron_opinion,
