@@ -167,9 +167,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #' @examples
 #' graficar_gauge_promedio(bd = bd_procesada, color_principal = "red", escala = c(0, 10), size_text_pct = 8)
 #' graficar_gauge_promedio(bd = bd_procesada, color_principal = "pink", color_secundario = "brown", escala = c(1, 7), size_text_pct = 14)
-
 graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", escala, size_text_pct){
-
   g <-
     bd %>%
     ggplot() +
@@ -177,24 +175,18 @@ graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", esc
               fill = color_principal,  color = "white", alpha= .95) +
     geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = escala[2]),
               fill = color_secundario, color = "white")
-
   if(escala[2] == 1) {
-
     g <-
       g +
       geom_text(aes(x = 0, y = 0.5, label = scales::percent(x = media, accuracy = 1.)),
                 size = size_text_pct, family = "Poppins", nudge_y = 0.25)
-
   }
   else {
-
     g <-
       g +
       geom_text(aes(x = 0, y = 0.5, label = scales::comma(x = media, accuracy = 1.1)),
                 size = size_text_pct, family = "Poppins", nudge_y = 0.25)
-
   }
-
   g <-
     g +
     scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
@@ -204,18 +196,15 @@ graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", esc
     ylab("") +
     coord_polar(theta = "y") +
     theme_void() +
-    theme(legend.position = "bottom", axis.text = element_blank(),
+    theme(legend.position = "none",
+          axis.text = element_blank(),
           text = element_text(size = 15, family = "Poppins"))
-
   return(g)
-
 }
-
 sustituir <- function(bd, patron, reemplazo = ""){
   bd %>% mutate(respuesta = gsub(pattern = patron, replacement = reemplazo,
                                  x = respuesta, fixed = T))
 }
-
 #' Graficar intervalos numérica
 #'
 #' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
@@ -240,7 +229,6 @@ graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, te
     scale_y_continuous(limits = c(escala[1], escala[2]))
 
 }
-
 #' Graficar candidato opinión
 #'
 #' @param bd Base de datos con estructura producida por analizar_frecuencias_aspectos.

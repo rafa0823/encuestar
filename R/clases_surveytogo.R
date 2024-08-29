@@ -110,7 +110,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             print(paste0("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
 
                             #Preguntas
-                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_default())
+                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_morant())
 
                             # Shiny app de auditoria
                             self$dir_app <- dir_app
@@ -969,88 +969,6 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                self$tema <- tema
                                self$graficadas <- graficadas
                              },
-                             gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
-
-                               llave_aux <- codigo
-                               if(!(llave_aux %in% self$graficadas)){
-                                 if(llave_aux %in% self$diccionario$llaves){
-                                   self$graficadas <- self$graficadas %>% append(llave_aux)
-                                 } else {
-                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                 }
-                               } else {
-                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               }
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               bd_estimacion <- encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}})
-
-                               tema <- self$diccionario |>
-                                 filter(llaves == rlang::ensym(codigo)) |>
-                                 pull(tema)
-
-                               bd_estimacion |>
-                                 mutate(tema = tema) |>
-                                 encuestar:::graficar_gauge(color_principal = color,
-                                                            escala = escala,
-                                                            size_text_pct = size_text_pct)
-
-                             },
-                             gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 1), size_text_pct = 14){
-
-                               if(is.null(filtro)) {
-
-                                 stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
-
-                               }
-
-                               else {
-
-                                 llave_aux <- codigo
-                                 if(!(llave_aux %in% self$graficadas)){
-                                   if(llave_aux %in% self$diccionario$llaves){
-                                     self$graficadas <- self$graficadas %>% append(llave_aux)
-                                   } else {
-                                     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                   }
-                                 } else {
-                                   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                                 }
-
-                                 if(is.null(self$diseno)) {
-
-                                   diseno <- self$encuesta$muestra$diseno
-
-                                 } else {
-
-                                   diseno <- self$diseno
-
-                                 }
-
-                                 bd_estimacion <- encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
-                                   filter(eval(rlang::parse_expr(filtro)))
-
-                                 tema <- self$diccionario |>
-                                   filter(llaves == rlang::ensym(codigo)) |>
-                                   pull(tema)
-
-                                 bd_estimacion %>%
-                                   mutate(tema = tema) |>
-                                   encuestar:::graficar_gauge(color_principal = color,
-                                                              escala = escala,
-                                                              size_text_pct = size_text_pct)
-                               }
-
-                             },
                              barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
 
                                llave_aux <- codigo
@@ -1091,7 +1009,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  self$tema
 
                              },
-                             barras_numerica = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
+                             barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
 
                                # llave_aux <- paste(patron_inicial, aspectos, sep = "_")
 
@@ -1184,7 +1102,88 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  self$tema
 
                              },
-                             barras_texto = function(){},
+                             gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
+
+                               llave_aux <- codigo
+                               if(!(llave_aux %in% self$graficadas)){
+                                 if(llave_aux %in% self$diccionario$llaves){
+                                   self$graficadas <- self$graficadas %>% append(llave_aux)
+                                 } else {
+                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                 }
+                               } else {
+                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                               }
+
+                               if(is.null(self$diseno)) {
+
+                                 diseno <- self$encuesta$muestra$diseno
+
+                               } else {
+
+                                 diseno <- self$diseno
+
+                               }
+
+                               bd_estimacion <- encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}})
+
+                               tema <- self$diccionario |>
+                                 filter(llaves == rlang::ensym(codigo)) |>
+                                 pull(tema)
+
+                               bd_estimacion |>
+                                 mutate(tema = tema) |>
+                                 encuestar:::graficar_gauge(color_principal = color,
+                                                            escala = escala,
+                                                            size_text_pct = size_text_pct)
+
+                             },
+                             gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 1), size_text_pct = 14){
+
+                               if(is.null(filtro)) {
+
+                                 stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
+
+                               }
+
+                               else {
+
+                                 llave_aux <- codigo
+                                 if(!(llave_aux %in% self$graficadas)){
+                                   if(llave_aux %in% self$diccionario$llaves){
+                                     self$graficadas <- self$graficadas %>% append(llave_aux)
+                                   } else {
+                                     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                   }
+                                 } else {
+                                   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                                 }
+
+                                 if(is.null(self$diseno)) {
+
+                                   diseno <- self$encuesta$muestra$diseno
+
+                                 } else {
+
+                                   diseno <- self$diseno
+
+                                 }
+
+                                 bd_estimacion <- encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
+                                   filter(eval(rlang::parse_expr(filtro)))
+
+                                 tema <- self$diccionario |>
+                                   filter(llaves == rlang::ensym(codigo)) |>
+                                   pull(tema)
+
+                                 bd_estimacion %>%
+                                   mutate(tema = tema) |>
+                                   encuestar:::graficar_gauge(color_principal = color,
+                                                              escala = escala,
+                                                              size_text_pct = size_text_pct)
+                               }
+
+                             },
                              intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
 
                                # llave_aux <- codigo
