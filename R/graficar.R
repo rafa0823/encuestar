@@ -1,5 +1,104 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
+#' Title
+#'
+#' @param base_size
+#' @param base_family
+#' @param fondo
+#'
+#' @return
+#' @export
+#'
+#' @examples
+tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF") {
+  (ggthemes::theme_foundation(base_size = base_size,
+                              base_family = base_family)
+   + theme(
+     line = element_line(colour = "#4C5B61"),
+     rect = element_rect(fill = fondo,
+                         linetype = 0,
+                         colour = NA),
+     text = element_text(color = "#2C423F"),
+     axis.title = element_blank(),
+     axis.text = element_text(),
+     axis.ticks = element_blank(),
+     axis.line.x = element_line(colour = "#E1356D"),
+     legend.background = element_rect(),
+     legend.position = "bottom",
+     legend.direction = "horizontal",
+     legend.box = "vertical",
+     panel.grid = element_line(colour = NULL),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x =element_line(colour = "#C5C5C5",
+                                      linetype = "dotted"),
+     panel.grid.minor = element_blank(),
+     plot.title = element_text(hjust = 0,
+                               size = rel(1.1),
+                               # face = "bold",
+                               colour = "#4C5B61"),
+     plot.subtitle = element_text(hjust = 0,
+                                  size = rel(1),
+                                  face = "bold",
+                                  colour = "#C5C5C5",
+                                  family = "Poppins"),
+     plot.margin = unit(c(1, 1, 1, 1), "lines"),
+     strip.text=element_text(colour ="#2C423F")))
+}
+#' Title
+#'
+#' @param size_axis_text_x
+#' @param size_axis_text_y
+#'
+#' @return
+#' @export
+#'
+#' @examples
+tema_transparente = function(){
+  theme(legend.background = element_rect(color = "transparent", fill = "transparent"),
+        panel.background = element_rect(color = "transparent", fill = "transparent"),
+        plot.background = element_rect(color = "transparent", fill = "transparent"),
+        strip.background = element_rect(color = "transparent", fill = "transparent"))
+}
+#' Title
+#'
+#' @param base_size
+#' @param base_family
+#' @param fondo
+#'
+#' @return
+#' @export
+#'
+#' @examples
+tema_morant = function(base_size = 15, base_family = "Poppins", fondo = "#FFFFFF") {
+  (ggthemes::theme_foundation(base_size = base_size,
+                              base_family = base_family) +
+     theme(
+       line = element_line(colour = "#4C5B61"),
+       rect = element_rect(fill = fondo, linetype = 0, colour = NA),
+       text = element_text(color = "#2C423F"),
+       axis.title = element_blank(),
+       axis.text = element_text(),
+       axis.text.x = element_text(size = 14),
+       axis.text.y = element_text(size = 16),
+       axis.ticks = element_blank(),
+       axis.line.x = element_line(colour = "#E1356D"),
+       legend.position = "none",
+       legend.direction = "horizontal",
+       legend.box = "vertical",
+       legend.text = element_text(size = 14),
+       panel.grid = element_line(colour = NULL),
+       panel.grid.major.y = element_blank(),
+       panel.grid.major.x = element_line(colour = "#C5C5C5", linetype = "dotted"),
+       panel.grid.minor = element_blank(),
+       plot.title = element_text(hjust = 0, size = rel(1.1), colour = "#4C5B61"),
+       plot.subtitle = element_text(hjust = 0, size = rel(1), face = "bold", colour = "#C5C5C5", family = base_family),
+       plot.caption = element_text(size = 14),
+       plot.margin = unit(c(1, 1, 1, 1), "lines"),
+       strip.text = element_text(colour ="#2C423F")
+     ) +
+     tema_transparente()
+  )
+}
 #' Gráfica de barras horizontales ordenadas
 #'
 #' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
@@ -13,12 +112,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 #' @examples
 #' graficar_barras(bd, salto = 13)
 #' graficar_barras(bd, porcentajes_fuera = T, desplazar_porcentajes = 0.1)
-
 graficar_barras <- function(bd,
                             salto = 20,
                             porcentajes_fuera = F,
                             desplazar_porcentajes = 0,
-                            orden_respuestas){
+                            orden_respuestas = NA){
 
   g <-
     bd %>%
@@ -35,30 +133,24 @@ graficar_barras <- function(bd,
                    fill = respuesta))
       }
     } +
-    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha = 0.8, width = 0.45)
-
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), color = "transparent", alpha = 0.8, width = 0.45)
   if (porcentajes_fuera == F) {
     g <-
       g +
-      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T)
+      ggfittext::geom_bar_text(aes(label = scales::percent(media, accuracy = 1)), contrast = T)
   }
-
   if (porcentajes_fuera == T) {
     g <-
       g +
-      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
+      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
   }
-
   g <-
     g +
     coord_flip() +
     labs(x = NULL, y = NULL) +
-    scale_y_continuous(labels=scales::percent_format(accuracy = 1))
-
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1))
   return(g)
-
 }
-
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
 #' Graficar gauge
@@ -147,51 +239,6 @@ graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, te
     geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, size = text_point_size) +
     scale_y_continuous(limits = c(escala[1], escala[2]))
 
-}
-
-#' Title
-#'
-#' @param base_size
-#' @param base_family
-#' @param fondo
-#'
-#' @return
-#' @export
-#'
-#' @examples
-tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF") {
-  (ggthemes::theme_foundation(base_size = base_size,
-                              base_family = base_family)
-   + theme(
-     line = element_line(colour = "#4C5B61"),
-     rect = element_rect(fill = fondo,
-                         linetype = 0,
-                         colour = NA),
-     text = element_text(color = "#2C423F"),
-     axis.title = element_blank(),
-     axis.text = element_text(),
-     axis.ticks = element_blank(),
-     axis.line.x = element_line(colour = "#E1356D"),
-     legend.background = element_rect(),
-     legend.position = "bottom",
-     legend.direction = "horizontal",
-     legend.box = "vertical",
-     panel.grid = element_line(colour = NULL),
-     panel.grid.major.y = element_blank(),
-     panel.grid.major.x =element_line(colour = "#C5C5C5",
-                                      linetype = "dotted"),
-     panel.grid.minor = element_blank(),
-     plot.title = element_text(hjust = 0,
-                               size = rel(1.1),
-                               # face = "bold",
-                               colour = "#4C5B61"),
-     plot.subtitle = element_text(hjust = 0,
-                                  size = rel(1),
-                                  face = "bold",
-                                  colour = "#C5C5C5",
-                                  family = "Poppins"),
-     plot.margin = unit(c(1, 1, 1, 1), "lines"),
-     strip.text=element_text(colour ="#2C423F")))
 }
 
 #' Graficar candidato opinión
