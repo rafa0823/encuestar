@@ -354,16 +354,25 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                 panel.background = element_rect(color = "transparent", fill = "transparent"),
                 legend.background = element_rect(color = "transparent", fill = "transparent"))
       } else {
-        final <-a
+        final <-a &
+          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                panel.background = element_rect(color = "transparent", fill = "transparent"),
+                legend.background = element_rect(color = "transparent", fill = "transparent"))
       }
 
     }
 
   } else{
     if(!all(is.na(burbuja))){
-      final <- a + a.1 + plot_layout(widths = c(.8,.2))
+      final <- a + a.1 + plot_layout(widths = c(.8,.2)) &
+        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+              panel.background = element_rect(color = "transparent", fill = "transparent"),
+              legend.background = element_rect(color = "transparent", fill = "transparent"))
     } else{
-      final <- a
+      final <- a &
+        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+              panel.background = element_rect(color = "transparent", fill = "transparent"),
+              legend.background = element_rect(color = "transparent", fill = "transparent"))
     }
   }
 
@@ -970,7 +979,10 @@ graficar_nube_palabras = function(bd, max_size) {
     ggplot(aes(label = categoria_corregida, size = pct, color = color)) +
     ggwordcloud::geom_text_wordcloud(area_corr = TRUE) +
     scale_size_area(max_size = max_size) +
-    scale_color_identity()
+    scale_color_identity() +
+    theme(theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                panel.background = element_rect(color = "transparent", fill = "transparent"),
+                legend.background = element_rect(color = "transparent", fill = "transparent")))
   return(g)
 }
 #' Title
