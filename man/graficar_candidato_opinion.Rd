@@ -25,7 +25,10 @@ graficar_candidato_opinion(
   orden_resp,
   salto = 200,
   tema,
-  mostrar_nsnc = T
+  mostrar_nsnc = T,
+  salto_respuestas,
+  orden_cat = NULL,
+  patron_inicial = NULL
 )
 }
 \arguments{

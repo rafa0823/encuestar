@@ -285,7 +285,10 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
       labs(caption = caption_burbuja) +
       theme(legend.position = "none", panel.grid.major.x = element_blank(),
             axis.text = element_blank(), axis.line.x = element_blank(),
-            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja))
+            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja),
+            plot.background = element_rect(color = "transparent", fill = "transparent"),
+            panel.background = element_rect(color = "transparent", fill = "transparent"),
+            legend.background = element_rect(color = "transparent", fill = "transparent"))
   }
 
   a <- aux %>%
@@ -310,7 +313,10 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     theme(axis.text.y = element_text(size = size_text_cat),
           plot.caption = element_text(hjust = 0.5, size = size_caption_opinion),
           legend.key.size = unit(1, units = "cm")) +
-    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
+    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto)) +
+    theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+          panel.background = element_rect(color = "transparent", fill = "transparent"),
+          legend.background = element_rect(color = "transparent", fill = "transparent"))
 
   if(!is.null(ns_nc)){
     b <- aux %>%  filter(respuesta == ns_nc) %>%
@@ -324,28 +330,49 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
       tema +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
             axis.text.x = element_blank(), axis.line.x = element_blank(),
-            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc))
+            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc),
+            plot.background = element_rect(color = "transparent", fill = "transparent"),
+            panel.background = element_rect(color = "transparent", fill = "transparent"),
+            legend.background = element_rect(color = "transparent", fill = "transparent"))
 
     if(!all(is.na(burbuja))){
       if(mostrar_nsnc) {
-        final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
+        final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3) &
+          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                panel.background = element_rect(color = "transparent", fill = "transparent"),
+                legend.background = element_rect(color = "transparent", fill = "transparent"))
       } else {
-        final <-a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol= 3)
+        final <-a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol= 3) &
+          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                panel.background = element_rect(color = "transparent", fill = "transparent"),
+                legend.background = element_rect(color = "transparent", fill = "transparent"))
       }
     } else{
       if(mostrar_nsnc) {
-        final <-a + b + plot_layout(widths = c(.8, .2))
+        final <-a + b + plot_layout(widths = c(.8, .2)) &
+          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                panel.background = element_rect(color = "transparent", fill = "transparent"),
+                legend.background = element_rect(color = "transparent", fill = "transparent"))
       } else {
-        final <-a
+        final <-a &
+          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                panel.background = element_rect(color = "transparent", fill = "transparent"),
+                legend.background = element_rect(color = "transparent", fill = "transparent"))
       }
 
     }
 
   } else{
     if(!all(is.na(burbuja))){
-      final <- a + a.1 + plot_layout(widths = c(.8,.2))
+      final <- a + a.1 + plot_layout(widths = c(.8,.2)) &
+        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+              panel.background = element_rect(color = "transparent", fill = "transparent"),
+              legend.background = element_rect(color = "transparent", fill = "transparent"))
     } else{
-      final <- a
+      final <- a &
+        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+              panel.background = element_rect(color = "transparent", fill = "transparent"),
+              legend.background = element_rect(color = "transparent", fill = "transparent"))
     }
   }
 
@@ -941,39 +968,23 @@ graficar_sankey = function(bd, variables, colores, size_text_cat){
 #'
 #' @param bd Base de datos con la estructura generada por calcular_proporciones_nubes
 #' @param max_size Tamano maximo de las nubes de palabras
-#' @param subtitulo Subtitulo del plot
-#' @param color Si es distinto de NULL, colorea toda la nube del mismo color
 #'
 #' @return
 #' @export
 #'
 #' @examples
-graficar_nube_palabras <- function(bd, max_size, subtitulo = NULL, color = NULL){
-  if(!is.null(color)) {
-    g <-
-      bd |>
-      ggplot(aes(label = categoria, size = total)) +
-      ggwordcloud::geom_text_wordcloud(area_corr = TRUE, color = color) +
-      scale_size_area(max_size = max_size) +
-      labs(subtitle = subtitulo) +
-      encuestar::tema_default()
-    return(g)
-  }
+graficar_nube_palabras = function(bd, max_size) {
   g <-
     bd |>
-    mutate(color = dplyr::case_when(cuartil == 1 ~ '#6a104d',
-                                    cuartil == 2 ~ '#802e9e',
-                                    cuartil == 3 ~ '#8447ff',
-                                    cuartil == 4 ~ '#ff8cf2')) |>
-    ggplot(aes(label = categoria, size = total, color = color)) +
+    ggplot(aes(label = categoria_corregida, size = pct, color = color)) +
     ggwordcloud::geom_text_wordcloud(area_corr = TRUE) +
-    scale_color_identity() +
     scale_size_area(max_size = max_size) +
-    labs(subtitle = subtitulo) +
-    encuestar::tema_default()
+    scale_color_identity() +
+    theme(theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                panel.background = element_rect(color = "transparent", fill = "transparent"),
+                legend.background = element_rect(color = "transparent", fill = "transparent")))
   return(g)
 }
-
 #' Title
 #'
 #' @param tabla_candidatoOpinion
