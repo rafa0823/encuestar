@@ -1061,23 +1061,19 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                  }
 
-                                 bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
-                                                                                            diccionario = self$diccionario,
-                                                                                            patron_pregunta = {{patron_inicial}},
-                                                                                            aspectos = aspectos) |>
-                                   left_join(self$diccionario |> select(llaves, tema), by = c("aspecto" = "llaves")) |>
+                                 encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
+                                                                           diccionario = self$diccionario,
+                                                                           patron_pregunta = {{patron_inicial}},
+                                                                           aspectos = aspectos) |>
+                                   left_join(self$diccionario |>
+                                               select(llaves, tema), by = c("aspecto" = "llaves")) |>
                                    filter(eval(rlang::parse_expr(filtro))) |>
-                                   transmute(respuesta = tema, media)
-
-                                 bd_estimacion |>
+                                   transmute(respuesta = tema, media) |>
                                    encuestar:::graficar_barras(salto = salto,
                                                                porcentajes_fuera = porcentajes_fuera,
                                                                desplazar_porcentajes = desplazar_porcentajes,
                                                                orden_respuestas = NA) +
-                                   self$tema +
-                                   theme(legend.position = "none",
-                                         axis.text.x = element_text(size = 14),
-                                         plot.caption = element_text(size = 12))
+                                   self$tema
 
                                }
 

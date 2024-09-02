@@ -6,16 +6,16 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of encuestar is to …
+El objetivo de encuestar es producir resultados de manera semiautomática
+de encuestas o sondeos con formato amigable, flexible y listo para ser
+presentado en un documento final.
 
 ## Installation
 
-You can install the development version of encuestar from
-[GitHub](https://github.com/) with:
+You can install the development version of encuestar like so:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("morant-consultores/encuestar")
+# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
 ```
 
 ## Example
