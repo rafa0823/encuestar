@@ -476,7 +476,8 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
 
-  a + b + patchwork::plot_layout(widths = c(.2,.8))
+  a + b + patchwork::plot_layout(widths = c(.2,.8)) &
+    tema_transparente()
 
 }
 
@@ -520,11 +521,8 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
   #         panel.grid.minor.y = element_blank(),
   #         panel.grid.major.y = element_blank())+
   #   labs(y = "Saldo", x = NULL, fill = NULL)
-
   return(g)
-
 }
-
 #' Graficar conocimiento de personajes por región o estrato
 #'
 #' @param bd Base de datos resultado de la función 'analizar_conocimientoRegion'
@@ -803,10 +801,8 @@ graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", l
       geom_text(aes(label=pres),
                 color="black", size=6, hjust=-.1)
   }
-
   return(g)
 }
-
 #' Graficar cruce de una variable vs múltiples variables
 #'
 #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
@@ -839,11 +835,8 @@ graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_
       geom_text(aes(label=pres),
                 color="black", size=6, hjust=-.1)
   }
-
   return(g)
-
 }
-
 #' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
 #'
 #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
@@ -889,9 +882,7 @@ graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 
   }
   return(g)
-
 }
-
 #' Graficar cruce de una variable vs otra con opción a filtro
 #'
 #' @param bd Base de datos producto de la función 'analizar_cruceBrechas'
@@ -932,12 +923,9 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
                                     place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                                     color="white",
                                     family = "Poppins")
-
   }
-
   return(g)
 }
-
 #' Graficar sankey
 #'
 #' @param bd Base de datos procesada con la función analizar_sankey
@@ -1022,9 +1010,9 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
     aux <-
       aux %>%
-      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones + 1, 1)) %>%
+      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) %>%
       flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones + 1), part = "header")
+      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header")
   } else {
     aux <-
       aux %>%
@@ -1066,7 +1054,6 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::color(color = "white", part = "header", i = 2) |>
     flextable::bg(i = 1, bg = color_principal, part = "header")
 
-
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
     for(i in 1:(length(colores_candidato))) {
       candidato <- names(colores_candidato)[i]
@@ -1080,6 +1067,9 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     }
   } else {
   }
+  aux <-
+    aux %>%
+    flextable::color(color = "#2C423F", part = "body")
   return(aux)
 }
 
@@ -1153,6 +1143,8 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
                        color = "white",
                        part = "body")
   }
+  aux <-
+    aux |>
+    flextable::color(color = "#2C423F", part = "body", j = 2:ncols)
   return(aux)
-
 }
