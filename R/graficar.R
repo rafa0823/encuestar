@@ -288,7 +288,6 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
            media = if_else(respuesta %in% grupo_negativo,-1*media,media),
            media = if_else(respuesta == regular, media/2, media)) %>%
-    # mutate(Regular =factor(Regular, levels = c(grupo_negativo, "regular1", "regular2",grupo_positivo))) %>%
     group_by(tema) %>%
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
@@ -314,16 +313,14 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     orden <- burbuja$tema %>% levels
     a.1 <-  burbuja %>%
       ggplot(aes(y = tema,
-                 x = factor(1))) + geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
+                 x = factor(1))) +
+      geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
       tema +
       labs(caption = caption_burbuja) +
       theme(legend.position = "none", panel.grid.major.x = element_blank(),
             axis.text = element_blank(), axis.line.x = element_blank(),
-            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja),
-            plot.background = element_rect(color = "transparent", fill = "transparent"),
-            panel.background = element_rect(color = "transparent", fill = "transparent"),
-            legend.background = element_rect(color = "transparent", fill = "transparent"))
+            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja))
   }
 
   a <- aux %>%
@@ -333,85 +330,67 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)),
                y = media)) +
-    ggchicklet::geom_chicklet(width =.6, alpha =.9)+
-    scale_fill_manual(values = colores, labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
+    ggchicklet::geom_chicklet(color = "transparent", width =.6, alpha =.9) +
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema$text$family,
                              size = size_pct,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
-    coord_flip()+
-    labs(fill= NULL , y= NULL, x = NULL, caption = caption_opinion) +
-    theme_minimal() +
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6) +
     geom_hline(yintercept = 0, color = "gray", size= .6) +
+    coord_flip() +
+    scale_fill_manual(values = colores,
+                      labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
+    labs(fill = NULL, y = NULL, x = NULL, caption = caption_opinion) +
+    theme_minimal() +
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema +
     theme(axis.text.y = element_text(size = size_text_cat),
           plot.caption = element_text(hjust = 0.5, size = size_caption_opinion),
           legend.key.size = unit(1, units = "cm")) +
-    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto)) +
-    theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-          panel.background = element_rect(color = "transparent", fill = "transparent"),
-          legend.background = element_rect(color = "transparent", fill = "transparent"))
+    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
-    b <- aux %>%  filter(respuesta == ns_nc) %>%
-      ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc)+
-      coord_flip()+
+    b <- aux %>%
+      filter(respuesta == ns_nc) %>%
+      ggplot(aes(x = factor(tema, orden),
+                 y = media))+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc, color = "transparent")+
       ggfittext::geom_bar_text(aes(label = etiqueta), color = "#2C423F",
-                               hjust = -.1)+
-      labs(y = NULL, x = NULL, caption = caption_nsnc)+
+                               hjust = -.1) +
+      coord_flip() +
+      labs(y = NULL, x = NULL, caption = caption_nsnc) +
       scale_y_continuous(n.breaks = 2) +
       tema +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
             axis.text.x = element_blank(), axis.line.x = element_blank(),
-            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc),
-            plot.background = element_rect(color = "transparent", fill = "transparent"),
-            panel.background = element_rect(color = "transparent", fill = "transparent"),
-            legend.background = element_rect(color = "transparent", fill = "transparent"))
+            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc))
 
     if(!all(is.na(burbuja))){
       if(mostrar_nsnc) {
-        final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3) &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
       } else {
-        final <-a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol= 3) &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol = 3)
       }
     } else{
       if(mostrar_nsnc) {
-        final <-a + b + plot_layout(widths = c(.8, .2)) &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a + b + plot_layout(widths = c(.8, .2))
       } else {
-        final <-a &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a
       }
 
     }
 
   } else{
     if(!all(is.na(burbuja))){
-      final <- a + a.1 + plot_layout(widths = c(.8,.2)) &
-        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-              panel.background = element_rect(color = "transparent", fill = "transparent"),
-              legend.background = element_rect(color = "transparent", fill = "transparent"))
+      final <- a + a.1 + plot_layout(widths = c(.8,.2))
     } else{
-      final <- a &
-        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-              panel.background = element_rect(color = "transparent", fill = "transparent"),
-              legend.background = element_rect(color = "transparent", fill = "transparent"))
+      final <- a
     }
   }
 
-  return(final)
+  return(final &
+           theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                 panel.background = element_rect(color = "transparent", fill = "transparent"),
+                 legend.background = element_rect(color = "transparent", fill = "transparent")))
 }
 
 #' Graficar el partido político con el que asocian a uno o varios personajes

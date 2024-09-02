@@ -1274,15 +1274,14 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          }
 
-                         bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(diseno),
+                         encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(diseno),
                                                                            cruce = cruce, variables = variables,vartype = vartype,
                                                                            valor_variables = valor_variables) |>
                            left_join(self$diccionario |>
                                        distinct(llaves, tema), by = c("variable" = "llaves")) |>
                            select(!variable) |>
-                           rename(variable = tema)
-
-                         encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
+                           rename(variable = tema) |>
+                         encuestar:::graficar_crucePuntos(cruce = cruce, vartype = vartype) +
                            self$tema
 
                        },
@@ -1384,41 +1383,6 @@ Cruce <- R6::R6Class(classname = "Cruce",
                            self$tema
 
                        },
-                       barrasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, color = "green", filter = NULL){
-
-                         if(is.null(self$diseno)) {
-
-                           diseno <- self$encuesta$muestra$diseno
-
-                         } else {
-
-                           diseno <- self$diseno
-
-                         }
-
-                         encuestar:::analizar_crucePuntos(srvyr::as_survey_design(diseno),
-                                                          cruce = por_grupo,
-                                                          variables = variables, vartype = vartype,
-                                                          valor_variables = valor_variables) %>%
-                           {
-                             if(vartype == "cv"){
-                               mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
-                                                        `cv` >.30 ~ "**",
-                                                        TRUE ~""))
-                             } else{
-                               .
-                             }
-                           } |>
-                           left_join(self$diccionario,
-                                     join_by(variable == llaves)) |> select(-variable) |>
-                           rename(variable = tema) |>
-                           encuestar:::graficar_cruce_barrasMultiples(cruce = por_grupo,
-                                                                      vartype = vartype,
-                                                                      color = color,
-                                                                      filter = filter) +
-                           self$tema
-
-                       },
                        bloques = function(cruce, variable, vartype = "cv", filter = NULL, linea_grosor = 2, linea_color = "white"){
 
                          if(is.null(self$diseno)) {
@@ -1515,7 +1479,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                       diccionario = self$diccionario,
                                                                       patron_pregunta = patron_inicial,
                                                                       aspectos = aspectos) |>
-                              left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
+                              left_join(self$diccionario %>%
+                                          select(aspecto = llaves, tema)) %>%
                               encuestar:::graficar_candidato_opinion(ns_nc = ns_nc,
                                                                      regular = regular,
                                                                      grupo_positivo= grupo_positivo,
