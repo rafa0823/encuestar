@@ -18,18 +18,18 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of encuestar is to ...
+El ojetivo de la paquetería encuestar es producir los resultados de las estimaciones asociadas al diseño muestral generado por la paquetería muestrear. También contiene contiene la aplicación de seguimiento de levantamiento de la encuesta.
 
-## Installation
+## Instalación
 
-You can install the development version of encuestar from [GitHub](https://github.com/) with:
+Sírvase de instalar la versión de producción desde [GitHub](https://github.com/) con:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("morant-consultores/encuestar")
 ```
 
-## Example
+## Ejemplo
 
 This is a basic example which shows you how to solve a common problem:
 
