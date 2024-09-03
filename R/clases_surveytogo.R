@@ -1238,7 +1238,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          self$tema <- tema
                          self$graficadas <- graficadas
                        },
-                       sankey_categorica = function(variables = NULL, colores, size_text_cat = 6, omitir_valores_variable1 = NULL, omitir_valores_variable2 = NULL){
+                       sankey_categorica = function(variables = NULL, colores, size_text_cat = 6, width_text = 15,omitir_valores_variable1 = NULL, omitir_valores_variable2 = NULL){
 
                          if(is.null(variables)) {
 
@@ -1264,7 +1264,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                            encuestar:::graficar_sankey(bd = bd_estimacion,
                                                        variables = variables,
                                                        colores = colores,
-                                                       size_text_cat = size_text_cat)
+                                                       size_text_cat = size_text_cat,
+                                                       width_text = width_text)
                          }
                        },
                        puntos = function(cruce, variables, vartype = "se", valor_variables){

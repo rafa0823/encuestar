@@ -930,13 +930,17 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
 #' @param size_text_cat Tamaño del texto mostrado en cada nodo el sankey
 #' @param variables Vector que contiene las llaves de las cuales se va a hacer el cruce
 #' @param colores Argumento usado por scale_fill_manual y sclae_color_manual
+#' @param width_text Salto de linea que se aplica a las categorias mostradas
 #'
 #' @return
 #' @export
 #'
 #' @examples
 #' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
-graficar_sankey = function(bd, variables, colores, size_text_cat){
+graficar_sankey = function(bd, variables, colores, size_text_cat,width_text = 15){
+  bd<-bd|>
+    mutate(pos_x = ifelse(x == variables[1], as.numeric(x)- 0.1,as.numeric(x) + 0.1 ))
+
   bd |>
     ggplot(aes(x = x,
                value = value,
@@ -944,25 +948,24 @@ graficar_sankey = function(bd, variables, colores, size_text_cat){
                node = node,
                next_node = next_node,
                fill = node)) +
-    ggsankey::geom_sankey() +
-    ggsankey::geom_sankey_text(data = bd |> filter(x  == variables[1]),
-                               aes(label = stringr::str_wrap(string = node, width = 30),
-                                   color = node),
-                               size = size_text_cat,
-                               show.legend = F,
-                               hjust = 2) +
-    ggsankey::geom_sankey_text(data = bd |> filter(x  == variables[2]),
-                               aes(label = stringr::str_wrap(string = node, width = 30),
-                                   color = node),
-                               size = size_text_cat,
-                               show.legend = F,
-                               hjust = -1) +
+    ggsankey::geom_sankey(flow.alpha=0.8) +
+    ggsankey::geom_sankey_text(data = bd,
+                               aes(x = pos_x,
+                                   label = stringr::str_wrap(string = node, width = width_text),
+                                   color = node,
+                                   hjust = ifelse(x == variables[1],1,0)),
+                               size = size_text_cat, show.legend = F
+    )  +
     guides(color = "none", fill = "none") +
     scale_fill_manual(values = colores) +
     scale_color_manual(values = colores) +
     encuestar::tema_default() +
     theme(legend.position = "none",
-          axis.text.y = element_blank())
+          axis.text.y = element_blank(),
+          axis.title.x = element_blank(),
+          plot.background = element_rect(color = "transparent", fill = "transparent"),
+          panel.background = element_rect(color = "transparent", fill = "transparent"),
+          legend.background = element_rect(color = "transparent", fill = "transparent"))
 }
 #' Graficar nube de palabras
 #'
