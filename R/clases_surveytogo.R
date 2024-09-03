@@ -245,7 +245,7 @@ Encuesta <- R6::R6Class("Encuesta",
 
                           }),
 
-                        private=list()
+                        private = list()
 )
 
 #' Esta es la clase Respuestas
@@ -1009,37 +1009,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  self$tema
 
                              },
-                             barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
-
-                               # llave_aux <- paste(patron_inicial, aspectos, sep = "_")
-
-                               # llaves_aux %>%
-                               # purrr::walk(.x = ., .f = ~ print(paste(.x, "hola", sep = "")))
-                               # comprobar_variableGraficada = function(variable, variablesGraficadas, variablesDiccionario) {
-                               #
-                               #   if(!(variable %in% variablesGraficadas)) {
-                               #     if(variable %in% variablesDiccionario) {
-                               #       variablesGraficadas <- variablesGraficadas %>% append(variable)
-                               #     }
-                               #     else {
-                               #       stop(glue::glue("La llave {variable} no existe en el diccionario"))
-                               #     }
-                               #   }
-                               #   else {
-                               #     warning(glue::glue("La llave {variable} ya fue graficada con anterioridad"))
-                               #   }
-                               # }
-                               # comprobar_variableGraficada(variable = "candidato_preferencia", variablesGraficadas = self$graficadas, variablesDiccionario = self$diccionario$llaves)
-
-                               # if(!(llave_aux %in% self$graficadas)){
-                               #   if(llave_aux %in% self$diccionario$llaves){
-                               #     self$graficadas <- self$graficadas %>% append(llave_aux)
-                               #   } else {
-                               #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                               #   }
-                               # } else {
-                               #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               # }
+                             barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = "respuesta == 'Sí'", porcentajes_fuera = F, desplazar_porcentajes = 0){
 
                                if(is.null(filtro) | is.null(aspectos)) {
 
