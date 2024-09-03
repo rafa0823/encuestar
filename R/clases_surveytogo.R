@@ -89,12 +89,15 @@ Encuesta <- R6::R6Class("Encuesta",
                                                               mantener_falta_coordenadas = self$mantener_falta_coordenadas,
                                                               muestra_completa = muestra,
                                                               patron = patron,
-                                                              nivel = nivel, var_n = var_n
+                                                              nivel = nivel,
+                                                              var_n = var_n
                             )
 
                             # Muestra (recalcula fpc)
-                            self$muestra <- Muestra$new(muestra = muestra, respuestas = self$respuestas$base,
-                                                        nivel = nivel, var_n = var_n)
+                            self$muestra <- Muestra$new(muestra = muestra,
+                                                        respuestas = self$respuestas$base,
+                                                        nivel = nivel,
+                                                        var_n = var_n)
 
                             # Informacion muestral
                             self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n, tipo_encuesta = self$tipo_encuesta)
@@ -276,7 +279,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               if(!identical(names(encuesta$auditoria_telefonica), c("SbjNum", "razon"))) stop("Los nombres de las columnas de la base de datos de auditoría telefónica deben ser: 'Sbjnum, razon'")
 
                               if(!is.null(encuesta$bd_correcciones)){
-                                if(!identical(names(encuesta$bd_correcciones), c("SbjNum", "codigo_pregunta", "capturada", "correccion"))) stop("Los nombres de las columnas de la base de datos de correcciones deben ser: 'Sbjnum, codigo_pregunta, capturada, correccion'")
+                                if(!identical(names(encuesta$bd_correcciones), c("SbjNum", "llave", "capturada", "correccion"))) stop("Los nombres de las columnas de la base de datos de correcciones deben ser: 'Sbjnum, codigo_pregunta, capturada, correccion'")
                               }
 
                               auditoria_telefonica <- encuesta$auditoria_telefonica
@@ -303,7 +306,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               # Corregir respuestas registradas mal por los encuestadores
                               if(!is.null(bd_correcciones)) {
 
-                                self$base <- self$corregir_respuestas(respuestas = self$base, bd_correcciones = bd_correcciones)
+                                self$base <- self$corregir_respuestas(respuestas = self$base, bd_correcciones_raw = bd_correcciones)
 
                               }
 
@@ -462,49 +465,29 @@ Respuestas <- R6::R6Class("Respuestas",
 
                             },
 
-                            corregir_respuestas = function(respuestas, bd_correcciones){
+                            corregir_respuestas = function(respuestas, bd_correcciones_raw){
 
-                              corregir_respuestas_fn <- function(bd_respuestas, id_entrevista, codigo_pregunta, respuesta_capturada, respuesta_correcta) {
+                              variables_corregidas <-
+                                bd_correcciones_raw |>
+                                distinct(llave) |>
+                                pull()
 
-                                respuestas_corregidas <- bd_respuestas %>%
-                                  mutate(!!rlang::sym(codigo_pregunta) := dplyr::if_else(condition = SbjNum == id_entrevista,
-                                                                                         true = respuesta_correcta,
-                                                                                         false = !!rlang::sym(codigo_pregunta)))
+                              bd_correcciones <-
+                                bd_correcciones_raw |>
+                                select(!capturada) |>
+                                mutate(llave = paste0(llave, "_correccion")) |>
+                                tidyr::pivot_wider(id_cols = SbjNum,
+                                                   names_from = llave,
+                                                   values_from = correccion)
 
-                                return(respuestas_corregidas)
-
-                              }
-
-                              for(i in seq_along(bd_correcciones$SbjNum)) {
-
-                                # print(i)
-
-                                id_entrevista = bd_correcciones$SbjNum[i]
-                                codigo_pregunta = bd_correcciones$codigo_pregunta[i]
-                                respuesta_capturada = bd_correcciones$capturada[i]
-                                respuesta_correcta = bd_correcciones$correccion[i]
-
-                                a <- respuestas |>
-                                  filter(SbjNum == id_entrevista) |>
-                                  select(!!codigo_pregunta) |>
-                                  pull()
-
-                                # print(a)
-
-                                respuestas <- corregir_respuestas_fn(bd_respuestas = respuestas,
-                                                                     id_entrevista = id_entrevista,
-                                                                     codigo_pregunta = codigo_pregunta,
-                                                                     respuesta_capturada = respuesta_capturada,
-                                                                     respuesta_correcta = respuesta_correcta)
-
-                                b <- respuestas |>
-                                  filter(SbjNum == id_entrevista) |>
-                                  select(!!codigo_pregunta) |>
-                                  pull()
-
-                                # print(b)
-
-                              }
+                              respuestas <-
+                                respuestas |>
+                                left_join(bd_correcciones, by = "SbjNum") %>%
+                                mutate(across(.cols = all_of(variables_corregidas),
+                                              .fns = ~ dplyr::if_else(condition = !is.na(get(paste0(cur_column(), "_correccion"))),
+                                                                      true = get(paste0(cur_column(), "_correccion")),
+                                                                      false = .))) |>
+                                select(!all_of(names(bd_correcciones)[-1]))
 
                               return(respuestas)
 
@@ -1245,13 +1228,13 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          }
 
                          encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(diseno),
-                                                                           cruce = cruce, variables = variables,vartype = vartype,
-                                                                           valor_variables = valor_variables) |>
+                                                          cruce = cruce, variables = variables,vartype = vartype,
+                                                          valor_variables = valor_variables) |>
                            left_join(self$diccionario |>
                                        distinct(llaves, tema), by = c("variable" = "llaves")) |>
                            select(!variable) |>
                            rename(variable = tema) |>
-                         encuestar:::graficar_crucePuntos(cruce = cruce, vartype = vartype) +
+                           encuestar:::graficar_crucePuntos(cruce = cruce, vartype = vartype) +
                            self$tema
 
                        },
