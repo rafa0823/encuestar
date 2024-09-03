@@ -1,154 +1,5 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
 
-#' Gráfica de barras horizontales ordenadas
-#'
-#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
-#' @param salto Número entero, se aplica un stringr::str_wrap a la variable categórica.
-#' @param porcentajes_fuera Si es T, las labels de los porcentajes aparecen fuera (o sobre) las barras.
-#' @param desplazar_porcentajes Si porcentajes_fuera es T, este parametro ajusta las etiquetas de texto.
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_barras(bd, salto = 13)
-#' graficar_barras(bd, porcentajes_fuera = T, desplazar_porcentajes = 0.1)
-
-graficar_barras <- function(bd,
-                            salto = 20,
-                            porcentajes_fuera = F,
-                            desplazar_porcentajes = 0,
-                            orden_respuestas){
-
-  g <-
-    bd %>%
-    {
-      if(length(orden_respuestas) == 1) {
-        ggplot(data = .,
-               aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
-                   y  = media,
-                   fill = respuesta))
-      } else {
-        ggplot(data = .,
-               aes(x = factor(stringr::str_wrap(respuesta, salto), levels = stringr::str_wrap(orden_respuestas, salto)),
-                   y  = media,
-                   fill = respuesta))
-      }
-    } +
-    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), alpha = 0.8, width = 0.45)
-
-  if (porcentajes_fuera == F) {
-    g <-
-      g +
-      ggfittext::geom_bar_text(aes(label=scales::percent(media, accuracy = 1)), contrast = T)
-  }
-
-  if (porcentajes_fuera == T) {
-    g <-
-      g +
-      geom_text(aes(label=scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
-  }
-
-  g <-
-    g +
-    coord_flip() +
-    labs(x = NULL, y = NULL) +
-    scale_y_continuous(labels=scales::percent_format(accuracy = 1))
-
-  return(g)
-
-}
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
-
-#' Graficar gauge
-#'
-#' @param bd  Base de datos con un único row. La variable a considerar se llama "media"
-#' @param color_principal Color principal de la barra
-#' @param color_secundario Color secundario de la barra
-#' @param escala Máximo y mínimo de los valores que puede tomar "media"
-#' @param size_text_pct Tamaño del texto dentro del gauge
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "red", escala = c(0, 10), size_text_pct = 8)
-#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "pink", color_secundario = "brown", escala = c(1, 7), size_text_pct = 14)
-
-graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", escala, size_text_pct){
-
-  g <-
-    bd %>%
-    ggplot() +
-    geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
-              fill = color_principal,  color = "white", alpha= .95) +
-    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = escala[2]),
-              fill = color_secundario, color = "white")
-
-  if(escala[2] == 1) {
-
-    g <-
-      g +
-      geom_text(aes(x = 0, y = 0.5, label = scales::percent(x = media, accuracy = 1.)),
-                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
-
-  }
-  else {
-
-    g <-
-      g +
-      geom_text(aes(x = 0, y = 0.5, label = scales::comma(x = media, accuracy = 1.1)),
-                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
-
-  }
-
-  g <-
-    g +
-    scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
-    scale_x_continuous(limits = c(0, NA)) +
-    scale_y_continuous(limits = c(0, escala[2])) +
-    xlab("") +
-    ylab("") +
-    coord_polar(theta = "y") +
-    theme_void() +
-    theme(legend.position = "bottom", axis.text = element_blank(),
-          text = element_text(size = 15, family = "Poppins"))
-
-  return(g)
-
-}
-
-sustituir <- function(bd, patron, reemplazo = ""){
-  bd %>% mutate(respuesta = gsub(pattern = patron, replacement = reemplazo,
-                                 x = respuesta, fixed = T))
-}
-
-#' Graficar intervalos numérica
-#'
-#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
-#' @param point_size Tamaño del punto que indica el promedio de la estimación.
-#' @param text_point_size Tamaño del texto que acompaña el valor de la estimación
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_intervalo_numerica(bd = bd, point_size = 2, text_point_size = 14)
-graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, text_point_size = 8){
-
-  bd %>%
-    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40), media))) +
-    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size) +
-    coord_flip() +
-    labs(title = NULL,
-         x = NULL,
-         y = "Promedio")+
-    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, size = text_point_size) +
-    scale_y_continuous(limits = c(escala[1], escala[2]))
-
-}
-
 #' Title
 #'
 #' @param base_size
@@ -193,7 +44,191 @@ tema_default <- function(base_size = 15, base_family = "Poppins", fondo="#FFFFFF
      plot.margin = unit(c(1, 1, 1, 1), "lines"),
      strip.text=element_text(colour ="#2C423F")))
 }
+#' Title
+#'
+#' @param size_axis_text_x
+#' @param size_axis_text_y
+#'
+#' @return
+#' @export
+#'
+#' @examples
+tema_transparente = function(){
+  theme(legend.background = element_rect(color = "transparent", fill = "transparent"),
+        panel.background = element_rect(color = "transparent", fill = "transparent"),
+        plot.background = element_rect(color = "transparent", fill = "transparent"),
+        strip.background = element_rect(color = "transparent", fill = "transparent"))
+}
+#' Title
+#'
+#' @param base_size
+#' @param base_family
+#' @param fondo
+#'
+#' @return
+#' @export
+#'
+#' @examples
+tema_morant = function(base_size = 15, base_family = "Poppins", fondo = "#FFFFFF") {
+  (ggthemes::theme_foundation(base_size = base_size,
+                              base_family = base_family) +
+     theme(
+       line = element_line(colour = "#4C5B61"),
+       rect = element_rect(fill = fondo, linetype = 0, colour = NA),
+       text = element_text(color = "#2C423F"),
+       axis.title = element_blank(),
+       axis.text = element_text(),
+       axis.text.x = element_text(size = 14),
+       axis.text.y = element_text(size = 16),
+       axis.ticks = element_blank(),
+       axis.line.x = element_line(colour = "#E1356D"),
+       legend.position = "none",
+       legend.direction = "horizontal",
+       legend.box = "vertical",
+       legend.text = element_text(size = 14),
+       panel.grid = element_line(colour = NULL),
+       panel.grid.major.y = element_blank(),
+       panel.grid.major.x = element_line(colour = "#C5C5C5", linetype = "dotted"),
+       panel.grid.minor = element_blank(),
+       plot.title = element_text(hjust = 0, size = rel(1.1), colour = "#4C5B61"),
+       plot.subtitle = element_text(hjust = 0, size = rel(1), face = "bold", colour = "#C5C5C5", family = base_family),
+       plot.caption = element_text(size = 14),
+       plot.margin = unit(c(1, 1, 1, 1), "lines"),
+       strip.text = element_text(colour ="#2C423F")
+     ) +
+     tema_transparente()
+  )
+}
+#' Gráfica de barras horizontales ordenadas
+#'
+#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
+#' @param salto Número entero, se aplica un stringr::str_wrap a la variable categórica.
+#' @param porcentajes_fuera Si es T, las labels de los porcentajes aparecen fuera (o sobre) las barras.
+#' @param desplazar_porcentajes Si porcentajes_fuera es T, este parametro ajusta las etiquetas de texto.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_barras(bd, salto = 13)
+#' graficar_barras(bd, porcentajes_fuera = T, desplazar_porcentajes = 0.1)
+graficar_barras <- function(bd,
+                            salto = 20,
+                            porcentajes_fuera = F,
+                            desplazar_porcentajes = 0,
+                            orden_respuestas = NA){
 
+  g <-
+    bd %>%
+    {
+      if(length(orden_respuestas) == 1) {
+        ggplot(data = .,
+               aes(x = forcats::fct_reorder(stringr::str_wrap(respuesta, salto), media),
+                   y  = media,
+                   fill = respuesta))
+      } else {
+        ggplot(data = .,
+               aes(x = factor(stringr::str_wrap(respuesta, salto), levels = stringr::str_wrap(orden_respuestas, salto)),
+                   y  = media,
+                   fill = respuesta))
+      }
+    } +
+    ggchicklet::geom_chicklet(radius = grid::unit(3, "pt"), color = "transparent", alpha = 0.8, width = 0.45)
+  if (porcentajes_fuera == F) {
+    g <-
+      g +
+      ggfittext::geom_bar_text(aes(label = scales::percent(media, accuracy = 1)), contrast = T)
+  }
+  if (porcentajes_fuera == T) {
+    g <-
+      g +
+      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
+  }
+  g <-
+    g +
+    coord_flip() +
+    labs(x = NULL, y = NULL) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+  return(g)
+}
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
+
+#' Graficar gauge
+#'
+#' @param bd  Base de datos con un único row. La variable a considerar se llama "media"
+#' @param color_principal Color principal de la barra
+#' @param color_secundario Color secundario de la barra
+#' @param escala Máximo y mínimo de los valores que puede tomar "media"
+#' @param size_text_pct Tamaño del texto dentro del gauge
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "red", escala = c(0, 10), size_text_pct = 8)
+#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "pink", color_secundario = "brown", escala = c(1, 7), size_text_pct = 14)
+graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", escala, size_text_pct){
+  g <-
+    bd %>%
+    ggplot() +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = 0, ymax = media),
+              fill = color_principal,  color = "white", alpha= .95) +
+    geom_rect(aes(xmin = 2, xmax = 3, ymin = media, ymax = escala[2]),
+              fill = color_secundario, color = "white")
+  if(escala[2] == 1) {
+    g <-
+      g +
+      geom_text(aes(x = 0, y = 0.5, label = scales::percent(x = media, accuracy = 1.)),
+                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+  }
+  else {
+    g <-
+      g +
+      geom_text(aes(x = 0, y = 0.5, label = scales::comma(x = media, accuracy = 1.1)),
+                size = size_text_pct, family = "Poppins", nudge_y = 0.25)
+  }
+  g <-
+    g +
+    scale_fill_manual(values = c("#1DCDBC", "#38C6F4")) +
+    scale_x_continuous(limits = c(0, NA)) +
+    scale_y_continuous(limits = c(0, escala[2])) +
+    xlab("") +
+    ylab("") +
+    coord_polar(theta = "y") +
+    theme_void() +
+    theme(legend.position = "none",
+          axis.text = element_blank(),
+          text = element_text(size = 15, family = "Poppins"))
+  return(g)
+}
+sustituir <- function(bd, patron, reemplazo = ""){
+  bd %>% mutate(respuesta = gsub(pattern = patron, replacement = reemplazo,
+                                 x = respuesta, fixed = T))
+}
+#' Graficar intervalos numérica
+#'
+#' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
+#' @param point_size Tamaño del punto que indica el promedio de la estimación.
+#' @param text_point_size Tamaño del texto que acompaña el valor de la estimación
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_intervalo_numerica(bd = bd, point_size = 2, text_point_size = 14)
+graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, text_point_size = 8){
+
+  bd %>%
+    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40), media))) +
+    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size) +
+    coord_flip() +
+    labs(title = NULL,
+         x = NULL,
+         y = "Promedio")+
+    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, size = text_point_size) +
+    scale_y_continuous(limits = c(escala[1], escala[2]))
+
+}
 #' Graficar candidato opinión
 #'
 #' @param bd Base de datos con estructura producida por analizar_frecuencias_aspectos.
@@ -253,7 +288,6 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     mutate(etiqueta = if_else(Regular != "regular2", scales::percent(media,1), ""),
            media = if_else(respuesta %in% grupo_negativo,-1*media,media),
            media = if_else(respuesta == regular, media/2, media)) %>%
-    # mutate(Regular =factor(Regular, levels = c(grupo_negativo, "regular1", "regular2",grupo_positivo))) %>%
     group_by(tema) %>%
     mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
 
@@ -279,16 +313,14 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
     orden <- burbuja$tema %>% levels
     a.1 <-  burbuja %>%
       ggplot(aes(y = tema,
-                 x = factor(1))) + geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
+                 x = factor(1))) +
+      geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
       tema +
       labs(caption = caption_burbuja) +
       theme(legend.position = "none", panel.grid.major.x = element_blank(),
             axis.text = element_blank(), axis.line.x = element_blank(),
-            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja),
-            plot.background = element_rect(color = "transparent", fill = "transparent"),
-            panel.background = element_rect(color = "transparent", fill = "transparent"),
-            legend.background = element_rect(color = "transparent", fill = "transparent"))
+            plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja))
   }
 
   a <- aux %>%
@@ -298,85 +330,67 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                fill = respuesta,
                group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)),
                y = media)) +
-    ggchicklet::geom_chicklet(width =.6, alpha =.9)+
-    scale_fill_manual(values = colores, labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
+    ggchicklet::geom_chicklet(color = "transparent", width =.6, alpha =.9) +
     ggfittext::geom_fit_text(aes(label = etiqueta), family = tema$text$family,
                              size = size_pct,
                              position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
-    coord_flip()+
-    labs(fill= NULL , y= NULL, x = NULL, caption = caption_opinion) +
-    theme_minimal() +
     geom_hline(yintercept = 0, color = "#FFFFFF", size= .6) +
     geom_hline(yintercept = 0, color = "gray", size= .6) +
+    coord_flip() +
+    scale_fill_manual(values = colores,
+                      labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
+    labs(fill = NULL, y = NULL, x = NULL, caption = caption_opinion) +
+    theme_minimal() +
     lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
     theme(legend.position = "bottom") %+replace% tema +
     theme(axis.text.y = element_text(size = size_text_cat),
           plot.caption = element_text(hjust = 0.5, size = size_caption_opinion),
           legend.key.size = unit(1, units = "cm")) +
-    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto)) +
-    theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-          panel.background = element_rect(color = "transparent", fill = "transparent"),
-          legend.background = element_rect(color = "transparent", fill = "transparent"))
+    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
 
   if(!is.null(ns_nc)){
-    b <- aux %>%  filter(respuesta == ns_nc) %>%
-      ggplot(aes(x = factor(tema, orden), y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc)+
-      coord_flip()+
+    b <- aux %>%
+      filter(respuesta == ns_nc) %>%
+      ggplot(aes(x = factor(tema, orden),
+                 y = media))+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc, color = "transparent")+
       ggfittext::geom_bar_text(aes(label = etiqueta), color = "#2C423F",
-                               hjust = -.1)+
-      labs(y = NULL, x = NULL, caption = caption_nsnc)+
+                               hjust = -.1) +
+      coord_flip() +
+      labs(y = NULL, x = NULL, caption = caption_nsnc) +
       scale_y_continuous(n.breaks = 2) +
       tema +
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(),
             axis.text.x = element_blank(), axis.line.x = element_blank(),
-            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc),
-            plot.background = element_rect(color = "transparent", fill = "transparent"),
-            panel.background = element_rect(color = "transparent", fill = "transparent"),
-            legend.background = element_rect(color = "transparent", fill = "transparent"))
+            plot.caption = element_text(hjust = 0.5, size = size_caption_nsnc))
 
     if(!all(is.na(burbuja))){
       if(mostrar_nsnc) {
-        final <-a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3) &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
       } else {
-        final <-a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol= 3) &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol = 3)
       }
     } else{
       if(mostrar_nsnc) {
-        final <-a + b + plot_layout(widths = c(.8, .2)) &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a + b + plot_layout(widths = c(.8, .2))
       } else {
-        final <-a &
-          theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent"))
+        final <- a
       }
 
     }
 
   } else{
     if(!all(is.na(burbuja))){
-      final <- a + a.1 + plot_layout(widths = c(.8,.2)) &
-        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-              panel.background = element_rect(color = "transparent", fill = "transparent"),
-              legend.background = element_rect(color = "transparent", fill = "transparent"))
+      final <- a + a.1 + plot_layout(widths = c(.8,.2))
     } else{
-      final <- a &
-        theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-              panel.background = element_rect(color = "transparent", fill = "transparent"),
-              legend.background = element_rect(color = "transparent", fill = "transparent"))
+      final <- a
     }
   }
 
-  return(final)
+  return(final &
+           theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+                 panel.background = element_rect(color = "transparent", fill = "transparent"),
+                 legend.background = element_rect(color = "transparent", fill = "transparent")))
 }
 
 #' Graficar el partido político con el que asocian a uno o varios personajes
@@ -462,7 +476,8 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
 
-  a + b + patchwork::plot_layout(widths = c(.2,.8))
+  a + b + patchwork::plot_layout(widths = c(.2,.8)) &
+    tema_transparente()
 
 }
 
@@ -506,11 +521,8 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
   #         panel.grid.minor.y = element_blank(),
   #         panel.grid.major.y = element_blank())+
   #   labs(y = "Saldo", x = NULL, fill = NULL)
-
   return(g)
-
 }
-
 #' Graficar conocimiento de personajes por región o estrato
 #'
 #' @param bd Base de datos resultado de la función 'analizar_conocimientoRegion'
@@ -789,10 +801,8 @@ graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", l
       geom_text(aes(label=pres),
                 color="black", size=6, hjust=-.1)
   }
-
   return(g)
 }
-
 #' Graficar cruce de una variable vs múltiples variables
 #'
 #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
@@ -825,11 +835,8 @@ graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_
       geom_text(aes(label=pres),
                 color="black", size=6, hjust=-.1)
   }
-
   return(g)
-
 }
-
 #' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
 #'
 #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
@@ -875,9 +882,7 @@ graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 
   }
   return(g)
-
 }
-
 #' Graficar cruce de una variable vs otra con opción a filtro
 #'
 #' @param bd Base de datos producto de la función 'analizar_cruceBrechas'
@@ -918,12 +923,9 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
                                     place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                                     color="white",
                                     family = "Poppins")
-
   }
-
   return(g)
 }
-
 #' Graficar sankey
 #'
 #' @param bd Base de datos procesada con la función analizar_sankey
@@ -1008,9 +1010,9 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
     aux <-
       aux %>%
-      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones + 1, 1)) %>%
+      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) %>%
       flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones + 1), part = "header")
+      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header")
   } else {
     aux <-
       aux %>%
@@ -1052,7 +1054,6 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::color(color = "white", part = "header", i = 2) |>
     flextable::bg(i = 1, bg = color_principal, part = "header")
 
-
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
     for(i in 1:(length(colores_candidato))) {
       candidato <- names(colores_candidato)[i]
@@ -1066,6 +1067,9 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     }
   } else {
   }
+  aux <-
+    aux %>%
+    flextable::color(color = "#2C423F", part = "body")
   return(aux)
 }
 
@@ -1139,6 +1143,8 @@ formatear_tabla_votoCruzado = function(tabla_votoCruzado, var1, var2, filtro_var
                        color = "white",
                        part = "body")
   }
+  aux <-
+    aux |>
+    flextable::color(color = "#2C423F", part = "body", j = 2:ncols)
   return(aux)
-
 }

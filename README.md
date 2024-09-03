@@ -17,8 +17,7 @@ Sírvase de instalar la versión de producción desde
 [GitHub](https://github.com/) con:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("morant-consultores/encuestar")
+# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
 ```
 
 ## Ejemplo

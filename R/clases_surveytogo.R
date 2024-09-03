@@ -110,7 +110,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             print(paste0("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
 
                             #Preguntas
-                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_default())
+                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_morant())
 
                             # Shiny app de auditoria
                             self$dir_app <- dir_app
@@ -969,6 +969,135 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                self$tema <- tema
                                self$graficadas <- graficadas
                              },
+                             barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
+
+                               llave_aux <- codigo
+                               if(!(llave_aux %in% self$graficadas)){
+                                 if(llave_aux %in% self$diccionario$llaves){
+                                   self$graficadas <- self$graficadas %>% append(llave_aux)
+                                 } else {
+                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                 }
+                               } else {
+                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                               }
+
+                               tema <- self$diccionario |>
+                                 filter(llaves == rlang::ensym(codigo)) |>
+                                 pull(tema)
+
+                               if(is.null(self$diseno)) {
+
+                                 diseno <- self$encuesta$muestra$diseno
+
+                               } else {
+
+                                 diseno <- self$diseno
+
+                               }
+
+                               encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
+                                 mutate(tema = tema) |>
+                                 mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = media, other_level = "Otros"),
+                                        respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
+                                 group_by(respuesta) |>
+                                 summarise(media = sum(media)) |>
+                                 encuestar:::graficar_barras(salto = salto,
+                                                             porcentajes_fuera = porcentajes_fuera,
+                                                             desplazar_porcentajes = desplazar_porcentajes,
+                                                             orden_respuestas = orden_respuestas) +
+                                 self$tema
+
+                             },
+                             barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                               # llave_aux <- paste(patron_inicial, aspectos, sep = "_")
+
+                               # llaves_aux %>%
+                               # purrr::walk(.x = ., .f = ~ print(paste(.x, "hola", sep = "")))
+                               # comprobar_variableGraficada = function(variable, variablesGraficadas, variablesDiccionario) {
+                               #
+                               #   if(!(variable %in% variablesGraficadas)) {
+                               #     if(variable %in% variablesDiccionario) {
+                               #       variablesGraficadas <- variablesGraficadas %>% append(variable)
+                               #     }
+                               #     else {
+                               #       stop(glue::glue("La llave {variable} no existe en el diccionario"))
+                               #     }
+                               #   }
+                               #   else {
+                               #     warning(glue::glue("La llave {variable} ya fue graficada con anterioridad"))
+                               #   }
+                               # }
+                               # comprobar_variableGraficada(variable = "candidato_preferencia", variablesGraficadas = self$graficadas, variablesDiccionario = self$diccionario$llaves)
+
+                               # if(!(llave_aux %in% self$graficadas)){
+                               #   if(llave_aux %in% self$diccionario$llaves){
+                               #     self$graficadas <- self$graficadas %>% append(llave_aux)
+                               #   } else {
+                               #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                               #   }
+                               # } else {
+                               #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                               # }
+
+                               if(is.null(filtro) | is.null(aspectos)) {
+
+                                 stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro` o indique los aspectos correctos."))
+
+                               } else {
+
+                                 tema <- self$diccionario |>
+                                   filter(llaves == rlang::ensym(patron_inicial)) |>
+                                   pull(pregunta)
+
+                                 if(is.null(self$diseno)) {
+
+                                   diseno <- self$encuesta$muestra$diseno
+
+                                 } else {
+
+                                   diseno <- self$diseno
+
+                                 }
+
+                                 encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
+                                                                           diccionario = self$diccionario,
+                                                                           patron_pregunta = {{patron_inicial}},
+                                                                           aspectos = aspectos) |>
+                                   left_join(self$diccionario |>
+                                               select(llaves, tema), by = c("aspecto" = "llaves")) |>
+                                   filter(eval(rlang::parse_expr(filtro))) |>
+                                   transmute(respuesta = tema, media) |>
+                                   encuestar:::graficar_barras(salto = salto,
+                                                               porcentajes_fuera = porcentajes_fuera,
+                                                               desplazar_porcentajes = desplazar_porcentajes,
+                                                               orden_respuestas = NA) +
+                                   self$tema
+
+                               }
+
+                             },
+                             barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+                               if(is.null(self$diseno)) {
+
+                                 diseno <- self$encuesta$muestra$diseno
+
+                               } else {
+
+                                 diseno <- self$diseno
+
+                               }
+
+                               encuestar:::analizar_frecuencia_multirespuesta(diseno = diseno,
+                                                                              patron_inicial) %>%
+                                 encuestar:::graficar_barras(salto = salto,
+                                                             porcentajes_fuera = porcentajes_fuera,
+                                                             desplazar_porcentajes = desplazar_porcentajes) +
+                                 self$tema
+
+                             },
                              gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
 
                                llave_aux <- codigo
@@ -1051,140 +1180,6 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                }
 
                              },
-                             barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
-
-                               llave_aux <- codigo
-                               if(!(llave_aux %in% self$graficadas)){
-                                 if(llave_aux %in% self$diccionario$llaves){
-                                   self$graficadas <- self$graficadas %>% append(llave_aux)
-                                 } else {
-                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                 }
-                               } else {
-                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               }
-
-                               tema <- self$diccionario |>
-                                 filter(llaves == rlang::ensym(codigo)) |>
-                                 pull(tema)
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
-                                 mutate(tema = tema) |>
-                                 mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = media, other_level = "Otros"),
-                                        respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
-                                 group_by(respuesta) |>
-                                 summarise(media = sum(media)) |>
-                                 encuestar:::graficar_barras(salto = salto,
-                                                             porcentajes_fuera = porcentajes_fuera,
-                                                             desplazar_porcentajes = desplazar_porcentajes,
-                                                             orden_respuestas = orden_respuestas) +
-                                 self$tema
-
-                             },
-                             barras_numerica = function(patron_inicial, aspectos = NULL, salto = 20, filtro = NULL, porcentajes_fuera = F, desplazar_porcentajes = 0){
-
-                               # llave_aux <- paste(patron_inicial, aspectos, sep = "_")
-
-                               # llaves_aux %>%
-                               # purrr::walk(.x = ., .f = ~ print(paste(.x, "hola", sep = "")))
-                               # comprobar_variableGraficada = function(variable, variablesGraficadas, variablesDiccionario) {
-                               #
-                               #   if(!(variable %in% variablesGraficadas)) {
-                               #     if(variable %in% variablesDiccionario) {
-                               #       variablesGraficadas <- variablesGraficadas %>% append(variable)
-                               #     }
-                               #     else {
-                               #       stop(glue::glue("La llave {variable} no existe en el diccionario"))
-                               #     }
-                               #   }
-                               #   else {
-                               #     warning(glue::glue("La llave {variable} ya fue graficada con anterioridad"))
-                               #   }
-                               # }
-                               # comprobar_variableGraficada(variable = "candidato_preferencia", variablesGraficadas = self$graficadas, variablesDiccionario = self$diccionario$llaves)
-
-                               # if(!(llave_aux %in% self$graficadas)){
-                               #   if(llave_aux %in% self$diccionario$llaves){
-                               #     self$graficadas <- self$graficadas %>% append(llave_aux)
-                               #   } else {
-                               #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                               #   }
-                               # } else {
-                               #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               # }
-
-                               if(is.null(filtro) | is.null(aspectos)) {
-
-                                 stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro` o indique los aspectos correctos."))
-
-                               } else {
-
-                                 tema <- self$diccionario |>
-                                   filter(llaves == rlang::ensym(patron_inicial)) |>
-                                   pull(pregunta)
-
-                                 if(is.null(self$diseno)) {
-
-                                   diseno <- self$encuesta$muestra$diseno
-
-                                 } else {
-
-                                   diseno <- self$diseno
-
-                                 }
-
-                                 bd_estimacion <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
-                                                                                            diccionario = self$diccionario,
-                                                                                            patron_pregunta = {{patron_inicial}},
-                                                                                            aspectos = aspectos) |>
-                                   left_join(self$diccionario |> select(llaves, tema), by = c("aspecto" = "llaves")) |>
-                                   filter(eval(rlang::parse_expr(filtro))) |>
-                                   transmute(respuesta = tema, media)
-
-                                 bd_estimacion |>
-                                   encuestar:::graficar_barras(salto = salto,
-                                                               porcentajes_fuera = porcentajes_fuera,
-                                                               desplazar_porcentajes = desplazar_porcentajes,
-                                                               orden_respuestas = NA) +
-                                   self$tema +
-                                   theme(legend.position = "none",
-                                         axis.text.x = element_text(size = 14),
-                                         plot.caption = element_text(size = 12))
-
-                               }
-
-                             },
-                             barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               encuestar:::analizar_frecuencia_multirespuesta(diseno = diseno,
-                                                                              patron_inicial) %>%
-                                 encuestar:::graficar_barras(salto = salto,
-                                                             porcentajes_fuera = porcentajes_fuera,
-                                                             desplazar_porcentajes = desplazar_porcentajes) +
-                                 self$tema
-
-                             },
-                             barras_texto = function(){},
                              intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
 
                                # llave_aux <- codigo
@@ -1279,15 +1274,14 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          }
 
-                         bd_estimacion <- encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(diseno),
+                         encuestar:::analizar_crucePuntos(diseno = srvyr::as_survey_design(diseno),
                                                                            cruce = cruce, variables = variables,vartype = vartype,
                                                                            valor_variables = valor_variables) |>
                            left_join(self$diccionario |>
                                        distinct(llaves, tema), by = c("variable" = "llaves")) |>
                            select(!variable) |>
-                           rename(variable = tema)
-
-                         encuestar:::graficar_crucePuntos(bd = bd_estimacion, cruce = cruce, vartype = vartype) +
+                           rename(variable = tema) |>
+                         encuestar:::graficar_crucePuntos(cruce = cruce, vartype = vartype) +
                            self$tema
 
                        },
@@ -1389,41 +1383,6 @@ Cruce <- R6::R6Class(classname = "Cruce",
                            self$tema
 
                        },
-                       barrasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, color = "green", filter = NULL){
-
-                         if(is.null(self$diseno)) {
-
-                           diseno <- self$encuesta$muestra$diseno
-
-                         } else {
-
-                           diseno <- self$diseno
-
-                         }
-
-                         encuestar:::analizar_crucePuntos(srvyr::as_survey_design(diseno),
-                                                          cruce = por_grupo,
-                                                          variables = variables, vartype = vartype,
-                                                          valor_variables = valor_variables) %>%
-                           {
-                             if(vartype == "cv"){
-                               mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
-                                                        `cv` >.30 ~ "**",
-                                                        TRUE ~""))
-                             } else{
-                               .
-                             }
-                           } |>
-                           left_join(self$diccionario,
-                                     join_by(variable == llaves)) |> select(-variable) |>
-                           rename(variable = tema) |>
-                           encuestar:::graficar_cruce_barrasMultiples(cruce = por_grupo,
-                                                                      vartype = vartype,
-                                                                      color = color,
-                                                                      filter = filter) +
-                           self$tema
-
-                       },
                        bloques = function(cruce, variable, vartype = "cv", filter = NULL, linea_grosor = 2, linea_color = "white"){
 
                          if(is.null(self$diseno)) {
@@ -1520,7 +1479,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                       diccionario = self$diccionario,
                                                                       patron_pregunta = patron_inicial,
                                                                       aspectos = aspectos) |>
-                              left_join(self$diccionario %>% select(aspecto = llaves, tema)) %>%
+                              left_join(self$diccionario %>%
+                                          select(aspecto = llaves, tema)) %>%
                               encuestar:::graficar_candidato_opinion(ns_nc = ns_nc,
                                                                      regular = regular,
                                                                      grupo_positivo= grupo_positivo,
