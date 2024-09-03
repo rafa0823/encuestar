@@ -8,7 +8,7 @@ library(encuestar)
 
 shp_hermosillo_agosto <- readr::read_rds("./data-raw/shp.rda")
 
-diseno_hermosillo_agosto <- readr::read_rds("./data-raw/diseño.rda")
+diseno_hermosillo_agosto <- readr::read_rds("./data-raw/diseno.rda")
 
 diccionario_hermosillo_agosto <-
   readxl::read_xlsx(path = "./data-raw/dicc_enc_hermosillo_agosto.xlsx") |>
