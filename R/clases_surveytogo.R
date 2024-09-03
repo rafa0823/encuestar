@@ -1535,7 +1535,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                     solo_respondidos = T,
                                                                     tema = self$tema)
                           },
-                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, color_positivo = "green", color_negativo = "red"){
+                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, regular = "Regular", ns_nc = "Ns/Nc", color_positivo = "green", color_negativo = "red", orden_cat = NULL){
 
                             if(is.null(self$diseno)) {
 
@@ -1554,11 +1554,70 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                           grupo_positivo = positivos,
                                                                           grupo_negativo = negativos)
 
-                            encuestar:::graficar_candidatoSaldo(bd = bd_saldo,
-                                                                grupo_positivo = positivos,
-                                                                grupo_negativo = negativos,
-                                                                color_positivo = color_positivo,
-                                                                color_negativo = color_negativo) +
+                            bd_saldo_aux <-
+                              encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
+                                                                        diccionario = self$diccionario,
+                                                                        patron_pregunta = llave_opinion,
+                                                                        aspectos = candidatos) |>
+                              left_join(self$diccionario %>%
+                                          select(aspecto = llaves, tema), by = "aspecto")
+
+                            if(!is.null(ns_nc)){
+                              bd <- bd_saldo_aux %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
+                            }
+
+                            grupo_negativo = negativos
+                            grupo_positivo = positivos
+
+                            ejemplo <- bd %>%
+                              filter(respuesta != regular) |>
+                              mutate(respuesta = case_when(respuesta %in% positivos ~ "Positiva",
+                                                           respuesta %in% negativos ~ "Negativa",
+                                                           .default = respuesta)) |>
+                              group_by(tema, respuesta) |>
+                              summarise(media = sum(media, na.rm = TRUE),
+                                        .groups = "drop") |>
+                              mutate(media = dplyr::if_else(condition = respuesta == "Negativa",
+                                                            true = -media,
+                                                            false = media)) |>
+                              mutate(etiqueta = scales::percent(abs(media), 1),
+                                     media = if_else(respuesta %in% grupo_negativo, -1*media, media),
+                                     media = if_else(respuesta == regular, media/2, media)) %>%
+                              group_by(tema) %>%
+                              mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
+
+                            orden <- ejemplo %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit
+
+                            if(!is.null(orden_cat)) {
+
+                              orden <- aux %>%
+                                ungroup() |>
+                                mutate(aspecto = gsub(pattern = paste0(patron_inicial, "_"),
+                                                      replacement = "",
+                                                      x = aspecto)) |>
+                                distinct(aspecto, tema) |>
+                                mutate(aspecto = factor(aspecto, levels = orden_cat, ordered = TRUE)) |>
+                                arrange(desc(aspecto)) |>
+                                pull() |>
+                                as.factor()
+
+                            }
+
+                            ejemplo %>%
+                              {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
+                              mutate(respuesta = factor(respuesta, levels = c("Negativa", "Positiva"))) |>
+                              graficar_barras_saldo(orden = orden,
+                                                    grupo_positivo = "Positiva",
+                                                    grupo_negativo = "Negativa",
+                                                    Regular = NA_character_,
+                                                    colores = c("Positiva" = color_positivo,
+                                                                "Negativa" = color_negativo),
+                                                    salto_respuestas = 25,
+                                                    salto_tema = 25,
+                                                    caption_opinion = "Hola",
+                                                    size_text_cat = 10,
+                                                    size_pct = 10,
+                                                    size_caption_opinion = 10) +
                               self$tema
 
                           },

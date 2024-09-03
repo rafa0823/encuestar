@@ -311,49 +311,45 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
   if(!all(is.na(burbuja))){
     burbuja <- burbuja %>% mutate(escala = media/max(media), tema = forcats::fct_reorder(tema, media))
     orden <- burbuja$tema %>% levels
-    a.1 <-  burbuja %>%
+    g_burbuja <-
+      burbuja %>%
       ggplot(aes(y = tema,
                  x = factor(1))) +
       geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
-      geom_text(aes(label = scales::percent(media,1)),hjust = -.5) +
+      geom_text(aes(label = scales::percent(media,1)), hjust = -.5) +
+      scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto)) +
       tema +
       labs(caption = caption_burbuja) +
-      theme(legend.position = "none", panel.grid.major.x = element_blank(),
-            axis.text = element_blank(), axis.line.x = element_blank(),
+      theme(legend.position = "none",
+            axis.text.x = element_blank(),
+            axis.text.y = element_blank(),
+            panel.grid.major.x = element_blank(),
+            axis.line.x = element_blank(),
             plot.caption = element_text(hjust = 0.5, size = size_caption_burbuja))
   }
 
-  a <- aux %>%
+  g_opinion <-
+    aux %>%
     {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
     mutate(respuesta = factor(respuesta, levels = orden_resp)) |>
-    ggplot(aes(x  = factor(tema, orden),
-               fill = respuesta,
-               group = factor(Regular, levels = c( "regular2", grupo_negativo, "regular1", grupo_positivo)),
-               y = media)) +
-    ggchicklet::geom_chicklet(color = "transparent", width =.6, alpha =.9) +
-    ggfittext::geom_fit_text(aes(label = etiqueta), family = tema$text$family,
-                             size = size_pct,
-                             position = position_stack(.5,reverse = T), vjust = .5, contrast = T, show.legend = F) +
-    geom_hline(yintercept = 0, color = "#FFFFFF", size= .6) +
-    geom_hline(yintercept = 0, color = "gray", size= .6) +
-    coord_flip() +
-    scale_fill_manual(values = colores,
-                      labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
-    labs(fill = NULL, y = NULL, x = NULL, caption = caption_opinion) +
-    theme_minimal() +
-    lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
-    theme(legend.position = "bottom") %+replace% tema +
-    theme(axis.text.y = element_text(size = size_text_cat),
-          plot.caption = element_text(hjust = 0.5, size = size_caption_opinion),
-          legend.key.size = unit(1, units = "cm")) +
-    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto))
+    graficar_barras_saldo(orden = orden,
+                          grupo_positivo = grupo_positivo,
+                          grupo_negativo = grupo_negativo,
+                          Regular = regular,
+                          colores = colores,
+                          salto_respuestas = salto_respuestas,
+                          salto_tema = salto,
+                          caption_opinion = caption_opinion,
+                          size_text_cat = size_text_cat,
+                          size_pct = size_pct,
+                          size_caption_opinion = size_caption_opinion)
 
   if(!is.null(ns_nc)){
     b <- aux %>%
       filter(respuesta == ns_nc) %>%
       ggplot(aes(x = factor(tema, orden),
                  y = media))+
-      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc, color = "transparent")+
+      ggchicklet::geom_chicklet(width =.6, alpha =.9, fill = color_nsnc, color = "transparent") +
       ggfittext::geom_bar_text(aes(label = etiqueta), color = "#2C423F",
                                hjust = -.1) +
       coord_flip() +
@@ -366,33 +362,31 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 
     if(!all(is.na(burbuja))){
       if(mostrar_nsnc) {
-        final <- a + a.1 + b + plot_layout(widths = c(.7,.15,.15), ncol= 3)
+        final <- g_opinion + g_burbuja + b + plot_layout(widths = c(.7, .15, .15), ncol= 3)
       } else {
-        final <- a + a.1 + plot_layout(widths = c(.7,.15,.15), ncol = 3)
+        final <- g_opinion + g_burbuja + plot_layout(widths = c(.7, .15, .15), ncol = 3)
       }
     } else{
       if(mostrar_nsnc) {
-        final <- a + b + plot_layout(widths = c(.8, .2))
+        final <- g_opinion + b + plot_layout(widths = c(.8, .2))
       } else {
-        final <- a
+        final <- g_opinion
       }
 
     }
 
   } else{
     if(!all(is.na(burbuja))){
-      final <- a + a.1 + plot_layout(widths = c(.8,.2))
+      final <- g_opinion + g_burbuja + plot_layout(widths = c(.8,.2))
     } else{
-      final <- a
+      final <- g_opinion
     }
   }
-
   return(final &
            theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
                  panel.background = element_rect(color = "transparent", fill = "transparent"),
                  legend.background = element_rect(color = "transparent", fill = "transparent")))
 }
-
 #' Graficar el partido político con el que asocian a uno o varios personajes
 #'
 #' @param bases Lista. 'bases$conoce' contiene la estimación del conocimiento sobre algún personaje. 'bases$partido' tiene la información sobre la asociación a un partido político por personaje
@@ -480,7 +474,64 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
     tema_transparente()
 
 }
+#' Title
+#'
+#' @param bd
+#' @param orden
+#' @param grupo_positivo
+#' @param grupo_negativo
+#' @param colores
+#' @param salto_respuestas
+#' @param salto_tema
+#' @param caption_opinion
+#' @param size_text_cat
+#' @param size_caption_opinion
+#' @param tema
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_barras_saldo = function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat, size_pct, size_caption_opinion, tema = encuestar:::tema_morant()){
 
+  if(!is.na(Regular)) {
+    group_levels <- c("regular2", grupo_negativo, "regular1", grupo_positivo)
+  } else {
+    group_levels <- c(grupo_negativo, grupo_positivo)
+  }
+
+  g <-
+    bd |>
+    ggplot(aes(x  = factor(tema, orden),
+               y = media,
+               fill = respuesta,
+               group = factor(Regular, levels = group_levels))) +
+    ggchicklet::geom_chicklet(color = "transparent", width =.6, alpha =.9) +
+    ggfittext::geom_fit_text(aes(label = etiqueta),
+                             size = size_pct,
+                             position = position_stack(.5, reverse = T),
+                             vjust = .5,
+                             contrast = T,
+                             show.legend = F) +
+    geom_hline(yintercept = 0, color = "#FFFFFF", size = .6) +
+    geom_hline(yintercept = 0, color = "gray", size = .6) +
+    coord_flip() +
+    scale_fill_manual(values = colores,
+                      labels = function(x) stringr::str_wrap(string = x, width = salto_respuestas)) +
+    labs(x = NULL,
+         y = NULL,
+         fill = NULL,
+         caption = caption_opinion) +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto_tema)) +
+    lemon::scale_y_symmetric(labels = function(x) scales::percent(abs(x), accuracy = 1)) +
+    theme_minimal() +
+    tema +
+    theme(legend.position = "bottom") +
+    theme(axis.text.y = element_text(size = size_text_cat),
+          plot.caption = element_text(hjust = 0.5, size = size_caption_opinion),
+          legend.key.size = unit(1, units = "cm"))
+  return(g)
+}
 #' Graficar saldo de opinión por personaje
 #'
 #' @param bd Base de datos resultado de la función 'calcular_saldoOpinion'.
@@ -496,9 +547,10 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
 #' graficar_candidato_saldo(bd, grupo_positivo = "Buena", grupo_negativo = "Mala")
 #' graficar_candidato_saldo(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "orange", color_negativo = "brown")
 graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "green", color_negativo = "red"){
-
   g <- bd %>%
-    ggplot(aes(x = forcats::fct_reorder(tema, saldo), y = saldo, fill = grupo)) +
+    ggplot(aes(x = forcats::fct_reorder(tema, saldo),
+               y = saldo,
+               fill = grupo)) +
     ggchicklet::geom_chicklet(width =.6, alpha =.9) +
     ggfittext::geom_bar_text(aes(label = scales::percent(saldo, accuracy = 1)), contrast = T, family = "Poppins") +
     coord_flip() +
