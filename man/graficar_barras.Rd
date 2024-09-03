@@ -9,7 +9,7 @@ graficar_barras(
   salto = 20,
   porcentajes_fuera = F,
   desplazar_porcentajes = 0,
-  orden_respuestas
+  orden_respuestas = NA
 )
 }
 \arguments{

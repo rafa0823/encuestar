@@ -17,7 +17,6 @@ Esta es la clase de Cruce
 \item \href{#method-Cruce-puntosMultiples}{\code{Cruce$puntosMultiples()}}
 \item \href{#method-Cruce-brechasDuales}{\code{Cruce$brechasDuales()}}
 \item \href{#method-Cruce-brechasMultiples}{\code{Cruce$brechasMultiples()}}
-\item \href{#method-Cruce-barrasMultiples}{\code{Cruce$barrasMultiples()}}
 \item \href{#method-Cruce-bloques}{\code{Cruce$bloques()}}
 \item \href{#method-Cruce-clone}{\code{Cruce$clone()}}
 }
@@ -109,22 +108,6 @@ Esta es la clase de Cruce
   line_linewidth = 2,
   line_hjust = "ymax",
   line_vjust = -0.3
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Cruce-barrasMultiples"></a>}}
-\if{latex}{\out{\hypertarget{method-Cruce-barrasMultiples}{}}}
-\subsection{Method \code{barrasMultiples()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$barrasMultiples(
-  por_grupo,
-  variables,
-  vartype = "cv",
-  valor_variables,
-  color = "green",
-  filter = NULL
 )}\if{html}{\out{</div>}}
 }
 

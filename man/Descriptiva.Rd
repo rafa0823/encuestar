@@ -2,22 +2,21 @@
 % Please edit documentation in R/clases_surveytogo.R
 \name{Descriptiva}
 \alias{Descriptiva}
-\title{Esta es la clase de Grafica}
+\title{Esta es la clase de Descriptiva}
 \description{
-Esta es la clase de Grafica
+Esta es la clase de Descriptiva
 
-Esta es la clase de Grafica
+Esta es la clase de Descriptiva
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Descriptiva-new}{\code{Descriptiva$new()}}
+\item \href{#method-Descriptiva-barras_categorica}{\code{Descriptiva$barras_categorica()}}
+\item \href{#method-Descriptiva-barras_aspectos}{\code{Descriptiva$barras_aspectos()}}
+\item \href{#method-Descriptiva-barras_multirespuesta}{\code{Descriptiva$barras_multirespuesta()}}
 \item \href{#method-Descriptiva-gauge_numerica}{\code{Descriptiva$gauge_numerica()}}
 \item \href{#method-Descriptiva-gauge_categorica}{\code{Descriptiva$gauge_categorica()}}
-\item \href{#method-Descriptiva-barras_categorica}{\code{Descriptiva$barras_categorica()}}
-\item \href{#method-Descriptiva-barras_numerica}{\code{Descriptiva$barras_numerica()}}
-\item \href{#method-Descriptiva-barras_multirespuesta}{\code{Descriptiva$barras_multirespuesta()}}
-\item \href{#method-Descriptiva-barras_texto}{\code{Descriptiva$barras_texto()}}
 \item \href{#method-Descriptiva-intervalo_numerica}{\code{Descriptiva$intervalo_numerica()}}
 \item \href{#method-Descriptiva-clone}{\code{Descriptiva$clone()}}
 }
@@ -33,6 +32,52 @@ Esta es la clase de Grafica
   diccionario = NULL,
   tema,
   graficadas = NULL
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Descriptiva-barras_categorica"></a>}}
+\if{latex}{\out{\hypertarget{method-Descriptiva-barras_categorica}{}}}
+\subsection{Method \code{barras_categorica()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$barras_categorica(
+  codigo,
+  salto = 20,
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0,
+  pct_otros = 0.01,
+  orden_respuestas = NA
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Descriptiva-barras_aspectos"></a>}}
+\if{latex}{\out{\hypertarget{method-Descriptiva-barras_aspectos}{}}}
+\subsection{Method \code{barras_aspectos()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$barras_aspectos(
+  patron_inicial,
+  aspectos = NULL,
+  salto = 20,
+  filtro = NULL,
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Descriptiva-barras_multirespuesta"></a>}}
+\if{latex}{\out{\hypertarget{method-Descriptiva-barras_multirespuesta}{}}}
+\subsection{Method \code{barras_multirespuesta()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$barras_multirespuesta(
+  patron_inicial,
+  salto = 20,
+  porcentajes_fuera = F,
+  desplazar_porcentajes = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -63,61 +108,6 @@ Esta es la clase de Grafica
   escala = c(0, 1),
   size_text_pct = 14
 )}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Descriptiva-barras_categorica"></a>}}
-\if{latex}{\out{\hypertarget{method-Descriptiva-barras_categorica}{}}}
-\subsection{Method \code{barras_categorica()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$barras_categorica(
-  codigo,
-  salto = 20,
-  porcentajes_fuera = F,
-  desplazar_porcentajes = 0,
-  pct_otros = 0.01,
-  orden_respuestas = NA
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Descriptiva-barras_numerica"></a>}}
-\if{latex}{\out{\hypertarget{method-Descriptiva-barras_numerica}{}}}
-\subsection{Method \code{barras_numerica()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$barras_numerica(
-  patron_inicial,
-  aspectos = NULL,
-  salto = 20,
-  filtro = NULL,
-  porcentajes_fuera = F,
-  desplazar_porcentajes = 0
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Descriptiva-barras_multirespuesta"></a>}}
-\if{latex}{\out{\hypertarget{method-Descriptiva-barras_multirespuesta}{}}}
-\subsection{Method \code{barras_multirespuesta()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$barras_multirespuesta(
-  patron_inicial,
-  salto = 20,
-  porcentajes_fuera = F,
-  desplazar_porcentajes = 0
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Descriptiva-barras_texto"></a>}}
-\if{latex}{\out{\hypertarget{method-Descriptiva-barras_texto}{}}}
-\subsection{Method \code{barras_texto()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$barras_texto()}\if{html}{\out{</div>}}
 }
 
 }

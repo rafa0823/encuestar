@@ -952,7 +952,7 @@ Graficas <- R6::R6Class(classname = "Graficas",
                         )
 )
 
-#'Esta es la clase de Grafica
+#'Esta es la clase de Descriptiva
 #'@export
 #'
 Descriptiva <- R6::R6Class(classname = "Descriptiva",
