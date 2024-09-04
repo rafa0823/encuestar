@@ -229,6 +229,51 @@ graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, te
     scale_y_continuous(limits = c(escala[1], escala[2]))
 
 }
+#' Title
+#'
+#' @param bd
+#' @param orden_x
+#' @param orden_y
+#' @param color
+#' @param salto_x
+#' @param salto_y
+#' @param caption
+#' @param size_text_x
+#' @param size_text_y
+#' @param size_text_caption
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_heatmap = function(bd, orden_x, orden_y, color = "blue", caption, salto_x, salto_y, size_text_x = 14, size_text_y = 16, size_text_caption = 14){
+  g <-
+  bd |>
+  ggplot(aes(x = factor(respuesta, levels = orden_x),
+             y = factor(candidato, levels = orden_y),
+             fill = media,
+             label = scales::percent(media, 1.))) +
+    geom_tile(color="white") +
+    ggfittext::geom_fit_text(contrast = T, family = "Poppins") +
+    scale_fill_gradient(low = "white",
+                        high = color,
+                        labels = scales::percent, na.value = "gray70") +
+    scale_x_discrete(position = "top",
+                     labels =  function(x) stringr::str_wrap(string = x, width = salto_x)) +
+    scale_y_discrete(labels =  function(x) stringr::str_wrap(string = x, width = salto_y)) +
+    labs(x = "",
+         y = "",
+         caption = caption) +
+    theme_minimal() +
+    tema_transparente() +
+    theme(legend.position = "none",
+          text = element_text(family = "Poppins"),
+          panel.grid = element_blank(),
+          axis.text.x = element_text(size = size_text_x),
+          axis.text.y = element_text(size = size_text_y),
+          plot.caption = element_text(size = size_text_caption))
+  return(g)
+}
 #' Graficar candidato opinión
 #'
 #' @param bd Base de datos con estructura producida por analizar_frecuencias_aspectos.
