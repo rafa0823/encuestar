@@ -1166,6 +1166,69 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                  self$tema
 
 
+                             },
+                             lollipops_categorica = function(codigo, orden = NULL, limite_graf = 1, width_cats = 15 , size=3, size_pct = 6,pct_otros = 0.01){
+                               llave_aux <- codigo
+                               if(!(llave_aux %in% self$graficadas)){
+                                 if(llave_aux %in% self$diccionario$llaves){
+                                   self$graficadas <- self$graficadas %>% append(llave_aux)
+                                 } else {
+                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+                                 }
+                               } else {
+                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+                               }
+
+                               tema <- self$diccionario |>
+                                 filter(llaves == rlang::ensym(codigo)) |>
+                                 pull(tema)
+
+                               if(is.null(self$diseno)) {
+
+                                 diseno <- self$encuesta$muestra$diseno
+
+                               } else {
+
+                                 diseno <- self$diseno
+
+                               }
+
+                               encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
+                                 mutate(tema = tema) |>
+                                 rename(pct = media) |>
+                                 mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = pct, other_level = "Otros"),
+                                        respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
+                                 group_by(respuesta) |>
+                                 summarise(pct = sum(pct)) |>
+                                 encuestar:::graficar_lollipops(orden = orden,
+                                                               limite_graf = limite_graf,
+                                                               width_cats = width_cats ,
+                                                               size = size,
+                                                               size_pct = size_pct) +
+                                 self$tema
+                             },
+                             lollipops_multirespuesta = function(patron_inicial, orden = NULL, limite_graf = 1, width_cats = 15 , size=3, size_pct = 6){
+
+                               if(is.null(self$diseno)) {
+
+                                 diseno <- self$encuesta$muestra$diseno
+
+                               } else {
+
+                                 diseno <- self$diseno
+
+                               }
+
+                               encuestar:::analizar_frecuencia_multirespuesta(diseno = diseno,
+                                                                              patron_inicial) %>%
+                                 rename(pct = media) |>
+                                 encuestar:::graficar_lollipops(orden = orden,
+                                                                limite_graf = limite_graf,
+                                                                width_cats = width_cats ,
+                                                                size = size,
+                                                                size_pct = size_pct)  +
+                                 self$tema
+
                              }
                            ))
 

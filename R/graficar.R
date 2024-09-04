@@ -668,6 +668,7 @@ graficar_saldoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
 #' @export
 #'
 #' @examples
+#'
 graficar_mapaRegiones <- function(bd, variable, categorica = T){
   g <- bd %>%
     ggplot() +
@@ -976,6 +977,41 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
                                     color="white",
                                     family = "Poppins")
   }
+  return(g)
+}
+#' Graficar lollipop
+#'
+#' @param bd Base de datos procesada con la función analizar_sankey
+#' @param orden Default orden = NULL  Recibe un vector como parametro para indicar el orden de las variables, en caso de ser nulo el orden es por nivel de porcentaje
+#' @param limite_graf Default limite_graf = 1 Recibe valores decimales, los cuales indican el limite del eje X a nivel de procentaje. El 1 equivale al 100 %.
+#' @param size_pct Tamaño del porcentaje mostrado
+#' @param size Tamaño de la linea y el punto de la graficamostrada
+#' @param width_cats Salto de linea que se aplica a las categorias mostradas
+#'
+#' @return
+#' @export
+#'
+graficar_lollipops <- function(bd, orden = NULL, limite_graf = 1, width_cats = 15 , size=3, size_pct = 6) {
+  g<-bd |>
+    # mutate(respuesta = respuesta) |>
+    ggplot(aes( if(is.null(orden)) x =  reorder(respuesta, pct) else x =  factor(respuesta, levels = orden),
+                y = pct)) +
+    geom_segment(aes(xend = respuesta,
+                     y = 0,
+                     yend = pct,
+                     color = respuesta),
+                 linewidth = size) +
+    geom_point(aes(color = respuesta),
+               size = size+3) +
+    geom_text(aes(label = scales::percent(pct, accuracy = 1.)),
+              size = size_pct, hjust = -0.5) +
+    coord_flip() +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = width_cats)) +
+    scale_y_continuous(labels = scales::percent,
+                       limits = c(0, limite_graf))+
+    theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+          panel.background = element_rect(color = "transparent", fill = "transparent"),
+          legend.background = element_rect(color = "transparent", fill = "transparent") )
   return(g)
 }
 #' Graficar sankey
