@@ -620,6 +620,52 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
   #   labs(y = "Saldo", x = NULL, fill = NULL)
   return(g)
 }
+#' Title
+#'
+#' @param bd
+#' @param orden_var_x
+#' @param salto_x
+#' @param salto_legend
+#' @param limits
+#' @param text_nudge_y
+#' @param size_text
+#' @param colores_var_y
+#' @param size_text_x
+#' @param size_text_y
+#' @param size_text_legend
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend, limits = c(0, 0.75), text_nudge_y = 0.01, size_text = 8,
+                           size_text_x = 16, size_text_y = 14, size_text_legend = 14){
+  g <-
+    bd |>
+    ggplot(aes(x = factor(var_x, levels = orden_var_x),
+               y = media,
+               group = var_y,
+               color = var_y)) +
+    geom_line(show.legend = FALSE,
+              linewidth = 1) +
+    geom_point(size = 3) +
+    ggrepel::geom_text_repel(aes(label = scales::percent(x = media, accuracy = 1.0)),
+                             size = size_text,
+                             nudge_y = text_nudge_y,
+                             show.legend = FALSE) +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = salto_x)) +
+    scale_y_continuous(labels = scales::percent,
+                         limits = limits) +
+    scale_color_manual(values = colores_var_y,
+                       labels = function(x) stringr::str_wrap(string = x, width = salto_legend)) +
+    labs(color = "") +
+    tema_morant() +
+    theme(legend.position = "bottom",
+          axis.text.x = element_text(size = size_text_x),
+          axis.text.y = element_text(size = size_text_y),
+          legend.text = element_text(size = size_text_legend))
+  return(g)
+}
 #' Graficar conocimiento de personajes por región o estrato
 #'
 #' @param bd Base de datos resultado de la función 'analizar_conocimientoRegion'
