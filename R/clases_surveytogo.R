@@ -1424,6 +1424,54 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                   linea_grosor = linea_grosor,
                                                   linea_color = linea_color) +
                            self$tema
+                       },
+                       tabla_votoCruzado = function(var1,
+                                                    var2,
+                                                    filtro_var2 = NULL,
+                                                    etiquetas = c("variable 1", "variable 2"),
+                                                    colores_var1,
+                                                    colores_var2,
+                                                    size_text_header = 18,
+                                                    size_text_body = 14,
+                                                    salto = 20){
+
+                         if(is.null(self$diseno)) {
+
+                           diseno <- self$encuesta$muestra$diseno
+
+                         } else {
+
+                           diseno <- self$diseno
+
+                         }
+
+                         # if(is.null(filtro_var2)) {
+                         #   filtro_var2 <-
+                         #     diseno$variables |>
+                         #     as_tibble() |>
+                         #     distinct(!!rlang::sym(var2)) |>
+                         #     pull()
+                         # }
+
+                         bd_votoCruzado <-
+                           encuestar:::calcular_tabla_votoCruzado(diseno = diseno,
+                                                                  var1 = var1,
+                                                                  var2 = var2,
+                                                                  filtro_var2 = filtro_var2)
+
+                         tabla_salida <-
+                           encuestar:::formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
+                                                                   var1 = var1,
+                                                                   var2 = var2,
+                                                                   filtro_var2 = filtro_var2,
+                                                                   etiquetas = etiquetas,
+                                                                   colores_var1 = colores_var1,
+                                                                   colores_var2 = colores_var2,
+                                                                   size_text_header = size_text_header,
+                                                                   size_text_body = size_text_body,
+                                                                   salto = salto)
+
+                         return(tabla_salida)
                        }
                      ))
 
@@ -1696,54 +1744,6 @@ Especial <- R6::R6Class(classname = "Especial",
                             }
                             encuestar:::analizar_morena(diseno = diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
                               encuestar:::graficar_morena(personajes = personajes, atributos = atributos)
-                          },
-                          tabla_votoCruzado = function(var1,
-                                                       var2,
-                                                       filtro_var2 = NULL,
-                                                       etiquetas = c("variable 1", "variable 2"),
-                                                       colores_var1,
-                                                       colores_var2,
-                                                       size_text_header = 18,
-                                                       size_text_body = 14,
-                                                       salto = 20){
-
-                            if(is.null(self$diseno)) {
-
-                              diseno <- self$encuesta$muestra$diseno
-
-                            } else {
-
-                              diseno <- self$diseno
-
-                            }
-
-                            # if(is.null(filtro_var2)) {
-                            #   filtro_var2 <-
-                            #     diseno$variables |>
-                            #     as_tibble() |>
-                            #     distinct(!!rlang::sym(var2)) |>
-                            #     pull()
-                            # }
-
-                            bd_votoCruzado <-
-                              encuestar:::calcular_tabla_votoCruzado(diseno = diseno,
-                                                                     var1 = var1,
-                                                                     var2 = var2,
-                                                                     filtro_var2 = filtro_var2)
-
-                            tabla_salida <-
-                              encuestar:::formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
-                                                                      var1 = var1,
-                                                                      var2 = var2,
-                                                                      filtro_var2 = filtro_var2,
-                                                                      etiquetas = etiquetas,
-                                                                      colores_var1 = colores_var1,
-                                                                      colores_var2 = colores_var2,
-                                                                      size_text_header = size_text_header,
-                                                                      size_text_body = size_text_body,
-                                                                      salto = salto)
-
-                            return(tabla_salida)
                           }
                         ))
 
