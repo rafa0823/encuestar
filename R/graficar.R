@@ -992,8 +992,8 @@ graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_
 #' @export
 #'
 graficar_lollipops <- function(bd, orden = NULL, limite_graf = 1, width_cats = 15 , size=3, size_pct = 6) {
-  g<-bd |>
-    # mutate(respuesta = respuesta) |>
+  g <-
+    bd |>
     ggplot(aes( if(is.null(orden)) x =  reorder(respuesta, pct) else x =  factor(respuesta, levels = orden),
                 y = pct)) +
     geom_segment(aes(xend = respuesta,
@@ -1028,8 +1028,9 @@ graficar_lollipops <- function(bd, orden = NULL, limite_graf = 1, width_cats = 1
 #' @examples
 #' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
 graficar_sankey = function(bd, variables, colores, size_text_cat,width_text = 15){
-  bd<-bd|>
-    mutate(pos_x = ifelse(x == variables[1], as.numeric(x)- 0.1,as.numeric(x) + 0.1 ))
+  bd <-
+    bd|>
+    mutate(pos_x = ifelse(x == variables[1], as.numeric(x)- 0.1, as.numeric(x) + 0.1))
 
   bd |>
     ggplot(aes(x = x,
@@ -1038,7 +1039,7 @@ graficar_sankey = function(bd, variables, colores, size_text_cat,width_text = 15
                node = node,
                next_node = next_node,
                fill = node)) +
-    ggsankey::geom_sankey(flow.alpha=0.8) +
+    ggsankey::geom_sankey(flow.alpha = 0.8) +
     ggsankey::geom_sankey_text(data = bd,
                                aes(x = pos_x,
                                    label = stringr::str_wrap(string = node, width = width_text),
