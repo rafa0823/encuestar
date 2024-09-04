@@ -403,6 +403,15 @@ analizar_morena <- function(diseno, diccionario, personajes, atributos){
 
 }
 
+#' Title
+#'
+#' @param diseno
+#' @param patron_inicial
+#'
+#' @return
+#' @export
+#'
+#' @examples
 analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
 
   aux <- diseno$variables %>%
@@ -424,7 +433,6 @@ analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
   return(aux)
 
 }
-
 #' Analizar cruce por puntos
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
