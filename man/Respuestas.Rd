@@ -115,7 +115,7 @@ Crear respuesta
 \if{latex}{\out{\hypertarget{method-Respuestas-corregir_respuestas}{}}}
 \subsection{Method \code{corregir_respuestas()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$corregir_respuestas(respuestas, bd_correcciones)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$corregir_respuestas(respuestas, bd_correcciones_raw)}\if{html}{\out{</div>}}
 }
 
 }

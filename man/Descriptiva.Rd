@@ -18,6 +18,8 @@ Esta es la clase de Descriptiva
 \item \href{#method-Descriptiva-gauge_numerica}{\code{Descriptiva$gauge_numerica()}}
 \item \href{#method-Descriptiva-gauge_categorica}{\code{Descriptiva$gauge_categorica()}}
 \item \href{#method-Descriptiva-intervalo_numerica}{\code{Descriptiva$intervalo_numerica()}}
+\item \href{#method-Descriptiva-lollipops_categorica}{\code{Descriptiva$lollipops_categorica()}}
+\item \href{#method-Descriptiva-lollipops_multirespuesta}{\code{Descriptiva$lollipops_multirespuesta()}}
 \item \href{#method-Descriptiva-clone}{\code{Descriptiva$clone()}}
 }
 }
@@ -61,7 +63,7 @@ Esta es la clase de Descriptiva
   patron_inicial,
   aspectos = NULL,
   salto = 20,
-  filtro = NULL,
+  filtro = "respuesta == 'Sí'",
   porcentajes_fuera = F,
   desplazar_porcentajes = 0
 )}\if{html}{\out{</div>}}
@@ -122,6 +124,39 @@ Esta es la clase de Descriptiva
   escala = c(0, 10),
   point_size = 1,
   text_point_size = 8
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Descriptiva-lollipops_categorica"></a>}}
+\if{latex}{\out{\hypertarget{method-Descriptiva-lollipops_categorica}{}}}
+\subsection{Method \code{lollipops_categorica()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$lollipops_categorica(
+  codigo,
+  orden = NULL,
+  limite_graf = 1,
+  width_cats = 15,
+  size = 3,
+  size_pct = 6,
+  pct_otros = 0.01
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Descriptiva-lollipops_multirespuesta"></a>}}
+\if{latex}{\out{\hypertarget{method-Descriptiva-lollipops_multirespuesta}{}}}
+\subsection{Method \code{lollipops_multirespuesta()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Descriptiva$lollipops_multirespuesta(
+  patron_inicial,
+  orden = NULL,
+  limite_graf = 1,
+  width_cats = 15,
+  size = 3,
+  size_pct = 6
 )}\if{html}{\out{</div>}}
 }
 

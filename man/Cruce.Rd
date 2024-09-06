@@ -12,12 +12,11 @@ Esta es la clase de Cruce
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-Cruce-new}{\code{Cruce$new()}}
-\item \href{#method-Cruce-sankey_categorica}{\code{Cruce$sankey_categorica()}}
-\item \href{#method-Cruce-puntos}{\code{Cruce$puntos()}}
-\item \href{#method-Cruce-puntosMultiples}{\code{Cruce$puntosMultiples()}}
-\item \href{#method-Cruce-brechasDuales}{\code{Cruce$brechasDuales()}}
-\item \href{#method-Cruce-brechasMultiples}{\code{Cruce$brechasMultiples()}}
 \item \href{#method-Cruce-bloques}{\code{Cruce$bloques()}}
+\item \href{#method-Cruce-lineas}{\code{Cruce$lineas()}}
+\item \href{#method-Cruce-lolipop_diferencias}{\code{Cruce$lolipop_diferencias()}}
+\item \href{#method-Cruce-sankey_categorica}{\code{Cruce$sankey_categorica()}}
+\item \href{#method-Cruce-tabla_votoCruzado}{\code{Cruce$tabla_votoCruzado()}}
 \item \href{#method-Cruce-clone}{\code{Cruce$clone()}}
 }
 }
@@ -37,6 +36,73 @@ Esta es la clase de Cruce
 
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Cruce-bloques"></a>}}
+\if{latex}{\out{\hypertarget{method-Cruce-bloques}{}}}
+\subsection{Method \code{bloques()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$bloques(
+  variable_principal,
+  variable_secundaria,
+  colores_variable_secundaria,
+  filter = NULL,
+  vartype = "cv",
+  linea_grosor = 2,
+  linea_color = "white"
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Cruce-lineas"></a>}}
+\if{latex}{\out{\hypertarget{method-Cruce-lineas}{}}}
+\subsection{Method \code{lineas()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$lineas(
+  variable_principal,
+  variable_secundaria,
+  orden_variable_principal,
+  valores_variable_secundaria = NULL,
+  colores_variable_secundaria,
+  limits = c(0, 0.75),
+  wrap_x = 25,
+  wrap_legend = 25,
+  text_nudge_y = 0.01,
+  size_text = 8,
+  size_text_x = 16,
+  size_text_y = 14,
+  size_text_legend = 14
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Cruce-lolipop_diferencias"></a>}}
+\if{latex}{\out{\hypertarget{method-Cruce-lolipop_diferencias}{}}}
+\subsection{Method \code{lolipop_diferencias()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$lolipop_diferencias(
+  variable_principal,
+  variables_secundarias,
+  filtro_variables_secundarias,
+  orden_variablePrincipal,
+  colores_variables_secundarias,
+  caption,
+  nudge_x = 0.05,
+  size_geom_text = 6,
+  invertir_variables = F,
+  vartype = "cv",
+  limits = c(0, 0.75),
+  wrap_y = 25,
+  wrap_caption = 25,
+  size_text_x = 16,
+  size_text_y = 16,
+  size_text_caption = 16,
+  size_text_legend = 16
+)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Cruce-sankey_categorica"></a>}}
 \if{latex}{\out{\hypertarget{method-Cruce-sankey_categorica}{}}}
 \subsection{Method \code{sankey_categorica()}}{
@@ -45,6 +111,7 @@ Esta es la clase de Cruce
   variables = NULL,
   colores,
   size_text_cat = 6,
+  width_text = 15,
   omitir_valores_variable1 = NULL,
   omitir_valores_variable2 = NULL
 )}\if{html}{\out{</div>}}
@@ -52,78 +119,20 @@ Esta es la clase de Cruce
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Cruce-puntos"></a>}}
-\if{latex}{\out{\hypertarget{method-Cruce-puntos}{}}}
-\subsection{Method \code{puntos()}}{
+\if{html}{\out{<a id="method-Cruce-tabla_votoCruzado"></a>}}
+\if{latex}{\out{\hypertarget{method-Cruce-tabla_votoCruzado}{}}}
+\subsection{Method \code{tabla_votoCruzado()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$puntos(cruce, variables, vartype = "se", valor_variables)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Cruce-puntosMultiples"></a>}}
-\if{latex}{\out{\hypertarget{method-Cruce-puntosMultiples}{}}}
-\subsection{Method \code{puntosMultiples()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$puntosMultiples(
-  variablePrincipal,
-  variablesSecundarias,
-  valor_variblesSecundarias,
-  orden_variablePrincipal,
-  invertirVariables = F,
-  vartype = "cv"
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Cruce-brechasDuales"></a>}}
-\if{latex}{\out{\hypertarget{method-Cruce-brechasDuales}{}}}
-\subsection{Method \code{brechasDuales()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$brechasDuales(
+\if{html}{\out{<div class="r">}}\preformatted{Cruce$tabla_votoCruzado(
   var1,
-  var2_filtro,
-  filtro,
-  vartype = "cv",
-  line_rich = FALSE,
-  line_linewidth = 2,
-  line_hjust = "ymax",
-  line_vjust = -0.3
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Cruce-brechasMultiples"></a>}}
-\if{latex}{\out{\hypertarget{method-Cruce-brechasMultiples}{}}}
-\subsection{Method \code{brechasMultiples()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$brechasMultiples(
-  por_grupo,
-  variables,
-  vartype = "cv",
-  valor_variables,
-  line_rich = FALSE,
-  line_linewidth = 2,
-  line_hjust = "ymax",
-  line_vjust = -0.3
-)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Cruce-bloques"></a>}}
-\if{latex}{\out{\hypertarget{method-Cruce-bloques}{}}}
-\subsection{Method \code{bloques()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Cruce$bloques(
-  cruce,
-  variable,
-  vartype = "cv",
-  filter = NULL,
-  linea_grosor = 2,
-  linea_color = "white"
+  var2,
+  filtro_var2 = NULL,
+  etiquetas = c("variable 1", "variable 2"),
+  colores_var1,
+  colores_var2,
+  size_text_header = 18,
+  size_text_body = 14,
+  salto = 20
 )}\if{html}{\out{</div>}}
 }
 

@@ -2,12 +2,41 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_cruce_bloques}
 \alias{graficar_cruce_bloques}
-\title{Graficar cruce de una variable vs otra con opción a filtro}
+\title{#' Graficar cruce de una variable vs otra con opción a filtro
+#'
+#' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
+#' @param var1 Variable principal por la cual se hace el cruce
+#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
+#' @param vartype
+#' @param line_rich Argumento de la función 'geom_textline'
+#' @param line_linewidth Argumento de la función 'geom_textline'
+#' @param line_hjust Argumento de la función 'geom_textline'
+#' @param line_vjust Argumento de la función 'geom_textline'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
+graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F,
+line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
+g <- bd |>
+ggplot(aes(x=!!rlang::sym(var1),
+y=coef)) +
+geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
+group=!!rlang::sym(var2_filtro),
+label=!!rlang::sym(var2_filtro)),
+linewidth = line_linewidth, hjust = line_hjust,
+vjust = line_vjust, rich = line_rich,
+size=6, family = "Poppins") +
+scale_y_continuous(labels=scales::percent) +
+labs(color = NULL)}
 \usage{
 graficar_cruce_bloques(
   bd,
   cruce,
   variable,
+  colores_variable_secundaria,
   vartype,
   filter,
   linea_grosor,
@@ -24,5 +53,40 @@ graficar_cruce_bloques(
 \item{filter}{Filtro aplicable al parámetro 'cruce'}
 }
 \description{
-Graficar cruce de una variable vs otra con opción a filtro
+if(vartype == "cv"){
+g <- g +
+geom_text(aes(label=pres),
+color="black", size=6, hjust=-.1)
+}
+return(g)
+}
+#' Graficar cruce de una variable vs múltiples variables
+#'
+#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param cruce Variable principal por la cual se hace el cruce
+#' @param vartype
+#' @param line_rich Argumento de la función 'geom_textline'
+#' @param line_linewidth Argumento de la función 'geom_textline'
+#' @param line_hjust Argumento de la función 'geom_textline'
+#' @param line_vjust Argumento de la función 'geom_textline'
+#'
+#' @return
+#' @export
+#'
+#' @examples
+graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
+g <- bd |>
+ggplot(aes(x=!!rlang::sym(cruce),
+y=mean)) +
+geomtextpath::geom_textline(aes(color=(variable),
+group=(variable),
+label=(variable)),
+linewidth=line_linewidth, hjust = line_hjust,
+vjust = line_vjust, rich = line_rich,
+size = 6, family = "Poppins") +
+scale_y_continuous(labels=scales::percent) +
+labs(color = NULL)
+}
+\details{
+
 }
