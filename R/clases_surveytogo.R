@@ -14,7 +14,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           bd_correcciones = NULL,
-                          Graficas = NULL,
+                          Resultados = NULL,
                           shp_completo = NULL,
                           shp = NULL,
                           tipo_encuesta = NULL,
@@ -113,7 +113,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             print(paste0("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
 
                             #Preguntas
-                            self$Graficas <- Graficas$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_morant())
+                            self$Resultados <- Resultados$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = encuestar:::tema_morant())
 
                             # Shiny app de auditoria
                             self$dir_app <- dir_app
@@ -858,84 +858,84 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               })
 )
 
-#'Esta es la clase de Graficas
+#'Esta es la clase de Resultados
 #'@export
 #'
-Graficas <- R6::R6Class(classname = "Graficas",
-                        public = list(
-                          encuesta = NULL,
-                          diseno = NULL,
-                          diccionario = NULL,
-                          Descriptiva = NULL,
-                          Regiones = NULL,
-                          Modelo = NULL,
-                          Cruce = NULL,
-                          Especial = NULL,
-                          Tendencias = NULL,
-                          tema = NULL,
-                          graficadas = NULL,
-                          initialize = function(encuesta, diseno, diccionario, tema = encuestar:::tema_default()){
+Resultados <- R6::R6Class(classname = "Resultados",
+                          public = list(
+                            encuesta = NULL,
+                            diseno = NULL,
+                            diccionario = NULL,
+                            Descriptiva = NULL,
+                            Regiones = NULL,
+                            Modelo = NULL,
+                            Cruce = NULL,
+                            Especial = NULL,
+                            Tendencias = NULL,
+                            tema = NULL,
+                            graficadas = NULL,
+                            initialize = function(encuesta, diseno, diccionario, tema = encuestar:::tema_default()){
 
-                            self$encuesta <- encuesta
+                              self$encuesta <- encuesta
 
-                            self$diseno <- diseno
-                            if(!is.null(self$encuesta)){
+                              self$diseno <- diseno
+                              if(!is.null(self$encuesta)){
 
-                              self$diccionario <- self$encuesta$cuestionario$diccionario
+                                self$diccionario <- self$encuesta$cuestionario$diccionario
 
-                            } else {
+                              } else {
 
-                              self$diccionario <- diccionario
+                                self$diccionario <- diccionario
 
-                            }
+                              }
 
-                            self$tema <- tema
+                              self$tema <- tema
 
-                            self$Descriptiva <- Descriptiva$new(encuesta = self$encuesta,
-                                                                diseno = self$diseno,
-                                                                diccionario = self$diccionario,
-                                                                tema = self$tema,
-                                                                graficadas = self$graficadas)
+                              self$Descriptiva <- Descriptiva$new(encuesta = self$encuesta,
+                                                                  diseno = self$diseno,
+                                                                  diccionario = self$diccionario,
+                                                                  tema = self$tema,
+                                                                  graficadas = self$graficadas)
 
-                            self$Cruce <- Cruce$new(encuesta = self$encuesta,
-                                                    diseno = self$diseno,
-                                                    diccionario = self$diccionario,
-                                                    tema = self$tema,
-                                                    graficadas = self$graficadas)
+                              self$Cruce <- Cruce$new(encuesta = self$encuesta,
+                                                      diseno = self$diseno,
+                                                      diccionario = self$diccionario,
+                                                      tema = self$tema,
+                                                      graficadas = self$graficadas)
 
-                            self$Especial <- Especial$new(encuesta = self$encuesta,
-                                                          diseno = self$diseno,
+                              self$Especial <- Especial$new(encuesta = self$encuesta,
+                                                            diseno = self$diseno,
+                                                            diccionario = self$diccionario,
+                                                            tema = self$tema,
+                                                            graficadas = self$graficadas)
+
+                              self$Tendencias <- Tendencias$new(encuesta = self$encuesta)
+
+                              if(!is.null(self$encuesta)) {
+
+                                self$Regiones <- Regiones$new(encuesta = self$encuesta,
+                                                              diccionario = self$encuesta$cuestionario$diccionario,
+                                                              tema = self$tema)
+
+                                self$Modelo <- Modelo$new(diseno = self$encuesta$muestra$diseno,
+                                                          diccionario = self$encuesta$cuestionario$diccionario,
+                                                          tema = self$tema,
+                                                          graficadas = self$graficadas)
+
+                              } else {
+
+                                self$Regiones <- NULL
+                                self$Modelo <- Modelo$new(diseno = self$diseno,
                                                           diccionario = self$diccionario,
                                                           tema = self$tema,
                                                           graficadas = self$graficadas)
 
-                            self$Tendencias <- Tendencias$new(encuesta = self$encuesta)
-
-                            if(!is.null(self$encuesta)) {
-
-                              self$Regiones <- Regiones$new(encuesta = self$encuesta,
-                                                            diccionario = self$encuesta$cuestionario$diccionario,
-                                                            tema = self$tema)
-
-                              self$Modelo <- Modelo$new(diseno = self$encuesta$muestra$diseno,
-                                                        diccionario = self$encuesta$cuestionario$diccionario,
-                                                        tema = self$tema,
-                                                        graficadas = self$graficadas)
-
-                            } else {
-
-                              self$Regiones <- NULL
-                              self$Modelo <- Modelo$new(diseno = self$diseno,
-                                                        diccionario = self$diccionario,
-                                                        tema = self$tema,
-                                                        graficadas = self$graficadas)
-
+                              }
+                            },
+                            faltantes = function(){
+                              gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                             }
-                          },
-                          faltantes = function(){
-                            gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
-                          }
-                        )
+                          )
 )
 
 #'Esta es la clase de Descriptiva
@@ -1948,7 +1948,7 @@ Regiones <- R6::R6Class(classname = "Regiones",
                             if(is.null(self$encuesta$muestra$region)){
                               stop("Correr clase$muestra$diseno_region para indicar la region seleccionada")
                             }
-                            self$encuesta$Graficas$Regiones$shp_regiones |>
+                            self$encuesta$Resultados$Regiones$shp_regiones |>
                               mutate(color = if_else(region %in% self$encuesta$muestra$region, color, "gray70")) %>%
                               ggplot(aes(fill = color)) +
                               geom_sf(color = "black") +
@@ -2152,7 +2152,7 @@ Auditoria <- R6::R6Class("Auditoria",
                                dir.create(dir)
                              }
                              dir.create(glue::glue("{dir}/data"))
-                             readr::write_rds(encuesta$Graficas, glue::glue("{dir}/data/clase_pregunta.rda"))
+                             readr::write_rds(encuesta$Resultados, glue::glue("{dir}/data/clase_pregunta.rda"))
                              # readr::write_rds(encuesta$muestra$muestra, glue::glue("{dir}/data/diseno.rda"))
                              # readr::write_rds(encuesta$shp_completo, glue::glue("{dir}/data/shp.rda"))
                              # readr::write_excel_csv(encuesta$respuestas$base, glue::glue("{dir}/data/bd.csv"))
