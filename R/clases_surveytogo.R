@@ -276,10 +276,10 @@ Respuestas <- R6::R6Class("Respuestas",
                               mantener <- encuesta$mantener
                               diccionario <- encuesta$cuestionario$diccionario
 
-                              if(!identical(names(encuesta$auditoria_telefonica), c("SbjNum", "razon"))) stop("Los nombres de las columnas de la base de datos de auditoría telefónica deben ser: 'Sbjnum, razon'")
+                              if(!identical(names(encuesta$auditoria_telefonica), c("SbjNum", "razon"))) stop("Los nombres de las columnas de la base de datos de auditoría telefónica deben ser: 'SbjNum, razon'")
 
                               if(!is.null(encuesta$bd_correcciones)){
-                                if(!identical(names(encuesta$bd_correcciones), c("SbjNum", "llave", "capturada", "correccion"))) stop("Los nombres de las columnas de la base de datos de correcciones deben ser: 'SbjNum, codigo_pregunta, capturada, correccion'")
+                                if(!identical(names(encuesta$bd_correcciones), c("SbjNum", "llave", "capturada", "correccion"))) stop("Los nombres de las columnas de la base de datos de correcciones deben ser: 'SbjNum, llave, capturada, correccion'")
                               }
 
                               auditoria_telefonica <- encuesta$auditoria_telefonica
