@@ -2,7 +2,7 @@
 # Preambulo -----------------------------------------------------------------------------------
 
 library(dplyr)
-library(encuestar)
+# library(encuestar)
 
 # Insumos -------------------------------------------------------------------------------------
 
@@ -143,7 +143,8 @@ bd_correcciones_hermosillo_agosto <-
                                           true = "influencia_voto_pr_24",
                                           false = codigo_pregunta)) |>
   mutate(correccion = gsub('Las caracterísitcas del candidato','Las características del candidato', correccion))|>
-  filter(codigo_pregunta=='noparticipacion_24_O1')
+  filter(codigo_pregunta=='noparticipacion_24_O1') |>
+  rename(llave = codigo_pregunta)
 
 
 # BASE DE categorias
