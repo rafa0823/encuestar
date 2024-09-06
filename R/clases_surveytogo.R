@@ -1333,7 +1333,9 @@ Cruce <- R6::R6Class(classname = "Cruce",
                        #     self$tema
                        #
                        # },
-                       bloques = function(cruce, variable, vartype = "cv", filter = NULL, linea_grosor = 2, linea_color = "white"){
+                       bloques = function(variable_principal, variable_secundaria, colores_variable_secundaria,
+                                          filter = NULL,
+                                          vartype = "cv", linea_grosor = 2, linea_color = "white"){
 
                          if(is.null(self$diseno)) {
 
@@ -1345,17 +1347,17 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          }
 
-                         encuestar:::analizar_cruceBrechas(srvyr::as_survey_design(diseno),
-                                                           var1 = cruce,
-                                                           var2_filtro = variable,
-                                                           filtro = filter,
-                                                           vartype = vartype) |>
-                           graficar_cruce_bloques(cruce = cruce,
-                                                  variable = variable,
-                                                  vartype = vartype,
-                                                  filter = filter,
-                                                  linea_grosor = linea_grosor,
-                                                  linea_color = linea_color) +
+                         encuestar:::analizar_cruce(diseno = diseno,
+                                                    variable_principal = variable_principal,
+                                                    variable_secundaria = variable_secundaria,
+                                                    vartype = vartype) |>
+                           encuestar:::graficar_cruce_bloques(cruce = variable_principal,
+                                                              variable = variable_secundaria,
+                                                              colores_variable_secundaria = colores_variable_secundaria,
+                                                              vartype = vartype,
+                                                              filter = filter,
+                                                              linea_grosor = linea_grosor,
+                                                              linea_color = linea_color) +
                            self$tema
                        },
                        lolipop_diferencias = function(variable_principal,

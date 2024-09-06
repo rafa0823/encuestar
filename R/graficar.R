@@ -863,32 +863,31 @@ graficar_morena <- function(atr, personajes, atributos){
   return(g)
 
 }
-
-#' Graficar cruce de una variable vs varias variables
-#'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
-graficar_crucePuntos = function(bd, cruce, vartype){
-  g <- bd |>
-    ggplot(aes(x=reorder(variable,mean), xend=variable,
-               color=!!rlang::sym(cruce))) +
-    geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
-                   linetype="solid", color="black", linewidth=.5) +
-    geom_vline(aes(xintercept = variable), linetype = "dashed",
-               color = "gray60", size=.5) +
-    geom_point(aes(y=mean),
-               shape=19,  size = 6) +
-    scale_y_continuous(labels=scales::percent) +
-    coord_flip()
-  return(g)
-}
+#' #' Graficar cruce de una variable vs varias variables
+#' #'
+#' #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' #' @param cruce Variable principal por la cual se hace el cruce
+#' #' @param vartype
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' #' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
+#' graficar_crucePuntos = function(bd, cruce, vartype){
+#'   g <- bd |>
+#'     ggplot(aes(x=reorder(variable,mean), xend=variable,
+#'                color=!!rlang::sym(cruce))) +
+#'     geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
+#'                    linetype="solid", color="black", linewidth=.5) +
+#'     geom_vline(aes(xintercept = variable), linetype = "dashed",
+#'                color = "gray60", size=.5) +
+#'     geom_point(aes(y=mean),
+#'                shape=19,  size = 6) +
+#'     scale_y_continuous(labels=scales::percent) +
+#'     coord_flip()
+#'   return(g)
+#' }
 #' Graficar cruce de una variable vs varias variables pero filtradas
 #'
 #' @param orden_variablePrincipal Factor de la variable principal
@@ -921,123 +920,123 @@ graficar_lolipop_diferencias = function(bd, orden_variablePrincipal, colores_var
     scale_color_manual(values = colores_variables_secundarias)
   return(g)
 }
-#' Graficar cruce de una variable vs otra con opción a filtro
+#' #' Graficar cruce de una variable vs otra con opción a filtro
+#' #'
+#' #' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
+#' #' @param var1 Variable principal por la cual se hace el cruce
+#' #' @param var2_filtro Variable secundaria para hacer análisis con la primaria
+#' #' @param vartype
+#' #' @param line_rich Argumento de la función 'geom_textline'
+#' #' @param line_linewidth Argumento de la función 'geom_textline'
+#' #' @param line_hjust Argumento de la función 'geom_textline'
+#' #' @param line_vjust Argumento de la función 'geom_textline'
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' #' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
+#' graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F,
+#'                                         line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
+#'   g <- bd |>
+#'     ggplot(aes(x=!!rlang::sym(var1),
+#'                y=coef)) +
+#'     geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
+#'                                     group=!!rlang::sym(var2_filtro),
+#'                                     label=!!rlang::sym(var2_filtro)),
+#'                                 linewidth = line_linewidth, hjust = line_hjust,
+#'                                 vjust = line_vjust, rich = line_rich,
+#'                                 size=6, family = "Poppins") +
+#'     scale_y_continuous(labels=scales::percent) +
+#'     labs(color = NULL)
 #'
-#' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
-#' @param var1 Variable principal por la cual se hace el cruce
-#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
-#' @param vartype
-#' @param line_rich Argumento de la función 'geom_textline'
-#' @param line_linewidth Argumento de la función 'geom_textline'
-#' @param line_hjust Argumento de la función 'geom_textline'
-#' @param line_vjust Argumento de la función 'geom_textline'
+#'   if(vartype == "cv"){
+#'     g <- g +
+#'       geom_text(aes(label=pres),
+#'                 color="black", size=6, hjust=-.1)
+#'   }
+#'   return(g)
+#' }
+#' #' Graficar cruce de una variable vs múltiples variables
+#' #'
+#' #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' #' @param cruce Variable principal por la cual se hace el cruce
+#' #' @param vartype
+#' #' @param line_rich Argumento de la función 'geom_textline'
+#' #' @param line_linewidth Argumento de la función 'geom_textline'
+#' #' @param line_hjust Argumento de la función 'geom_textline'
+#' #' @param line_vjust Argumento de la función 'geom_textline'
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
+#'   g <- bd |>
+#'     ggplot(aes(x=!!rlang::sym(cruce),
+#'                y=mean)) +
+#'     geomtextpath::geom_textline(aes(color=(variable),
+#'                                     group=(variable),
+#'                                     label=(variable)),
+#'                                 linewidth=line_linewidth, hjust = line_hjust,
+#'                                 vjust = line_vjust, rich = line_rich,
+#'                                 size = 6, family = "Poppins") +
+#'     scale_y_continuous(labels=scales::percent) +
+#'     labs(color = NULL)
 #'
-#' @return
-#' @export
+#'   if(vartype == "cv"){
+#'     g <- g +
+#'       geom_text(aes(label=pres),
+#'                 color="black", size=6, hjust=-.1)
+#'   }
+#'   return(g)
+#' }
+#' #' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
+#' #'
+#' #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' #' @param cruce Variable principal por la cual se hace el cruce
+#' #' @param vartype
+#' #' @param color Color usado en el parámetro 'fill' de la función 'aes' de ggplot2
+#' #' @param filter Filtro aplicable al parámetro 'cruce'
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 #'
-#' @examples
-#' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
-graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F,
-                                        line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
-  g <- bd |>
-    ggplot(aes(x=!!rlang::sym(var1),
-               y=coef)) +
-    geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
-                                    group=!!rlang::sym(var2_filtro),
-                                    label=!!rlang::sym(var2_filtro)),
-                                linewidth = line_linewidth, hjust = line_hjust,
-                                vjust = line_vjust, rich = line_rich,
-                                size=6, family = "Poppins") +
-    scale_y_continuous(labels=scales::percent) +
-    labs(color = NULL)
-
-  if(vartype == "cv"){
-    g <- g +
-      geom_text(aes(label=pres),
-                color="black", size=6, hjust=-.1)
-  }
-  return(g)
-}
-#' Graficar cruce de una variable vs múltiples variables
+#'   if(!is.null(filter)) {
 #'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#' @param line_rich Argumento de la función 'geom_textline'
-#' @param line_linewidth Argumento de la función 'geom_textline'
-#' @param line_hjust Argumento de la función 'geom_textline'
-#' @param line_vjust Argumento de la función 'geom_textline'
+#'     bd <- bd |>
+#'       filter(!(!!rlang::sym(cruce) %in% filter))
 #'
-#' @return
-#' @export
+#'   }
 #'
-#' @examples
-graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
-  g <- bd |>
-    ggplot(aes(x=!!rlang::sym(cruce),
-               y=mean)) +
-    geomtextpath::geom_textline(aes(color=(variable),
-                                    group=(variable),
-                                    label=(variable)),
-                                linewidth=line_linewidth, hjust = line_hjust,
-                                vjust = line_vjust, rich = line_rich,
-                                size = 6, family = "Poppins") +
-    scale_y_continuous(labels=scales::percent) +
-    labs(color = NULL)
-
-  if(vartype == "cv"){
-    g <- g +
-      geom_text(aes(label=pres),
-                color="black", size=6, hjust=-.1)
-  }
-  return(g)
-}
-#' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
+#'   g <- bd |>
+#'     ggplot(aes(x=reorder(variable, mean),
+#'                y=mean)) +
+#'     ggchicklet::geom_chicklet(width = 0.6,alpha=0.9,
+#'                               fill=color) +
+#'     scale_y_continuous(labels = scales::percent) +
+#'     coord_flip() +
+#'     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 #'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#' @param color Color usado en el parámetro 'fill' de la función 'aes' de ggplot2
-#' @param filter Filtro aplicable al parámetro 'cruce'
+#'   if(vartype == "cv"){
+#'     g <- g +
+#'       ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
+#'                                color="white",
+#'                                family = "Poppins")
 #'
-#' @return
-#' @export
 #'
-#' @examples
-graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
-
-  if(!is.null(filter)) {
-
-    bd <- bd |>
-      filter(!(!!rlang::sym(cruce) %in% filter))
-
-  }
-
-  g <- bd |>
-    ggplot(aes(x=reorder(variable, mean),
-               y=mean)) +
-    ggchicklet::geom_chicklet(width = 0.6,alpha=0.9,
-                              fill=color) +
-    scale_y_continuous(labels = scales::percent) +
-    coord_flip() +
-    facet_wrap(rlang::as_label(rlang::sym(cruce)))
-
-  if(vartype == "cv"){
-    g <- g +
-      ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
-                               color="white",
-                               family = "Poppins")
-
-
-  }else{
-    g <- g +
-      ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
-                               color="white",
-                               family = "Poppins")
-
-  }
-  return(g)
-}
+#'   }else{
+#'     g <- g +
+#'       ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
+#'                                color="white",
+#'                                family = "Poppins")
+#'
+#'   }
+#'   return(g)
+#' }
 #' Graficar cruce de una variable vs otra con opción a filtro
 #'
 #' @param bd Base de datos producto de la función 'analizar_cruceBrechas'
@@ -1050,35 +1049,37 @@ graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 #' @export
 #'
 #' @examples
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_grosor, linea_color){
-
+graficar_cruce_bloques <-  function(bd, cruce, variable, colores_variable_secundaria, vartype, filter, linea_grosor, linea_color){
   if(!is.null(filter)) {
-
-    bd <- bd |>
+    bd <-
+      bd |>
       filter(!(!!rlang::sym(cruce) %in% filter))
-
   }
-
-  g <- bd |>
+  g <-
+    bd |>
     ggplot(aes(area=coef, fill=!!rlang::sym(variable), subgroup = coef)) +
     treemapify::geom_treemap(alpha=0.7) +
     treemapify::geom_treemap_subgroup_border(aes(), size = linea_grosor, color = linea_color) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
   if(vartype == "cv"){
-
-    g <- g +
+    g <-
+      g +
       treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
                                     place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                                     color="white",
                                     family = "Poppins")
   }else{
-    g <- g +
+    g <-
+      g +
       treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
                                     place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                                     color="white",
                                     family = "Poppins")
   }
+  g <-
+    g +
+    scale_fill_manual(values = colores_variable_secundaria)
   return(g)
 }
 #' Graficar lollipop
