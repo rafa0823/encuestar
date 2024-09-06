@@ -436,70 +436,55 @@ analizar_frecuencia_multirespuesta <- function(diseno, patron_inicial){
 #' Analizar cruce por puntos
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
-#' @param cruce Variable principal por la cual hacer análisis
-#' @param variables Variables secundarias para hacer análisis con la primaria
+#' @param variable_principal
+#' @param variables_secundarias
+#' @param filtro_variables_secundarias
 #' @param vartype
-#' @param valor_variables Filtro aplicado a las variables secundarias
 #'
 #' @return
 #' @export
 #'
 #' @examples
-#' analizar_crucePuntos(diseno = diseno, cruce = "rurub", variables = c("conocimiento_era", "conocimiento_sasil"), vartype = "cv", valor_variables = "Sí")
-analizar_crucePuntos = function(diseno, cruce, variables, vartype, valor_variables){
-
-  variables <- enquos(variables)
-
-  res <- diseno |>
-    group_by(!!rlang::sym(cruce)) |>
-    summarise(across(!!!variables,
-                     ~ srvyr::survey_mean(.x == !!valor_variables, vartype = vartype, na.rm = TRUE),
-                     .names = "{.col}")) |>
+analizar_cruce_aspectos = function(diseno, variable_principal, variables_secundarias, filtro_variables_secundarias, vartype){
+  variables_secundarias <- rlang::enquo(variables_secundarias)
+  res <-
+    srvyr::as_survey_design(diseno) |>
+    group_by(!!rlang::sym(variable_principal)) %>%
+    summarise(across(!!variables_secundarias, ~ srvyr::survey_mean(.x == !!filtro_variables_secundarias, vartype = vartype, na.rm = TRUE), .names = "{.col}")) |>
     tidyr::drop_na() |>
-    tidyr::pivot_longer(cols = -rlang::sym(cruce),
-                        names_to = "variable", values_to = "valor") |>
+    tidyr::pivot_longer(cols = -rlang::sym(variable_principal),
+                        names_to = "variable",
+                        values_to = "valor") |>
     mutate(separar = ifelse(stringr::str_detect(variable, glue::glue('_{vartype}$')), vartype, "mean"),
            variable = stringr::str_remove(variable, glue::glue('_{vartype}'))) |>
     tidyr::pivot_wider(names_from = separar, values_from = valor)
-
   return(res)
 }
-
 #' Analizar cruce entre dos variables
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
-#' @param cruce Variable principal por la cual hacer análisis
-#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
-#' @param filtro Filtro aplicable a la variable secundaria
 #' @param vartype
+#' @param variable_principal
+#' @param variable_secundaria
 #'
 #' @return
 #' @export
 #'
 #' @examples
-#' analizar_cruceBrechas(diseno = diseno, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia", filtro = c("Sasil de León",  "Eduardo Ramírez Aguilar"), vartype = "cv")
-analizar_cruceBrechas = function(diseno, var1, var2_filtro, filtro, vartype){
-
-  diseno %>%
-    group_by(!!rlang::sym(var1), !!rlang::sym(var2_filtro)) |>
-    summarise(srvyr::survey_mean(na.rm=T, vartype = vartype)) %>%
-    {
-      if(is.null(filtro)){
-        .
-      } else{
-        filter(., !!rlang::sym(var2_filtro) %in% filtro)
-      }
-    } %>% {
-      if(vartype == "cv"){
-        mutate(., pres=case_when(`_cv` >.15 & `_cv` <.30 ~ "*",
-                                 `_cv` >.30 ~ "**",
-                                 TRUE ~""))
-      } else{
-        .
-      }
-    }
+analizar_cruce = function(diseno, variable_principal, variable_secundaria, vartype){
+  res <-
+    srvyr::as_survey_design(diseno) %>%
+    group_by(!!rlang::sym(variable_principal), !!rlang::sym(variable_secundaria)) |>
+    summarise(srvyr::survey_mean(na.rm = TRUE, vartype = vartype))
+  if(vartype == "cv") {
+    res <-
+      res |>
+      mutate(pres = case_when(`_cv` > .15 & `_cv` < .30 ~ "*",
+                              `_cv` > .30 ~ "**",
+                              TRUE ~ ""))
+  }
+  return(res)
 }
-
 #' Analizar sankey
 #'
 #' @param variables Vector que contiene las llaves de las cuales se va a hacer el cruce
@@ -509,8 +494,6 @@ analizar_cruceBrechas = function(diseno, var1, var2_filtro, filtro, vartype){
 #' @export
 #'
 #' @examples
-#' analizar_sankey(diseno = as_survey_design(diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
-#' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
 analizar_sankey = function(diseno, variables, filtro_var1, filtro_var2){
   if(length(variables) == 2) {
     vec_variables <- c(var1 = variables[[1]], var2 = variables[[2]])

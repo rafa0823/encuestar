@@ -248,11 +248,11 @@ graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, te
 #' @examples
 graficar_heatmap = function(bd, orden_x, orden_y, color = "blue", caption, salto_x, salto_y, size_text_x = 14, size_text_y = 16, size_text_caption = 14){
   g <-
-  bd |>
-  ggplot(aes(x = factor(respuesta, levels = orden_x),
-             y = factor(candidato, levels = orden_y),
-             fill = media,
-             label = scales::percent(media, 1.))) +
+    bd |>
+    ggplot(aes(x = factor(respuesta, levels = orden_x),
+               y = factor(candidato, levels = orden_y),
+               fill = media,
+               label = scales::percent(media, 1.))) +
     geom_tile(color="white") +
     ggfittext::geom_fit_text(contrast = T, family = "Poppins") +
     scale_fill_gradient(low = "white",
@@ -655,7 +655,7 @@ graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend
                              show.legend = FALSE) +
     scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = salto_x)) +
     scale_y_continuous(labels = scales::percent,
-                         limits = limits) +
+                       limits = limits) +
     scale_color_manual(values = colores_var_y,
                        labels = function(x) stringr::str_wrap(string = x, width = salto_legend)) +
     labs(color = "") +
@@ -884,7 +884,7 @@ graficar_crucePuntos = function(bd, cruce, vartype){
     geom_vline(aes(xintercept = variable), linetype = "dashed",
                color = "gray60", size=.5) +
     geom_point(aes(y=mean),
-               shape=19,  size=6) +
+               shape=19,  size = 6) +
     scale_y_continuous(labels=scales::percent) +
     coord_flip()
   return(g)
@@ -898,18 +898,28 @@ graficar_crucePuntos = function(bd, cruce, vartype){
 #' @export
 #'
 #' @examples
-graficar_cruce_puntosMultiples = function(bd, orden_variablePrincipal) {
-  bd |>
-    ggplot(aes(x = factor(variablePrincipal, levels = orden_variablePrincipal), y = mean,
-               color = tema, group = variablePrincipal)) +
-    geom_line(color="#a2d2ff",linewidth=4.5,alpha=0.5) +
-    geom_point(size=7) +
-    scale_y_continuous(labels=scales::percent) +
+graficar_lolipop_diferencias = function(bd, orden_variablePrincipal, colores_variables_secundarias,
+                                        nudge_x = 0.05, size_geom_text = 6,
+                                        caption, wrap_y, wrap_caption, limits) {
+  g <-
+    bd |>
+    ggplot(aes(x = factor(variable_principal, levels = orden_variablePrincipal),
+               y = mean,
+               color = tema,
+               group = variable_principal)) +
+    geom_line(color = "#a2d2ff", linewidth = 4.5, alpha = 0.5) +
+    geom_point(size = 7) +
+    geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0)),
+              nudge_x = nudge_x,
+              size = size_geom_text) +
     coord_flip() +
-    labs(color = "") +
-    theme(legend.title =element_blank(),
-          axis.text = element_text(size=15),
-          legend.text = element_text(size=14))
+    labs(color = "",
+         caption = stringr::str_wrap(string = caption, width = wrap_caption)) +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = wrap_y)) +
+    scale_y_continuous(labels = scales::percent,
+                       limits = limits) +
+    scale_color_manual(values = colores_variables_secundarias)
+  return(g)
 }
 #' Graficar cruce de una variable vs otra con opción a filtro
 #'
@@ -927,7 +937,8 @@ graficar_cruce_puntosMultiples = function(bd, orden_variablePrincipal) {
 #'
 #' @examples
 #' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
-graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F, line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
+graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F,
+                                        line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
   g <- bd |>
     ggplot(aes(x=!!rlang::sym(var1),
                y=coef)) +
