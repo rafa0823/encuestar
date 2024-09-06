@@ -1360,6 +1360,57 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                               linea_color = linea_color) +
                            self$tema
                        },
+                       lineas = function(variable_principal,
+                                         variable_secundaria,
+                                         orden_variable_principal,
+                                         valores_variable_secundaria = NULL,
+                                         colores_variable_secundaria,
+                                         limits =  c(0, 0.75),
+                                         wrap_x = 25,
+                                         wrap_legend = 25,
+                                         text_nudge_y = 0.01,
+                                         size_text = 8,
+                                         size_text_x = 16,
+                                         size_text_y = 14,
+                                         size_text_legend = 14){
+
+                         if(is.null(self$diseno)) {
+
+                           diseno <- self$encuesta$muestra$diseno
+
+                         } else {
+
+                           diseno <- self$diseno
+
+                         }
+
+                         encuestar:::analizar_cruce(diseno = diseno,
+                                                    variable_principal = variable_principal,
+                                                    variable_secundaria = variable_secundaria,
+                                                    vartype = "cv") %>%
+                           {
+                             if(!is.null(valores_variable_secundaria)) {
+                               filter(., !!rlang::sym(variable_secundaria) %in% valores_variable_secundaria)
+                             } else {
+                               .
+                             }
+                           } %>%
+                           rename(var_x = !!rlang::sym(variable_principal),
+                                  var_y = !!rlang::sym(variable_secundaria),
+                                  media = coef) |>
+                           encuestar:::graficar_lineas(orden_var_x = orden_clasificacion,
+                                                       colores = colores_variable_secundaria,
+                                                       salto_x = wrap_x,
+                                                       salto_legend = wrap_legend,
+                                                       limits = limits,
+                                                       text_nudge_y = text_nudge_y,
+                                                       size_text = size_text) +
+                           self$tema +
+                           theme(legend.position = "bottom",
+                                 axis.text.x = element_text(size = size_text_x),
+                                 axis.text.y = element_text(size = size_text_y),
+                                 legend.text = element_text(size = size_text_legend))
+                       },
                        lolipop_diferencias = function(variable_principal,
                                                       variables_secundarias,
                                                       filtro_variables_secundarias,

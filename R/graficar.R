@@ -638,8 +638,8 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
 #' @export
 #'
 #' @examples
-graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend, limits = c(0, 0.75), text_nudge_y = 0.01, size_text = 8,
-                           size_text_x = 16, size_text_y = 14, size_text_legend = 14){
+graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend,
+                           limits = c(0, 0.75), text_nudge_y = 0.01, size_text = 8){
   g <-
     bd |>
     ggplot(aes(x = factor(var_x, levels = orden_var_x),
@@ -658,12 +658,7 @@ graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend
                        limits = limits) +
     scale_color_manual(values = colores_var_y,
                        labels = function(x) stringr::str_wrap(string = x, width = salto_legend)) +
-    labs(color = "") +
-    tema_morant() +
-    theme(legend.position = "bottom",
-          axis.text.x = element_text(size = size_text_x),
-          axis.text.y = element_text(size = size_text_y),
-          legend.text = element_text(size = size_text_legend))
+    labs(color = "")
   return(g)
 }
 #' Graficar conocimiento de personajes por región o estrato

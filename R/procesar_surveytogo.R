@@ -483,6 +483,9 @@ analizar_cruce = function(diseno, variable_principal, variable_secundaria, varty
                               `_cv` > .30 ~ "**",
                               TRUE ~ ""))
   }
+  res <-
+    res |>
+    ungroup()
   return(res)
 }
 #' Analizar sankey
