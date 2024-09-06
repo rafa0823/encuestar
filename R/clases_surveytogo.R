@@ -1274,6 +1274,90 @@ Cruce <- R6::R6Class(classname = "Cruce",
                        #     self$tema
                        #
                        # },
+                       # brechasDuales = function(var1, var2_filtro, filtro, vartype = "cv", line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+                       #
+                       #   if(is.null(self$diseno)) {
+                       #
+                       #     diseno <- self$encuesta$muestra$diseno
+                       #
+                       #   } else {
+                       #
+                       #     diseno <- self$diseno
+                       #
+                       #   }
+                       #
+                       #   encuestar:::analizar_cruceBrechas(diseno = srvyr::as_survey_design(diseno),
+                       #                                     var1 = var1,
+                       #                                     var2_filtro = var2_filtro,
+                       #                                     filtro = filtro,
+                       #                                     vartype = vartype) |>
+                       #     encuestar:::graficar_cruce_brechasDuales(var1 = var1,var2_filtro = var2_filtro, vartype = vartype,
+                       #                                              line_rich = line_rich,
+                       #                                              line_linewidth = line_linewidth,
+                       #                                              line_hjust = line_hjust,
+                       #                                              line_vjust = line_vjust) +
+                       #     self$tema
+                       # },
+                       # brechasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
+                       #
+                       #   if(is.null(self$diseno)) {
+                       #
+                       #     diseno <- self$encuesta$muestra$diseno
+                       #
+                       #   } else {
+                       #
+                       #     diseno <- self$diseno
+                       #
+                       #   }
+                       #
+                       #   encuestar:::analizar_crucePuntos(srvyr::as_survey_design(diseno),
+                       #                                    cruce = por_grupo,
+                       #                                    variables = variables, vartype = vartype, valor_variables = valor_variables) %>%
+                       #     {
+                       #       if(vartype == "cv"){
+                       #         mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
+                       #                                  `cv` >.30 ~ "**",
+                       #                                  TRUE ~""))
+                       #       } else {
+                       #         .
+                       #       }
+                       #     } |>
+                       #     left_join(self$diccionario,
+                       #               join_by(variable == llaves)) |> select(-variable) |>
+                       #     rename(variable = tema) %>%
+                       #     encuestar:::graficar_cruce_brechasMultiples(cruce = por_grupo, vartype = vartype,
+                       #                                                 line_rich = line_rich,
+                       #                                                 line_linewidth = line_linewidth,
+                       #                                                 line_hjust = line_hjust,
+                       #                                                 line_vjust = line_vjust) +
+                       #     self$tema
+                       #
+                       # },
+                       bloques = function(cruce, variable, vartype = "cv", filter = NULL, linea_grosor = 2, linea_color = "white"){
+
+                         if(is.null(self$diseno)) {
+
+                           diseno <- self$encuesta$muestra$diseno
+
+                         } else {
+
+                           diseno <- self$diseno
+
+                         }
+
+                         encuestar:::analizar_cruceBrechas(srvyr::as_survey_design(diseno),
+                                                           var1 = cruce,
+                                                           var2_filtro = variable,
+                                                           filtro = filter,
+                                                           vartype = vartype) |>
+                           graficar_cruce_bloques(cruce = cruce,
+                                                  variable = variable,
+                                                  vartype = vartype,
+                                                  filter = filter,
+                                                  linea_grosor = linea_grosor,
+                                                  linea_color = linea_color) +
+                           self$tema
+                       },
                        lolipop_diferencias = function(variable_principal,
                                                       variables_secundarias,
                                                       filtro_variables_secundarias,
@@ -1341,90 +1425,6 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                  legend.text = element_text(size = size_text_legend),
                                  plot.caption = element_text(size = size_text_caption))
 
-                       },
-                       brechasDuales = function(var1, var2_filtro, filtro, vartype = "cv", line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
-
-                         if(is.null(self$diseno)) {
-
-                           diseno <- self$encuesta$muestra$diseno
-
-                         } else {
-
-                           diseno <- self$diseno
-
-                         }
-
-                         encuestar:::analizar_cruceBrechas(diseno = srvyr::as_survey_design(diseno),
-                                                           var1 = var1,
-                                                           var2_filtro = var2_filtro,
-                                                           filtro = filtro,
-                                                           vartype = vartype) |>
-                           encuestar:::graficar_cruce_brechasDuales(var1 = var1,var2_filtro = var2_filtro, vartype = vartype,
-                                                                    line_rich = line_rich,
-                                                                    line_linewidth = line_linewidth,
-                                                                    line_hjust = line_hjust,
-                                                                    line_vjust = line_vjust) +
-                           self$tema
-                       },
-                       brechasMultiples = function(por_grupo, variables, vartype = "cv", valor_variables, line_rich = FALSE, line_linewidth = 2, line_hjust = "ymax", line_vjust = -0.3){
-
-                         if(is.null(self$diseno)) {
-
-                           diseno <- self$encuesta$muestra$diseno
-
-                         } else {
-
-                           diseno <- self$diseno
-
-                         }
-
-                         encuestar:::analizar_crucePuntos(srvyr::as_survey_design(diseno),
-                                                          cruce = por_grupo,
-                                                          variables = variables, vartype = vartype, valor_variables = valor_variables) %>%
-                           {
-                             if(vartype == "cv"){
-                               mutate(., pres=case_when(`cv` >.15 & `cv` <.30 ~ "*",
-                                                        `cv` >.30 ~ "**",
-                                                        TRUE ~""))
-                             } else {
-                               .
-                             }
-                           } |>
-                           left_join(self$diccionario,
-                                     join_by(variable == llaves)) |> select(-variable) |>
-                           rename(variable = tema) %>%
-                           encuestar:::graficar_cruce_brechasMultiples(cruce = por_grupo, vartype = vartype,
-                                                                       line_rich = line_rich,
-                                                                       line_linewidth = line_linewidth,
-                                                                       line_hjust = line_hjust,
-                                                                       line_vjust = line_vjust) +
-                           self$tema
-
-                       },
-                       bloques = function(cruce, variable, vartype = "cv", filter = NULL, linea_grosor = 2, linea_color = "white"){
-
-                         if(is.null(self$diseno)) {
-
-                           diseno <- self$encuesta$muestra$diseno
-
-                         } else {
-
-                           diseno <- self$diseno
-
-                         }
-
-                         encuestar:::analizar_cruceBrechas(srvyr::as_survey_design(diseno),
-                                                           var1 = cruce,
-                                                           var2_filtro = variable,
-                                                           filtro = filter,
-                                                           vartype = vartype) |>
-                           graficar_cruce_bloques(cruce = cruce,
-                                                  variable = variable,
-                                                  vartype = vartype,
-                                                  filter = filter,
-                                                  linea_grosor = linea_grosor,
-                                                  linea_color = linea_color) +
-                           self$tema
                        },
                        sankey_categorica = function(variables = NULL, colores, size_text_cat = 6, width_text = 15,omitir_valores_variable1 = NULL, omitir_valores_variable2 = NULL){
 
