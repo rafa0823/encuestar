@@ -123,6 +123,11 @@ Encuesta <- R6::R6Class("Encuesta",
                                                          package = "encuestar",
                                                          mustWork = TRUE),
                                       to = "R")
+                            file.copy(overwrite = FALSE,
+                                      from = system.file("constantes_y_funciones/funciones.R",
+                                                         package = "encuestar",
+                                                         mustWork = TRUE),
+                                      to = "R")
                             source(file = paste0(getwd(), "/R/constantes.R"))
                             beepr::beep()
                             return(print(match_dicc_base(self, self$quitar_vars), n = Inf))

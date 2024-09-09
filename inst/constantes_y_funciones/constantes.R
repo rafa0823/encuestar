@@ -15,16 +15,16 @@ color_otro <- "gray30"
 color_nsnc <- "gray60"
 color_ninguno <- "black"
 
-color_mucho <- "#2D6A4F"
-color_algo <- "#52B788"
-color_regular <- "#D5B9B2"
-color_poco <- "#606299"
-color_nada <- "#4A4E69"
+color_opinion_muyBuena = "#2D6A4F"
+color_opinion_buena = "#52B788"
+color_opinion_regular = "#D5B9B2"
+color_opinion_mala = "#606299"
+color_opinion_muyMala = "#4A4E69"
 
-color_opinionMuyBuena <- color_mucho
-color_opinionBuena <- color_algo
-color_opinionMala <- color_poco
-color_opinionMuyMala <- color_poco
+color_mucho = color_opinion_muyBuena
+color_algo = color_opinion_buena
+color_poco = color_opinion_mala
+color_nada = color_opinion_muyMala
 
 # color_cuartil_1 <- '#6a104d'
 # color_cuartil_2 <- '#802e9e'
@@ -63,11 +63,11 @@ color_m <- color_morena_complemento
 # Cruces --------------------------------------------------------------------------------------
 
 colores_opinion <-
-  c("Muy mala" = color_opinionMuyMala,
-    "Mala" = color_opinionMala,
-    "Regular" = color_regular,
-    "Buena" = color_opinionBuena,
-    "Muy buena" = color_opinionMuyBuena)
+  c("Muy mala" = color_opinion_muyMala,
+    "Mala" = color_opinion_mala,
+    "Regular" = color_opinion_regular,
+    "Buena" = color_opinion_buena,
+    "Muy buena" = color_opinion_muyBuena)
 
 colores_generacion <-
   c("Generación Z (18 a 25 años)" = color_mucho,
