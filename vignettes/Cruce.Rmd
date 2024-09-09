@@ -18,14 +18,79 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, echo = FALSE}
-library(encuestar)
 devtools::load_all()
-
 ```
+
 
 La clase Cruce es capaz de generar datos cruzados entre al menos dos o más variables
 
-```{r cruce unitario, fig.width = 10, fig.height = 10}
+# Ejemplo de cruce entre dos variables
+
+## Cruce lineas
+```{r ejemplo1, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Cruce$lineas(variable_principal = "region",
+                                      variable_secundaria = "voto_pr_24",
+                                      orden_variable_principal = c("Perdidas", "Competitivas", "Voto Blando", "Voto Duro"),
+                                      valores_variable_secundaria = c("Claudia Sheinbaum por MORENA-PT-Partido Verde",
+                                                                      "Xóchitl Gálvez por PAN-PRI-PRD"),
+                                      colores_variable_secundaria = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F",
+                                                                      "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6"), 
+                                      limits = c(0, 0.5))
+
+```
+
+## Cruce bloques
+```{r ejemplo2, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Cruce$bloques(variable_principal = "sexo",
+                                       variable_secundaria = "identificacion_partido",
+                                       colores_variable_secundaria = c("MORENA" = "#A6032F",
+                                                                       "PRI" = "#038C33",
+                                                                       "Ninguno" = "black",
+                                                                       "PAN" = "#0339a6",
+                                                                       "Ns/Nc" = "gray60",
+                                                                       "Movimiento Ciudadano (MC)" = "#F27405",
+                                                                       "Partido Verde (PVEM)" = "#98BF5E",
+                                                                       "PT" = "#D91136",
+                                                                       "PRD" = "#F2B705",
+                                                                       "Otro" = "gray30"))
+```
+
+## Sankey
+```{r ejemplo3, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Cruce$sankey_categorica(variables = c("sexo", "identificacion_partido"),
+                                                 colores = c("MORENA" = "#A6032F",
+                                                             "PRI" = "#038C33",
+                                                             "Ninguno" = "black",
+                                                             "PAN" = "#0339a6",
+                                                             "Ns/Nc" = "gray60",
+                                                             "Movimiento Ciudadano (MC)" = "#F27405",
+                                                             "Partido Verde (PVEM)" = "#98BF5E",
+                                                             "PT" = "#D91136",
+                                                             "PRD" = "#F2B705",
+                                                             "Otro" = "gray30",
+                                                             "F" = "pink",
+                                                             "M" = "blue"))
+```
+
+## Tabla de voto cruzado
+
+```{r ejemplo4, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Cruce$tabla_votoCruzado(var1 = "sexo",
+                                                 var2 = "identificacion_partido",
+                                                 filtro_var2 = c("MORENA", "PRI", "PAN"),
+                                                 etiquetas = c("Sexo", "Identificacion"),
+                                                 colores_var1 = c("F" = "pink",
+                                                                  "M" = "blue"),
+                                                 colores_var2 = c("MORENA" = "#A6032F",
+                                                                  "PRI" = "#038C33",
+                                                                  "PAN" = "#0339a6"))
+```
+
+# Ejemplo de cruce entre múltiples variables (1 a 2)
+
+## Lolipop diferencias
+
+```{r cruce unitario, fig.width = 10, fig.height = 10, echo = TRUE}
 
 encuesta_demo$Resultados$Cruce$lolipop_diferencias(variable_principal = "sexo", 
                                                    variables_secundarias = c("conoce_pm_astiazaran", "conoce_pm_delrio"),
@@ -38,4 +103,19 @@ encuesta_demo$Resultados$Cruce$lolipop_diferencias(variable_principal = "sexo",
   scale_x_discrete(labels = c("F" = "Mujeres",
                               "M" = "Hombres"))
 
+```
+
+El mismo méotodo puede usarse para visualizar datos de dos formas diferentes
+```{r cruce unitario_reversible, fig.width = 10, fig.height = 10, echo = TRUE}
+
+encuesta_demo$Resultados$Cruce$lolipop_diferencias(variable_principal = "sexo", 
+                                                   variables_secundarias = c("conoce_pm_astiazaran", "conoce_pm_delrio"),
+                                                   filtro_variables_secundarias = "Sí", 
+                                                   orden_variablePrincipal = c("Antonio \"Toño\" Astiazarán", 
+                                                                                     "María Dolores Del Río"), 
+                                                   colores_variables_secundarias = c("M" = "blue", 
+                                                                                     "F" = "pink"), 
+                                                   caption = "Intención de voto por sexo", 
+                                                   invertir_variables = TRUE,
+                                                   wrap_caption = 40)
 ```

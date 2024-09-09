@@ -741,11 +741,10 @@ calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
     pull(respuesta)
 
   aux <-
-    encuestar:::analizar_cruceBrechas(diseno = srvyr::as_survey_design(diseno),
-                                      var1 = var1,
-                                      var2_filtro = var2,
-                                      filtro = filtro_var2,
-                                      vartype = "cv") |>
+    encuestar:::analizar_cruce(diseno = diseno,
+                               variable_principal = var1,
+                               variable_secundaria = var2,
+                               vartype = "cv") |>
     ungroup() |>
     select(var1, var2, coef) |>
     tidyr::pivot_wider(id_cols = var1,
