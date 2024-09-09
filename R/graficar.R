@@ -459,7 +459,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
       scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = seq(0,max(bases$conoce$media), by = .1)) +
-      tema()
+      tema_morant()
   } else{
     a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
       # geom_col(show.legend = F) +
@@ -469,7 +469,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
       scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = seq(0,max(bases$conoce$media), by = .1)) +
-      tema()
+      tema_morant()
   }
 
 
@@ -510,7 +510,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
     labs( y = "", title = "Identificación partidista", x= NULL) +
-    tema() +
+    tema_morant() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
@@ -1187,6 +1187,7 @@ graficar_nube_palabras = function(bd, max_size) {
 #'
 #' @examples
 formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, etiquetas, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
+  # browser()
 
   tot_opiniones <-
     length(orden_opinion)
@@ -1200,9 +1201,9 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
     aux <-
       aux %>%
-      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) %>%
+      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones + 1, 1)) %>%
       flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header")
+      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones + 1), part = "header")
   } else {
     aux <-
       aux %>%
@@ -1212,12 +1213,12 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
 
   aux <-
     aux %>%
-    flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
+    flextable::border_outer(part = "header", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(border = officer::fp_border(color = "black", width = 1), part = "header") |>
     flextable::align(i = 1, j = 2, align = "center", part = "header") |>
-    flextable::border_inner_h(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_outer(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_h(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_outer(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
     flextable::fontsize(size = size_text_header, part = "header") |>
     flextable::fontsize(size = size_text_body, part = "body") |>
     flextable::font(fontname = "Poppins", part = "all") |>

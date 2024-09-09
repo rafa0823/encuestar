@@ -1387,10 +1387,10 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          }
 
-                         encuestar:::analizar_cruce(diseno = diseno,
-                                                    variable_principal = variable_principal,
-                                                    variable_secundaria = variable_secundaria,
-                                                    vartype = "cv") %>%
+                           encuestar:::analizar_cruce(diseno = diseno,
+                                                      variable_principal = variable_principal,
+                                                      variable_secundaria = variable_secundaria,
+                                                      vartype = "cv") %>%
                            {
                              if(!is.null(valores_variable_secundaria)) {
                                filter(., !!rlang::sym(variable_secundaria) %in% valores_variable_secundaria)
@@ -1401,7 +1401,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                            rename(var_x = !!rlang::sym(variable_principal),
                                   var_y = !!rlang::sym(variable_secundaria),
                                   media = coef) |>
-                           encuestar:::graficar_lineas(orden_var_x = orden_clasificacion,
+                           encuestar:::graficar_lineas(orden_var_x = orden_variable_principal,
                                                        colores = colores_variable_secundaria,
                                                        salto_x = wrap_x,
                                                        salto_legend = wrap_legend,
