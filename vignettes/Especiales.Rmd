@@ -1,0 +1,101 @@
+---
+title: "Clase Especiales"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Clase Especiales}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE, 
+  message = FALSE,
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+devtools::load_all()
+```
+
+La clase Especial ofrece resultados en un tipo particular de gráficos
+
+# Candidato opinión
+```{r ejemplo1, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Especial$candidatoOpinion(patron_inicial = "opinion_pm",
+                                                   aspectos = c("astiazaran", "delrio"),
+                                                   ns_nc = "Ns/Nc",
+                                                   regular = "Regular",
+                                                   llave_burbuja = "conoce_pm",
+                                                   filtro_burbuja = "respuesta == 'Sí'",
+                                                   grupo_positivo = c("Buena", "Muy buena"),
+                                                   grupo_negativo = rev(c("Muy mala", "Mala")),
+                                                   orden_resp = c("Muy mala", "Mala", "Regular", "Buena", "Muy buena"),
+                                                   colores_opinion = c("Muy mala" = "#4A4E69",
+                                                                       "Mala" = "#606299",
+                                                                       "Regular" = "#D5B9B2",
+                                                                       "Buena" = "#52B788",
+                                                                       "Muy buena" = "#2D6A4F"),
+                                                   color_nsnc = "gray60",
+                                                   color_burbuja = "#A6032F")
+
+```
+
+# Candidato saldo
+```{r ejemplo2, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Especial$candidatoSaldo(llave_opinion = "opinion_pm", 
+                                                 candidatos = c("astiazaran", "delrio"), 
+                                                 positivos = c("Buena", "Muy buena"), 
+                                                 negativos = rev(c("Muy mala", "Mala")), 
+                                                 regular = "Regular", 
+                                                 ns_nc = "Ns/Nc", 
+                                                 color_positivo = "#52B788", 
+                                                 color_negativo = "#606299")
+
+```
+
+# Candidato opinion 2
+```{r ejemplo3, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Especial$candidatoOpinion2(patron_opinion = "opinion_pm",
+                                                    aspectos = c("astiazaran", "delrio"),
+                                                    ns_nc = "Ns/Nc",
+                                                    regular = "Regular",
+                                                    patron_conocimiento = "conoce_pm",
+                                                    filtro_conocimiento = "respuesta == 'Sí'",
+                                                    orden_opinion = rev(c("Muy mala", "Mala", "Regular", "Buena", "Muy buena")),
+                                                    colores_opinion = c("Muy mala" = "#4A4E69",
+                                                                        "Mala" = "#606299",
+                                                                        "Regular" = "#D5B9B2",
+                                                                        "Buena" = "#52B788",
+                                                                        "Muy buena" = "#2D6A4F",
+                                                                        "Ns/Nc" = "gray70"),
+                                                    colores_candidato = c("Antonio \"Toño\" Astiazarán" = "red",
+                                                                          "María Dolores Del Río" = "blue"),
+                                                    color_principal = "white",
+                                                    color_conocimiento = "orange")
+```
+
+# Candidato partido
+```{r ejemplo4, fig.width = 10, fig.height = 10, echo = TRUE}
+encuesta_demo$Resultados$Especial$candidatoPartido(llave_partido = "partido_pm",
+                                                   llave_conocimiento = "conoce_pm",
+                                                   respuesta_conoce = "Sí",
+                                                   candidatos = c("lia", "javier"),
+                                                   corte_otro = 0.0,
+                                                   colores_candidatos = c("javier" = "red",
+                                                                          "lia" = "blue"),
+                                                   colores_partido = c("MORENA" = "#A6032F",
+                                                                       "PRI" = "#038C33",
+                                                                       "Ninguno" = "black",
+                                                                       "PAN" = "#0339a6",
+                                                                       "Ns/Nc" = "gray60",
+                                                                       "Movimiento Ciudadano (MC)" = "#F27405",
+                                                                       "Partido Verde (PVEM)" = "#98BF5E",
+                                                                       "PT" = "#D91136",
+                                                                       "PRD" = "#F2B705",
+                                                                       "Otro" = "gray30"),
+                                                   cliente = "javier")
+```

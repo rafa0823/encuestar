@@ -3,7 +3,8 @@
 
 library(dplyr)
 # Cargar la version de desarrollo de la librería encuestar que deberá estar instalada en sistema
-library(encuestar)
+# library(encuestar)
+devtools::load_all()
 
 # Insumos -------------------------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ diseno_hermosillo_agosto <- readr::read_rds("./data-raw/diseno.rda")
 
 #+ Se carga el diccionario de variables en la encuesta
 diccionario_hermosillo_agosto <-
-  readxl::read_xlsx(path = "./data-raw/diccionario_enc_demo.xlsx") |>#dicc_enc_hermosillo_agosto.xlsx
+  readxl::read_xlsx(path = "./data-raw/diccionario_enc_demo.xlsx") |> #dicc_enc_hermosillo_agosto.xlsx
   dplyr::filter(!grepl(pattern = "Registro de ubicación|Filtros", x = bloque))
 
 # data-raw ------------------------------------------------------------------------------------
@@ -24,10 +25,10 @@ diccionario_hermosillo_agosto <-
 bd_respuestas_hermosillo_agosto <-
   openxlsx2::read_xlsx(file = "./data-raw/bd_demo.xlsx", na.strings = "-1") |> #respuestas_campo_hermosillo_agosto.xlsx
   as_tibble() |>
-#+ Se eliminan variables de prueba
+  #+ Se eliminan variables de prueba
   dplyr::filter(!Srvyr %in% c("test", "Katheryn Hernandez")) |>
   dplyr::mutate(SECCION = as.character(as.numeric(cluster))) |>
-#+ Se crean las variables para definir grupos etareos
+  #+ Se crean las variables para definir grupos etareos
   dplyr::mutate(generacion = case_when(edad >= 18 & edad <= 25 ~ "Generación Z (18 a 25 años)",
                                        edad >= 26 & edad <= 40 ~ "Millenials (26 a 40 años)",
                                        edad >= 41 & edad <= 55 ~ "Generación X (41 a 55 años)",
@@ -36,7 +37,7 @@ bd_respuestas_hermosillo_agosto <-
                                                            "Millenials (26 a 40 años)",
                                                            "Generación X (41 a 55 años)",
                                                            "Baby Boomers  (56 años o más)"))) |>
-#+ Se crean las variables para definir nivel de estudios
+  #+ Se crean las variables para definir nivel de estudios
   dplyr::mutate(grado2 = case_when(grepl("Primaria", estudios) ~ "Educación básica",
                                    grepl("Secundaria", estudios) ~ "Educación básica",
                                    estudios == "No estudió" ~ "Educación básica",
@@ -58,8 +59,8 @@ bd_respuestas_hermosillo_agosto <-
                                            jefe_grado == "Diplomado o maestría" ~ 85,
                                            jefe_grado == "Diplomado o maestría" ~ 85,
                                            jefe_grado == "Doctorado" ~ 85, .default = NA),
-#+ Se crean las variables para definir nivel socieconómico segun el estandar AMAI 2022
-#+ Revisar: https://amai.org/descargas/Nota_Metodologico_NSE_2022_v5.pdf
+                #+ Se crean las variables para definir nivel socieconómico segun el estandar AMAI 2022
+                #+ Revisar: https://amai.org/descargas/Nota_Metodologico_NSE_2022_v5.pdf
                 amai_cantidadwc = case_when(cantidad_wc == "0" ~ 0,
                                             cantidad_wc == "1" ~ 24,
                                             cantidad_wc == "2 o más" ~ 47,
@@ -92,7 +93,7 @@ bd_respuestas_hermosillo_agosto <-
                   (suma_amai>=141 & suma_amai<=167)~"C",
                   (suma_amai>=168 & suma_amai<=201)~"C_mas",
                   suma_amai>=202~"A_B",.default = NA)) |>
-#+ Se Hacen correcciones en alguna de las varibles, en caso de ser detectado
+  #+ Se Hacen correcciones en alguna de las varibles, en caso de ser detectado
   mutate(voto_pr_24 = gsub('Xóchilt','Xóchitl', voto_pr_24))
 
 #+ Se definen lo intentos efectivos, que son las enetrevistas que se realizaron correctamente y las que se rechazaron
@@ -110,7 +111,7 @@ intentos_efectivos <-
 geolocalizacion_efectiva <-
   purrr::pmap_df(.l = list(ids = intentos_efectivos %>% pull(SbjNum),
                            intento_efectivo = intentos_efectivos %>% pull(intento_efectivo)),
-#+ Se ocupa la funcion de la libreria encuestar "obtener_ubicacionEfectiva_surveyToGo" para procesar las ubicaciones registradas para cada entrecista
+                 #+ Se ocupa la funcion de la libreria encuestar "obtener_ubicacionEfectiva_surveyToGo" para procesar las ubicaciones registradas para cada entrecista
                  .f = ~ encuestar::obtener_ubicacionEfectiva_surveyToGo(bd_respuestas = bd_respuestas_hermosillo_agosto,
                                                                         id = ..1,
                                                                         intento_efectivo = ..2))
@@ -128,7 +129,7 @@ bd_respuestas_hermosillo_agosto <-
 bd_correcciones_hermosillo_agosto <-
   readxl::read_excel(path = "data-raw/bd_correcciones_hermosillo_agosto.xlsx") |>
   janitor::clean_names() |>
-#+ Se le da formato a la base de correcciones
+  #+ Se le da formato a la base de correcciones
   select(SbjNum = municipio,
          codigo_pregunta = codigo_survey,
          capturada = capturada,
@@ -155,9 +156,21 @@ categorias_path <- './data-raw/bd_demo_categorias.xlsx'
 categorias <- readxl::read_xlsx(categorias_path)
 
 #+ Se agregan los resultados de las categorias a la base de datos
-bd_respuestas_hermosillo_agosto <- bd_respuestas_hermosillo_agosto|>
+bd_respuestas_hermosillo_agosto <-
+  bd_respuestas_hermosillo_agosto |>
   left_join(categorias,
             by = 'SbjNum')
+
+# Pegar datos necesarios para grafica de candidato opinion
+bd_respuestasParciales_alvaroObregon_mayo <-
+  readxl::read_xlsx(path = "./data-raw/respuestas_campo_avlaroobregon_mayo_2024.xlsx", na = "-1") |>
+  select(starts_with("conoce_pm"),
+         starts_with("partido_pm")) |>
+  head(1230)
+
+bd_respuestas_hermosillo_agosto <-
+  bd_respuestas_hermosillo_agosto |>
+  bind_cols(bd_respuestasParciales_alvaroObregon_mayo)
 
 # BASE DE ELIMINADAS
 #+ Se agrega la lista de encuestas eliminadas por auditoria
