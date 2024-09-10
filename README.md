@@ -24,4 +24,17 @@ devtools::install_github(repo = "https://github.com/morant-consultores/encuestar
 
 Estimación de intención de voto hacia candidatos
 
-![](./vignettes/README/Screenshot%202024-09-10%20092032.png)
+``` r
+library(encuestar)
+
+encuesta_demo$Resultados$Descriptiva$barras_categorica(codigo = 'voto_pr_24',
+                                                       salto = 30) +
+  ggplot2::scale_fill_manual(values = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F",
+                                        "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6",
+                                        "No recuerda" = "gray40",
+                                        "No contesta" = "gray60",
+                                        "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405",
+                                        "Anulé mi voto" = "black"))
+```
+
+<img src="man/figures/README-ejemplocanonico-1.png" width="100%" />
