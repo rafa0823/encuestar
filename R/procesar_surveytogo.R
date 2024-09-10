@@ -1,6 +1,6 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
 
-#' Analizar frecuencias
+#' Calcula la media de un diseno muestral construiido con la libreria survvey
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas
 #' @param pregunta Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos
@@ -10,8 +10,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "l
 #' @export
 #'
 #' @examples
-#' analizar_frecuencias(diseno = as_survey_design(diseno), pregunta = sexo)
-#' analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), pregunta = sexo)
+#' analizar_frecuencias(diseno = as_survey_design(encuesta_demo$muestra$diseno), pregunta = "sexo")
 analizar_frecuencias <- function(diseno, pregunta){
   estimacion <- survey::svymean(survey::make.formula(pregunta),
                                 # enquo(pregunta),
