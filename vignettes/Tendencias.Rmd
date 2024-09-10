@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-devtools::load_all()
+library(encuestar)
 ```
 
 La clase Tendencias es capaz de generar datos cruzados entre al menos dos o más variables

@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, echo = FALSE}
-devtools::load_all()
+library(encuestar)
 ```
 
 
@@ -100,7 +100,7 @@ encuesta_demo$Resultados$Cruce$lolipop_diferencias(variable_principal = "sexo",
                                                                                      "María Dolores Del Río" = "blue"), 
                                                    caption = "Intención de voto por sexo", 
                                                    wrap_caption = 40) +
-  scale_x_discrete(labels = c("F" = "Mujeres",
+  ggplot2::scale_x_discrete(labels = c("F" = "Mujeres",
                               "M" = "Hombres"))
 
 ```

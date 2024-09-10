@@ -8,9 +8,7 @@ vignette: >
 ---
 
 ```{r setup, echo = FALSE}
-#library(encuestar)
-devtools::load_all()
-
+library(encuestar)
 ```
 
 La clase Descriptiva es capaz de generar graficas con base a una variable particular.

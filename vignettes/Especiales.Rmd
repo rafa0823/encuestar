@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-devtools::load_all()
+library(encuestar)
 ```
 
 La clase Especial ofrece resultados en un tipo particular de gráficos
