@@ -1,9 +1,12 @@
 Package: encuestar
-Title: What the Package Does (One Line, Title Case)
+Title: El ojetivo de la paquetería encuestar es producir los resultados de las estimaciones asociadas al diseño muestral generado por la paquetería muestrear.
+  También contiene contiene la aplicación de seguimiento de levantamiento de la encuesta.
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+Authors@R: c(
+    person(given = "Emilio", family = "Morones", email = "emorones@morant.com.mx", role = c("cre"m "aut"), comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Allam", family = "Meza", email = "al.josue93@gmail.com", role = c("aut"), comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Carlos", family = "Avilez", email = "cavilez@morant.com.mx", role = c("ctb"), comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Ivan", family = "Martinez", email = "imartinez@morant.com.mx", role = c("aut"), comment = c(ORCID = "YOUR-ORCID-ID")))
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Depends: 
