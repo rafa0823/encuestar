@@ -1,13 +1,12 @@
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
-
 #' Analizar frecuencias de una variable
 #'
-#' Calcula la media de un diseno muestral construido con la libreria survey
+#' Calcula la media de una variable en un diseno muestral construido con la paqueteria `survey`
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas
 #' @param pregunta Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos
 #' @return Tibble con la media de las estimaciones por valor unico de la variable seleccionada
 #' @examples
 #' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "sexo")
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "voto_pr_24")
 analizar_frecuencias <- function(diseno, pregunta){
   estimacion = survey::svymean(survey::make.formula(pregunta),
                                design = diseno,
@@ -24,32 +23,23 @@ analizar_frecuencias <- function(diseno, pregunta){
                                             .fun = max))
   return(estimacion)
 }
-
-if(getRversion() >= "2.15.1")  utils::globalVariables(c("aspecto"))
-
-#' Analizar frecuencias aspectos
+#' Analizar frecuencias de multiples variables
 #'
-#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
+#' Calcula la media de multiples variables cuyos nombres comparten un patron inicial en comun de
+#'   un diseno muestral construido con la paqueteria `survey`
+#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas
 #' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
-#' @param patron_pregunta Patrón que comparten las variables a analizar.
-#' @param aspectos Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
-#'
-#' @return
-#' \item{estimacion}{Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.}
-#' @export
-#'
+#' @param patron_pregunta Cadena de texto en comun (inicial) entre los nombres de las variables las variables a analizar.
+#' @param aspectos Vector de tipo cadena de texto (final) que diferencia las variables a analizar.
+#'  Separada de patron_pregunta por un guion bajo.
+#' @return Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.
 #' @examples
-#' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "opinion", aspectos = c("amlo", "claudia", "ebrard"))
-#' analizar_frecuencias_aspectos(diseno = as_survey_design(diseno), diccionario = encuesta$diccionario, patron_pregunta = "conocimiento", aspectos = c("amlo", "claudia", "ebrard"))
+#' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("astiazaran", "delrio"))
+#' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("lia", "javier"))
 analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
-  # ja <- try(
-  #   rlang::expr_text(ensym(patron_pregunta)),T
-  # )
-
   ja <- try(
     patron_pregunta, T
   )
-
   if(class(ja) != "try-error"){
     # p <- rlang::expr_text(ensym(patron_pregunta))
     p <- patron_pregunta
@@ -98,8 +88,8 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
   estimaciones <- estimaciones %>%
     mutate(aspecto = as.character(aspecto)) %>%
     left_join(p, by = c("aspecto"))
+  return(estimaciones)
 }
-
 #' Analizar partido asociado a un candidato
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.

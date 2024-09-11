@@ -15,8 +15,9 @@ analizar_frecuencias(diseno, pregunta)
 Tibble con la media de las estimaciones por valor unico de la variable seleccionada
 }
 \description{
-Calcula la media de un diseno muestral construido con la libreria survey
+Calcula la media de una variable en un diseno muestral construido con la paqueteria \code{survey}
 }
 \examples{
 encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "sexo")
+encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "voto_pr_24")
 }
