@@ -2,7 +2,7 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_frecuencias}
 \alias{analizar_frecuencias}
-\title{Calcula la media de un diseno muestral construiido con la libreria survvey}
+\title{Analizar frecuencias de una variable}
 \usage{
 analizar_frecuencias(diseno, pregunta)
 }
@@ -12,11 +12,11 @@ analizar_frecuencias(diseno, pregunta)
 \item{pregunta}{Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos}
 }
 \value{
-\item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
+Tibble con la media de las estimaciones por valor unico de la variable seleccionada
 }
 \description{
-Calcula la media de un diseno muestral construiido con la libreria survvey
+Calcula la media de un diseno muestral construido con la libreria survey
 }
 \examples{
-analizar_frecuencias(diseno = as_survey_design(encuesta_demo$muestra$diseno), pregunta = "sexo")
+encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "sexo")
 }

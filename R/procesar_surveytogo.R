@@ -1,16 +1,13 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "llaves"))
 
-#' Calcula la media de un diseno muestral construiido con la libreria survvey
+#' Analizar frecuencias de una variable
 #'
+#' Calcula la media de un diseno muestral construido con la libreria survey
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas
 #' @param pregunta Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos
-#'
-#' @return
-#' \item{estimacion}{Tabla con las estimaciones de frecuencia para cada categoría respondida}
-#' @export
-#'
+#' @return Tibble con la media de las estimaciones por valor unico de la variable seleccionada
 #' @examples
-#' analizar_frecuencias(diseno = as_survey_design(encuesta_demo$muestra$diseno), pregunta = "sexo")
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "sexo")
 analizar_frecuencias <- function(diseno, pregunta){
   estimacion = survey::svymean(survey::make.formula(pregunta),
                                design = diseno,
