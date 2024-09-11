@@ -12,22 +12,19 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("respuesta", "media", "l
 #' @examples
 #' analizar_frecuencias(diseno = as_survey_design(encuesta_demo$muestra$diseno), pregunta = "sexo")
 analizar_frecuencias <- function(diseno, pregunta){
-  estimacion <- survey::svymean(survey::make.formula(pregunta),
-                                # enquo(pregunta),
-                                design = diseno, na.rm = T) %>%
+  estimacion = survey::svymean(survey::make.formula(pregunta),
+                               design = diseno,
+                               na.rm = TRUE) %>%
     tibble::as_tibble(rownames = "respuesta") %>%
-    rename(media=2, ee=3) %>%
-    mutate(respuesta = stringr::str_replace(
-      pattern = rlang::expr_text(ensym(pregunta)),
-      replacement = "",
-      string = respuesta),
-      pregunta = rlang::expr_text(ensym(pregunta)),
-      respuesta = stringr::str_replace_all(respuesta, " \\(No leer\\)",""),
-      respuesta=forcats::fct_reorder(.f = respuesta,
-                                     .x = media,
-                                     .fun = max)
-    )
-
+    rename(media = 2, ee = 3) %>%
+    mutate(respuesta = stringr::str_replace(pattern = rlang::expr_text(ensym(pregunta)),
+                                            replacement = "",
+                                            string = respuesta),
+           pregunta = rlang::expr_text(ensym(pregunta)),
+           respuesta = stringr::str_replace_all(respuesta, " \\(No leer\\)",""),
+           respuesta = forcats::fct_reorder(.f = respuesta,
+                                            .x = media,
+                                            .fun = max))
   return(estimacion)
 }
 
