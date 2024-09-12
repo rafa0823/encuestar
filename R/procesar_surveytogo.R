@@ -100,7 +100,6 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
 
   return(list(conoce = conoce, partido = partido))
 }
-
 #' Calcular el saldo de opinión por personaje
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
@@ -109,15 +108,13 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
 #' @param llave_opinion Patrón que comparten las variables asociadas a las preguntas sobre la opinión pública hacia un personaje.
 #' @param grupo_positivo Conjunto de valores de la variable opinión tratados como positivos.
 #' @param grupo_negativo Conjunto de valores de la variable opinión tratados como negativos
-#' @return
 #' @examples
-#' calcular_saldoOpinion(bd, llave_opinion = "opinion", grupo_positivo = "Buena", grupo_negativo = "Mala")
-#' calcular_saldoOpinion(bd, llave_opinion = "op", grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"))
+#' encuestar:::analizar_saldoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_opinion = "opinion_pm", candidatos = c("astiazaran", "delrio"), grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"))
 analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos, grupo_positivo, grupo_negativo){
 
   llave_op = paste(llave_opinion) # BUG
 
-  bd <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_op, aspectos = candidatos) |>
+  bd <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_op, aspectos = candidatos) |>
     left_join(diccionario |> select(aspecto = llaves, tema), by = "aspecto")
 
   res <- bd %>%
