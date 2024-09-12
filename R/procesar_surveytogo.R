@@ -127,32 +127,6 @@ analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos
 
   return(res)
 }
-#' Analizar conocimiento de personajes por region
-#'
-#' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
-#' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
-#' @param patron_llaveConocimiento Patrón que comparten las variables asociadas al conocimiento de un personaje
-#' @param filtro_respuestaConocimiento Filtro aplicado a las variables asociadas al conocimiento
-#' @param aspectos_llaveConocimiento Cadena de texto que diferencia las variables a analizar. Separada de patron_pregunta por un guion bajo.
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' bd_analizar_conocimientoRegion <- analizar_conocimientoRegion(patron_llaveConocimiento = "conocimiento", aspectos_llaveConocimiento = candidatos, filtro_respuestaConocimiento = "Sí", diseno = Preguntas$Regiones$diseno, diccionario = cuestionario_demo)
-analizar_conocimientoRegion <- function(patron_llaveConocimiento, aspectos_llaveConocimiento, filtro_respuestaConocimiento, diseno, diccionario){
-  junto <- paste(patron_llaveConocimiento, aspectos_llaveConocimiento, sep = "_")
-  tbl <- junto %>%
-    purrr::map_df(~{survey::svytable(survey::make.formula(c(.x, "region")), design = diseno) %>%
-        as_tibble() %>%
-        group_by(region) %>%
-        mutate(pct = n/sum(n)) %>%
-        mutate(aspecto = .x) %>%
-        filter(!!rlang::sym(.x) == filtro_respuestaConocimiento) %>%
-        select(-1)}) %>%
-    left_join(diccionario %>% select(aspecto = llaves, tema), by = "aspecto")
-  return(tbl)
-}
 #' Analizar saldo de opinión de personajes en cada región o estrato
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
