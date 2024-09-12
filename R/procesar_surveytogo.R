@@ -8,7 +8,6 @@
 #' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "sexo")
 #' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "voto_pr_24")
 analizar_frecuencias <- function(diseno, pregunta){
-  # browser()
   surveySummary_mean <- survey::svymean(survey::make.formula(pregunta),
                                         design = diseno,
                                         na.rm = TRUE)
