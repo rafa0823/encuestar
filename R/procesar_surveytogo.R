@@ -21,10 +21,7 @@ analizar_frecuencias <- function(diseno, pregunta){
                                             replacement = "",
                                             string = respuesta),
            pregunta = rlang::expr_text(ensym(pregunta)),
-           respuesta = stringr::str_replace_all(respuesta, " \\(No leer\\)",""),
-           respuesta = forcats::fct_reorder(.f = respuesta,
-                                            .x = media,
-                                            .fun = max)) |>
+           respuesta = stringr::str_replace_all(respuesta, " \\(No leer\\)", "")) |>
     left_join(surveySummary_mean |>
                 stats::confint() %>%
                 tibble::as_tibble(rownames = "respuesta") |>
@@ -32,7 +29,10 @@ analizar_frecuencias <- function(diseno, pregunta){
                                                         replacement = "",
                                                         string = respuesta),
                        pregunta = rlang::expr_text(ensym(pregunta))) |>
-                rename(inf = 2, sup = 3))
+                rename(inf = 2, sup = 3), by = c("respuesta", "pregunta")) |>
+    mutate(respuesta = forcats::fct_reorder(.f = respuesta,
+                                            .x = media,
+                                            .fun = max))
   return(estimacion)
 }
 #' Analizar frecuencias de multiples variables
@@ -49,68 +49,19 @@ analizar_frecuencias <- function(diseno, pregunta){
 #' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("astiazaran", "delrio"))
 #' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("lia", "javier"))
 analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
-
   estimaciones <-
     paste(patron_pregunta, aspectos, sep = "_") %>%
     purrr::map_df(.x = .,
                   .f = ~ analizar_frecuencias(diseno = diseno,
                                               pregunta = .)) |>
     rename(aspecto = pregunta) |>
+    relocate(aspecto, .after = sup) |>
     left_join(diccionario |>
                 select(aspecto = llaves,
-                       pregunta), by = "aspecto")
-
-  # ja <- try(
-  #   patron_pregunta, T
-  # )
-  # if(class(ja) != "try-error"){
-  #   # p <- rlang::expr_text(ensym(patron_pregunta))
-  #   p <- patron_pregunta
-  #   llaves <- glue::glue("{p}_{aspectos}")
-  # } else{
-  #   llaves <- aspectos
-  # }
-  #
-  # estimaciones <- map_df(llaves,
-  #                        ~{
-  #                          if(class(ja) != "try-error"){
-  #                            aux <- diccionario %>%
-  #                              tidyr::unnest(respuestas) %>%
-  #                              filter(grepl(.x,respuestas)) %>%
-  #                              pull(respuestas) %>%
-  #                              str_replace("\\s*\\{[^\\)]+\\} ","")
-  #                          } else{
-  #                            aux <- .x
-  #                          }
-  #                          if(length(aux) == 0) aux <- .x
-  #                          prev <- survey::svymean(survey::make.formula(.x),
-  #                                                  design = diseno, na.rm = T)
-  #
-  #                          prev %>%
-  #                            tibble::as_tibble(rownames = "respuesta") %>%
-  #                            rename(media=2, ee=3) %>%
-  #                            left_join(prev %>%
-  #                                        confint() %>%
-  #                                        tibble::as_tibble(rownames = "respuesta") %>%
-  #                                        rename(inf=2, sup=3), by = "respuesta") %>%
-  #                            mutate(
-  #                              aspecto = aux,
-  #                              respuesta = stringr::str_replace(
-  #                                pattern = .x,
-  #                                replacement = "",
-  #                                string = respuesta),
-  #                              respuesta=forcats::fct_reorder(.f = respuesta,
-  #                                                             .x = media,
-  #                                                             .fun = max))
-  #                        })
-  #
-  # p <- diccionario %>%
-  #   filter(llaves %in% !!llaves) %>%
-  #   transmute(pregunta, aspecto = as.character(llaves))
-  #
-  # estimaciones <- estimaciones %>%
-  #   mutate(aspecto = as.character(aspecto)) %>%
-  #   left_join(p, by = c("aspecto"))
+                       pregunta), by = "aspecto") |>
+    mutate(respuesta = forcats::fct_reorder(.f = respuesta,
+                                            .x = media,
+                                            .fun = max))
   return(estimaciones)
 }
 #' Analizar partido asociado a un candidato
