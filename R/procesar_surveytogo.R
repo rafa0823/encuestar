@@ -127,15 +127,6 @@ analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos
 
   return(res)
 }
-
-analizar_frecuencia_region <- function(variable, diseno, diccionario){
-  survey::svytable(survey::make.formula(c(variable,"region")), design = diseno) %>%
-    as_tibble() %>% group_by(region) %>% mutate(pct = n/sum(n)) %>% mutate(llaves = variable) %>%
-    left_join(
-      diccionario %>% select(llaves, pregunta)
-    )
-}
-
 #' Analizar conocimiento de personajes por region
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
