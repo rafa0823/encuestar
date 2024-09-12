@@ -36,8 +36,8 @@ analizar_frecuencias <- function(diseno, pregunta){
 }
 #' Analizar frecuencias de multiples variables
 #'
-#' Calcula la media de multiples variables cuyos nombres comparten un patron inicial en comun de
-#'   un diseno muestral construido con la paqueteria `survey`
+#' Calcula la media de multiples variables cuyos nombres comparten un patron inicial en comun
+#'  de un diseno muestral construido con la paqueteria `survey`
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas
 #' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
 #' @param patron_pregunta Cadena de texto en comun (inicial) entre los nombres de las variables las variables a analizar.
@@ -63,7 +63,7 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
                                             .fun = max))
   return(estimaciones)
 }
-#' Analizar partido asociado a un candidato
+#' Calcula las estimaciones de asociacion partidista de un personaje en particular
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
 #' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
@@ -72,21 +72,18 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
 #' @param respuesta_conoce Filtro sobre el cuál se evalúa la asociación de un personaje a un partído político
 #' @param candidatos Vector de nombres cortos asociados a uno o más personajes sobre los cuáles se preguntó su asociación partidista
 #' @param corte_otro Parámetro 'prop' de la función 'fct_lump' de la paquetería 'forcats' usado para agrupar valores pequeños de partidos políticos
-#'
-#' @return
-#' @export
-#'
+#' @return Lista de donde cada elemento es un [tibble()] asociado al conocimiento y asociacion partidista
 #' @examples
-#' analizar_candidatoPartido(diseno = self%diseno, llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí", candidatos = c("era", "sasil"))
-analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro){
+#' encuestar:::analizar_candidatoPartido(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_partido = "partido_pm", llave_conocimiento = "conoce_pm", respuesta_conoce = "Sí", candidatos = c("lia", "javier"))
+analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro = 0.05){
 
   conoce <- paste(llave_conocimiento, candidatos, sep = "_")
   llaves_partido <- paste(llave_partido, candidatos,sep = "_")
 
-  conoce <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_conocimiento, aspectos = candidatos) |>
+  conoce <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_conocimiento, aspectos = candidatos) |>
     filter(respuesta == respuesta_conoce)
 
-  partido <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_partido, aspectos = candidatos) |>
+  partido <- analizar_frecuencias_aspectos(diseno = diseno, diccionario = diccionario, patron_pregunta = llave_partido, aspectos = candidatos) |>
     mutate(respuesta = as.character(respuesta),
            respuesta = forcats::fct_lump(respuesta, w = media, prop = corte_otro, other_level = "Otro")) |>
     count(respuesta, aspecto, wt = media, name = "media") %>%
@@ -112,10 +109,7 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
 #' @param llave_opinion Patrón que comparten las variables asociadas a las preguntas sobre la opinión pública hacia un personaje.
 #' @param grupo_positivo Conjunto de valores de la variable opinión tratados como positivos.
 #' @param grupo_negativo Conjunto de valores de la variable opinión tratados como negativos
-#'
 #' @return
-#' @export
-#'
 #' @examples
 #' calcular_saldoOpinion(bd, llave_opinion = "opinion", grupo_positivo = "Buena", grupo_negativo = "Mala")
 #' calcular_saldoOpinion(bd, llave_opinion = "op", grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"))
