@@ -44,4 +44,21 @@ hola <- obtener_respuesta(pool = pool,
 
 
 hola |>
+  tidyr::separate(col = ubicacion_aplicada,
+                  into = c("Latitude", "Longitude"),
+                  sep = ",",
+                  remove = FALSE) %>%
+  mutate(sexo = sample(c("F", "M"),
+                       size = nrow(.),
+                       replace = TRUE),
+         edad = sample(seq.int(from = 18, to = 99, by = 1),
+                       size = nrow(.),
+                       replace = TRUE)) |>
+  select(SbjNum = ubicacion_aplicada,
+         Latitude, Longitude,
+         sexo, edad)
+
+
+  glimpse()
+  select(ubicacion_aplicada, Latitude, Longitude)
   glimpse()
