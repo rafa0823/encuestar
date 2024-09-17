@@ -25,30 +25,22 @@ El ojetivo de la paquetería encuestar es producir los resultados de las estimac
 Sírvase de instalar la versión de producción desde [GitHub](https://github.com/) con:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+devtools::install_github(repo = "https://github.com/morant-consultores/encuestar.git", ref = "master")
 ```
 
 ## Ejemplo
 
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
+Estimación de intención de voto hacia candidatos
+```{r ejemplocanonico, echo = TRUE, warning = FALSE, fig.width = 10, fig.height = 10}
 library(encuestar)
-## basic example code
+
+encuesta_demo$Resultados$Descriptiva$barras_categorica(codigo = 'voto_pr_24',
+                                                       salto = 30) +
+  ggplot2::scale_fill_manual(values = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F",
+                                        "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6",
+                                        "No recuerda" = "gray40",
+                                        "No contesta" = "gray60",
+                                        "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405",
+                                        "Anulé mi voto" = "black"))
+
 ```
-
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

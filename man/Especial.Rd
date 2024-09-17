@@ -17,7 +17,6 @@ Esta es la clase de Especial
 \item \href{#method-Especial-candidatoPartido}{\code{Especial$candidatoPartido()}}
 \item \href{#method-Especial-candidatoSaldo}{\code{Especial$candidatoSaldo()}}
 \item \href{#method-Especial-metodo_morena}{\code{Especial$metodo_morena()}}
-\item \href{#method-Especial-tabla_votoCruzado}{\code{Especial$tabla_votoCruzado()}}
 \item \href{#method-Especial-clone}{\code{Especial$clone()}}
 }
 }
@@ -125,8 +124,11 @@ Esta es la clase de Especial
   candidatos,
   positivos,
   negativos,
+  regular = "Regular",
+  ns_nc = "Ns/Nc",
   color_positivo = "green",
-  color_negativo = "red"
+  color_negativo = "red",
+  orden_cat = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -137,25 +139,6 @@ Esta es la clase de Especial
 \subsection{Method \code{metodo_morena()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Especial$metodo_morena(personajes, atributos)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Especial-tabla_votoCruzado"></a>}}
-\if{latex}{\out{\hypertarget{method-Especial-tabla_votoCruzado}{}}}
-\subsection{Method \code{tabla_votoCruzado()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Especial$tabla_votoCruzado(
-  var1,
-  var2,
-  filtro_var2 = NULL,
-  etiquetas = c("variable 1", "variable 2"),
-  colores_var1,
-  colores_var2,
-  size_text_header = 18,
-  size_text_body = 14,
-  salto = 20
-)}\if{html}{\out{</div>}}
 }
 
 }

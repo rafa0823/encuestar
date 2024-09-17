@@ -4,7 +4,7 @@
 \alias{graficar_sankey}
 \title{Graficar sankey}
 \usage{
-graficar_sankey(bd, variables, colores, size_text_cat)
+graficar_sankey(bd, variables, colores, size_text_cat, width_text = 15)
 }
 \arguments{
 \item{bd}{Base de datos procesada con la función analizar_sankey}
@@ -14,6 +14,8 @@ graficar_sankey(bd, variables, colores, size_text_cat)
 \item{colores}{Argumento usado por scale_fill_manual y sclae_color_manual}
 
 \item{size_text_cat}{Tamaño del texto mostrado en cada nodo el sankey}
+
+\item{width_text}{Salto de linea que se aplica a las categorias mostradas}
 }
 \description{
 Graficar sankey

@@ -14,7 +14,3 @@ analizar_sankey(diseno, variables, filtro_var1, filtro_var2)
 \description{
 Analizar sankey
 }
-\examples{
-analizar_sankey(diseno = as_survey_design(diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
-analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
-}

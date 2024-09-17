@@ -248,11 +248,11 @@ graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, te
 #' @examples
 graficar_heatmap = function(bd, orden_x, orden_y, color = "blue", caption, salto_x, salto_y, size_text_x = 14, size_text_y = 16, size_text_caption = 14){
   g <-
-  bd |>
-  ggplot(aes(x = factor(respuesta, levels = orden_x),
-             y = factor(candidato, levels = orden_y),
-             fill = media,
-             label = scales::percent(media, 1.))) +
+    bd |>
+    ggplot(aes(x = factor(respuesta, levels = orden_x),
+               y = factor(candidato, levels = orden_y),
+               fill = media,
+               label = scales::percent(media, 1.))) +
     geom_tile(color="white") +
     ggfittext::geom_fit_text(contrast = T, family = "Poppins") +
     scale_fill_gradient(low = "white",
@@ -459,7 +459,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
       scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = seq(0,max(bases$conoce$media), by = .1)) +
-      tema()
+      tema_morant()
   } else{
     a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
       # geom_col(show.legend = F) +
@@ -469,7 +469,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
       scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = seq(0,max(bases$conoce$media), by = .1)) +
-      tema()
+      tema_morant()
   }
 
 
@@ -510,7 +510,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
     labs( y = "", title = "Identificación partidista", x= NULL) +
-    tema() +
+    tema_morant() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.grid = element_blank())
@@ -638,8 +638,8 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
 #' @export
 #'
 #' @examples
-graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend, limits = c(0, 0.75), text_nudge_y = 0.01, size_text = 8,
-                           size_text_x = 16, size_text_y = 14, size_text_legend = 14){
+graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend,
+                           limits = c(0, 0.75), text_nudge_y = 0.01, size_text = 8){
   g <-
     bd |>
     ggplot(aes(x = factor(var_x, levels = orden_var_x),
@@ -655,15 +655,10 @@ graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend
                              show.legend = FALSE) +
     scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = salto_x)) +
     scale_y_continuous(labels = scales::percent,
-                         limits = limits) +
+                       limits = limits) +
     scale_color_manual(values = colores_var_y,
                        labels = function(x) stringr::str_wrap(string = x, width = salto_legend)) +
-    labs(color = "") +
-    tema_morant() +
-    theme(legend.position = "bottom",
-          axis.text.x = element_text(size = size_text_x),
-          axis.text.y = element_text(size = size_text_y),
-          legend.text = element_text(size = size_text_legend))
+    labs(color = "")
   return(g)
 }
 #' Graficar conocimiento de personajes por región o estrato
@@ -863,32 +858,31 @@ graficar_morena <- function(atr, personajes, atributos){
   return(g)
 
 }
-
-#' Graficar cruce de una variable vs varias variables
-#'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
-graficar_crucePuntos = function(bd, cruce, vartype){
-  g <- bd |>
-    ggplot(aes(x=reorder(variable,mean), xend=variable,
-               color=!!rlang::sym(cruce))) +
-    geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
-                   linetype="solid", color="black", linewidth=.5) +
-    geom_vline(aes(xintercept = variable), linetype = "dashed",
-               color = "gray60", size=.5) +
-    geom_point(aes(y=mean),
-               shape=19,  size=6) +
-    scale_y_continuous(labels=scales::percent) +
-    coord_flip()
-  return(g)
-}
+#' #' Graficar cruce de una variable vs varias variables
+#' #'
+#' #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' #' @param cruce Variable principal por la cual se hace el cruce
+#' #' @param vartype
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' #' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
+#' graficar_crucePuntos = function(bd, cruce, vartype){
+#'   g <- bd |>
+#'     ggplot(aes(x=reorder(variable,mean), xend=variable,
+#'                color=!!rlang::sym(cruce))) +
+#'     geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
+#'                    linetype="solid", color="black", linewidth=.5) +
+#'     geom_vline(aes(xintercept = variable), linetype = "dashed",
+#'                color = "gray60", size=.5) +
+#'     geom_point(aes(y=mean),
+#'                shape=19,  size = 6) +
+#'     scale_y_continuous(labels=scales::percent) +
+#'     coord_flip()
+#'   return(g)
+#' }
 #' Graficar cruce de una variable vs varias variables pero filtradas
 #'
 #' @param orden_variablePrincipal Factor de la variable principal
@@ -898,135 +892,146 @@ graficar_crucePuntos = function(bd, cruce, vartype){
 #' @export
 #'
 #' @examples
-graficar_cruce_puntosMultiples = function(bd, orden_variablePrincipal) {
-  bd |>
-    ggplot(aes(x = factor(variablePrincipal, levels = orden_variablePrincipal), y = mean,
-               color = tema, group = variablePrincipal)) +
-    geom_line(color="#a2d2ff",linewidth=4.5,alpha=0.5) +
-    geom_point(size=7) +
-    scale_y_continuous(labels=scales::percent) +
+graficar_lolipop_diferencias = function(bd, orden_variablePrincipal, colores_variables_secundarias,
+                                        nudge_x = 0.05, size_geom_text = 6,
+                                        caption, wrap_y, wrap_caption, limits) {
+  g <-
+    bd |>
+    ggplot(aes(x = factor(variable_principal, levels = orden_variablePrincipal),
+               y = mean,
+               color = tema,
+               group = variable_principal)) +
+    geom_line(color = "#a2d2ff", linewidth = 4.5, alpha = 0.5) +
+    geom_point(size = 7) +
+    geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0)),
+              nudge_x = nudge_x,
+              size = size_geom_text) +
     coord_flip() +
-    labs(color = "") +
-    theme(legend.title =element_blank(),
-          axis.text = element_text(size=15),
-          legend.text = element_text(size=14))
-}
-#' Graficar cruce de una variable vs otra con opción a filtro
-#'
-#' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
-#' @param var1 Variable principal por la cual se hace el cruce
-#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
-#' @param vartype
-#' @param line_rich Argumento de la función 'geom_textline'
-#' @param line_linewidth Argumento de la función 'geom_textline'
-#' @param line_hjust Argumento de la función 'geom_textline'
-#' @param line_vjust Argumento de la función 'geom_textline'
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
-graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F, line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
-  g <- bd |>
-    ggplot(aes(x=!!rlang::sym(var1),
-               y=coef)) +
-    geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
-                                    group=!!rlang::sym(var2_filtro),
-                                    label=!!rlang::sym(var2_filtro)),
-                                linewidth = line_linewidth, hjust = line_hjust,
-                                vjust = line_vjust, rich = line_rich,
-                                size=6, family = "Poppins") +
-    scale_y_continuous(labels=scales::percent) +
-    labs(color = NULL)
-
-  if(vartype == "cv"){
-    g <- g +
-      geom_text(aes(label=pres),
-                color="black", size=6, hjust=-.1)
-  }
+    labs(color = "",
+         caption = stringr::str_wrap(string = caption, width = wrap_caption)) +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = wrap_y)) +
+    scale_y_continuous(labels = scales::percent,
+                       limits = limits) +
+    scale_color_manual(values = colores_variables_secundarias)
   return(g)
 }
-#' Graficar cruce de una variable vs múltiples variables
+#' #' Graficar cruce de una variable vs otra con opción a filtro
+#' #'
+#' #' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
+#' #' @param var1 Variable principal por la cual se hace el cruce
+#' #' @param var2_filtro Variable secundaria para hacer análisis con la primaria
+#' #' @param vartype
+#' #' @param line_rich Argumento de la función 'geom_textline'
+#' #' @param line_linewidth Argumento de la función 'geom_textline'
+#' #' @param line_hjust Argumento de la función 'geom_textline'
+#' #' @param line_vjust Argumento de la función 'geom_textline'
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' #' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
+#' graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F,
+#'                                         line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
+#'   g <- bd |>
+#'     ggplot(aes(x=!!rlang::sym(var1),
+#'                y=coef)) +
+#'     geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
+#'                                     group=!!rlang::sym(var2_filtro),
+#'                                     label=!!rlang::sym(var2_filtro)),
+#'                                 linewidth = line_linewidth, hjust = line_hjust,
+#'                                 vjust = line_vjust, rich = line_rich,
+#'                                 size=6, family = "Poppins") +
+#'     scale_y_continuous(labels=scales::percent) +
+#'     labs(color = NULL)
 #'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#' @param line_rich Argumento de la función 'geom_textline'
-#' @param line_linewidth Argumento de la función 'geom_textline'
-#' @param line_hjust Argumento de la función 'geom_textline'
-#' @param line_vjust Argumento de la función 'geom_textline'
+#'   if(vartype == "cv"){
+#'     g <- g +
+#'       geom_text(aes(label=pres),
+#'                 color="black", size=6, hjust=-.1)
+#'   }
+#'   return(g)
+#' }
+#' #' Graficar cruce de una variable vs múltiples variables
+#' #'
+#' #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' #' @param cruce Variable principal por la cual se hace el cruce
+#' #' @param vartype
+#' #' @param line_rich Argumento de la función 'geom_textline'
+#' #' @param line_linewidth Argumento de la función 'geom_textline'
+#' #' @param line_hjust Argumento de la función 'geom_textline'
+#' #' @param line_vjust Argumento de la función 'geom_textline'
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
+#'   g <- bd |>
+#'     ggplot(aes(x=!!rlang::sym(cruce),
+#'                y=mean)) +
+#'     geomtextpath::geom_textline(aes(color=(variable),
+#'                                     group=(variable),
+#'                                     label=(variable)),
+#'                                 linewidth=line_linewidth, hjust = line_hjust,
+#'                                 vjust = line_vjust, rich = line_rich,
+#'                                 size = 6, family = "Poppins") +
+#'     scale_y_continuous(labels=scales::percent) +
+#'     labs(color = NULL)
 #'
-#' @return
-#' @export
+#'   if(vartype == "cv"){
+#'     g <- g +
+#'       geom_text(aes(label=pres),
+#'                 color="black", size=6, hjust=-.1)
+#'   }
+#'   return(g)
+#' }
+#' #' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
+#' #'
+#' #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' #' @param cruce Variable principal por la cual se hace el cruce
+#' #' @param vartype
+#' #' @param color Color usado en el parámetro 'fill' de la función 'aes' de ggplot2
+#' #' @param filter Filtro aplicable al parámetro 'cruce'
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 #'
-#' @examples
-graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
-  g <- bd |>
-    ggplot(aes(x=!!rlang::sym(cruce),
-               y=mean)) +
-    geomtextpath::geom_textline(aes(color=(variable),
-                                    group=(variable),
-                                    label=(variable)),
-                                linewidth=line_linewidth, hjust = line_hjust,
-                                vjust = line_vjust, rich = line_rich,
-                                size = 6, family = "Poppins") +
-    scale_y_continuous(labels=scales::percent) +
-    labs(color = NULL)
-
-  if(vartype == "cv"){
-    g <- g +
-      geom_text(aes(label=pres),
-                color="black", size=6, hjust=-.1)
-  }
-  return(g)
-}
-#' Graficar cruce de una variable vs múltiples variables unando gráficas de barras
+#'   if(!is.null(filter)) {
 #'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#' @param color Color usado en el parámetro 'fill' de la función 'aes' de ggplot2
-#' @param filter Filtro aplicable al parámetro 'cruce'
+#'     bd <- bd |>
+#'       filter(!(!!rlang::sym(cruce) %in% filter))
 #'
-#' @return
-#' @export
+#'   }
 #'
-#' @examples
-graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
-
-  if(!is.null(filter)) {
-
-    bd <- bd |>
-      filter(!(!!rlang::sym(cruce) %in% filter))
-
-  }
-
-  g <- bd |>
-    ggplot(aes(x=reorder(variable, mean),
-               y=mean)) +
-    ggchicklet::geom_chicklet(width = 0.6,alpha=0.9,
-                              fill=color) +
-    scale_y_continuous(labels = scales::percent) +
-    coord_flip() +
-    facet_wrap(rlang::as_label(rlang::sym(cruce)))
-
-  if(vartype == "cv"){
-    g <- g +
-      ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
-                               color="white",
-                               family = "Poppins")
-
-
-  }else{
-    g <- g +
-      ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
-                               color="white",
-                               family = "Poppins")
-
-  }
-  return(g)
-}
+#'   g <- bd |>
+#'     ggplot(aes(x=reorder(variable, mean),
+#'                y=mean)) +
+#'     ggchicklet::geom_chicklet(width = 0.6,alpha=0.9,
+#'                               fill=color) +
+#'     scale_y_continuous(labels = scales::percent) +
+#'     coord_flip() +
+#'     facet_wrap(rlang::as_label(rlang::sym(cruce)))
+#'
+#'   if(vartype == "cv"){
+#'     g <- g +
+#'       ggfittext::geom_bar_text(aes(label = paste0(scales::percent(mean, accuracy=1), pres)),
+#'                                color="white",
+#'                                family = "Poppins")
+#'
+#'
+#'   }else{
+#'     g <- g +
+#'       ggfittext::geom_bar_text(aes(label = scales::percent(mean, accuracy=1)),
+#'                                color="white",
+#'                                family = "Poppins")
+#'
+#'   }
+#'   return(g)
+#' }
 #' Graficar cruce de una variable vs otra con opción a filtro
 #'
 #' @param bd Base de datos producto de la función 'analizar_cruceBrechas'
@@ -1039,35 +1044,37 @@ graficar_cruce_barrasMultiples = function(bd, cruce, vartype, color, filter){
 #' @export
 #'
 #' @examples
-graficar_cruce_bloques <-  function(bd, cruce, variable, vartype, filter, linea_grosor, linea_color){
-
+graficar_cruce_bloques <-  function(bd, cruce, variable, colores_variable_secundaria, vartype, filter, linea_grosor, linea_color){
   if(!is.null(filter)) {
-
-    bd <- bd |>
+    bd <-
+      bd |>
       filter(!(!!rlang::sym(cruce) %in% filter))
-
   }
-
-  g <- bd |>
+  g <-
+    bd |>
     ggplot(aes(area=coef, fill=!!rlang::sym(variable), subgroup = coef)) +
     treemapify::geom_treemap(alpha=0.7) +
     treemapify::geom_treemap_subgroup_border(aes(), size = linea_grosor, color = linea_color) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
   if(vartype == "cv"){
-
-    g <- g +
+    g <-
+      g +
       treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
                                     place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                                     color="white",
                                     family = "Poppins")
   }else{
-    g <- g +
+    g <-
+      g +
       treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
                                     place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
                                     color="white",
                                     family = "Poppins")
   }
+  g <-
+    g +
+    scale_fill_manual(values = colores_variable_secundaria)
   return(g)
 }
 #' Graficar lollipop
@@ -1180,6 +1187,7 @@ graficar_nube_palabras = function(bd, max_size) {
 #'
 #' @examples
 formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, etiquetas, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
+  # browser()
 
   tot_opiniones <-
     length(orden_opinion)
@@ -1193,9 +1201,9 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
   if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
     aux <-
       aux %>%
-      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones, 1)) %>%
+      flextable::add_header_row(top = TRUE, values = c("Candidato", "Opinión", "Conocimiento"), colwidths = c(1, tot_opiniones + 1, 1)) %>%
       flextable::merge_at(i = c(1, 2), j = c(1), part = "header") |>
-      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones), part = "header")
+      flextable::merge_at(i = c(1, 2), j = c(2 + tot_opiniones + 1), part = "header")
   } else {
     aux <-
       aux %>%
@@ -1205,12 +1213,12 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
 
   aux <-
     aux %>%
-    flextable::border_outer(part = "header", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(border = fp_border(color = "black", width = 1), part = "header") |>
+    flextable::border_outer(part = "header", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(border = officer::fp_border(color = "black", width = 1), part = "header") |>
     flextable::align(i = 1, j = 2, align = "center", part = "header") |>
-    flextable::border_inner_h(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_inner_v(part = "body", border = fp_border(color = "black", width = 1)) |>
-    flextable::border_outer(part = "body", border = fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_h(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_inner_v(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
+    flextable::border_outer(part = "body", border = officer::fp_border(color = "black", width = 1)) |>
     flextable::fontsize(size = size_text_header, part = "header") |>
     flextable::fontsize(size = size_text_body, part = "body") |>
     flextable::font(fontname = "Poppins", part = "all") |>

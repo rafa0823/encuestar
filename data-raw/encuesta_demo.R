@@ -2,25 +2,33 @@
 # Preambulo -----------------------------------------------------------------------------------
 
 library(dplyr)
-library(encuestar)
+# Cargar la version de desarrollo de la librería encuestar que deberá estar instalada en sistema
+# library(encuestar)
+devtools::load_all()
 
 # Insumos -------------------------------------------------------------------------------------
 
+#+ Se carga el archivo shp con la cartografia de la zona de la encuesta
 shp_hermosillo_agosto <- readr::read_rds("./data-raw/shp.rda")
 
+#+ Se carga el diseno de la encuesta generado con la paqueteria muestreaR
 diseno_hermosillo_agosto <- readr::read_rds("./data-raw/diseno.rda")
 
+#+ Se carga el diccionario de variables en la encuesta
 diccionario_hermosillo_agosto <-
-  readxl::read_xlsx(path = "./data-raw/dicc_enc_hermosillo_agosto.xlsx") |>
+  readxl::read_xlsx(path = "./data-raw/diccionario_enc_demo.xlsx") |> #dicc_enc_hermosillo_agosto.xlsx
   dplyr::filter(!grepl(pattern = "Registro de ubicación|Filtros", x = bloque))
 
 # data-raw ------------------------------------------------------------------------------------
 
+#+ Se carga la base de datos de la encuesta en curso
 bd_respuestas_hermosillo_agosto <-
-  openxlsx2::read_xlsx(file = "./data-raw/respuestas_campo_hermosillo_agosto.xlsx", na.strings = "-1") |>
+  openxlsx2::read_xlsx(file = "./data-raw/bd_demo.xlsx", na.strings = "-1") |> #respuestas_campo_hermosillo_agosto.xlsx
   as_tibble() |>
+  #+ Se eliminan variables de prueba
   dplyr::filter(!Srvyr %in% c("test", "Katheryn Hernandez")) |>
   dplyr::mutate(SECCION = as.character(as.numeric(cluster))) |>
+  #+ Se crean las variables para definir grupos etareos
   dplyr::mutate(generacion = case_when(edad >= 18 & edad <= 25 ~ "Generación Z (18 a 25 años)",
                                        edad >= 26 & edad <= 40 ~ "Millenials (26 a 40 años)",
                                        edad >= 41 & edad <= 55 ~ "Generación X (41 a 55 años)",
@@ -29,6 +37,7 @@ bd_respuestas_hermosillo_agosto <-
                                                            "Millenials (26 a 40 años)",
                                                            "Generación X (41 a 55 años)",
                                                            "Baby Boomers  (56 años o más)"))) |>
+  #+ Se crean las variables para definir nivel de estudios
   dplyr::mutate(grado2 = case_when(grepl("Primaria", estudios) ~ "Educación básica",
                                    grepl("Secundaria", estudios) ~ "Educación básica",
                                    estudios == "No estudió" ~ "Educación básica",
@@ -50,6 +59,8 @@ bd_respuestas_hermosillo_agosto <-
                                            jefe_grado == "Diplomado o maestría" ~ 85,
                                            jefe_grado == "Diplomado o maestría" ~ 85,
                                            jefe_grado == "Doctorado" ~ 85, .default = NA),
+                #+ Se crean las variables para definir nivel socieconómico segun el estandar AMAI 2022
+                #+ Revisar: https://amai.org/descargas/Nota_Metodologico_NSE_2022_v5.pdf
                 amai_cantidadwc = case_when(cantidad_wc == "0" ~ 0,
                                             cantidad_wc == "1" ~ 24,
                                             cantidad_wc == "2 o más" ~ 47,
@@ -82,18 +93,10 @@ bd_respuestas_hermosillo_agosto <-
                   (suma_amai>=141 & suma_amai<=167)~"C",
                   (suma_amai>=168 & suma_amai<=201)~"C_mas",
                   suma_amai>=202~"A_B",.default = NA)) |>
-  dplyr::rename(otro_problema_principal = Q_39_S,
-                otro_problema_secundario = Q_40_S,
-                otro_problema_inseguridad = Q_41_S,
-                otro_medios_com = S_Q_42_14,
-                otro_voto_pm_21 = Q_54_S,
-                otro_motivacion_voto_pm_24 = S_Q_56_11,
-                otro_voto_pm_24 = Q_57_S,
-                otro_influencia_voto_pm_24 = Q_58_S,
-                otro_influencia_voto_pr_24 = Q_61_S,
-                otro_noparticipacion_24 = S_Q_64_11) |>
+  #+ Se Hacen correcciones en alguna de las varibles, en caso de ser detectado
   mutate(voto_pr_24 = gsub('Xóchilt','Xóchitl', voto_pr_24))
 
+#+ Se definen lo intentos efectivos, que son las enetrevistas que se realizaron correctamente y las que se rechazaron
 intentos_efectivos <-
   bd_respuestas_hermosillo_agosto |>
   select(SbjNum, num_range("INT", 1:20)) |>
@@ -103,12 +106,17 @@ intentos_efectivos <-
   mutate(intento_efectivo = gsub(pattern = "INT", replacement = "", x = variable)) |>
   select(SbjNum, intento_efectivo)
 
+# GEOLOCALIZACIONES EFECTIVAS
+#+ Se cofirma que las localizaciones de las entrevistas consideradas como efectivas
 geolocalizacion_efectiva <-
   purrr::pmap_df(.l = list(ids = intentos_efectivos %>% pull(SbjNum),
                            intento_efectivo = intentos_efectivos %>% pull(intento_efectivo)),
+                 #+ Se ocupa la funcion de la libreria encuestar "obtener_ubicacionEfectiva_surveyToGo" para procesar las ubicaciones registradas para cada entrecista
                  .f = ~ encuestar::obtener_ubicacionEfectiva_surveyToGo(bd_respuestas = bd_respuestas_hermosillo_agosto,
                                                                         id = ..1,
                                                                         intento_efectivo = ..2))
+
+#+ Se agregan los resultados de geolocalizacion y numero de intentos de entrevista a las bases
 bd_respuestas_hermosillo_agosto <-
   bd_respuestas_hermosillo_agosto |>
   left_join(geolocalizacion_efectiva, by = "SbjNum") |>
@@ -116,9 +124,12 @@ bd_respuestas_hermosillo_agosto <-
          Longitude = GPS_INT_LO)
 
 # BASE DE CORRECCIONES
+#+ En caso de que se necesiten hacer correcciones en alguna varible de la encuesta,
+#+ se carga la base de datos con las correcciones correspondientes
 bd_correcciones_hermosillo_agosto <-
   readxl::read_excel(path = "data-raw/bd_correcciones_hermosillo_agosto.xlsx") |>
   janitor::clean_names() |>
+  #+ Se le da formato a la base de correcciones
   select(SbjNum = municipio,
          codigo_pregunta = codigo_survey,
          capturada = capturada,
@@ -133,12 +144,40 @@ bd_correcciones_hermosillo_agosto <-
          codigo_pregunta = dplyr::if_else(condition = grepl(pattern = "voto_pr", x = codigo_pregunta),
                                           true = "influencia_voto_pr_24",
                                           false = codigo_pregunta)) |>
-  mutate(correccion = gsub('Las caracterísitcas del candidato','Las características del candidato', correccion))
+  mutate(correccion = gsub('Las caracterísitcas del candidato','Las características del candidato', correccion))|>
+  filter(codigo_pregunta=='noparticipacion_24_O1') |>
+  rename(llave = codigo_pregunta)
+
+
+# BASE DE categorias
+#+ En caso de existir preguntas abiertas categorizadas,
+#+ se carga la base con las categorizaciones
+categorias_path <- './data-raw/bd_demo_categorias.xlsx'
+categorias <- readxl::read_xlsx(categorias_path)
+
+#+ Se agregan los resultados de las categorias a la base de datos
+bd_respuestas_hermosillo_agosto <-
+  bd_respuestas_hermosillo_agosto |>
+  left_join(categorias,
+            by = 'SbjNum')
+
+# Pegar datos necesarios para grafica de candidato opinion
+bd_respuestasParciales_alvaroObregon_mayo <-
+  readxl::read_xlsx(path = "./data-raw/respuestas_campo_avlaroobregon_mayo_2024.xlsx", na = "-1") |>
+  select(starts_with("conoce_pm"),
+         starts_with("partido_pm")) |>
+  head(1230)
+
+bd_respuestas_hermosillo_agosto <-
+  bd_respuestas_hermosillo_agosto |>
+  bind_cols(bd_respuestasParciales_alvaroObregon_mayo)
 
 # BASE DE ELIMINADAS
+#+ Se agrega la lista de encuestas eliminadas por auditoria
 eliminadas <-
   readxl::read_excel(path = "./data-raw/bd_eliminadas_hermosillo_agosto.xlsx")
 
+#+ En caso de existir varibales que no se vayan a utilizar, se agrega la lista de variables que no se vayan a considerar
 # Omitir variables
 quitar <- c()
 
@@ -146,7 +185,7 @@ quitar <- c()
 mantener <- ""
 
 # Clase -------------------------------------------------------------------
-
+#+ Se crea la clase encuesta, que contiene la base de datos, asi como el diseno muestral, y la app de auditoria
 encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
                               # n_simulaciones = 200,
                               quitar_vars = quitar,
@@ -164,4 +203,5 @@ encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
                               auditar = c("")
 )
 
-usethis::use_data(encuesta_demo, encuesta_demo, internal = TRUE, overwrite = TRUE)
+# usethis::use_data(encuesta_demo, encuesta_demo, internal = TRUE, overwrite = TRUE)
+usethis::use_data(encuesta_demo)

@@ -132,3 +132,17 @@ diccionario_cuestionario <- function(doc, patron){
 
   return(diccionario)
 }
+#' Title
+#'
+#' @param diccionario
+#'
+#' @return
+#' @export
+#'
+#' @examples
+comprobar_unicidadLlaves = function(diccionario){
+  diccionario |>
+    count(llaves) |>
+    filter(n > 1) |>
+    nrow()
+}
