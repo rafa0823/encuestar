@@ -1164,13 +1164,13 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                }
 
-                               encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
-                                                                         diccionario = self$diccionario,
-                                                                         patron_pregunta = {{patron}},
-                                                                         aspectos = aspectos) %>%
+                               analizar_frecuencias_aspectos(diseno = diseno,
+                                                             diccionario = self$diccionario,
+                                                             patron_pregunta = {{patron}},
+                                                             aspectos = aspectos) %>%
                                  left_join(self$diccionario %>%
                                              select(aspecto = llaves, tema), by = "aspecto") |>
-                                 encuestar:::graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
+                                 graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
                                  self$tema
 
 
@@ -1547,21 +1547,21 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          bd_votoCruzado <-
                            calcular_tabla_votoCruzado(diseno = diseno,
-                                                                  var1 = var1,
-                                                                  var2 = var2,
-                                                                  filtro_var2 = filtro_var2)
+                                                      var1 = var1,
+                                                      var2 = var2,
+                                                      filtro_var2 = filtro_var2)
 
                          tabla_salida <-
                            formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
-                                                                   var1 = var1,
-                                                                   var2 = var2,
-                                                                   filtro_var2 = filtro_var2,
-                                                                   etiquetas = etiquetas,
-                                                                   colores_var1 = colores_var1,
-                                                                   colores_var2 = colores_var2,
-                                                                   size_text_header = size_text_header,
-                                                                   size_text_body = size_text_body,
-                                                                   salto = salto)
+                                                       var1 = var1,
+                                                       var2 = var2,
+                                                       filtro_var2 = filtro_var2,
+                                                       etiquetas = etiquetas,
+                                                       colores_var1 = colores_var1,
+                                                       colores_var2 = colores_var2,
+                                                       size_text_header = size_text_header,
+                                                       size_text_body = size_text_body,
+                                                       salto = salto)
 
                          return(tabla_salida)
                        }

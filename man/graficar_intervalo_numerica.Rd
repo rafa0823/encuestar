@@ -2,11 +2,11 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_intervalo_numerica}
 \alias{graficar_intervalo_numerica}
-\title{Graficar intervalos numérica}
+\title{Graficar intervalos}
 \usage{
 graficar_intervalo_numerica(
   bd,
-  escala = c(0, 1),
+  escala = c(0, 10),
   point_size = 1,
   text_point_size = 8
 )
@@ -14,13 +14,19 @@ graficar_intervalo_numerica(
 \arguments{
 \item{bd}{Base de datos con una variable categórica (respuesta) y una numérica (media).}
 
+\item{escala}{Vector ordenado numerico de valores minimos y maximos asociados a la variable}
+
 \item{point_size}{Tamaño del punto que indica el promedio de la estimación.}
 
 \item{text_point_size}{Tamaño del texto que acompaña el valor de la estimación}
 }
+\value{
+Objeto tipo \link{ggplot}
+}
 \description{
-Graficar intervalos numérica
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica de puntos \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}}
+con intervalos asociados a los intervalos de confianza
 }
 \examples{
-graficar_intervalo_numerica(bd = bd, point_size = 2, text_point_size = 14)
+encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "afirmacion", aspectos = c("seguridad", "economia", "pais", "hermosillo")) |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::select(aspecto = llaves, tema), by = "aspecto") |> encuestar:::graficar_intervalo_numerica(escala = c(1, 5), point_size = 1, text_point_size = 14)
 }

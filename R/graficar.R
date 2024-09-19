@@ -166,28 +166,44 @@ sustituir <- function(bd, patron, reemplazo = ""){
   bd %>% mutate(respuesta = gsub(pattern = patron, replacement = reemplazo,
                                  x = respuesta, fixed = T))
 }
-#' Graficar intervalos numérica
+#' Graficar intervalos
+#'
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica de puntos [ggplot2::geom_point()]
+#'  con intervalos asociados a los intervalos de confianza
 #'
 #' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
 #' @param point_size Tamaño del punto que indica el promedio de la estimación.
 #' @param text_point_size Tamaño del texto que acompaña el valor de la estimación
+#' @param escala Vector ordenado numerico de valores minimos y maximos asociados a la variable
 #'
-#' @return
+#' @return Objeto tipo [ggplot]
 #'
 #' @examples
-#' graficar_intervalo_numerica(bd = bd, point_size = 2, text_point_size = 14)
-graficar_intervalo_numerica <- function(bd, escala = c(0, 1), point_size = 1, text_point_size = 8){
-
-  bd %>%
-    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema,40), media))) +
-    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size) +
+#' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "afirmacion", aspectos = c("seguridad", "economia", "pais", "hermosillo")) |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::select(aspecto = llaves, tema), by = "aspecto") |> encuestar:::graficar_intervalo_numerica(escala = c(1, 5), point_size = 1, text_point_size = 14)
+graficar_intervalo_numerica <- function(bd, escala = c(0, 10), point_size = 1, text_point_size = 8){
+  g <-
+    bd %>%
+    ggplot(aes(y = media, x = stats::reorder(str_wrap(tema, 40), media))) +
+    geom_pointrange(aes(ymin = inf, ymax = sup), color = "#850D2D", size = point_size)
+  if(escala[2] == 1) {
+    g <-
+      g +
+      geom_text(aes(label = scales::percent(x = media, accuracy = 1.0)),
+                nudge_x = .3, size = text_point_size)
+  } else {
+    g <-
+      g +
+      geom_text(aes(label = round(media, digits = 2)),
+                nudge_x = .3, size = text_point_size)
+  }
+  g <-
+    g +
     coord_flip() +
     labs(title = NULL,
          x = NULL,
-         y = "Promedio")+
-    geom_text(aes(label = round(media,digits = 2)), nudge_x = .3, size = text_point_size) +
+         y = NULL) +
     scale_y_continuous(limits = c(escala[1], escala[2]))
-
+  return(g)
 }
 #' Title
 #'
