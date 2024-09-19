@@ -135,7 +135,7 @@ encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta
 
 ### Gráfica Barras aspectos
 
-Esta función grafica alguna categoría seleccionada correspondientes a varias variables contenidas en la base de datos. Las variables a graficar deben tener el mismo prefijo en su nombre (llave), pero diferente nombre en su sufijo para poderlas identificar. Para asignar los nombres de cada categoría en la gráfica se apoya del diccionario en el apartado de "tema".
+Esta función grafica alguna categoría seleccionada correspondientes a varias variables contenidas en la base de datos. Las variables a graficar deben tener el mismo prefijo en su nombre (llave), pero diferente nombre en su sufijo para poderlas identificar.Este grupo de sufijos serán conocidos como **aspectos**, y el prefijo único será conocido como **patrón inicial**. Para asignar los nombres de cada categoría en la gráfica se apoya del diccionario en el apartado de "tema".
 
 ```{r dicc_ejemp_1,warning=FALSE,message=FALSE,echo = FALSE}
 
@@ -384,7 +384,7 @@ encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta
 
 ### Gráfica Intervalo numérica
 
-Esta función genera una gráfica que muestra el promedio de diferentes variables con valores de tipo numérico. Las variables a graficar deben tener el mismo prefijo en su nombre (llave), pero diferente nombre en su sufijo para poderlas identificar. Para asignar los nombres de cada categoría en la gráfica se apoya del diccionario en el apartado de "tema".
+Esta función genera una gráfica que muestra el promedio de diferentes variables con valores de tipo numérico. Las variables a graficar deben tener el mismo prefijo en su nombre (llave), pero diferente nombre en su sufijo para poderlas identificar. Este grupo de sufijos serán conocidos como **aspectos**, y el prefijo único será conocido como **patrón**. Para asignar los nombres de cada categoría en la gráfica se apoya del diccionario en el apartado de "tema".
 
 ```{r dicc_ejemp_3,warning=FALSE,message=FALSE,echo = FALSE}
 
