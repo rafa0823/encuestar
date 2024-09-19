@@ -11,7 +11,7 @@ analizar_frecuencias_aspectos(diseno, diccionario, patron_pregunta, aspectos)
 
 \item{diccionario}{Cuestionario de la encuesta en formato de procesamiento requerido}
 
-\item{patron_pregunta}{Cadena de texto en comun (inicial) entre los nombres de las variables las variables a analizar.}
+\item{patron_pregunta}{Cadena de texto en comun (inicial) entre los nombres de las variables a analizar.}
 
 \item{aspectos}{Vector de tipo cadena de texto (final) que diferencia las variables a analizar.
 Separada de patron_pregunta por un guion bajo.}

@@ -2,32 +2,7 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_lolipop_diferencias}
 \alias{graficar_lolipop_diferencias}
-\title{#' Graficar cruce de una variable vs varias variables
-#'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
-graficar_crucePuntos = function(bd, cruce, vartype){
-g <- bd |>
-ggplot(aes(x=reorder(variable,mean), xend=variable,
-color=!!rlang::sym(cruce))) +
-geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
-linetype="solid", color="black", linewidth=.5) +
-geom_vline(aes(xintercept = variable), linetype = "dashed",
-color = "gray60", size=.5) +
-geom_point(aes(y=mean),
-shape=19,  size = 6) +
-scale_y_continuous(labels=scales::percent) +
-coord_flip()
-return(g)
-}
-Graficar cruce de una variable vs varias variables pero filtradas}
+\title{Graficar cruce de una variable vs varias variables pero filtradas}
 \usage{
 graficar_lolipop_diferencias(
   bd,
@@ -47,30 +22,5 @@ graficar_lolipop_diferencias(
 \item{orden_variablePrincipal}{Factor de la variable principal}
 }
 \description{
-#' Graficar cruce de una variable vs varias variables
-#'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
-graficar_crucePuntos = function(bd, cruce, vartype){
-g <- bd |>
-ggplot(aes(x=reorder(variable,mean), xend=variable,
-color=!!rlang::sym(cruce))) +
-geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
-linetype="solid", color="black", linewidth=.5) +
-geom_vline(aes(xintercept = variable), linetype = "dashed",
-color = "gray60", size=.5) +
-geom_point(aes(y=mean),
-shape=19,  size = 6) +
-scale_y_continuous(labels=scales::percent) +
-coord_flip()
-return(g)
-}
 Graficar cruce de una variable vs varias variables pero filtradas
 }

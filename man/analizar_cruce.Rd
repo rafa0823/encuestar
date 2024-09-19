@@ -2,15 +2,27 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_cruce}
 \alias{analizar_cruce}
-\title{Analizar cruce entre dos variables}
+\title{Analizar cruce entre dos variables
+de un diseno muestral construido con la paqueteria \code{survey}}
 \usage{
 analizar_cruce(diseno, variable_principal, variable_secundaria, vartype)
 }
 \arguments{
-\item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
+\item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas}
 
-\item{variable_secundaria}{}
+\item{variable_principal}{Variable principal que agrupa los resultados de las estimaciones}
+
+\item{variable_secundaria}{Variable secundaria}
+
+\item{vartype}{Parametro de \code{\link[srvyr:survey_mean]{srvyr::survey_mean()}} que reporta la variabilidad de la estimacion}
+}
+\value{
+\code{\link[=tibble]{tibble()}} con las estimaciones de frecuencia para cada valor unico entre las variables
 }
 \description{
 Analizar cruce entre dos variables
+de un diseno muestral construido con la paqueteria \code{survey}
+}
+\examples{
+encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno,  variable_principal = "sexo",  variable_secundaria = "voto_pr_24", vartype = "cv")
 }
