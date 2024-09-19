@@ -128,7 +128,8 @@ Esta es la clase de Especial
   ns_nc = "Ns/Nc",
   color_positivo = "green",
   color_negativo = "red",
-  orden_cat = NULL
+  orden_cat = NULL,
+  caption_opinion
 )}\if{html}{\out{</div>}}
 }
 

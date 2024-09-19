@@ -1,35 +1,37 @@
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("grupo"))
-#' Title
+#' Tema transparente para usarse en objetos tipo [ggplot] que vayan a ser exportados
 #'
-#' @param size_axis_text_x
-#' @param size_axis_text_y
+#' Tema utilizado para agregar transparencia al layout del grafico generado.
 #'
-#' @return
+#' @return Tema de [ggplot2] que agrega transparencia a los siguientes elementos del grafico:
+#'  legend.backgroud, panel.background, plot.background, strip.background
 #' @export
-#'
 #' @examples
-tema_transparente = function(){
-  theme(legend.background = element_rect(color = "transparent", fill = "transparent"),
-        panel.background = element_rect(color = "transparent", fill = "transparent"),
-        plot.background = element_rect(color = "transparent", fill = "transparent"),
-        strip.background = element_rect(color = "transparent", fill = "transparent"))
+#' encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip()
+#' encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip() + encuestar::tema_transparente()
+tema_transparente <- function(){
+  ggplot2::theme(legend.background = element_rect(color = "transparent", fill = "transparent"),
+                 panel.background = element_rect(color = "transparent", fill = "transparent"),
+                 plot.background = element_rect(color = "transparent", fill = "transparent"),
+                 strip.background = element_rect(color = "transparent", fill = "transparent"))
 }
-#' Title
+#' Tema usado como identidad grafica en los entregables de Morant
 #'
-#' @param base_size
-#' @param base_family
-#' @param fondo
+#' Tema de [ggplot2] que contiene el formato de entregables para objetos [ggplot2]
 #'
-#' @return
+#' @param base_family Parametro de [ggthemes::theme_foundation()] usado como fuente tipografica
+#'
+#' @return Tema de [ggplot2]
 #' @export
-#'
 #' @examples
-tema_morant = function(base_size = 15, base_family = "Poppins", fondo = "#FFFFFF") {
-  (ggthemes::theme_foundation(base_size = base_size,
+#' encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip()
+#' encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip() + encuestar::tema_morant()
+tema_morant <- function(base_family = "Poppins") {
+  (ggthemes::theme_foundation(base_size = 15,
                               base_family = base_family) +
      theme(
        line = element_line(colour = "#4C5B61"),
-       rect = element_rect(fill = fondo, linetype = 0, colour = NA),
+       rect = element_rect(fill = "#FFFFFF", linetype = 0, colour = NA),
        text = element_text(color = "#2C423F"),
        axis.title = element_blank(),
        axis.text = element_text(),
@@ -50,22 +52,25 @@ tema_morant = function(base_size = 15, base_family = "Poppins", fondo = "#FFFFFF
        plot.caption = element_text(size = 14),
        plot.margin = unit(c(1, 1, 1, 1), "lines"),
        strip.text = element_text(colour ="#2C423F")
-     ) +
+       ) +
      tema_transparente()
   )
 }
-#' Gráfica de barras horizontales ordenadas
+#' Gráfica de barras horizontales
+#'
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica de barras
+#'  ordenadas de acuerdo al criterio indicado.
 #'
 #' @param bd Base de datos con una variable categórica (respuesta) y una numérica (media).
 #' @param salto Número entero, se aplica un stringr::str_wrap a la variable categórica.
 #' @param porcentajes_fuera Si es T, las labels de los porcentajes aparecen fuera (o sobre) las barras.
 #' @param desplazar_porcentajes Si porcentajes_fuera es T, este parametro ajusta las etiquetas de texto.
 #'
-#' @return
+#' @return Objeto tipo [ggplot]
 #'
 #' @examples
-#' graficar_barras(bd, salto = 13)
-#' graficar_barras(bd, porcentajes_fuera = T, desplazar_porcentajes = 0.1)
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "voto_pm_24") |> encuestar:::graficar_barras()
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "seguridad_sonora") |> encuestar:::graficar_barras()
 graficar_barras <- function(bd,
                             salto = 20,
                             porcentajes_fuera = F,
@@ -107,7 +112,10 @@ graficar_barras <- function(bd,
 }
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 
-#' Graficar gauge
+#' Graficar gauge (donita)
+#'
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica de gauge (donita)
+#'  que se rellena acuerdo al valor contenido en la escala indicada
 #'
 #' @param bd  Base de datos con un único row. La variable a considerar se llama "media"
 #' @param color_principal Color principal de la barra
@@ -115,11 +123,11 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
 #' @param escala Máximo y mínimo de los valores que puede tomar "media"
 #' @param size_text_pct Tamaño del texto dentro del gauge
 #'
-#' @return
+#' @return Objeto tipo [ggplot]
 #'
 #' @examples
-#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "red", escala = c(0, 10), size_text_pct = 8)
-#' graficar_gauge_promedio(bd = bd_procesada, color_principal = "pink", color_secundario = "brown", escala = c(1, 7), size_text_pct = 14)
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "si_voto_24") |> encuestar:::graficar_gauge(color_principal = "red", escala = c(0, 10), size_text_pct = 16)
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "conoce_pm_astiazaran") |> filter(respuesta == "Sí") |>  encuestar:::graficar_gauge(color_principal = "red", escala = c(0, 1), size_text_pct = 16)
 graficar_gauge <- function(bd, color_principal, color_secundario = "gray80", escala, size_text_pct){
   g <-
     bd %>%

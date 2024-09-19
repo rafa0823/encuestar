@@ -1738,7 +1738,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                     solo_respondidos = T,
                                                                     tema = self$tema)
                           },
-                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, regular = "Regular", ns_nc = "Ns/Nc", color_positivo = "green", color_negativo = "red", orden_cat = NULL){
+                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, regular = "Regular", ns_nc = "Ns/Nc", color_positivo = "green", color_negativo = "red", orden_cat = NULL, caption_opinion){
 
                             if(is.null(self$diseno)) {
 
@@ -1817,7 +1817,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                 "Negativa" = color_negativo),
                                                     salto_respuestas = 25,
                                                     salto_tema = 25,
-                                                    caption_opinion = "Hola",
+                                                    caption_opinion = caption_opinion,
                                                     size_text_cat = 10,
                                                     size_pct = 10,
                                                     size_caption_opinion = 10) +
