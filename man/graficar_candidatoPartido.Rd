@@ -29,9 +29,12 @@ graficar_candidatoPartido(
 
 \item{tema}{Tema de la gráfica asociado a la paquetería 'encuestar'}
 }
-\description{
-Graficar el partido político con el que asocian a uno o varios personajes
+\value{
+Objeto tipo \link{ggplot} compuesto por la union de dos graficas
 }
-\examples{
-graficar_candidato_partido(bases, clientes = c("era", "sasil"), tipo_conoce = "intervalos", colores_candidato = colores_candidato, colores_partido = colores_partido, tema = self$tema)
+\description{
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica tipo barras horizontales
+combinada con una grafica tipo intervalos. La grafica tipo barras muestra los porcentajes con de
+con los que asocian a determinado personaje. La grafica de intervalos muestra el nivel de conocimiento
+del mismo.
 }

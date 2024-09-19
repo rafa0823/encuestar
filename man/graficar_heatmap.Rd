@@ -26,17 +26,17 @@ graficar_heatmap(
 
 \item{color}{Color principal del hatpmap}
 
-\item{caption}{Cadena de texto usada en el parametro \link{caption} de la funcion \code{\link[ggplo2:labs]{ggplo2::labs()}}}
+\item{caption}{Cadena de texto usada en el parametro \link{caption} de la funcion \code{\link[ggplot2:labs]{ggplot2::labs()}}}
 
 \item{salto_x}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a las filas del eje x}
 
 \item{salto_y}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a las filas del eje y}
 
-\item{size_text_x}{Parametro \link{size} de la funcion \code{\link[ggplo2:element_text]{ggplo2::element_text()}} usado en el parametro \link{axis.text.x} en el tema particular del grafico}
+\item{size_text_x}{Parametro \link{size} de la funcion \code{\link[ggplot2:element]{ggplot2::element_text()}} usado en el parametro \link{axis.text.x} en el tema particular del grafico}
 
-\item{size_text_y}{Parametro \link{size} de la funcion \code{\link[ggplo2:element_text]{ggplo2::element_text()}} usado en el parametro \link{axis.text.y} en el tema particular del grafico}
+\item{size_text_y}{Parametro \link{size} de la funcion \code{\link[ggplot2:element]{ggplot2::element_text()}} usado en el parametro \link{axis.text.y} en el tema particular del grafico}
 
-\item{size_text_caption}{Parametro \link{size} de la funcion \code{\link[ggplo2:element_text]{ggplo2::element_text()}} usado en el parametro \link{plot.caption} en el tema particular del grafico}
+\item{size_text_caption}{Parametro \link{size} de la funcion \code{\link[ggplot2:element]{ggplot2::element_text()}} usado en el parametro \link{plot.caption} en el tema particular del grafico}
 }
 \value{
 Objeto tipo \link{ggplot}

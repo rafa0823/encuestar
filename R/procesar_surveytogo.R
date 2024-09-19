@@ -124,6 +124,7 @@ analizar_cruce <- function(diseno, variable_principal, variable_secundaria, vart
 #' @param vartype Parametro de [srvyr::survey_mean()] que reporta la variabilidad de la estimacion
 #' @return [tibble()] con las estimaciones de frecuencia para cada valor unico entre las variables
 #' @examples
+#' encuestar:::analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = c("conoce_pm_lia", "conoce_pm_javier"), filtro_variables_secundarias = "Sí", vartype = "cv")
 analizar_cruce_aspectos <- function(diseno, variable_principal, variables_secundarias, filtro_variables_secundarias, vartype){
   variables_secundarias <- rlang::enquo(variables_secundarias)
   res <-

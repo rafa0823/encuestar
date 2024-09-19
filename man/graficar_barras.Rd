@@ -20,6 +20,8 @@ graficar_barras(
 \item{porcentajes_fuera}{Si es T, las labels de los porcentajes aparecen fuera (o sobre) las barras.}
 
 \item{desplazar_porcentajes}{Si porcentajes_fuera es T, este parametro ajusta las etiquetas de texto.}
+
+\item{orden_respuestas}{Vector ordenado tipo caracter usado para ordenar los valores del eje x}
 }
 \value{
 Objeto tipo \link{ggplot}

@@ -65,6 +65,7 @@ tema_morant <- function(base_family = "Poppins") {
 #' @param salto Número entero, se aplica un stringr::str_wrap a la variable categórica.
 #' @param porcentajes_fuera Si es T, las labels de los porcentajes aparecen fuera (o sobre) las barras.
 #' @param desplazar_porcentajes Si porcentajes_fuera es T, este parametro ajusta las etiquetas de texto.
+#' @param orden_respuestas Vector ordenado tipo caracter usado para ordenar los valores del eje x
 #'
 #' @return Objeto tipo [ggplot]
 #'
@@ -111,7 +112,6 @@ graficar_barras <- function(bd,
   return(g)
 }
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
-
 #' Graficar gauge (donita)
 #'
 #' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica de gauge (donita)
@@ -216,10 +216,10 @@ graficar_intervalo_numerica <- function(bd, escala = c(0, 10), point_size = 1, t
 #' @param color Color principal del hatpmap
 #' @param salto_x Valor entero usato como parametro en [stringr::str_wrap()] aplicado a las filas del eje x
 #' @param salto_y Valor entero usato como parametro en [stringr::str_wrap()] aplicado a las filas del eje y
-#' @param caption Cadena de texto usada en el parametro [caption] de la funcion [ggplo2::labs()]
-#' @param size_text_x Parametro [size] de la funcion [ggplo2::element_text()] usado en el parametro [axis.text.x] en el tema particular del grafico
-#' @param size_text_y Parametro [size] de la funcion [ggplo2::element_text()] usado en el parametro [axis.text.y] en el tema particular del grafico
-#' @param size_text_caption Parametro [size] de la funcion [ggplo2::element_text()] usado en el parametro [plot.caption] en el tema particular del grafico
+#' @param caption Cadena de texto usada en el parametro [caption] de la funcion [ggplot2::labs()]
+#' @param size_text_x Parametro [size] de la funcion [ggplot2::element_text()] usado en el parametro [axis.text.x] en el tema particular del grafico
+#' @param size_text_y Parametro [size] de la funcion [ggplot2::element_text()] usado en el parametro [axis.text.y] en el tema particular del grafico
+#' @param size_text_caption Parametro [size] de la funcion [ggplot2::element_text()] usado en el parametro [plot.caption] en el tema particular del grafico
 #'
 #' @return Objeto tipo [ggplot]
 #'
@@ -256,7 +256,10 @@ graficar_heatmap <- function(bd, orden_x, orden_y, color = "blue", caption = "",
 }
 #' Graficar candidato opinión
 #'
-#' @param bd Base de datos con estructura producida por analizar_frecuencias_aspectos.
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica tipo barras horizontales
+#'  con el grafico tipo burbuja y el grafico tipo  barras para los porcentajes de No sabe No contesta
+#'
+#' @param bd Base de datos con estructura producida por [encuestar:::analizar_frecuencias_aspectos()].
 #' @param ns_nc Valor de la variable 'respuesta' asociado a "No sabe" o "No contesta" en la pregunta relativa.
 #' @param regular Valor de la variable 'respuesta' asociado a "Regular" en la pregunta relativa.
 #' @param grupo_positivo Conjunto de valores de la  variable 'respuesta' considerados como positivos.
@@ -274,12 +277,17 @@ graficar_heatmap <- function(bd, orden_x, orden_y, color = "blue", caption = "",
 #' @param orden_resp Vector ordenado de los posibles valores de la variable 'respuesta'
 #' @param salto Parámetro usado por la función str_wrap de la paquetería stringr aplicado a la variable 'tema' de la base 'bd'
 #' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
+#' @param color_nsnc Color para usar en parametro [fill] en el grafico de barras asociado a la cateogira No sabe o No contesta
+#' @param size_pct Parametro [size] de la funcion [ggfittext::geom_fit_text()] que controla el tamano del texto que muestra el porcentaje dentro de las barras
+#' @param mostrar_nsnc Logical. Muestra u oculta la grafica de barras asociada a la cateogira No sabe o No contesta
+#' @param salto_respuestas Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las leyendas del grafico
+#' @param orden_cat Vector ordenado tipo caracter asociado a los aspectos de las variables de opinion
+#' @param patron_inicial PENDIENTE
 #'
-#' @return
-#' @import patchwork
+#' @return Objeto tipo [ggplot] compuesto por la union de al menos dos
 #'
 #' @examples
-#' graficar_candidato_opinion(bd, ns_nc = "Ns/Nc", regular = "Regular", grupo_positivo = "Buena", grupo_negativo = "Mala", colores = c("red", "yellow", "green", "gray70"), burbuja = burbuja, color_burbuja = "blue", caption_opinion = "", caption_nsnc = "Ns/Nc", caption_burbuja = "Nivel de conocimiento", size_caption_opinion = 12, size_caption_nsnc = 12, size_caption_burbuja = 12, size_caption_cat = 12, orden_resp = c("Mala", "Regular", "Buena"), tema = self$tema)
+#' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "opinion_pm", aspectos = c("astiazaran", "delrio")) |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::select(aspecto = llaves, tema)) |> encuestar:::graficar_candidato_opinion(ns_nc = "Ns/Nc", regular = "Regular", grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"), colores = c("Muy buena" = "green", "Buena" = "yellow", "Regular" = "blue", "Mala" = "orange", "Muy mala" = "red"), color_nsnc = "gray70", tema = encuestar:::tema_morant(), burbuja = NA, orden_resp = c("Muy buena", "Buena", "Regular", "Mala", "Muy mala"), size_pct = 12, caption_opinion = "Opinon", size_text_cat = 16, size_caption_opinion = 12, caption_nsnc = "Ns/Nc", size_caption_nsnc = 14, salto_respuestas = 100)
 graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        grupo_positivo,
                                        grupo_negativo,
@@ -287,19 +295,19 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        color_nsnc,
                                        burbuja,
                                        color_burbuja,
-                                       caption_opinion,
-                                       caption_nsnc,
+                                       caption_opinion = "",
+                                       caption_nsnc = "Ns/Nc",
                                        caption_burbuja,
-                                       size_caption_opinion,
-                                       size_caption_nsnc,
+                                       size_caption_opinion = 12,
+                                       size_caption_nsnc = 14,
                                        size_caption_burbuja,
-                                       size_text_cat,
-                                       size_pct,
+                                       size_text_cat = 16,
+                                       size_pct = 12,
                                        orden_resp,
                                        salto = 200,
                                        tema,
                                        mostrar_nsnc = T,
-                                       salto_respuestas,
+                                       salto_respuestas = 100,
                                        orden_cat = NULL,
                                        patron_inicial = NULL){
 
@@ -386,13 +394,13 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 
     if(!all(is.na(burbuja))){
       if(mostrar_nsnc) {
-        final <- g_opinion + g_burbuja + b + plot_layout(widths = c(.7, .15, .15), ncol= 3)
+        final <- g_opinion + g_burbuja + b + patchwork::plot_layout(widths = c(.7, .15, .15), ncol= 3)
       } else {
-        final <- g_opinion + g_burbuja + plot_layout(widths = c(.7, .15, .15), ncol = 3)
+        final <- g_opinion + g_burbuja + patchwork::plot_layout(widths = c(.7, .15, .15), ncol = 3)
       }
     } else{
       if(mostrar_nsnc) {
-        final <- g_opinion + b + plot_layout(widths = c(.8, .2))
+        final <- g_opinion + b + patchwork::plot_layout(widths = c(.8, .2))
       } else {
         final <- g_opinion
       }
@@ -401,7 +409,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 
   } else{
     if(!all(is.na(burbuja))){
-      final <- g_opinion + g_burbuja + plot_layout(widths = c(.8,.2))
+      final <- g_opinion + g_burbuja + patchwork::plot_layout(widths = c(.8,.2))
     } else{
       final <- g_opinion
     }
@@ -413,6 +421,11 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 }
 #' Graficar el partido político con el que asocian a uno o varios personajes
 #'
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica tipo barras horizontales
+#'  combinada con una grafica tipo intervalos. La grafica tipo barras muestra los porcentajes con de
+#'  con los que asocian a determinado personaje. La grafica de intervalos muestra el nivel de conocimiento
+#'  del mismo.
+#'
 #' @param bases Lista. 'bases$conoce' contiene la estimación del conocimiento sobre algún personaje. 'bases$partido' tiene la información sobre la asociación a un partido político por personaje
 #' @param cliente Vector de códigos cortos que asocian a un personaje con una variable. Por ejemplo, 'personajeC' resaltará entre el conjunto 'personajeA', 'personajeB', 'personajeC'.
 #' @param tipo_conoce Tipo de gráfica a mostrar en la estimación de conocimiento. De forma predeterminada son barras, el otro valor son 'intervalos'
@@ -421,12 +434,8 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 #' @param colores_partido Vector que asigna un color a cada partido de acuerdo al nombre largo (tema)
 #' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
 #'
-#' @return
-#'
-#' @examples
-#' graficar_candidato_partido(bases, clientes = c("era", "sasil"), tipo_conoce = "intervalos", colores_candidato = colores_candidato, colores_partido = colores_partido, tema = self$tema)
+#' @return Objeto tipo [ggplot] compuesto por la union de dos graficas
 graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
-
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
   if(tipo_conoce == "intervalos"){
@@ -449,7 +458,6 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
       scale_y_continuous(labels = scales::percent_format(accuracy = 1), breaks = seq(0,max(bases$conoce$media), by = .1)) +
       tema_morant()
   }
-
 
   bases$partido <- bases$partido %>%
     mutate(tema = factor(tema,levels(bases$conoce$tema)))
@@ -495,26 +503,29 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
 
   a + b + patchwork::plot_layout(widths = c(.2,.8)) &
     tema_transparente()
-
 }
-#' Title
+#' Graficar barras saldo
 #'
-#' @param bd
-#' @param orden
-#' @param grupo_positivo
-#' @param grupo_negativo
-#' @param colores
-#' @param salto_respuestas
-#' @param salto_tema
-#' @param caption_opinion
-#' @param size_text_cat
-#' @param size_caption_opinion
-#' @param tema
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica tipo barras horizontales
+#'  diferenciando dos grupos principales: positivos y negativos. Los resultados mostrados omiten la
+#'  categoria de No sabe No contesta
 #'
-#' @return
+#' @param bd [tibble()] que contiene las variables necesarias para generar la grafica
+#' @param orden Vector ordenado tipo caracter usado para ordenar los valores del eje x
+#' @param grupo_positivo Conjunto de valores de la  variable 'respuesta' considerados como positivos.
+#' @param grupo_negativo Conjunto de valores de la  variable 'respuesta' considerados como negativos.
+#' @param colores Vector ordenado de colores asociados al grupo negativo, regular y positivo.
+#' @param salto_respuestas Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las leyendas del grafico
+#' @param salto_tema Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las categorias del eje x
+#' @param caption_opinion Cadena de texto usada en el parametro [caption] de la funcion [ggplot2::labs()]
+#' @param size_text_cat Parametro [size] de la funcion [ggplot2::element_text()] usado en el parametro [axis.text.x] en el tema particular del grafico
+#' @param size_caption_opinion Parametro [size] de la funcion [ggplot2::element_text()] usado en el parametro [plot.caption] en el tema particular del grafico
+#' @param tema Tema grafico de [ggplot2]
+#' @param Regular Valor de la variable 'respuesta' asociado a "Regular" en la pregunta relativa.
+#' @param size_pct Parametro [size] de la funcion [ggfittext::geom_fit_text()] que controla el tamano del texto que muestra el porcentaje dentro de las barras
 #'
-#' @examples
-graficar_barras_saldo = function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat, size_pct, size_caption_opinion, tema = encuestar:::tema_morant()){
+#' @return Objeto tipo [ggplot]
+graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat, size_pct, size_caption_opinion, tema = encuestar::tema_morant()){
 
   if(!is.na(Regular)) {
     group_levels <- c("regular2", grupo_negativo, "regular1", grupo_positivo)

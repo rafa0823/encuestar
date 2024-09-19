@@ -14,25 +14,25 @@ graficar_candidato_opinion(
   color_nsnc,
   burbuja,
   color_burbuja,
-  caption_opinion,
-  caption_nsnc,
+  caption_opinion = "",
+  caption_nsnc = "Ns/Nc",
   caption_burbuja,
-  size_caption_opinion,
-  size_caption_nsnc,
+  size_caption_opinion = 12,
+  size_caption_nsnc = 14,
   size_caption_burbuja,
-  size_text_cat,
-  size_pct,
+  size_text_cat = 16,
+  size_pct = 12,
   orden_resp,
   salto = 200,
   tema,
   mostrar_nsnc = T,
-  salto_respuestas,
+  salto_respuestas = 100,
   orden_cat = NULL,
   patron_inicial = NULL
 )
 }
 \arguments{
-\item{bd}{Base de datos con estructura producida por analizar_frecuencias_aspectos.}
+\item{bd}{Base de datos con estructura producida por \code{\link[encuestar:::analizar_frecuencias_aspectos]{encuestar::::analizar_frecuencias_aspectos()}}.}
 
 \item{ns_nc}{Valor de la variable 'respuesta' asociado a "No sabe" o "No contesta" en la pregunta relativa.}
 
@@ -43,6 +43,8 @@ graficar_candidato_opinion(
 \item{grupo_negativo}{Conjunto de valores de la  variable 'respuesta' considerados como negativos}
 
 \item{colores}{Vector ordenado de colores asociados al grupo negativo, regular y positivo.}
+
+\item{color_nsnc}{Color para usar en parametro \link{fill} en el grafico de barras asociado a la cateogira No sabe o No contesta}
 
 \item{burbuja}{Base de datos con estructura producida por analizar_frecuencias_aspectos filtrada por un valor de interés. Disponible en el enviroment.}
 
@@ -62,15 +64,29 @@ graficar_candidato_opinion(
 
 \item{size_text_cat}{Tamaño del texto de las categorías diferentes categorías de la variable 'tema' de la base de datos 'bd'}
 
+\item{size_pct}{Parametro \link{size} de la funcion \code{\link[ggfittext:geom_fit_text]{ggfittext::geom_fit_text()}} que controla el tamano del texto que muestra el porcentaje dentro de las barras}
+
 \item{orden_resp}{Vector ordenado de los posibles valores de la variable 'respuesta'}
 
 \item{salto}{Parámetro usado por la función str_wrap de la paquetería stringr aplicado a la variable 'tema' de la base 'bd'}
 
 \item{tema}{Tema de la gráfica asociado a la paquetería 'encuestar'}
+
+\item{mostrar_nsnc}{Logical. Muestra u oculta la grafica de barras asociada a la cateogira No sabe o No contesta}
+
+\item{salto_respuestas}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a todos las leyendas del grafico}
+
+\item{orden_cat}{Vector ordenado tipo caracter asociado a los aspectos de las variables de opinion}
+
+\item{patron_inicial}{PENDIENTE}
+}
+\value{
+Objeto tipo \link{ggplot} compuesto por la union de al menos dos
 }
 \description{
-Graficar candidato opinión
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica tipo barras horizontales
+con el grafico tipo burbuja y el grafico tipo  barras para los porcentajes de No sabe No contesta
 }
 \examples{
-graficar_candidato_opinion(bd, ns_nc = "Ns/Nc", regular = "Regular", grupo_positivo = "Buena", grupo_negativo = "Mala", colores = c("red", "yellow", "green", "gray70"), burbuja = burbuja, color_burbuja = "blue", caption_opinion = "", caption_nsnc = "Ns/Nc", caption_burbuja = "Nivel de conocimiento", size_caption_opinion = 12, size_caption_nsnc = 12, size_caption_burbuja = 12, size_caption_cat = 12, orden_resp = c("Mala", "Regular", "Buena"), tema = self$tema)
+encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "opinion_pm", aspectos = c("astiazaran", "delrio")) |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::select(aspecto = llaves, tema)) |> encuestar:::graficar_candidato_opinion(ns_nc = "Ns/Nc", regular = "Regular", grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"), colores = c("Muy buena" = "green", "Buena" = "yellow", "Regular" = "blue", "Mala" = "orange", "Muy mala" = "red"), color_nsnc = "gray70", tema = encuestar:::tema_morant(), burbuja = NA, orden_resp = c("Muy buena", "Buena", "Regular", "Mala", "Muy mala"), size_pct = 12, caption_opinion = "Opinon", size_text_cat = 16, size_caption_opinion = 12, caption_nsnc = "Ns/Nc", size_caption_nsnc = 14, salto_respuestas = 100)
 }

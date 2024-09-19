@@ -31,3 +31,6 @@ analizar_cruce_aspectos(
 Analizar cruce entre multiples variables cuyos nombres compartan valores unicos
 de un diseno muestral construido con la paqueteria \code{survey}
 }
+\examples{
+encuestar:::analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = c("conoce_pm_lia", "conoce_pm_javier"), filtro_variables_secundarias = "Sí", vartype = "cv")
+}
