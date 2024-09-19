@@ -205,30 +205,35 @@ graficar_intervalo_numerica <- function(bd, escala = c(0, 10), point_size = 1, t
     scale_y_continuous(limits = c(escala[1], escala[2]))
   return(g)
 }
-#' Title
+#' Graficar heatmap (geom_tile)
 #'
-#' @param bd
-#' @param orden_x
-#' @param orden_y
-#' @param color
-#' @param salto_x
-#' @param salto_y
-#' @param caption
-#' @param size_text_x
-#' @param size_text_y
-#' @param size_text_caption
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica tipo heatmap de
+#'  [ggplot2::geom_tile()]
 #'
-#' @return
+#' @param bd Base de datos con las variables requeridas
+#' @param orden_x Orden de los posibles valores de la variable en el eje x
+#' @param orden_y Orden de los posibles valores de la variable en el eje x
+#' @param color Color principal del hatpmap
+#' @param salto_x Valor entero usato como parametro en [stringr::str_wrap()] aplicado a las filas del eje x
+#' @param salto_y Valor entero usato como parametro en [stringr::str_wrap()] aplicado a las filas del eje y
+#' @param caption Cadena de texto usada en el parametro [caption] de la funcion [ggplo2::labs()]
+#' @param size_text_x Parametro [size] de la funcion [ggplo2::element_text()] usado en el parametro [axis.text.x] en el tema particular del grafico
+#' @param size_text_y Parametro [size] de la funcion [ggplo2::element_text()] usado en el parametro [axis.text.y] en el tema particular del grafico
+#' @param size_text_caption Parametro [size] de la funcion [ggplo2::element_text()] usado en el parametro [plot.caption] en el tema particular del grafico
+#'
+#' @return Objeto tipo [ggplot]
 #'
 #' @examples
-graficar_heatmap = function(bd, orden_x, orden_y, color = "blue", caption, salto_x, salto_y, size_text_x = 14, size_text_y = 16, size_text_caption = 14){
+#' encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variable_secundaria = "asunto_seguridad", vartype = "cv") |> dplyr::rename(var_y = sexo, var_x = asunto_seguridad, media = coef) |> encuestar::graficar_heatmap(orden_x = c("Mejor", "Peor", "Sigue igual", "Ns/Nc"),orden_y = c("F", "M"))
+#' @export
+graficar_heatmap <- function(bd, orden_x, orden_y, color = "blue", caption = "", salto_x = 25, salto_y = 25, size_text_x = 14, size_text_y = 16, size_text_caption = 14){
   g <-
     bd |>
-    ggplot(aes(x = factor(respuesta, levels = orden_x),
-               y = factor(candidato, levels = orden_y),
+    ggplot(aes(x = factor(var_x, levels = orden_x),
+               y = factor(var_y, levels = orden_y),
                fill = media,
                label = scales::percent(media, 1.))) +
-    geom_tile(color="white") +
+    geom_tile(color = "white") +
     ggfittext::geom_fit_text(contrast = T, family = "Poppins") +
     scale_fill_gradient(low = "white",
                         high = color,
