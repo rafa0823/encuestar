@@ -1392,10 +1392,10 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          }
 
-                           encuestar:::analizar_cruce(diseno = diseno,
-                                                      variable_principal = variable_principal,
-                                                      variable_secundaria = variable_secundaria,
-                                                      vartype = "cv") %>%
+                         encuestar:::analizar_cruce(diseno = diseno,
+                                                    variable_principal = variable_principal,
+                                                    variable_secundaria = variable_secundaria,
+                                                    vartype = "cv") %>%
                            {
                              if(!is.null(valores_variable_secundaria)) {
                                filter(., !!rlang::sym(variable_secundaria) %in% valores_variable_secundaria)
@@ -1546,13 +1546,13 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          # }
 
                          bd_votoCruzado <-
-                           encuestar:::calcular_tabla_votoCruzado(diseno = diseno,
+                           calcular_tabla_votoCruzado(diseno = diseno,
                                                                   var1 = var1,
                                                                   var2 = var2,
                                                                   filtro_var2 = filtro_var2)
 
                          tabla_salida <-
-                           encuestar:::formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
+                           formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
                                                                    var1 = var1,
                                                                    var2 = var2,
                                                                    filtro_var2 = filtro_var2,
@@ -1690,23 +1690,23 @@ Especial <- R6::R6Class(classname = "Especial",
 
                             }
 
-                            encuestar:::calcular_tabla_candidatoOpinion(diseno = diseno,
-                                                                        diccionario = self$diccionario,
-                                                                        patron_opinion = patron_opinion,
-                                                                        patron_conocimiento = patron_conocimiento,
-                                                                        aspectos = aspectos,
-                                                                        filtro_conocimiento = filtro_conocimiento,
-                                                                        orden_opinion = orden_opinion,
-                                                                        ns_nc = ns_nc,
-                                                                        salto_respuestas = salto_respuestas) %>%
-                              encuestar:::formatear_tabla_candidatoOpinion(orden_opinion = orden_opinion,
-                                                                           etiquetas = etiquetas,
-                                                                           colores_opinion = colores_opinion,
-                                                                           color_principal = color_principal,
-                                                                           colores_candidato = colores_candidato,
-                                                                           size_text_header = size_text_header,
-                                                                           size_text_body = size_text_body,
-                                                                           salto = salto)
+                            calcular_tabla_candidatoOpinion(diseno = diseno,
+                                                            diccionario = self$diccionario,
+                                                            patron_opinion = patron_opinion,
+                                                            patron_conocimiento = patron_conocimiento,
+                                                            aspectos = aspectos,
+                                                            filtro_conocimiento = filtro_conocimiento,
+                                                            orden_opinion = orden_opinion,
+                                                            ns_nc = ns_nc,
+                                                            salto_respuestas = salto_respuestas) %>%
+                              formatear_tabla_candidatoOpinion(orden_opinion = orden_opinion,
+                                                               etiquetas = etiquetas,
+                                                               colores_opinion = colores_opinion,
+                                                               color_principal = color_principal,
+                                                               colores_candidato = colores_candidato,
+                                                               size_text_header = size_text_header,
+                                                               size_text_body = size_text_body,
+                                                               salto = salto)
 
                           },
                           candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
@@ -1738,7 +1738,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                     solo_respondidos = T,
                                                                     tema = self$tema)
                           },
-                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, regular = "Regular", ns_nc = "Ns/Nc", color_positivo = "green", color_negativo = "red", orden_cat = NULL){
+                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, regular = "Regular", ns_nc = "Ns/Nc", color_positivo = "green", color_negativo = "red", orden_cat = NULL, caption_opinion){
 
                             if(is.null(self$diseno)) {
 
@@ -1817,7 +1817,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                 "Negativa" = color_negativo),
                                                     salto_respuestas = 25,
                                                     salto_tema = 25,
-                                                    caption_opinion = "Hola",
+                                                    caption_opinion = caption_opinion,
                                                     size_text_cat = 10,
                                                     size_pct = 10,
                                                     size_caption_opinion = 10) +
@@ -1977,10 +1977,10 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                             },
                             intencion_voto = function(variable, valores_interes, colores, sin_peso = T){
                               bd_mediaMovil <-
-                                encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados,
-                                                                variable = variable,
-                                                                sin_peso = sin_peso,
-                                                                valores_interes = valores_interes) |>
+                                calcular_mediaMovil(bd_resultados = self$bd_resultados,
+                                                    variable = variable,
+                                                    valores_interes = valores_interes,
+                                                    sin_peso = sin_peso) |>
                                 rename(pct = !!rlang::sym(paste0("movil_", variable)))
                               g <-
                                 bd_mediaMovil |>
@@ -1999,14 +1999,14 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                             },
                             conocimiento = function(variables, colores, sin_peso = T, valores_interes = "Sí"){
                               bd_mediaMovil <-
-                                encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados,
-                                                                variable = variables[1],
-                                                                sin_peso = sin_peso,
-                                                                valores_interes = valores_interes) |>
-                                left_join(encuestar:::calcular_mediaMovil(bd_resultados = self$bd_resultados,
-                                                                          variable = variables[2],
-                                                                          sin_peso = sin_peso,
-                                                                          valores_interes = valores_interes),
+                                calcular_mediaMovil(bd_resultados = self$bd_resultados,
+                                                    variable = variables[1],
+                                                    valores_interes = valores_interes,
+                                                    sin_peso = sin_peso) |>
+                                left_join(calcular_mediaMovil(bd_resultados = self$bd_resultados,
+                                                              variable = variables[2],
+                                                              valores_interes = valores_interes,
+                                                              sin_peso = sin_peso),
                                           by = "hora") |>
                                 tidyr::pivot_longer(cols = c(paste0("movil_", variables[1]),
                                                              paste0("movil_", variables[2])),
@@ -2031,11 +2031,11 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                             },
                             intencion_voto_region = function(variable, valores_interes, colores, sin_peso = T, variable_region = "region"){
                               bd_mediaMovil <-
-                                encuestar:::calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
-                                                                       variable = variable,
-                                                                       sin_peso = sin_peso,
-                                                                       valores_interes = valores_interes,
-                                                                       variable_region = variable_region) |>
+                                calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
+                                                           variable = variable,
+                                                           valores_interes = valores_interes,
+                                                           variable_region = variable_region,
+                                                           sin_peso = sin_peso) |>
                                 rename(pct = !!rlang::sym(paste0("movil_", variable)))
                               g <-
                                 bd_mediaMovil |>
@@ -2055,16 +2055,16 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                             },
                             conocimiento_region = function(variables, colores, sin_peso = T, valores_interes = "Sí", variable_region = "region"){
                               bd_mediaMovil <-
-                                encuestar:::calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
-                                                                       variable = variables[1],
-                                                                       sin_peso = sin_peso,
-                                                                       valores_interes = valores_interes,
-                                                                       variable_region = variable_region) |>
-                                left_join(encuestar:::calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
-                                                                                 variable = variables[2],
-                                                                                 sin_peso = sin_peso,
-                                                                                 valores_interes = valores_interes,
-                                                                                 variable_region = variable_region),
+                                calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
+                                                           variable = variables[1],
+                                                           valores_interes = valores_interes,
+                                                           variable_region = variable_region,
+                                                           sin_peso = sin_peso) |>
+                                left_join(calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
+                                                                     variable = variables[2],
+                                                                     valores_interes = valores_interes,
+                                                                     variable_region = variable_region,
+                                                                     sin_peso = sin_peso),
                                           by = c("hora", variable_region)) |>
                                 tidyr::pivot_longer(cols = c(paste0("movil_", variables[1]),
                                                              paste0("movil_", variables[2])),

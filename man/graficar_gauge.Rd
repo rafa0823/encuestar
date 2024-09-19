@@ -2,7 +2,7 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_gauge}
 \alias{graficar_gauge}
-\title{Graficar gauge}
+\title{Graficar gauge (donita)}
 \usage{
 graficar_gauge(
   bd,
@@ -23,10 +23,14 @@ graficar_gauge(
 
 \item{size_text_pct}{Tamaño del texto dentro del gauge}
 }
+\value{
+Objeto tipo \link{ggplot}
+}
 \description{
-Graficar gauge
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica de gauge (donita)
+que se rellena acuerdo al valor contenido en la escala indicada
 }
 \examples{
-graficar_gauge_promedio(bd = bd_procesada, color_principal = "red", escala = c(0, 10), size_text_pct = 8)
-graficar_gauge_promedio(bd = bd_procesada, color_principal = "pink", color_secundario = "brown", escala = c(1, 7), size_text_pct = 14)
+encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "si_voto_24") |> encuestar:::graficar_gauge(color_principal = "red", escala = c(0, 10), size_text_pct = 16)
+encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "conoce_pm_astiazaran") |> filter(respuesta == "Sí") |>  encuestar:::graficar_gauge(color_principal = "red", escala = c(0, 1), size_text_pct = 16)
 }

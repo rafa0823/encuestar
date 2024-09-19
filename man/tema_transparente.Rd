@@ -2,13 +2,18 @@
 % Please edit documentation in R/graficar.R
 \name{tema_transparente}
 \alias{tema_transparente}
-\title{Title}
+\title{Tema transparente para usarse en objetos tipo \link{ggplot} que vayan a ser exportados}
 \usage{
 tema_transparente()
 }
-\arguments{
-\item{size_axis_text_y}{}
+\value{
+Tema de \link{ggplot2} que agrega transparencia a los siguientes elementos del grafico:
+legend.backgroud, panel.background, plot.background, strip.background
 }
 \description{
-Title
+Tema utilizado para agregar transparencia al layout del grafico generado.
+}
+\examples{
+encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip()
+encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip() + encuestar::tema_transparente()
 }
