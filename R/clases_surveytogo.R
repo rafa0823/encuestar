@@ -1343,7 +1343,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                        # },
                        bloques = function(variable_principal, variable_secundaria, colores_variable_secundaria,
                                           filter = NULL,
-                                          vartype = "cv", linea_grosor = 2, linea_color = "white"){
+                                          vartype = "cv", linea_grosor = 2, linea_color = "white",na_rm = TRUE){
 
                          if(is.null(self$diseno)) {
 
@@ -1358,7 +1358,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          analizar_cruce(diseno = diseno,
                                         variable_principal = variable_principal,
                                         variable_secundaria = variable_secundaria,
-                                        vartype = vartype) |>
+                                        vartype = vartype,
+                                        na_rm = na_rm) |>
                            graficar_cruce_bloques(cruce = variable_principal,
                                                   variable = variable_secundaria,
                                                   colores_variable_secundaria = colores_variable_secundaria,
@@ -1380,7 +1381,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                          size_text = 8,
                                          size_text_x = 16,
                                          size_text_y = 14,
-                                         size_text_legend = 14){
+                                         size_text_legend = 14,
+                                         na_rm = TRUE){
 
                          if(is.null(self$diseno)) {
 
@@ -1395,7 +1397,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          analizar_cruce(diseno = diseno,
                                         variable_principal = variable_principal,
                                         variable_secundaria = variable_secundaria,
-                                        vartype = "cv") %>%
+                                        vartype = "cv",
+                                        na_rm = na_rm) %>%
                            {
                              if(!is.null(valores_variable_secundaria)) {
                                filter(., !!rlang::sym(variable_secundaria) %in% valores_variable_secundaria)
@@ -1435,7 +1438,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                       size_text_x = 16,
                                                       size_text_y = 16,
                                                       size_text_caption = 16,
-                                                      size_text_legend = 16) {
+                                                      size_text_legend = 16,
+                                                      ver_diferencias = TRUE) {
                          if(is.null(self$diseno)) {
 
                            diseno <- self$encuesta$muestra$diseno
@@ -1470,6 +1474,17 @@ Cruce <- R6::R6Class(classname = "Cruce",
                              bd_estimacion
                            }
 
+                         bd_estimacion <-
+                           if(ver_diferencias) {
+                             bd_estimacion |>
+                               group_by(variable_principal)|>
+                               mutate(mean_diff_pos = min(mean) + (max(mean)-min(mean))/2,
+                                      mean_dif = (max(mean)-min(mean)))|>
+                               ungroup()
+                           } else {
+                             bd_estimacion
+                           }
+
                          bd_estimacion |>
                            graficar_lolipop_diferencias(orden_variablePrincipal = orden_variablePrincipal,
                                                         colores_variables_secundarias = colores_variables_secundarias,
@@ -1479,6 +1494,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                         wrap_y = wrap_y,
                                                         wrap_caption = wrap_caption,
                                                         limits = limits) +
+                           {if(ver_diferencias)  geom_text(aes(label = scales::percent(x = mean_dif , accuracy = 1.),y = mean_diff_pos, colour = 'gray' ),
+                                                           nudge_x = -nudge_x, size = size_geom_text, show.legend = F) }+
                            self$tema +
                            theme(legend.position = "bottom",
                                  axis.text.x = element_text(size = size_text_x),
@@ -1525,7 +1542,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                                     colores_var2,
                                                     size_text_header = 18,
                                                     size_text_body = 14,
-                                                    salto = 20){
+                                                    salto = 20,
+                                                    na_rm = TRUE){
 
                          if(is.null(self$diseno)) {
 
@@ -1549,7 +1567,8 @@ Cruce <- R6::R6Class(classname = "Cruce",
                            calcular_tabla_votoCruzado(diseno = diseno,
                                                       var1 = var1,
                                                       var2 = var2,
-                                                      filtro_var2 = filtro_var2)
+                                                      filtro_var2 = filtro_var2,
+                                                      na_rm = na_rm)
 
                          tabla_salida <-
                            formatear_tabla_votoCruzado(tabla_votoCruzado = bd_votoCruzado,
@@ -1590,6 +1609,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                       regular = "Regular",
                                                       llave_burbuja = NA,
                                                       filtro_burbuja = "respuesta == 'Sí'",
+                                                      size_burbuja = 8,
                                                       grupo_positivo,
                                                       grupo_negativo,
                                                       orden_resp,
@@ -1622,7 +1642,7 @@ Especial <- R6::R6Class(classname = "Especial",
 
                             if(!is.na(llave_burbuja)){
 
-                              bd_burbuja <- encuestar::analizar_frecuencias_aspectos(diseno = diseno,
+                              bd_burbuja <- encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
                                                                                      diccionario = self$diccionario,
                                                                                      patron_pregunta = llave_burbuja,
                                                                                      aspectos = aspectos) %>%
@@ -1655,6 +1675,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                      color_nsnc = color_nsnc,
                                                                      burbuja = bd_burbuja,
                                                                      color_burbuja = color_burbuja,
+                                                                     size_burbuja = size_burbuja,
                                                                      salto = salto,
                                                                      tema = self$tema,
                                                                      mostrar_nsnc = mostrar_nsnc,
@@ -1709,7 +1730,7 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                salto = salto)
 
                           },
-                          candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido){
+                          candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido,corte_vis = 0.0){
 
                             if(is.null(self$diseno)) {
 
@@ -1736,7 +1757,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                     colores_candidato = colores_candidatos,
                                                                     colores_partido = colores_partido,
                                                                     solo_respondidos = T,
-                                                                    tema = self$tema)
+                                                                    tema = self$tema,
+                                                                    corte_vis = corte_vis)
                           },
                           candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, regular = "Regular", ns_nc = "Ns/Nc", color_positivo = "green", color_negativo = "red", orden_cat = NULL, caption_opinion){
 

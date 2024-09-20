@@ -1,0 +1,56 @@
+.watermark {
+  opacity: 0.20;
+  position: fixed;
+  bottom: 0%;
+  right: 10%;
+/*	top: 60%; */
+*	left: 30%; */
+  margin: 0 auto;
+  height: 100vh;
+  font-size: 500%;
+  color: #00407d;
+}
+
+
+body {
+  max-width: 90%;
+  margin-left: 10%;
+
+  font-size: 20px;
+
+/*  margin-top: 50px;
+
+margin-bottom: 50px;*/
+}
+p {
+max-width: 80%;
+
+}
+pre {
+max-width: 80%;
+}
+
+h1 {
+font-size: 46px; /* Tamaño del encabezado 1 */
+}
+
+h2 {
+font-size: 33px; /* Tamaño del encabezado 2 */
+}
+
+h3 {
+font-size: 26px; /* Tamaño del encabezado 3 */
+}
+
+h4 {
+font-size: 23px; /* Tamaño del encabezado 4 */
+}
+
+h5 {
+font-size: 21px; /* Tamaño del encabezado 5 */
+}
+
+h6 {
+font-size: 18px; /* Tamaño del encabezado 6 */
+}
+
