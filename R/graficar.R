@@ -969,9 +969,9 @@ graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secunda
 }
 #' Graficar sankey
 #'
-#' @param bd Base de datos procesada con la función analizar_sankey
-#' @param size_text_cat Tamaño del texto mostrado en cada nodo el sankey
-#' @param variables Vector que contiene las llaves de las cuales se va a hacer el cruce
+#' @param bd Base de datos procesada con la función [encuestar:::analizar_sankey()]
+#' @param size_text_cat Parametro [size] de la funcion [treemapify::geom_treemap_subgroup_border()] que modifica el grosor de las lineas que dividen los subgrupos de un bloque
+#' @param variables Vector ordenado tipo caracter que contiene los nombres de las llaves de las cuales se va a hacer el cruce
 #' @param colores Argumento usado por scale_fill_manual y sclae_color_manual
 #' @param width_text Salto de linea que se aplica a las categorias mostradas
 #'
@@ -979,7 +979,7 @@ graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secunda
 #'
 #' @examples
 #' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
-graficar_sankey = function(bd, variables, colores, size_text_cat,width_text = 15){
+graficar_sankey <- function(bd, variables, colores, size_text_cat,width_text = 15){
   bd <-
     bd|>
     mutate(pos_x = ifelse(x == variables[1], as.numeric(x)- 0.1, as.numeric(x) + 0.1))
@@ -1002,13 +1002,10 @@ graficar_sankey = function(bd, variables, colores, size_text_cat,width_text = 15
     guides(color = "none", fill = "none") +
     scale_fill_manual(values = colores) +
     scale_color_manual(values = colores) +
-    encuestar::tema_default() +
+    encuestar::tema_morant() +
     theme(legend.position = "none",
           axis.text.y = element_blank(),
-          axis.title.x = element_blank(),
-          plot.background = element_rect(color = "transparent", fill = "transparent"),
-          panel.background = element_rect(color = "transparent", fill = "transparent"),
-          legend.background = element_rect(color = "transparent", fill = "transparent"))
+          axis.title.x = element_blank())
 }
 #' Graficar nube de palabras
 #'
