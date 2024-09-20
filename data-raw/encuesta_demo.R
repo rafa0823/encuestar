@@ -204,4 +204,4 @@ encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
 )
 
 # usethis::use_data(encuesta_demo, encuesta_demo, internal = TRUE, overwrite = TRUE)
-usethis::use_data(encuesta_demo)
+usethis::use_data(encuesta_demo, overwrite = TRUE)
