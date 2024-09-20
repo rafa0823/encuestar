@@ -243,6 +243,7 @@ graficar_heatmap = function(bd, orden_x, orden_y, color = "blue", caption, salto
 #' @param colores Vector ordenado de colores asociados al grupo negativo, regular y positivo.
 #' @param burbuja Base de datos con estructura producida por analizar_frecuencias_aspectos filtrada por un valor de interés. Disponible en el enviroment.
 #' @param color_burbuja Color de los puntos asociados a la base de datos 'burbuja'
+#' @param size_burbuja Es el tamaño máximo de las burbujas en la gráfica.'
 #' @param caption_opinion Caption de la gráfica que visualiza los datos de bd
 #' @param caption_nsnc Caption de la gráfica que visualiza los datos de bd separando el valor asociado a "No sabe" o "No contesta" en la pregunta relativa.
 #' @param caption_burbuja Caption de la gráfica que visualiza los datos de burbuja
@@ -266,6 +267,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        color_nsnc,
                                        burbuja,
                                        color_burbuja,
+                                       size_burbuja = 8,
                                        caption_opinion,
                                        caption_nsnc,
                                        caption_burbuja,
@@ -321,6 +323,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
       geom_point(aes(size = escala), color = color_burbuja, shape = 16) +
       geom_text(aes(label = scales::percent(media,1)), hjust = -.5) +
       scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = salto)) +
+      scale_size_area(max_size = size_burbuja) +
       tema +
       labs(caption = caption_burbuja) +
       theme(legend.position = "none",
@@ -404,7 +407,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 #'
 #' @examples
 #' graficar_candidato_partido(bases, clientes = c("era", "sasil"), tipo_conoce = "intervalos", colores_candidato = colores_candidato, colores_partido = colores_partido, tema = self$tema)
-graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema){
+graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema,corte_vis = 0.0){
 
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
@@ -457,10 +460,13 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
                   ymin = as.numeric(tema) - .3,
                   ymax = as.numeric(tema) + .3,
                   fill = respuesta)) +
-    geom_text(data = bases$partido %>% filter(tema %in% cliente),
+    geom_text(data = bases$partido |> filter(!respuesta %in% c("Ns/Nc"), !tema %in% cliente, corte_vis < media ),
+              aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
+              color = "white", fontface = "plain") +
+    geom_text(data = bases$partido %>% filter(tema %in% cliente, corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
               color = "white", fontface = "bold") +
-    geom_text(data = bases$partido %>% filter(respuesta %in% c("MORENA", "Ns/Nc")),
+    geom_text(data = bases$partido %>% filter(respuesta %in% c("Ns/Nc"), corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
               color = "white", fontface = "bold") +
     scale_fill_manual(values = colores_partido) +
@@ -955,7 +961,7 @@ graficar_sankey = function(bd, variables, colores, size_text_cat,width_text = 15
     guides(color = "none", fill = "none") +
     scale_fill_manual(values = colores) +
     scale_color_manual(values = colores) +
-    encuestar::tema_default() +
+    encuestar::tema_morant() +
     theme(legend.position = "none",
           axis.text.y = element_blank(),
           axis.title.x = element_blank(),

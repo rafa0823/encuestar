@@ -87,6 +87,9 @@ Indica la categoría que corresponden al tipo regular. Recibe un valor de tipo s
 `llave_burbuja`
 Se refiere al prefijo o patrón que deben de tener las llaves a para la gráfica de burbuja. Recibe un string.
 
+`size_burbuja`
+Es el tamaño máximo de las burbujas en la gráfica. Recibe un valor de tipo entero.
+
 `filtro_burbuja`
 Corresponde a la respuesta o categoría que se va seleccionar para que se grafique entre las variables que comparten la mismo patrón de **llave burbuja**. La manera de seleccionar la variable correspondiente es introduciendo el siguiente string: *‘respuesta == “[categoría]” ‘*, siendo [categoría], la categoría en cuestión que se desea comparar y graficar.
 
@@ -349,6 +352,7 @@ Corresponde a la respuesta o categoría que se va seleccionar para que se grafiq
 
 `candidatos`
 Corresponde a los sufijos o nombres que se desean graficar, además de identificar a cada llave de su patrón inicial. Recibe un vector de valores de tipo string. 
+
 `corte_otro`
 Indica el valor mínimo en la que una categoría puede ser presentada en la gráfica. Todas las categorías que no alcancen el porcentaje correspondiente al valor declarado serán representadas en conjunto como la categoría “Otro” dentro de la gráfica. Recibe valores decimales.
 
@@ -361,6 +365,7 @@ Indica los colores que se desean asignar a cada una de los aspectos (candidatos)
 `colores_partido`
 Indica los colores que se desean asignar a cada una de las categorías en las barras apiladas. Recibe un vector con nombres con el siguiente formato *c( [categori_1] = [color_1], [categori_2] = [color_2 ] )*, siendo las categorías y los colores valores de tipo string.
 
-
+`corte_vis`
+Indica el valor mínimo en la que una categoría puede ser presentada en la gráfica. Todas las categorías que no alcancen el porcentaje correspondiente al valor declarado serán representadas en conjunto como la categoría “Otro” dentro de la gráfica. Recibe valores decimales.
 
 

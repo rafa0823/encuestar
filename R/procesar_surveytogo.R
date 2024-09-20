@@ -95,13 +95,15 @@ analizar_frecuencias_multirespuesta <- function(diseno, patron_inicial){
 #' @param vartype Parametro de [srvyr::survey_mean()] que reporta la variabilidad de la estimacion
 #' @param variable_principal Variable principal que agrupa los resultados de las estimaciones
 #' @param variable_secundaria Variable secundaria
+#' @param na_rm na_rm=FALSE Variable booleana que indica si se desea filtrar NAs (TRUE) o no (FALSE)
 #' @return [tibble()] con las estimaciones de frecuencia para cada valor unico entre las variables
 #' @examples
 #' encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno,  variable_principal = "sexo",  variable_secundaria = "voto_pr_24", vartype = "cv")
-analizar_cruce <- function(diseno, variable_principal, variable_secundaria, vartype){
+analizar_cruce <- function(diseno, variable_principal, variable_secundaria, vartype,na_rm = FALSE){
   res <-
     srvyr::as_survey_design(diseno) %>%
-    group_by(!!rlang::sym(variable_principal), !!rlang::sym(variable_secundaria)) |>
+    {if(na_rm) filter(., !is.na( !!rlang::sym(variable_principal) ), !is.na( !!rlang::sym(variable_secundaria) ) ) else . }|>
+  group_by(!!rlang::sym(variable_principal), !!rlang::sym(variable_secundaria)) |>
     summarise(srvyr::survey_mean(na.rm = TRUE, vartype = vartype))
   if(vartype == "cv") {
     res <-
@@ -331,7 +333,7 @@ calcular_mediaMovil_region <- function(bd_resultados, variable, valores_interes,
 calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion, patron_conocimiento, aspectos, filtro_conocimiento, orden_opinion, ns_nc, salto_respuestas) {
 
   bd_opinion <-
-    analizar_frecuencias_aspectos(diseno = diseno,
+    encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
                                   diccionario = diccionario,
                                   patron_pregunta = patron_opinion,
                                   aspectos = aspectos) |>
@@ -346,7 +348,7 @@ calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion,
 
   if(!is.na(patron_conocimiento)) {
     bd_conocimiento <-
-      analizar_frecuencias_aspectos(diseno = diseno,
+      encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
                                     diccionario = diccionario,
                                     patron_pregunta = patron_conocimiento,
                                     aspectos = aspectos) %>%
@@ -377,12 +379,13 @@ calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion,
 #' @param var1 Variable principal para hacer el cruce
 #' @param var2 Variable secundaria para hacer el cruce
 #' @param filtro_var2 Valores unicos de la variable secundaria que son de interes
+#' @param na_rm na_rm=TRUE Variable booleana que indica si se desea filtrar NAs (TRUE) o no (FALSE)
 #'
 #' @return [tibble()] con las variables necesarias para la funcion [encuestar:::formatear_tabla_votoCruzado()]
 #'
 #' @examples
 #' encuestar:::calcular_tabla_votoCruzado(diseno = encuesta_demo$muestra$diseno, var1 = "voto_pm_24", var2 = "voto_pr_24", filtro_var2 = c("Claudia Sheinbaum por MORENA-PT-Partido Verde", "Xóchitl Gálvez por PAN-PRI-PRD"))
-calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
+calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2,na_rm = TRUE){
 
   orden_var1 <-
     analizar_frecuencias(diseno = diseno,
@@ -409,7 +412,8 @@ calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2){
     analizar_cruce(diseno = diseno,
                                variable_principal = var1,
                                variable_secundaria = var2,
-                               vartype = "cv") |>
+                               vartype = "cv",
+                   na_rm = na_rm) |>
     ungroup() |>
     select(var1, var2, coef) |>
     tidyr::pivot_wider(id_cols = var1,
