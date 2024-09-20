@@ -1392,7 +1392,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          }
 
-                         encuestar:::analizar_cruce(diseno = diseno,
+                         analizar_cruce(diseno = diseno,
                                                     variable_principal = variable_principal,
                                                     variable_secundaria = variable_secundaria,
                                                     vartype = "cv") %>%
@@ -1406,7 +1406,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                            rename(var_x = !!rlang::sym(variable_principal),
                                   var_y = !!rlang::sym(variable_secundaria),
                                   media = coef) |>
-                           encuestar:::graficar_lineas(orden_var_x = orden_variable_principal,
+                           graficar_lineas(orden_var_x = orden_variable_principal,
                                                        colores = colores_variable_secundaria,
                                                        salto_x = wrap_x,
                                                        salto_legend = wrap_legend,
@@ -1447,7 +1447,7 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          }
 
                          bd_estimacion <-
-                           encuestar:::analizar_cruce_aspectos(diseno = diseno,
+                           analizar_cruce_aspectos(diseno = diseno,
                                                                variable_principal = variable_principal,
                                                                variables_secundarias = variables_secundarias,
                                                                filtro_variables_secundarias = filtro_variables_secundarias,

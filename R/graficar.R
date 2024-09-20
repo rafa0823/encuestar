@@ -573,11 +573,7 @@ graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Reg
 #' @param color_positivo Color asociado al grupo positivo.
 #' @param color_negativo Color asociado al grupo negativo.
 #'
-#' @return
-#'
-#' @examples
-#' graficar_candidato_saldo(bd, grupo_positivo = "Buena", grupo_negativo = "Mala")
-#' graficar_candidato_saldo(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "orange", color_negativo = "brown")
+#' @return Objeto tipo [ggplot]
 graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena"), grupo_negativo = c("Mala", "Muy mala"), color_positivo = "green", color_negativo = "red"){
   g <- bd %>%
     ggplot(aes(x = forcats::fct_reorder(tema, saldo),
@@ -594,38 +590,26 @@ graficar_candidatoSaldo <- function(bd, grupo_positivo = c("Buena", "Muy buena")
           panel.grid.minor.y = element_blank(),
           panel.grid.major.y = element_blank())+
     labs(x = NULL, fill = NULL)
-
-  # if("p_calve" %in% names(bd)) g <- g + geom_text(aes(label = p_calve),
-  #                                                 hjust=ifelse(test = bd$grupo == "Positiva",  yes = -.2, no = 1.2), size=3.5, colour="#505050")
-  #
-  # g +
-  #   lemon::scale_y_symmetric(labels = scales::percent_format(accuracy = 1))+
-  #   theme_minimal()+
-  #   theme(legend.position = "bottom",
-  #         panel.grid.minor.y = element_blank(),
-  #         panel.grid.major.y = element_blank())+
-  #   labs(y = "Saldo", x = NULL, fill = NULL)
   return(g)
 }
-#' Title
+#' Graficar de lineas
 #'
-#' @param bd
-#' @param orden_var_x
-#' @param salto_x
-#' @param salto_legend
-#' @param limits
-#' @param text_nudge_y
-#' @param size_text
-#' @param colores_var_y
-#' @param size_text_x
-#' @param size_text_y
-#' @param size_text_legend
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica de lineas.
 #'
-#' @return
+#' @param bd Base de datos con las variables necesarias var_x, var_y, media
+#' @param orden_var_x Orden de las categorias en el eje x
+#' @param salto_x Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las categorias del eje x
+#' @param salto_legend Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las categorias del eje x
+#' @param limits Vector numerico que indica los limites en escala porcentual natural del eje y
+#' @param text_nudge_y Parametro [nudge_y] de la funcion [ggrepel::geom_text_repel()] que modifica la posicion del texto en el grafico
+#' @param size_text Parametro [size] de la funcion [ggplot2::element_text()] usado en el parametro [axis.text.x] en el tema particular del grafico
+#' @param colores_var_y Vector que contiene los codigos de colores para cada categoria de la variable y
+#'
+#' @return Objeto tipo [ggplot]
 #'
 #' @examples
-graficar_lineas = function(bd, orden_var_x, colores_var_y, salto_x, salto_legend,
-                           limits = c(0, 0.75), text_nudge_y = 0.01, size_text = 8){
+#' encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno, variable_principal = "region", variable_secundaria = "voto_pr_24", vartype = "cv") |> na.omit() |> dplyr::rename(var_x = region, var_y = voto_pr_24, media = coef) |> encuestar:::graficar_lineas(orden_var_x = c("Perdidas", "Competitivas", "Voto Blando", "Voto Duro"), colores_var_y = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F", "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6", "No recuerda" = "gray40","No contesta" = "gray60", "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405", "Anulé mi voto" = "black"), limits = c(0, 0.5))
+graficar_lineas <- function(bd, orden_var_x, colores_var_y, salto_x = 25, salto_legend = 25, limits = c(0, 0.75), text_nudge_y = 0.01, size_text = 8){
   g <-
     bd |>
     ggplot(aes(x = factor(var_x, levels = orden_var_x),
@@ -685,7 +669,6 @@ graficar_conocimientoRegion <- function(bd, ordenRegiones, salto_labelRegiones =
                               aes(label =pct %>%  scales::percent(accuracy = 1)))
   return(g)
 }
-
 #' Graficar saldo de opinión asociado a personajes por región o estrato
 #'
 #' @param bd Base de datos resultado de la función 'analizar_saldoRegion'
@@ -799,10 +782,6 @@ graficar_blackbox_1d <- function(lst){
 #' @param atributos Vector de códigos de cortos que identifican los diferentes atributos contenidos en la metodología de MORENA.
 #'
 #' @return
-#'
-#' @examples
-#' graficar_morena(atr, personajes = c("era", "sasil"), atributos = c("honesto", "opinion"))
-#' graficar_morena(atr, personajes = c("era", "sasil", "jaac"), atributos = atributos)
 graficar_morena <- function(atr, personajes, atributos){
 
   orden <- atr %>%
@@ -839,18 +818,28 @@ graficar_morena <- function(atr, personajes, atributos){
   return(g)
 
 }
-#' Graficar cruce de una variable vs varias variables pero filtradas
+#' Graficar lolipos para resaltar diferencias
+#'
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica tipo lolipo
+#' que resalta las diferencias entre dos categorias
 #'
 #' @param orden_variablePrincipal Factor de la variable principal
 #' @param bd Base de datos producto de la función 'analizar_crucePuntos'
+#' @param colores_variables_secundarias Vector que contiene los codigos de colores para cada categoria de la variable secundaria
+#' @param nudge_x Parametro [nudge_y] de la funcion [ggplot2::geom_text()] que modifica la posicion del texto en el grafico
+#' @param size_geom_text Parametro [size] de la funcion [ggplot2::geom_text()] que modifica la posicion del texto en el grafico
+#' @param caption Cadena de texto usada en el parametro [caption] de la funcion [ggplot2::labs()]
+#' @param wrap_y Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las categorias del eje y
+#' @param wrap_caption Valor entero usato como parametro en [stringr::str_wrap()] aplicado al [caption] del grafico
+#' @param limits Vector numerico que indica los limites en escala porcentual natural del eje y
 #'
-#' @return
-#' @export
+#' @return Objeto tipo [ggplot]
 #'
 #' @examples
-graficar_lolipop_diferencias = function(bd, orden_variablePrincipal, colores_variables_secundarias,
+#' encuestar:::analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = paste0("conoce_pm_", c("astiazaran", "delrio")), filtro_variables_secundarias = "Sí", vartype = "cv") |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::distinct(llaves, tema), by = c("variable" = "llaves")) |> dplyr::select(!variable) |> dplyr::rename(variable_principal = sexo) |> encuestar:::graficar_lolipop_diferencias(orden_variablePrincipal = c("F", "M"), colores_variables_secundarias = c("Antonio \"Toño\" Astiazarán" = "red", "María Dolores Del Río" = "blue"), caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.8)) + encuestar::tema_morant()
+graficar_lolipop_diferencias <- function(bd, orden_variablePrincipal, colores_variables_secundarias,
                                         nudge_x = 0.05, size_geom_text = 6,
-                                        caption, wrap_y, wrap_caption, limits) {
+                                        caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.75)) {
   g <-
     bd |>
     ggplot(aes(x = factor(variable_principal, levels = orden_variablePrincipal),
