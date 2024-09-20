@@ -47,6 +47,7 @@ Esta es la clase de Especial
   regular = "Regular",
   llave_burbuja = NA,
   filtro_burbuja = "respuesta == 'Sí'",
+  size_burbuja = 8,
   grupo_positivo,
   grupo_negativo,
   orden_resp,
@@ -109,7 +110,8 @@ Esta es la clase de Especial
   corte_otro,
   cliente,
   colores_candidatos,
-  colores_partido
+  colores_partido,
+  corte_vis = 0
 )}\if{html}{\out{</div>}}
 }
 

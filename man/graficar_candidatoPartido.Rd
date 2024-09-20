@@ -11,7 +11,8 @@ graficar_candidatoPartido(
   colores_candidato,
   solo_respondidos = T,
   colores_partido,
-  tema
+  tema,
+  corte_vis = 0
 )
 }
 \arguments{
@@ -28,9 +29,6 @@ graficar_candidatoPartido(
 \item{colores_partido}{Vector que asigna un color a cada partido de acuerdo al nombre largo (tema)}
 
 \item{tema}{Tema de la gráfica asociado a la paquetería 'encuestar'}
-}
-\value{
-Objeto tipo \link{ggplot} compuesto por la union de dos graficas
 }
 \description{
 Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica tipo barras horizontales

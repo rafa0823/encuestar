@@ -4,7 +4,7 @@
 \alias{calcular_tabla_votoCruzado}
 \title{Tabla de voto cruzado}
 \usage{
-calcular_tabla_votoCruzado(diseno, var1, var2, filtro_var2)
+calcular_tabla_votoCruzado(diseno, var1, var2, filtro_var2, na_rm = TRUE)
 }
 \arguments{
 \item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
@@ -14,6 +14,8 @@ calcular_tabla_votoCruzado(diseno, var1, var2, filtro_var2)
 \item{var2}{Variable secundaria para hacer el cruce}
 
 \item{filtro_var2}{Valores unicos de la variable secundaria que son de interes}
+
+\item{na_rm}{na_rm=TRUE Variable booleana que indica si se desea filtrar NAs (TRUE) o no (FALSE)}
 }
 \value{
 \code{\link[=tibble]{tibble()}} con las variables necesarias para la funcion \code{\link[encuestar:::formatear_tabla_votoCruzado]{encuestar::::formatear_tabla_votoCruzado()}}

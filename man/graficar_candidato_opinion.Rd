@@ -14,6 +14,7 @@ graficar_candidato_opinion(
   color_nsnc,
   burbuja,
   color_burbuja,
+  size_burbuja = 8,
   caption_opinion = "",
   caption_nsnc = "Ns/Nc",
   caption_burbuja,
@@ -49,6 +50,8 @@ graficar_candidato_opinion(
 \item{burbuja}{Base de datos con estructura producida por analizar_frecuencias_aspectos filtrada por un valor de interés. Disponible en el enviroment.}
 
 \item{color_burbuja}{Color de los puntos asociados a la base de datos 'burbuja'}
+
+\item{size_burbuja}{Es el tamaño máximo de las burbujas en la gráfica.'}
 
 \item{caption_opinion}{Caption de la gráfica que visualiza los datos de bd}
 

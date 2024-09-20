@@ -5,7 +5,13 @@
 \title{Analizar cruce entre dos variables
 de un diseno muestral construido con la paqueteria \code{survey}}
 \usage{
-analizar_cruce(diseno, variable_principal, variable_secundaria, vartype)
+analizar_cruce(
+  diseno,
+  variable_principal,
+  variable_secundaria,
+  vartype,
+  na_rm = FALSE
+)
 }
 \arguments{
 \item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas}
@@ -15,6 +21,8 @@ analizar_cruce(diseno, variable_principal, variable_secundaria, vartype)
 \item{variable_secundaria}{Variable secundaria}
 
 \item{vartype}{Parametro de \code{\link[srvyr:survey_mean]{srvyr::survey_mean()}} que reporta la variabilidad de la estimacion}
+
+\item{na_rm}{na_rm=FALSE Variable booleana que indica si se desea filtrar NAs (TRUE) o no (FALSE)}
 }
 \value{
 \code{\link[=tibble]{tibble()}} con las estimaciones de frecuencia para cada valor unico entre las variables
