@@ -7,25 +7,33 @@
 graficar_lollipops(
   bd,
   orden = NULL,
-  limite_graf = 1,
+  limits = c(0, 1),
   width_cats = 15,
   size = 3,
   size_pct = 6
 )
 }
 \arguments{
-\item{bd}{Base de datos procesada con la función analizar_sankey}
+\item{bd}{\code{\link[=tibble]{tibble()}} que contiene las variables necesarias para}
 
-\item{orden}{Default orden = NULL  Recibe un vector como parametro para indicar el orden de las variables, en caso de ser nulo el orden es por nivel de porcentaje}
+\item{orden}{Vector ordenado tipo caracter que define el orden de las categorias en el eje x}
 
-\item{limite_graf}{Default limite_graf = 1 Recibe valores decimales, los cuales indican el limite del eje X a nivel de procentaje. El 1 equivale al 100 \%.}
+\item{limits}{Vector numerico de longitud dos que indica los limites en escala porcentual natural del eje y usando el parametro \link{limits} de la funcion \code{\link[ggplot2:scale_continuous]{ggplot2::scale_y_continuous()}}}
 
-\item{width_cats}{Salto de linea que se aplica a las categorias mostradas}
+\item{width_cats}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a las filas del eje x}
 
-\item{size}{Tamaño de la linea y el punto de la graficamostrada}
+\item{size}{Parametro \link{size} de la funcion \code{\link[ggfittext:geom_segment]{ggfittext::geom_segment()}} y \code{\link[ggfittext:geom_point]{ggfittext::geom_point()}} que controla el tamano del texto que define el tamaño de la linea y el punto de la grafica}
 
-\item{size_pct}{Tamaño del porcentaje mostrado}
+\item{size_pct}{Parametro \link{size} de la funcion \code{\link[ggfittext:geom_text]{ggfittext::geom_text()}} que controla el tamano del texto que muestra el porcentaje fuera de las lolipos}
+}
+\value{
+Objeto tipo \link{ggplot}
 }
 \description{
-Graficar lollipop
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica de barras
+ordenadas de acuerdo al criterio indicado.
+}
+\examples{
+encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_principal") |>  dplyr::rename(pct = media) |>  encuestar:::graficar_lollipops() + encuestar::tema_morant()
+encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_inseguridad") |> dplyr::rename(pct = media) |> encuestar:::graficar_lollipops() + encuestar::tema_morant()
 }

@@ -1175,7 +1175,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
 
                              },
-                             lollipops_categorica = function(codigo, orden = NULL, limite_graf = 1, width_cats = 15 , size=3, size_pct = 6,pct_otros = 0.01){
+                             lollipops_categorica = function(codigo, orden = NULL, limits = c(0, 1.0), width_cats = 15 , size=3, size_pct = 6,pct_otros = 0.01){
                                llave_aux <- codigo
                                if(!(llave_aux %in% self$graficadas)){
                                  if(llave_aux %in% self$diccionario$llaves){
@@ -1201,21 +1201,21 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                }
 
-                               encuestar:::analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
+                               analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
                                  mutate(tema = tema) |>
                                  rename(pct = media) |>
                                  mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = pct, other_level = "Otros"),
                                         respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
                                  group_by(respuesta) |>
                                  summarise(pct = sum(pct)) |>
-                                 encuestar:::graficar_lollipops(orden = orden,
-                                                                limite_graf = limite_graf,
-                                                                width_cats = width_cats ,
-                                                                size = size,
-                                                                size_pct = size_pct) +
+                                 graficar_lollipops(orden = orden,
+                                                    limits = limits,
+                                                    width_cats = width_cats ,
+                                                    size = size,
+                                                    size_pct = size_pct) +
                                  self$tema
                              },
-                             lollipops_multirespuesta = function(patron_inicial, orden = NULL, limite_graf = 1, width_cats = 15 , size=3, size_pct = 6){
+                             lollipops_multirespuesta = function(patron_inicial, orden = NULL, limits = c(0, 1.0), width_cats = 15 , size=3, size_pct = 6){
 
                                if(is.null(self$diseno)) {
 
@@ -1227,14 +1227,14 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                }
 
-                               encuestar:::analizar_frecuencia_multirespuesta(diseno = diseno,
-                                                                              patron_inicial) %>%
+                               analizar_frecuencia_multirespuesta(diseno = diseno,
+                                                                  patron_inicial) %>%
                                  rename(pct = media) |>
-                                 encuestar:::graficar_lollipops(orden = orden,
-                                                                limite_graf = limite_graf,
-                                                                width_cats = width_cats ,
-                                                                size = size,
-                                                                size_pct = size_pct)  +
+                                 graficar_lollipops(orden = orden,
+                                                    limits = limits,
+                                                    width_cats = width_cats ,
+                                                    size = size,
+                                                    size_pct = size_pct)  +
                                  self$tema
 
                              }
@@ -1355,17 +1355,17 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          }
 
-                         encuestar:::analizar_cruce(diseno = diseno,
-                                                    variable_principal = variable_principal,
-                                                    variable_secundaria = variable_secundaria,
-                                                    vartype = vartype) |>
-                           encuestar:::graficar_cruce_bloques(cruce = variable_principal,
-                                                              variable = variable_secundaria,
-                                                              colores_variable_secundaria = colores_variable_secundaria,
-                                                              vartype = vartype,
-                                                              filter = filter,
-                                                              linea_grosor = linea_grosor,
-                                                              linea_color = linea_color) +
+                         analizar_cruce(diseno = diseno,
+                                        variable_principal = variable_principal,
+                                        variable_secundaria = variable_secundaria,
+                                        vartype = vartype) |>
+                           graficar_cruce_bloques(cruce = variable_principal,
+                                                  variable = variable_secundaria,
+                                                  colores_variable_secundaria = colores_variable_secundaria,
+                                                  vartype = vartype,
+                                                  filter = filter,
+                                                  linea_grosor = linea_grosor,
+                                                  linea_color = linea_color) +
                            self$tema
                        },
                        lineas = function(variable_principal,
@@ -1393,9 +1393,9 @@ Cruce <- R6::R6Class(classname = "Cruce",
                          }
 
                          analizar_cruce(diseno = diseno,
-                                                    variable_principal = variable_principal,
-                                                    variable_secundaria = variable_secundaria,
-                                                    vartype = "cv") %>%
+                                        variable_principal = variable_principal,
+                                        variable_secundaria = variable_secundaria,
+                                        vartype = "cv") %>%
                            {
                              if(!is.null(valores_variable_secundaria)) {
                                filter(., !!rlang::sym(variable_secundaria) %in% valores_variable_secundaria)
@@ -1407,12 +1407,12 @@ Cruce <- R6::R6Class(classname = "Cruce",
                                   var_y = !!rlang::sym(variable_secundaria),
                                   media = coef) |>
                            graficar_lineas(orden_var_x = orden_variable_principal,
-                                                       colores = colores_variable_secundaria,
-                                                       salto_x = wrap_x,
-                                                       salto_legend = wrap_legend,
-                                                       limits = limits,
-                                                       text_nudge_y = text_nudge_y,
-                                                       size_text = size_text) +
+                                           colores = colores_variable_secundaria,
+                                           salto_x = wrap_x,
+                                           salto_legend = wrap_legend,
+                                           limits = limits,
+                                           text_nudge_y = text_nudge_y,
+                                           size_text = size_text) +
                            self$tema +
                            theme(legend.position = "bottom",
                                  axis.text.x = element_text(size = size_text_x),
@@ -1448,10 +1448,10 @@ Cruce <- R6::R6Class(classname = "Cruce",
 
                          bd_estimacion <-
                            analizar_cruce_aspectos(diseno = diseno,
-                                                               variable_principal = variable_principal,
-                                                               variables_secundarias = variables_secundarias,
-                                                               filtro_variables_secundarias = filtro_variables_secundarias,
-                                                               vartype = vartype) |>
+                                                   variable_principal = variable_principal,
+                                                   variables_secundarias = variables_secundarias,
+                                                   filtro_variables_secundarias = filtro_variables_secundarias,
+                                                   vartype = vartype) |>
                            left_join(self$diccionario |>
                                        distinct(llaves, tema), by = c("variable" = "llaves")) |>
                            select(!variable) |>

@@ -52,7 +52,7 @@ tema_morant <- function(base_family = "Poppins") {
        plot.caption = element_text(size = 14),
        plot.margin = unit(c(1, 1, 1, 1), "lines"),
        strip.text = element_text(colour ="#2C423F")
-       ) +
+     ) +
      tema_transparente()
   )
 }
@@ -109,6 +109,46 @@ graficar_barras <- function(bd,
     coord_flip() +
     labs(x = NULL, y = NULL) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+  return(g)
+}
+#' Graficar lollipop
+#'
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica de barras
+#'  ordenadas de acuerdo al criterio indicado.
+#'
+#' @param bd [tibble()] que contiene las variables necesarias para
+#' @param orden Vector ordenado tipo caracter que define el orden de las categorias en el eje x
+#' @param limits Vector numerico de longitud dos que indica los limites en escala porcentual natural del eje y usando el parametro [limits] de la funcion [ggplot2::scale_y_continuous()]
+#' @param size_pct Parametro [size] de la funcion [ggfittext::geom_text()] que controla el tamano del texto que muestra el porcentaje fuera de las lolipos
+#' @param size Parametro [size] de la funcion [ggfittext::geom_segment()] y [ggfittext::geom_point()] que controla el tamano del texto que define el tamaño de la linea y el punto de la grafica
+#' @param width_cats Valor entero usato como parametro en [stringr::str_wrap()] aplicado a las filas del eje x
+#'
+#' @return Objeto tipo [ggplot]
+#'
+#' @examples
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_principal") |>  dplyr::rename(pct = media) |>  encuestar:::graficar_lollipops() + encuestar::tema_morant()
+#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_inseguridad") |> dplyr::rename(pct = media) |> encuestar:::graficar_lollipops() + encuestar::tema_morant()
+graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats = 15 , size = 3, size_pct = 6) {
+  g <-
+    bd |>
+    ggplot(aes( if(is.null(orden)) x =  reorder(respuesta, pct) else x =  factor(respuesta, levels = orden),
+                y = pct)) +
+    geom_segment(aes(xend = respuesta,
+                     y = 0,
+                     yend = pct,
+                     color = respuesta),
+                 linewidth = size) +
+    geom_point(aes(color = respuesta),
+               size = size+3) +
+    geom_text(aes(label = scales::percent(pct, accuracy = 1.)),
+              size = size_pct, hjust = -0.5) +
+    coord_flip() +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = width_cats)) +
+    scale_y_continuous(labels = scales::percent,
+                       limits = limits) +
+    theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
+          panel.background = element_rect(color = "transparent", fill = "transparent"),
+          legend.background = element_rect(color = "transparent", fill = "transparent") )
   return(g)
 }
 if(getRversion() >= "2.15.1")  utils::globalVariables(c("familia"))
@@ -838,8 +878,8 @@ graficar_morena <- function(atr, personajes, atributos){
 #' @examples
 #' encuestar:::analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = paste0("conoce_pm_", c("astiazaran", "delrio")), filtro_variables_secundarias = "Sí", vartype = "cv") |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::distinct(llaves, tema), by = c("variable" = "llaves")) |> dplyr::select(!variable) |> dplyr::rename(variable_principal = sexo) |> encuestar:::graficar_lolipop_diferencias(orden_variablePrincipal = c("F", "M"), colores_variables_secundarias = c("Antonio \"Toño\" Astiazarán" = "red", "María Dolores Del Río" = "blue"), caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.8)) + encuestar::tema_morant()
 graficar_lolipop_diferencias <- function(bd, orden_variablePrincipal, colores_variables_secundarias,
-                                        nudge_x = 0.05, size_geom_text = 6,
-                                        caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.75)) {
+                                         nudge_x = 0.05, size_geom_text = 6,
+                                         caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.75)) {
   g <-
     bd |>
     ggplot(aes(x = factor(variable_principal, levels = orden_variablePrincipal),
@@ -860,21 +900,26 @@ graficar_lolipop_diferencias <- function(bd, orden_variablePrincipal, colores_va
     scale_color_manual(values = colores_variables_secundarias)
   return(g)
 }
-#' Title
+#' Graficar cruce por bloques
 #'
-#' @param bd
-#' @param cruce
-#' @param variable
-#' @param colores_variable_secundaria
-#' @param vartype
-#' @param filter
-#' @param linea_grosor
-#' @param linea_color
+#' Recibe un [tibble()] y genera un objeto tipo [ggplot]. El producto es una grafica bloques usando
+#' [treemapify::geom_treemap()]. Este tipo de grafico es util para cruces cuya variable principal
+#' es de pocos valores como el sexo.
 #'
-#' @return
+#' @param bd Base de datos producto de la función 'analizar_cruce'
+#' @param cruce Variable principal que agrupa los resultados de las estimaciones
+#' @param variable Variable secundaria
+#' @param colores_variable_secundaria Vector que contiene los codigos de colores para cada categoria de la variable secundaria
+#' @param vartype Parametro de [srvyr::survey_mean()] que reporta la variabilidad de la estimacion
+#' @param filter Valores de interes de la variable secundaria a mostrar
+#' @param linea_grosor Parametro [size] de la funcion [treemapify::geom_treemap_subgroup_border()] que modifica el grosor de las lineas que dividen los subgrupos de un bloque
+#' @param linea_color Parametro [color] de la funcion [treemapify::geom_treemap_subgroup_border()] que modifica el color de las lineas que dividen los subgrupos de un bloque
+#'
+#' @return Objeto tipo [ggplot]
 #'
 #' @examples
-graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secundaria, vartype, filter, linea_grosor, linea_color){
+#' encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variable_secundaria = "voto_pr_24", vartype = "cv") |> encuestar:::graficar_cruce_bloques(cruce = "sexo", variable = "voto_pr_24", colores_variable_secundaria = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F", "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6", "No recuerda" = "gray40","No contesta" = "gray60", "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405", "Anulé mi voto" = "black"), vartype = "cv", filter = NULL, linea_grosor = 2)
+graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secundaria, vartype, filter = NULL, linea_grosor = 2, linea_color = "white"){
   if(!is.null(filter)) {
     bd <-
       bd |>
@@ -882,63 +927,44 @@ graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secunda
   }
   g <-
     bd |>
-    ggplot(aes(area=coef, fill=!!rlang::sym(variable), subgroup = coef)) +
-    treemapify::geom_treemap(alpha=0.7) +
-    treemapify::geom_treemap_subgroup_border(aes(), size = linea_grosor, color = linea_color) +
+    ggplot(aes(area = coef,
+               fill = !!rlang::sym(variable),
+               subgroup = coef)) +
+    treemapify::geom_treemap(alpha = 0.7) +
+    treemapify::geom_treemap_subgroup_border(aes(),
+                                             size = linea_grosor,
+                                             color = linea_color) +
     facet_wrap(rlang::as_label(rlang::sym(cruce)))
 
   if(vartype == "cv"){
     g <-
       g +
-      treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1), pres)),
-                                    place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
-                                    color="white",
+      treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable), ", ",
+                                                       scales::percent(coef,accuracy = 1),
+                                                       pres)),
+                                    place = "centre",
+                                    grow = TRUE,
+                                    reflow = TRUE,
+                                    show.legend = FALSE,
+                                    color = "white",
                                     family = "Poppins")
-  }else{
+  } else {
     g <-
       g +
-      treemapify::geom_treemap_text(aes(label=paste0(!!ensym(variable), ", ", scales::percent(coef,accuracy = 1))),
-                                    place = "centre", grow = TRUE, reflow = TRUE, show.legend = F,
+      treemapify::geom_treemap_text(aes(label = paste0(!!ensym(variable),
+                                                       ", ",
+                                                       scales::percent(coef, accuracy = 1))),
+                                    place = "centre",
+                                    grow = TRUE,
+                                    reflow = TRUE,
+                                    show.legend = FALSE,
                                     color="white",
                                     family = "Poppins")
   }
   g <-
     g +
-    scale_fill_manual(values = colores_variable_secundaria)
-  return(g)
-}
-#' Graficar lollipop
-#'
-#' @param bd Base de datos procesada con la función analizar_sankey
-#' @param orden Default orden = NULL  Recibe un vector como parametro para indicar el orden de las variables, en caso de ser nulo el orden es por nivel de porcentaje
-#' @param limite_graf Default limite_graf = 1 Recibe valores decimales, los cuales indican el limite del eje X a nivel de procentaje. El 1 equivale al 100 %.
-#' @param size_pct Tamaño del porcentaje mostrado
-#' @param size Tamaño de la linea y el punto de la graficamostrada
-#' @param width_cats Salto de linea que se aplica a las categorias mostradas
-#'
-#' @return
-#'
-graficar_lollipops <- function(bd, orden = NULL, limite_graf = 1, width_cats = 15 , size=3, size_pct = 6) {
-  g <-
-    bd |>
-    ggplot(aes( if(is.null(orden)) x =  reorder(respuesta, pct) else x =  factor(respuesta, levels = orden),
-                y = pct)) +
-    geom_segment(aes(xend = respuesta,
-                     y = 0,
-                     yend = pct,
-                     color = respuesta),
-                 linewidth = size) +
-    geom_point(aes(color = respuesta),
-               size = size+3) +
-    geom_text(aes(label = scales::percent(pct, accuracy = 1.)),
-              size = size_pct, hjust = -0.5) +
-    coord_flip() +
-    scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = width_cats)) +
-    scale_y_continuous(labels = scales::percent,
-                       limits = c(0, limite_graf))+
-    theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-          panel.background = element_rect(color = "transparent", fill = "transparent"),
-          legend.background = element_rect(color = "transparent", fill = "transparent") )
+    scale_fill_manual(values = colores_variable_secundaria) +
+    theme(legend.position = "none")
   return(g)
 }
 #' Graficar sankey

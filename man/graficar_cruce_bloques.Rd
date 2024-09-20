@@ -2,7 +2,7 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_cruce_bloques}
 \alias{graficar_cruce_bloques}
-\title{Title}
+\title{Graficar cruce por bloques}
 \usage{
 graficar_cruce_bloques(
   bd,
@@ -10,14 +10,36 @@ graficar_cruce_bloques(
   variable,
   colores_variable_secundaria,
   vartype,
-  filter,
-  linea_grosor,
-  linea_color
+  filter = NULL,
+  linea_grosor = 2,
+  linea_color = "white"
 )
 }
 \arguments{
-\item{linea_color}{}
+\item{bd}{Base de datos producto de la función 'analizar_cruce'}
+
+\item{cruce}{Variable principal que agrupa los resultados de las estimaciones}
+
+\item{variable}{Variable secundaria}
+
+\item{colores_variable_secundaria}{Vector que contiene los codigos de colores para cada categoria de la variable secundaria}
+
+\item{vartype}{Parametro de \code{\link[srvyr:survey_mean]{srvyr::survey_mean()}} que reporta la variabilidad de la estimacion}
+
+\item{filter}{Valores de interes de la variable secundaria a mostrar}
+
+\item{linea_grosor}{Parametro \link{size} de la funcion \code{\link[treemapify:geom_treemap_subgroup_border]{treemapify::geom_treemap_subgroup_border()}} que modifica el grosor de las lineas que dividen los subgrupos de un bloque}
+
+\item{linea_color}{Parametro \link{color} de la funcion \code{\link[treemapify:geom_treemap_subgroup_border]{treemapify::geom_treemap_subgroup_border()}} que modifica el color de las lineas que dividen los subgrupos de un bloque}
+}
+\value{
+Objeto tipo \link{ggplot}
 }
 \description{
-Title
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica bloques usando
+\code{\link[treemapify:geom_treemap]{treemapify::geom_treemap()}}. Este tipo de grafico es util para cruces cuya variable principal
+es de pocos valores como el sexo.
+}
+\examples{
+encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variable_secundaria = "voto_pr_24", vartype = "cv") |> encuestar:::graficar_cruce_bloques(cruce = "sexo", variable = "voto_pr_24", colores_variable_secundaria = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F", "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6", "No recuerda" = "gray40","No contesta" = "gray60", "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405", "Anulé mi voto" = "black"), vartype = "cv", filter = NULL, linea_grosor = 2)
 }

@@ -136,7 +136,7 @@ Esta es la clase de Descriptiva
 \if{html}{\out{<div class="r">}}\preformatted{Descriptiva$lollipops_categorica(
   codigo,
   orden = NULL,
-  limite_graf = 1,
+  limits = c(0, 1),
   width_cats = 15,
   size = 3,
   size_pct = 6,
@@ -153,7 +153,7 @@ Esta es la clase de Descriptiva
 \if{html}{\out{<div class="r">}}\preformatted{Descriptiva$lollipops_multirespuesta(
   patron_inicial,
   orden = NULL,
-  limite_graf = 1,
+  limits = c(0, 1),
   width_cats = 15,
   size = 3,
   size_pct = 6
