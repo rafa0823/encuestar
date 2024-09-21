@@ -327,6 +327,7 @@ graficar_heatmap <- function(bd, orden_x, orden_y, color = "blue", caption = "",
 #'
 #' @return Objeto tipo [ggplot] compuesto por la union de al menos dos
 #'
+#' @import patchwork
 #' @examples
 #' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "opinion_pm", aspectos = c("astiazaran", "delrio")) |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::select(aspecto = llaves, tema)) |> encuestar:::graficar_candidato_opinion(ns_nc = "Ns/Nc", regular = "Regular", grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"), colores = c("Muy buena" = "green", "Buena" = "yellow", "Regular" = "blue", "Mala" = "orange", "Muy mala" = "red"), color_nsnc = "gray70", tema = encuestar:::tema_morant(), burbuja = NA, orden_resp = c("Muy buena", "Buena", "Regular", "Mala", "Muy mala"), size_pct = 12, caption_opinion = "Opinon", size_text_cat = 16, size_caption_opinion = 12, caption_nsnc = "Ns/Nc", size_caption_nsnc = 14, salto_respuestas = 100)
 graficar_candidato_opinion <- function(bd, ns_nc, regular,

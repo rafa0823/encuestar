@@ -179,7 +179,8 @@ encuesta_demo$Resultados$Especial$candidatoSaldo(llave_opinion = "opinion_pm",
                                                  regular = "Regular", 
                                                  ns_nc = "Ns/Nc", 
                                                  color_positivo = "#52B788", 
-                                                 color_negativo = "#606299")
+                                                 color_negativo = "#606299", 
+                                                 caption_opinion = "")
 
 ```
 

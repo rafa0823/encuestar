@@ -3,8 +3,7 @@
 
 library(dplyr)
 # Cargar la version de desarrollo de la librería encuestar que deberá estar instalada en sistema
-# library(encuestar)
-devtools::load_all()
+library(encuestar)
 
 # Insumos -------------------------------------------------------------------------------------
 
