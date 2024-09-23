@@ -145,7 +145,7 @@ graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats
     coord_flip() +
     scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = width_cats)) +
     scale_y_continuous(labels = scales::percent,
-                       limits = limits) +
+                       limits = c(0,limits)) +
     theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
           panel.background = element_rect(color = "transparent", fill = "transparent"),
           legend.background = element_rect(color = "transparent", fill = "transparent") )

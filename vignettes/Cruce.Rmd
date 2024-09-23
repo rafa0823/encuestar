@@ -251,7 +251,7 @@ encuesta_demo$Resultados$Cruce$lolipop_diferencias(variable_principal = "sexo",
                                                    colores_variables_secundarias = c("Antonio \"Toño\" Astiazarán" = "green", 
                                                                                      "María Dolores Del Río" = "blue"), 
                                                    caption = "Intención de voto por sexo", 
-                                                   wrap_caption = 40) +
+                                                   wrap_caption = 40,ver_diferencias = FALSE) +
   ggplot2::scale_x_discrete(labels = c("F" = "Mujeres",
                               "M" = "Hombres"))
 

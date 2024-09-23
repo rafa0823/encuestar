@@ -1051,7 +1051,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                }
 
-                               analizar_frecuencia_multirespuesta(diseno = diseno,
+                               analizar_frecuencias_multirespuesta(diseno = diseno,
                                                                   patron_inicial) %>%
                                  graficar_barras(salto = salto,
                                                  porcentajes_fuera = porcentajes_fuera,
@@ -1227,7 +1227,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
 
                                }
 
-                               analizar_frecuencia_multirespuesta(diseno = diseno,
+                               analizar_frecuencias_multirespuesta(diseno = diseno,
                                                                   patron_inicial) %>%
                                  rename(pct = media) |>
                                  graficar_lollipops(orden = orden,
