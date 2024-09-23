@@ -2,7 +2,7 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{calcular_tabla_candidatoOpinion}
 \alias{calcular_tabla_candidatoOpinion}
-\title{Title}
+\title{Calcular resultados de opinion por candidato en formato tabla}
 \usage{
 calcular_tabla_candidatoOpinion(
   diseno,
@@ -17,8 +17,30 @@ calcular_tabla_candidatoOpinion(
 )
 }
 \arguments{
-\item{ns_nc}{}
+\item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
+
+\item{diccionario}{Cuestionario de la encuesta en formato de procesamiento requerido}
+
+\item{patron_opinion}{Cadena de texto que contiene el patron en comun (inicial) entre las variables asociadas a opinion}
+
+\item{patron_conocimiento}{Cadena de texto que contiene el patron en comun (inicial) entre las variables asociadas a opinion}
+
+\item{aspectos}{Vector de tipo cadena de texto que diferencia las variables de interes}
+
+\item{filtro_conocimiento}{Cadena de texto usada para filtrar valores de interes asociado a preguntas con pase en el cuestionario}
+
+\item{orden_opinion}{Vector ordenado tipo caracter usado para establecer el orden de los posibles valores unicos en las variables de opinion}
+
+\item{ns_nc}{Cadena de texto asociada a las respues en que No sabe o No contesta}
+
+\item{salto_respuestas}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a todos los encabezados de la tabla}
+}
+\value{
+\code{\link[=tibble]{tibble()}} con las variables necesarias para la funcion \code{\link[encuestar:::formatear_tabla_candidatoOpinion]{encuestar::::formatear_tabla_candidatoOpinion()}}
 }
 \description{
-Title
+Produce y ordena los resultados necesarios para la funcion \code{\link[encuestar:::formatear_tabla_candidatoOpinion]{encuestar::::formatear_tabla_candidatoOpinion()}}
+}
+\examples{
+encuestar:::calcular_tabla_candidatoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_opinion = "opinion_pm", patron_conocimiento = "conoce_pm", aspectos = c("astiazaran", "delrio"), filtro_conocimiento = "respuesta == 'Sí'", orden_opinion = c("Muy mala", "Mala", "Regular", "Buena", "Muy buena"), ns_nc =  "Ns/Nc", salto_respuestas = 60)
 }

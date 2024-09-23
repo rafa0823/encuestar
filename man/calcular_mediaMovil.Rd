@@ -2,13 +2,28 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{calcular_mediaMovil}
 \alias{calcular_mediaMovil}
-\title{Calcular media movil de una variable}
+\title{Calcular media movil de una variable
+de un diseno muestral construido con la paqueteria \code{survey}}
 \usage{
-calcular_mediaMovil(bd_resultados, variable, sin_peso, valores_interes)
+calcular_mediaMovil(bd_resultados, variable, valores_interes, sin_peso)
 }
 \arguments{
-\item{valores_interes}{}
+\item{bd_resultados}{\code{\link[=tibble]{tibble()}} que contien la variable de interes y los pesos necesarios para el calculo}
+
+\item{variable}{Nombre de la variable de interes}
+
+\item{valores_interes}{Valor de interes contenido en la variable de interes}
+
+\item{sin_peso}{Logical. Se usa para calcular resultados con o sin pesos}
+}
+\value{
+\code{\link[=tibble]{tibble()}} con las variables: hora, variable_interes, movil_variable_nteres
 }
 \description{
 Calcular media movil de una variable
+de un diseno muestral construido con la paqueteria \code{survey}
+}
+\examples{
+encuestar:::calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = TRUE)
+encuestar:::calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = FALSE)
 }

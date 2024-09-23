@@ -2,13 +2,20 @@
 % Please edit documentation in R/graficar.R
 \name{tema_morant}
 \alias{tema_morant}
-\title{Title}
+\title{Tema usado como identidad grafica en los entregables de Morant}
 \usage{
-tema_morant(base_size = 15, base_family = "Poppins", fondo = "#FFFFFF")
+tema_morant(base_family = "Poppins")
 }
 \arguments{
-\item{fondo}{}
+\item{base_family}{Parametro de \code{\link[ggthemes:theme_foundation]{ggthemes::theme_foundation()}} usado como fuente tipografica}
+}
+\value{
+Tema de \link{ggplot2}
 }
 \description{
-Title
+Tema de \link{ggplot2} que contiene el formato de entregables para objetos \link{ggplot2}
+}
+\examples{
+encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip()
+encuesta_demo$muestra$diseno$variables |> dplyr::count(voto_pr_24) |> na.omit() |>  ggplot2::ggplot(ggplot2::aes(x = reorder(voto_pr_24, n), y = n, fill = voto_pr_24)) + ggplot2::geom_col() + ggplot2::coord_flip() + encuestar::tema_morant()
 }

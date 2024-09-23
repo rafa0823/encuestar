@@ -3,8 +3,7 @@
 
 library(dplyr)
 # Cargar la version de desarrollo de la librería encuestar que deberá estar instalada en sistema
-# library(encuestar)
-devtools::load_all()
+library(encuestar)
 
 # Insumos -------------------------------------------------------------------------------------
 
@@ -204,4 +203,4 @@ encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
 )
 
 # usethis::use_data(encuesta_demo, encuesta_demo, internal = TRUE, overwrite = TRUE)
-usethis::use_data(encuesta_demo)
+usethis::use_data(encuesta_demo, overwrite = TRUE)

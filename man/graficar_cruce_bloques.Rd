@@ -2,35 +2,7 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_cruce_bloques}
 \alias{graficar_cruce_bloques}
-\title{#' Graficar cruce de una variable vs otra con opción a filtro
-#'
-#' @param bd Base de datos resultado de la función 'analizar_cruceBrechas'
-#' @param var1 Variable principal por la cual se hace el cruce
-#' @param var2_filtro Variable secundaria para hacer análisis con la primaria
-#' @param vartype
-#' @param line_rich Argumento de la función 'geom_textline'
-#' @param line_linewidth Argumento de la función 'geom_textline'
-#' @param line_hjust Argumento de la función 'geom_textline'
-#' @param line_vjust Argumento de la función 'geom_textline'
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_brechasDuales(bd, var1 = "AMAI_factor", var2_filtro = "candidato_preferencia")
-graficar_cruce_brechasDuales = function(bd, var1, var2_filtro, vartype = "cv", line_rich = F,
-line_linewidth = 2, line_hjust = 0.5, line_vjust = -0.5){
-g <- bd |>
-ggplot(aes(x=!!rlang::sym(var1),
-y=coef)) +
-geomtextpath::geom_textline(aes(color=!!rlang::sym(var2_filtro),
-group=!!rlang::sym(var2_filtro),
-label=!!rlang::sym(var2_filtro)),
-linewidth = line_linewidth, hjust = line_hjust,
-vjust = line_vjust, rich = line_rich,
-size=6, family = "Poppins") +
-scale_y_continuous(labels=scales::percent) +
-labs(color = NULL)}
+\title{Graficar cruce por bloques}
 \usage{
 graficar_cruce_bloques(
   bd,
@@ -38,55 +10,36 @@ graficar_cruce_bloques(
   variable,
   colores_variable_secundaria,
   vartype,
-  filter,
-  linea_grosor,
-  linea_color
+  filter = NULL,
+  linea_grosor = 2,
+  linea_color = "white"
 )
 }
 \arguments{
-\item{bd}{Base de datos producto de la función 'analizar_cruceBrechas'}
+\item{bd}{Base de datos producto de la función 'analizar_cruce'}
 
-\item{cruce}{Variable principal por la cual se hace el cruce}
+\item{cruce}{Variable principal que agrupa los resultados de las estimaciones}
 
-\item{variable}{Variable secundaria para hacer análisis con la primaria}
+\item{variable}{Variable secundaria}
 
-\item{filter}{Filtro aplicable al parámetro 'cruce'}
+\item{colores_variable_secundaria}{Vector que contiene los codigos de colores para cada categoria de la variable secundaria}
+
+\item{vartype}{Parametro de \code{\link[srvyr:survey_mean]{srvyr::survey_mean()}} que reporta la variabilidad de la estimacion}
+
+\item{filter}{Valores de interes de la variable secundaria a mostrar}
+
+\item{linea_grosor}{Parametro \link{size} de la funcion \code{\link[treemapify:geom_treemap_subgroup_border]{treemapify::geom_treemap_subgroup_border()}} que modifica el grosor de las lineas que dividen los subgrupos de un bloque}
+
+\item{linea_color}{Parametro \link{color} de la funcion \code{\link[treemapify:geom_treemap_subgroup_border]{treemapify::geom_treemap_subgroup_border()}} que modifica el color de las lineas que dividen los subgrupos de un bloque}
+}
+\value{
+Objeto tipo \link{ggplot}
 }
 \description{
-if(vartype == "cv"){
-g <- g +
-geom_text(aes(label=pres),
-color="black", size=6, hjust=-.1)
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica bloques usando
+\code{\link[treemapify:geom_treemap]{treemapify::geom_treemap()}}. Este tipo de grafico es util para cruces cuya variable principal
+es de pocos valores como el sexo.
 }
-return(g)
-}
-#' Graficar cruce de una variable vs múltiples variables
-#'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#' @param line_rich Argumento de la función 'geom_textline'
-#' @param line_linewidth Argumento de la función 'geom_textline'
-#' @param line_hjust Argumento de la función 'geom_textline'
-#' @param line_vjust Argumento de la función 'geom_textline'
-#'
-#' @return
-#' @export
-#'
-#' @examples
-graficar_cruce_brechasMultiples <- function(bd, cruce, vartype, line_rich, line_linewidth, line_hjust, line_vjust){
-g <- bd |>
-ggplot(aes(x=!!rlang::sym(cruce),
-y=mean)) +
-geomtextpath::geom_textline(aes(color=(variable),
-group=(variable),
-label=(variable)),
-linewidth=line_linewidth, hjust = line_hjust,
-vjust = line_vjust, rich = line_rich,
-size = 6, family = "Poppins") +
-scale_y_continuous(labels=scales::percent) +
-labs(color = NULL)
-}
-\details{
-
+\examples{
+encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variable_secundaria = "voto_pr_24", vartype = "cv") |> encuestar:::graficar_cruce_bloques(cruce = "sexo", variable = "voto_pr_24", colores_variable_secundaria = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F", "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6", "No recuerda" = "gray40","No contesta" = "gray60", "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405", "Anulé mi voto" = "black"), vartype = "cv", filter = NULL, linea_grosor = 2)
 }

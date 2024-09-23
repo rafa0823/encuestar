@@ -21,12 +21,7 @@ Esta es la clase de Resultados
 \if{latex}{\out{\hypertarget{method-Resultados-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Resultados$new(
-  encuesta,
-  diseno,
-  diccionario,
-  tema = encuestar:::tema_default()
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Resultados$new(encuesta, diseno, diccionario, tema = tema_morant())}\if{html}{\out{</div>}}
 }
 
 }

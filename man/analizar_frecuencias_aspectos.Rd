@@ -11,7 +11,7 @@ analizar_frecuencias_aspectos(diseno, diccionario, patron_pregunta, aspectos)
 
 \item{diccionario}{Cuestionario de la encuesta en formato de procesamiento requerido}
 
-\item{patron_pregunta}{Cadena de texto en comun (inicial) entre los nombres de las variables las variables a analizar.}
+\item{patron_pregunta}{Cadena de texto en comun (inicial) entre los nombres de las variables a analizar.}
 
 \item{aspectos}{Vector de tipo cadena de texto (final) que diferencia las variables a analizar.
 Separada de patron_pregunta por un guion bajo.}
@@ -20,8 +20,8 @@ Separada de patron_pregunta por un guion bajo.}
 Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.
 }
 \description{
-Calcula la media de multiples variables cuyos nombres comparten un patron inicial en comun de
-un diseno muestral construido con la paqueteria \code{survey}
+Calcula la media de multiples variables cuyos nombres comparten un patron inicial en comun
+de un diseno muestral construido con la paqueteria \code{survey}
 }
 \examples{
 encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("astiazaran", "delrio"))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_candidatoPartido}
 \alias{analizar_candidatoPartido}
-\title{Analizar partido asociado a un candidato}
+\title{Calcula las estimaciones de asociacion partidista de un personaje en particular}
 \usage{
 analizar_candidatoPartido(
   diseno,
@@ -11,7 +11,7 @@ analizar_candidatoPartido(
   llave_conocimiento,
   respuesta_conoce,
   candidatos,
-  corte_otro
+  corte_otro = 0.05
 )
 }
 \arguments{
@@ -29,9 +29,12 @@ analizar_candidatoPartido(
 
 \item{corte_otro}{Parámetro 'prop' de la función 'fct_lump' de la paquetería 'forcats' usado para agrupar valores pequeños de partidos políticos}
 }
+\value{
+Lista de donde cada elemento es un \code{\link[=tibble]{tibble()}} asociado al conocimiento y asociacion partidista
+}
 \description{
-Analizar partido asociado a un candidato
+Calcula las estimaciones de asociacion partidista de un personaje en particular
 }
 \examples{
-analizar_candidatoPartido(diseno = self\%diseno, llave_partido = "partido", llave_conocimiento = "conocimiento", respuesta_conoce = "Sí", candidatos = c("era", "sasil"))
+encuestar:::analizar_candidatoPartido(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_partido = "partido_pm", llave_conocimiento = "conoce_pm", respuesta_conoce = "Sí", candidatos = c("lia", "javier"))
 }

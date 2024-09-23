@@ -2,24 +2,49 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_heatmap}
 \alias{graficar_heatmap}
-\title{Title}
+\title{Graficar heatmap (geom_tile)}
 \usage{
 graficar_heatmap(
   bd,
   orden_x,
   orden_y,
   color = "blue",
-  caption,
-  salto_x,
-  salto_y,
+  caption = "",
+  salto_x = 25,
+  salto_y = 25,
   size_text_x = 14,
   size_text_y = 16,
   size_text_caption = 14
 )
 }
 \arguments{
-\item{size_text_caption}{}
+\item{bd}{Base de datos con las variables requeridas}
+
+\item{orden_x}{Orden de los posibles valores de la variable en el eje x}
+
+\item{orden_y}{Orden de los posibles valores de la variable en el eje x}
+
+\item{color}{Color principal del hatpmap}
+
+\item{caption}{Cadena de texto usada en el parametro \link{caption} de la funcion \code{\link[ggplot2:labs]{ggplot2::labs()}}}
+
+\item{salto_x}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a las filas del eje x}
+
+\item{salto_y}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a las filas del eje y}
+
+\item{size_text_x}{Parametro \link{size} de la funcion \code{\link[ggplot2:element]{ggplot2::element_text()}} usado en el parametro \link{axis.text.x} en el tema particular del grafico}
+
+\item{size_text_y}{Parametro \link{size} de la funcion \code{\link[ggplot2:element]{ggplot2::element_text()}} usado en el parametro \link{axis.text.y} en el tema particular del grafico}
+
+\item{size_text_caption}{Parametro \link{size} de la funcion \code{\link[ggplot2:element]{ggplot2::element_text()}} usado en el parametro \link{plot.caption} en el tema particular del grafico}
+}
+\value{
+Objeto tipo \link{ggplot}
 }
 \description{
-Title
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica tipo heatmap de
+\code{\link[ggplot2:geom_tile]{ggplot2::geom_tile()}}
+}
+\examples{
+encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variable_secundaria = "asunto_seguridad", vartype = "cv") |> dplyr::rename(var_y = sexo, var_x = asunto_seguridad, media = coef) |> encuestar::graficar_heatmap(orden_x = c("Mejor", "Peor", "Sigue igual", "Ns/Nc"),orden_y = c("F", "M"))
 }

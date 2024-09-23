@@ -47,7 +47,8 @@ Esta es la clase de Cruce
   filter = NULL,
   vartype = "cv",
   linea_grosor = 2,
-  linea_color = "white"
+  linea_color = "white",
+  na_rm = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -70,7 +71,8 @@ Esta es la clase de Cruce
   size_text = 8,
   size_text_x = 16,
   size_text_y = 14,
-  size_text_legend = 14
+  size_text_legend = 14,
+  na_rm = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -97,7 +99,8 @@ Esta es la clase de Cruce
   size_text_x = 16,
   size_text_y = 16,
   size_text_caption = 16,
-  size_text_legend = 16
+  size_text_legend = 16,
+  ver_diferencias = TRUE
 )}\if{html}{\out{</div>}}
 }
 
@@ -132,7 +135,8 @@ Esta es la clase de Cruce
   colores_var2,
   size_text_header = 18,
   size_text_body = 14,
-  salto = 20
+  salto = 20,
+  na_rm = TRUE
 )}\if{html}{\out{</div>}}
 }
 

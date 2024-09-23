@@ -2,32 +2,7 @@
 % Please edit documentation in R/graficar.R
 \name{graficar_lolipop_diferencias}
 \alias{graficar_lolipop_diferencias}
-\title{#' Graficar cruce de una variable vs varias variables
-#'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
-graficar_crucePuntos = function(bd, cruce, vartype){
-g <- bd |>
-ggplot(aes(x=reorder(variable,mean), xend=variable,
-color=!!rlang::sym(cruce))) +
-geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
-linetype="solid", color="black", linewidth=.5) +
-geom_vline(aes(xintercept = variable), linetype = "dashed",
-color = "gray60", size=.5) +
-geom_point(aes(y=mean),
-shape=19,  size = 6) +
-scale_y_continuous(labels=scales::percent) +
-coord_flip()
-return(g)
-}
-Graficar cruce de una variable vs varias variables pero filtradas}
+\title{Graficar lolipos para resaltar diferencias}
 \usage{
 graficar_lolipop_diferencias(
   bd,
@@ -35,42 +10,38 @@ graficar_lolipop_diferencias(
   colores_variables_secundarias,
   nudge_x = 0.05,
   size_geom_text = 6,
-  caption,
-  wrap_y,
-  wrap_caption,
-  limits
+  caption = "",
+  wrap_y = 25,
+  wrap_caption = 25,
+  limits = c(0, 0.75)
 )
 }
 \arguments{
 \item{bd}{Base de datos producto de la función 'analizar_crucePuntos'}
 
 \item{orden_variablePrincipal}{Factor de la variable principal}
+
+\item{colores_variables_secundarias}{Vector que contiene los codigos de colores para cada categoria de la variable secundaria}
+
+\item{nudge_x}{Parametro \link{nudge_y} de la funcion \code{\link[ggplot2:geom_text]{ggplot2::geom_text()}} que modifica la posicion del texto en el grafico}
+
+\item{size_geom_text}{Parametro \link{size} de la funcion \code{\link[ggplot2:geom_text]{ggplot2::geom_text()}} que modifica la posicion del texto en el grafico}
+
+\item{caption}{Cadena de texto usada en el parametro \link{caption} de la funcion \code{\link[ggplot2:labs]{ggplot2::labs()}}}
+
+\item{wrap_y}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a todos las categorias del eje y}
+
+\item{wrap_caption}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado al \link{caption} del grafico}
+
+\item{limits}{Vector numerico que indica los limites en escala porcentual natural del eje y}
+}
+\value{
+Objeto tipo \link{ggplot}
 }
 \description{
-#' Graficar cruce de una variable vs varias variables
-#'
-#' @param bd Base de datos producto de la función 'analizar_crucePuntos'
-#' @param cruce Variable principal por la cual se hace el cruce
-#' @param vartype
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' graficar_cruce_puntos(bd, cruce = "rurub", vartype = "cv")
-graficar_crucePuntos = function(bd, cruce, vartype){
-g <- bd |>
-ggplot(aes(x=reorder(variable,mean), xend=variable,
-color=!!rlang::sym(cruce))) +
-geom_linerange(aes(ymin = mean-!!rlang::sym(vartype), ymax = mean+!!rlang::sym(vartype)),
-linetype="solid", color="black", linewidth=.5) +
-geom_vline(aes(xintercept = variable), linetype = "dashed",
-color = "gray60", size=.5) +
-geom_point(aes(y=mean),
-shape=19,  size = 6) +
-scale_y_continuous(labels=scales::percent) +
-coord_flip()
-return(g)
+Recibe un \code{\link[=tibble]{tibble()}} y genera un objeto tipo \link{ggplot}. El producto es una grafica tipo lolipo
+que resalta las diferencias entre dos categorias
 }
-Graficar cruce de una variable vs varias variables pero filtradas
+\examples{
+encuestar:::analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = paste0("conoce_pm_", c("astiazaran", "delrio")), filtro_variables_secundarias = "Sí", vartype = "cv") |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::distinct(llaves, tema), by = c("variable" = "llaves")) |> dplyr::select(!variable) |> dplyr::rename(variable_principal = sexo) |> encuestar:::graficar_lolipop_diferencias(orden_variablePrincipal = c("F", "M"), colores_variables_secundarias = c("Antonio \"Toño\" Astiazarán" = "red", "María Dolores Del Río" = "blue"), caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.8)) + encuestar::tema_morant()
 }
