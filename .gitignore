@@ -3,6 +3,9 @@
 .Rdata
 .httr-oauth
 .DS_Store
+auditoria/
+R/funciones.R
+R/constantes.R
 inst/doc
 /doc/
 /Meta/
