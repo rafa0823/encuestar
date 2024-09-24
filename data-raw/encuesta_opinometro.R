@@ -1,36 +1,39 @@
+# SCRIPT DE PRUEBAS PARA GENERAR UNA CLASE ENCUESTA USANDO COMO INSUMO EL OPINOMETRO
+# Al generar la clase, se escriben los archivos ./R/constantes.R, ./R/funciones.R y un folder
+# llamado ./auditoria/ los cuales no forman parte edl desarrollo salvo que se esté trabajando en la
+# encuesta demo
 
 # Preambulo -----------------------------------------------------------------------------------
 
 library(dplyr)
-# Cargar la version de desarrollo de la librería encuestar que deberá estar instalada en sistema
 library(encuestar)
 
 # Insumos -------------------------------------------------------------------------------------
 
-#+ Se carga el archivo shp con la cartografia de la zona de la encuesta
-shp_hermosillo_agosto <- readr::read_rds("./data-raw/shp.rda")
+shp_hermosillo_agosto <-
+  readr::read_rds("./data-raw/shp.rda")
 
-#+ Se carga el diseno de la encuesta generado con la paqueteria muestreaR
-diseno_hermosillo_agosto <- readr::read_rds("./data-raw/diseno.rda")
+diseno_hermosillo_agosto <-
+  readr::read_rds("./data-raw/diseno.rda")
 
-#+ Se carga el diccionario de variables en la encuesta
 diccionario_hermosillo_agosto <-
-  readxl::read_xlsx(path = "./data-raw/diccionario_enc_demo.xlsx") |> #dicc_enc_hermosillo_agosto.xlsx
+  readxl::read_xlsx(path = "./data-raw/diccionario_enc_demo.xlsx") |>
   dplyr::filter(!grepl(pattern = "Registro de ubicación|Filtros", x = bloque)) |>
   filter(llaves == "problema_principal")
 
 # data-raw ------------------------------------------------------------------------------------
 
-pool <- pool::dbPool(
-  drv = odbc::odbc(),
-  Driver= 'ODBC Driver 17 for SQL Server',
-  Database = "SVNET",
-  Server = "tcp:morant.database.windows.net",
-  UID = "emorones",
-  PWD = "Mor@nt2024",
-  Port = 1433,
-  timeout = 120
-)
+pool <-
+  pool::dbPool(
+    drv = odbc::odbc(),
+    Driver= 'ODBC Driver 17 for SQL Server',
+    Database = "SVNET",
+    Server = "tcp:morant.database.windows.net",
+    UID = "emorones",
+    PWD = "Mor@nt2024",
+    Port = 1433,
+    timeout = 120
+  )
 
 obtener_respuesta <- function(pool, codigos, encuesta_id){
   query_claves <- paste0("REPLACE(JSON_VALUE(r.Resultado, '$.", codigos, "'), 'ñ', 'n') AS ", codigos, collapse = ", ")
@@ -56,49 +59,6 @@ obtener_respuesta <- function(pool, codigos, encuesta_id){
     janitor::clean_names()
 }
 
-## Metodo antiguo -----------------------------------------------------------------------------
-
-bd_raw_id163 <-
-  obtener_respuesta(pool = pool,
-                    codigos = "variable_nula",
-                    encuesta_id = 163) |>
-  dplyr::collect() |>
-  select(!variable_nula) |>
-  filter(ubicacion_aplicada != "No aplica") |>
-  mutate(ubicacion_aplicada = dplyr::if_else(condition = ubicacion_aplicada == ",",
-                                             true = NA_character_,
-                                             false = ubicacion_aplicada)) |>
-  tidyr::separate(col = ubicacion_aplicada,
-                  into = c("Latitude", "Longitude"),
-                  sep = ",",
-                  remove = FALSE) %>%
-  transmute(SbjNum = id,
-            Date = lubridate::as_datetime(fecha_inicio),
-            Latitude, Longitude,
-            VStart = lubridate::as_datetime(fecha_inicio),
-            VEnd = lubridate::as_datetime(fecha_fin),
-            Srvyr = usuario_num)
-
-bd_id163 <-
-  bd_raw_id163 |>
-  bind_rows(bd_raw_id163) %>%
-  mutate(SbjNum = row_number(),
-         edad = sample(seq.int(from = 18, to = 80, by = 1),
-                       size = nrow(.),
-                       replace = TRUE),
-         sexo = sample(c("Mujer", "Hombre"),
-                       size = nrow(.),
-                       replace = TRUE),
-         problema_principal = sample(c("A", "B", "C"),
-                                     size = nrow(.),
-                                     replace = TRUE),
-         SECCION = sample(diseno_hermosillo_agosto$muestra$SECCION |>
-                            distinct(cluster_2) |>
-                            mutate(cluster_2 = as.character(cluster_2)) |>
-                            pull(),
-                          size = nrow(.),
-                          replace = TRUE))
-
 ## Metodo con base en variables ---------------------------------------------------------------
 
 variables_id163 <-
@@ -109,7 +69,7 @@ variables_id163 <-
     aux <- Resultado |>
       jsonlite::fromJSON() |>
       as_tibble()
-    }) |>
+  }) |>
   select(!c(starts_with("Pregunta"), ObtenerGPS)) |> # Omitir variables que no tienen nombre o desconocidas
   colnames()
 
@@ -151,30 +111,36 @@ bd_id163 <-
          sexo = sample(c("Mujer", "Hombre"),
                        size = nrow(.),
                        replace = TRUE),
-         problema_principal = sample(c("A", "B", "C"),
-                                     size = nrow(.),
-                                     replace = TRUE),
          SECCION = sample(diseno_hermosillo_agosto$muestra$SECCION |>
                             distinct(cluster_2) |>
                             mutate(cluster_2 = as.character(cluster_2)) |>
                             pull(),
                           size = nrow(.),
-                          replace = TRUE))
+                          replace = TRUE),
+         problema_principal = sample(c("A", "B", "C"),
+                                     size = nrow(.),
+                                     replace = TRUE),
+         MUNI = sample(c("mun_a", "mun_a", "mun_a"),
+                                     size = nrow(.),
+                                     replace = TRUE)
+         )
 
 # Base de eliminadas --------------------------------------------------------------------------
-#+ Se agrega la lista de encuestas eliminadas por auditoria
-eliminadas <-
-  readxl::read_excel(path = "./data-raw/bd_eliminadas_hermosillo_agosto.xlsx")
 
-#+ En caso de existir varibales que no se vayan a utilizar, se agrega la lista de variables que no se vayan a considerar
-# Omitir variables
+eliminadas <-
+  tibble(SbjNum = sample(bd_id163$SbjNum,
+                         size = 12,
+                         replace = TRUE),
+         razon = sample(c("razon_a", "razon_b", "razon_c"),
+                        size = 12,
+                        replace = TRUE))
+
 quitar <- c()
 
-# Clusters a los que forzar entrevistas
 mantener <- ""
 
 # Clase -------------------------------------------------------------------
-#+ Se crea la clase encuesta, que contiene la base de datos, asi como el diseno muestral, y la app de auditoria
+
 encuesta_demo <- Encuesta$new(respuestas = bd_id163,
                               # n_simulaciones = 200,
                               quitar_vars = quitar,
@@ -193,6 +159,3 @@ encuesta_demo <- Encuesta$new(respuestas = bd_id163,
 )
 
 encuesta_demo$auditoria$run_app()
-
-# usethis::use_data(encuesta_demo, encuesta_demo, internal = TRUE, overwrite = TRUE)
-usethis::use_data(encuesta_demo, overwrite = TRUE)
