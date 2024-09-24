@@ -172,7 +172,89 @@ graficar_mapa_clusters <- function(lflt = NULL, bd, nivel, muestra, shp){
           addLegend(position = "bottomright", colors = "#f72585", labels = "Localidades rurales")
 
       } else{
-        mapear <- shp %>% purrr::pluck(nivel) %>% inner_join(muestra %>% distinct(across(all_of(nivel)), .keep_all = T))
+        mapear <- shp$SECCION %>%
+          inner_join(muestra %>% distinct(across(all_of(nivel)), .keep_all = T) |>
+                       select(!c(ENTIDAD, DISTRITO_F, MUNICIPIO)), by = "SECCION")
+
+        nivel_muestra <- mapear %>% as_tibble %>% select(contains("cluster")) %>% names %>% parse_number %>% max
+
+        popup_cluster <- paste0("cluster_",nivel,": ", as_tibble(mapear)[[paste("cluster",nivel,sep = "_")]])
+        popup_mun <- paste("Municipio: ", mapear$NOMBRE_MUN)
+        mapa <- lflt %>%
+          addPolygons(data = mapear,
+                      stroke = T,
+                      color = "black",
+                      fillColor = ~pal(nivel),
+                      fillOpacity = .1,
+                      weight = 1,
+                      opacity = 1,
+                      popup = paste(popup_mun, popup_cluster, sep = "<br>")
+          ) %>%
+          addLegend(title = "Nivel", na.label = "Sin nivel", data = mapear, pal = pal, values = c("SECCION" = "Cluster"), position = "bottomleft")
+      }
+    }
+  }
+
+  return(mapa)
+}
+
+graficar_mapa_mza <- function(lflt = NULL, bd, nivel, muestra, shp){
+
+  nivel <- if(nivel == "MANZANA"){
+    "MANZANA"
+  } else nivel
+
+  pal <- if(nivel == "MUNICIPIO"){
+    colorFactor(topo.colors(n_distinct(muestra$strata_1)), domain = unique(muestra$strata_1))
+  } else {
+    pal <- colorFactor(palette = c("black", "gray80", "gray80"), domain = c("LOCALIDAD", "SECCION", "Cluster"), levels = c("LOCALIDAD", "SECCION", "Cluster"), ordered = T, na.color = "blue")
+  }
+
+  mapa <- if(is.null(lflt)){
+    shp %>% purrr::pluck(nivel) %>%
+      left_join(muestra %>% distinct(MUNICIPIO,strata_1)) %>%
+      group_by(strata_1) %>% summarise(n()) %>%
+      sf::st_buffer(dist = 0) %>%
+      leaflet() %>% addProviderTiles("CartoDB.Positron") %>%
+      addPolygons(color = ~pal(strata_1), opacity = 1, fill = F) %>%
+      addLegend(pal = pal, values = ~strata_1, position = "bottomleft")
+  } else{
+    if(nivel == "MUNICIPIO"){
+      lflt %>% addPolygons(data = shp %>% purrr::pluck(nivel) %>% inner_join(muestra %>% distinct(across(all_of(nivel)), .keep_all = T)),
+                           fillColor = ~pal(strata_1), color = "black", opacity = 1, weight = 1, fillOpacity = 1, label = ~glue::glue("Municipio: {NOMBRE_MUN}"))
+    } else{
+      if(nivel == "MANZANA"){
+
+        mapear <- shp$MANZANA %>%
+          inner_join(diseno$muestra$MZA %>%
+                       tidyr::unnest(cols = data) |>
+                       distinct(.keep_all = T))
+
+        mapa <-
+          lflt %>%
+          # leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
+          # addProviderTiles("CartoDB.Positron") %>%
+          addPolygons(data = mapear %>% filter(sf::st_geometry_type(.) != "POINT"),
+                      # label = ~glue::glue("Localidad: {MANZANA}"),
+                      # stroke = TRUE,
+                      # opacity = 1,
+                      # fillOpacity = 1,
+                      fillColor = "red",
+                      color = "red"
+          ) %>%
+          addCircleMarkers(data = mapear %>% filter(sf::st_geometry_type(.) == "POINT"),
+                           # label = ~glue::glue("Localidad: {MANZANA}"),
+                           opacity = 1,
+                           fillOpacity = 1,
+                           fillColor = "red",
+                           color = "red",
+                           weight = 1)
+        # addLegend(position = "bottomright", colors = "#f72585", labels = "Localidades rurales")
+
+      } else{
+        mapear <- shp$SECCION %>%
+          inner_join(muestra %>% distinct(across(all_of(nivel)), .keep_all = T) |>
+                       select(!c(ENTIDAD, DISTRITO_F, MUNICIPIO)), by = "SECCION")
 
         nivel_muestra <- mapear %>% as_tibble %>% select(contains("cluster")) %>% names %>% parse_number %>% max
 
@@ -495,7 +577,8 @@ server <- function(input, output, session) {
                                        levels = c("Alto rezago", "Medio-alto rezago", "Medio rezago", "Bajo rezago"),
                                        domain = shp_secciones_rezago$rezago, ordered = T, na.color =  "#B3B3B3")
 
-    map <- mapa_base %>%
+    map <-
+      mapa_base %>%
       left_join(nombres_region |> select(strata_1, nombre_region), by = "strata_1") |>
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
       addProviderTiles("CartoDB.Positron") %>%
@@ -507,8 +590,16 @@ server <- function(input, output, session) {
       #           values = ~nombre_region,
       #           position = "bottomleft",
       #           title = "Región") %>%
-      shp$graficar_mapa(bd = diseno$muestra,
-                        nivel = u_nivel %>% pull(variable)) %>%
+      graficar_mapa_clusters(bd = diseno$muestra,
+                             # nivel = u_nivel %>% pull(variable),
+                             nivel = 2,
+                             muestra = diseno$muestra$SECCION %>% tidyr::unnest(data),
+                             shp = shp$shp) %>%
+      graficar_mapa_mza(bd = diseno$muestra,
+                        # nivel = u_nivel %>% pull(variable),
+                        nivel = "MANZANA",
+                        muestra = diseno$muestra$SECCION %>% tidyr::unnest(data),
+                        shp = shp$shp) %>%
       addPolygons(data = faltan_shp,
                   fillColor = ~ pal_faltantes(cuartil),
                   fillOpacity = 1,
