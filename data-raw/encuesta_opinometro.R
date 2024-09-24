@@ -1,6 +1,6 @@
 # SCRIPT DE PRUEBAS PARA GENERAR UNA CLASE ENCUESTA USANDO COMO INSUMO EL OPINOMETRO
-# Al generar la clase, se escriben los archivos ./R/constantes.R, ./R/funciones.R y un folder
-# llamado ./auditoria/ los cuales no forman parte edl desarrollo salvo que se esté trabajando en la
+# Al generar la clase, se escriben los archivos R/constantes.R, R/funciones.R y un folder
+# llamado auditoria/ los cuales no forman parte edl desarrollo salvo que se esté trabajando en la
 # encuesta demo
 
 # Preambulo -----------------------------------------------------------------------------------
