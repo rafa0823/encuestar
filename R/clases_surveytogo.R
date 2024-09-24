@@ -1727,7 +1727,8 @@ Especial <- R6::R6Class(classname = "Especial",
                                                                colores_candidato = colores_candidato,
                                                                size_text_header = size_text_header,
                                                                size_text_body = size_text_body,
-                                                               salto = salto)
+                                                               salto = salto,
+                                                               color_conocimiento = color_conocimiento)
 
                           },
                           candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido,corte_vis = 0.0){

@@ -1041,7 +1041,7 @@ graficar_nube_palabras = function(bd, max_size) {
 #' @return
 #'
 #' @examples
-formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, etiquetas, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto) {
+formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinion, etiquetas, colores_opinion, color_principal, colores_candidato, size_text_header, size_text_body, salto, color_conocimiento) {
   # browser()
 
   tot_opiniones <-
@@ -1100,9 +1100,11 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
     flextable::color(color = "white", part = "header", i = 2) |>
     flextable::bg(i = 1, bg = color_principal, part = "header")
 
-  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+  if("Candidato" %in% names(tabla_candidatoOpinion) | "Candidatos" %in% names(tabla_candidatoOpinion) ) {
     for(i in 1:(length(colores_candidato))) {
       candidato <- names(colores_candidato)[i]
+      candidato <- stringr::str_wrap(string = candidato, width = salto)
+
       aux <-
         aux %>%
         flextable::bg(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
@@ -1111,8 +1113,18 @@ formatear_tabla_candidatoOpinion = function(tabla_candidatoOpinion, orden_opinio
         flextable::color(i = eval(parse(text = paste0("~ Candidato == '", candidato, "'"))),
                          j = "Candidato", color = "white", part = "body")
     }
-  } else {
   }
+  if("Conocimiento" %in% names(tabla_candidatoOpinion)) {
+    aux <-
+      aux %>%
+      flextable::bg(i = 1,
+                    j = "Conocimiento", part = "header",
+                    bg = color_conocimiento) |>
+      flextable::color(i = 1,
+                       j = "Conocimiento",  part = "header",
+                       color = "white")
+  }
+
   aux <-
     aux %>%
     flextable::color(color = "#2C423F", part = "body")
