@@ -571,7 +571,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
 #' @param size_pct Parametro [size] de la funcion [ggfittext::geom_fit_text()] que controla el tamano del texto que muestra el porcentaje dentro de las barras
 #'
 #' @return Objeto tipo [ggplot]
-graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat, size_pct, size_caption_opinion, tema = encuestar::tema_morant()){
+graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat = 10, size_pct, size_caption_opinion,size_text_legend = 10 ,tema = encuestar::tema_morant()){
 
   if(!is.na(Regular)) {
     group_levels <- c("regular2", grupo_negativo, "regular1", grupo_positivo)
@@ -608,7 +608,8 @@ graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Reg
     theme(legend.position = "bottom") +
     theme(axis.text.y = element_text(size = size_text_cat),
           plot.caption = element_text(hjust = 0.5, size = size_caption_opinion),
-          legend.key.size = unit(1, units = "cm"))
+          legend.key.size = unit(1, units = "cm"),
+          legend.text = element_text(size = size_text_legend))
   return(g)
 }
 #' Graficar saldo de opinión por personaje

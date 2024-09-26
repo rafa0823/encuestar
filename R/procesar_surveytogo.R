@@ -259,24 +259,57 @@ analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos
 #' encuestar:::calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = TRUE)
 #' encuestar:::calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = FALSE)
 calcular_mediaMovil <- function(bd_resultados, variable, valores_interes, sin_peso) {
-  bd_resultados %>%
+    res <- bd_resultados %>%
     {
       if(sin_peso) {
         count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable))
       } else {
-        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable), wt = peso)|>
+          left_join(
+            count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable),name = 'n_snp'),
+            by= c('hora',variable)
+          )
       }
     }  %>%
     group_by(hora) |>
     complete(!!rlang::sym(variable) := valores_interes,
-             fill = list(n = 0)) |>
+             fill = list(n = 0))  %>%
+      {if(!sin_peso) complete(., !!rlang::sym(variable) := valores_interes,
+                              fill = list(n_snp = 0)) else .}|>
     ungroup() |>
     mutate(tot = sum(n), .by = c(hora)) |>
     mutate(n_acum = cumsum(n),
            tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable)),
-           !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum) |>
-    filter(!!rlang::sym(variable) %in% valores_interes) |>
-    select(hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)))
+           !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum)
+
+  pos_gen <- res|>
+    mutate(tot_gen = cumsum(n),
+           tot_gen_max = max(tot_gen),
+           tot_gen_pos = ifelse(tot_gen >= max(tot_gen)/2,1,0),
+           pos_aux_gen = !duplicated(tot_gen_pos),
+           pos_gen = if_else(pos_aux_gen == TRUE & tot_gen_pos ==  1, hora, NA) ) %>%
+    filter(!is.na(pos_gen))|>
+    pull(pos_gen)
+
+  if(!sin_peso){
+    pos_gen_snp <- res|>
+      mutate(tot_gen_snp = cumsum(n_snp),
+             tot_gen_max_snp = max(tot_gen_snp),
+             tot_gen_pos_snp = ifelse(tot_gen_snp >= max(tot_gen_snp)/2,1,0),
+             pos_aux_gen_snp = !duplicated(tot_gen_pos_snp),
+             pos_gen_snp = if_else(pos_aux_gen_snp == TRUE & tot_gen_pos_snp ==  1, hora, NA) )|>
+      filter(!is.na(pos_gen_snp))|>
+      pull(pos_gen_snp)
+  }
+
+  res|>
+    mutate(pos_gen=pos_gen) %>%
+    {if(!sin_peso) mutate(.,pos_gen_snp = pos_gen_snp) else .} |>
+    filter(!!rlang::sym(variable) %in% valores_interes)  %>%
+    {if(sin_peso)  select(.data = .,hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)),pos_gen)
+      else select(.data = .,hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)),pos_gen,pos_gen_snp)}
+
+
 }
 
 #' Calcular media movil de una variable agrupado por region
@@ -294,24 +327,85 @@ calcular_mediaMovil <- function(bd_resultados, variable, valores_interes, sin_pe
 #' encuestar:::calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = TRUE)
 #' encuestar:::calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = FALSE)
 calcular_mediaMovil_region <- function(bd_resultados, variable, valores_interes, variable_region, sin_peso) {
-  bd_resultados %>%
+  res <- bd_resultados %>%
     {
       if(sin_peso) {
         count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable_region), !!rlang::sym(variable))
       } else {
-        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable_region), !!rlang::sym(variable), wt = peso)
+        count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable_region), !!rlang::sym(variable), wt = peso)|>
+          left_join(
+            count(x = ., hora = lubridate::floor_date(Date, "hour"), !!rlang::sym(variable_region), !!rlang::sym(variable),name = 'n_snp'),
+            by= c('hora',variable,variable_region)
+          )
       }
     }  %>%
     group_by(hora, !!rlang::sym(variable_region)) |>
     complete(!!rlang::sym(variable) := valores_interes,
-             fill = list(n = 0)) |>
+             fill = list(n = 0))  %>%
+    {if(!sin_peso) complete(., !!rlang::sym(variable) := valores_interes,
+                            fill = list(n_snp = 0)) else .}|>
     ungroup() |>
     mutate(tot = sum(n), .by = c(hora, !!rlang::sym(variable_region) )) |>
     mutate(n_acum = cumsum(n),
            tot_acum = cumsum(tot), .by = c(!!rlang::sym(variable_region), !!rlang::sym(variable)),
-           !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum) |>
-    filter(!!rlang::sym(variable) %in% valores_interes) |>
-    select(!!rlang::sym(variable_region), hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)))
+           !!rlang::sym(paste0("movil_", variable)) := n_acum/tot_acum)
+
+  pos_gen <- res|>
+    mutate(tot_gen = cumsum(n),
+           tot_gen_max = max(tot_gen),
+           tot_gen_pos = ifelse(tot_gen >= max(tot_gen)/2,1,0),
+           pos_aux_gen = !duplicated(tot_gen_pos),
+           pos_gen = if_else(pos_aux_gen == TRUE & tot_gen_pos ==  1, hora, NA) ) %>%
+    filter(!is.na(pos_gen))|>
+    pull(pos_gen)
+
+
+  res<- res|>
+    left_join(res|>
+                group_by(!!rlang::sym(variable_region))|>
+                mutate(tot_gen = cumsum(n),
+                       tot_gen_max = max(tot_gen),
+                       tot_gen_pos = ifelse(tot_gen >= max(tot_gen)/2,1,0),
+                       pos_aux_gen = !duplicated(tot_gen_pos),
+                       pos_reg_gen = if_else(pos_aux_gen == TRUE & tot_gen_pos ==  1, hora, NA) )|>
+                tidyr::fill(pos_reg_gen,.direction = 'updown')|>
+                ungroup()|>
+                distinct(!!rlang::sym(variable_region),pos_reg_gen),
+              by = c(variable_region))
+
+
+  if(!sin_peso){
+    pos_gen_snp <- res|>
+      mutate(tot_gen_snp = cumsum(n_snp),
+             tot_gen_max_snp = max(tot_gen_snp),
+             tot_gen_pos_snp = ifelse(tot_gen_snp >= max(tot_gen_snp)/2,1,0),
+             pos_aux_gen_snp = !duplicated(tot_gen_pos_snp),
+             pos_gen_snp = if_else(pos_aux_gen_snp == TRUE & tot_gen_pos_snp ==  1, hora, NA) )|>
+      filter(!is.na(pos_gen_snp))|>
+      pull(pos_gen_snp)
+
+
+    res<- res|>
+      left_join(res|>
+                  group_by(!!rlang::sym(variable_region))|>
+                  mutate(tot_gen_snp = cumsum(n_snp),
+                         tot_gen_max_snp = max(tot_gen_snp),
+                         tot_gen_pos_snp = ifelse(tot_gen_snp >= max(tot_gen_snp)/2,1,0),
+                         pos_aux_gen_snp = !duplicated(tot_gen_pos_snp),
+                         pos_reg_gen_snp = if_else(pos_aux_gen_snp == TRUE & tot_gen_pos_snp ==  1, hora, NA) )|>
+                  tidyr::fill(pos_reg_gen_snp,.direction = 'updown')|>
+                  ungroup()|>
+                  distinct(!!rlang::sym(variable_region),pos_reg_gen_snp),
+                by = c(variable_region))
+  }
+
+  res|>
+    mutate(pos_gen=pos_gen) %>%
+    {if(!sin_peso) mutate(.,pos_gen_snp = pos_gen_snp) else .} |>
+    filter(!!rlang::sym(variable) %in% valores_interes)  %>%
+    {if(sin_peso)  select(.data = .,!!rlang::sym(variable_region),hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)),pos_gen, pos_reg_gen)
+      else select(.data = .,!!rlang::sym(variable_region),hora, !!rlang::sym(variable), !!rlang::sym(paste0("movil_", variable)),pos_gen, pos_reg_gen, pos_gen_snp, pos_reg_gen_snp)}
+
 }
 #'  Calcular resultados de opinion por candidato en formato tabla
 #'

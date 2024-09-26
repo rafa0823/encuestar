@@ -1761,7 +1761,21 @@ Especial <- R6::R6Class(classname = "Especial",
                                                         tema = self$tema,
                                                         corte_vis = corte_vis)
                           },
-                          candidatoSaldo = function(llave_opinion, candidatos, positivos, negativos, regular = "Regular", ns_nc = "Ns/Nc", color_positivo = "green", color_negativo = "red", orden_cat = NULL, caption_opinion){
+                          candidatoSaldo = function(llave_opinion,
+                                                    candidatos,
+                                                    positivos,
+                                                    negativos,
+                                                    regular = "Regular",
+                                                    ns_nc = "Ns/Nc",
+                                                    color_positivo = "green",
+                                                    color_negativo = "red",
+                                                    orden_cat = NULL,
+                                                    salto_cat = 25,
+                                                    caption_opinion,
+                                                    size_text_cat = 14,
+                                                    size_text_legend = 10,
+                                                    size_pct = 12,
+                                                    size_caption_opinion = 10){
 
                             if(is.null(self$diseno)) {
 
@@ -1838,13 +1852,13 @@ Especial <- R6::R6Class(classname = "Especial",
                                                     Regular = NA_character_,
                                                     colores = c("Positiva" = color_positivo,
                                                                 "Negativa" = color_negativo),
-                                                    salto_respuestas = 25,
-                                                    salto_tema = 25,
+                                                    salto_respuestas = 50,
+                                                    salto_tema = salto_cat,
                                                     caption_opinion = caption_opinion,
-                                                    size_text_cat = 10,
-                                                    size_pct = 10,
-                                                    size_caption_opinion = 10) +
-                              self$tema
+                                                    size_text_cat = size_text_cat,
+                                                    size_pct = size_pct,
+                                                    size_caption_opinion = size_caption_opinion,
+                                                    size_text_legend = size_text_legend)
 
                           },
                           metodo_morena = function(personajes, atributos){
@@ -1998,7 +2012,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                               self$bd_resultados <- self$encuesta$respuestas$base |>
                                 mutate(peso = weights(self$encuesta$muestra$diseno))
                             },
-                            intencion_voto = function(variable, valores_interes, colores, sin_peso = T){
+                            intencion_voto = function(variable, valores_interes, colores, sin_peso = T, linea_peso = F){
                               bd_mediaMovil <-
                                 calcular_mediaMovil(bd_resultados = self$bd_resultados,
                                                     variable = variable,
@@ -2014,27 +2028,35 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 scale_x_datetime(date_breaks = "1 days",
                                                  labels = scales::date_format("%B %d")) +
                                 scale_y_continuous(labels = scales::percent) +
+                                {if(sin_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                         color = "red", size = 1)   }+
+                                {if(!sin_peso)
+                                  geom_vline(aes(xintercept =  pos_gen_snp),
+                                             color = "red", size = 1)}+
+                                {if(!sin_peso & linea_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                          color = "red", linetype = "dashed", size = 1)}+
                                 scale_color_manual(values = colores) +
-                                tema_default() +
+                                tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted"))
                               return(g)
                             },
-                            conocimiento = function(variables, colores, sin_peso = T, valores_interes = "Sí"){
-                              bd_mediaMovil <-
-                                calcular_mediaMovil(bd_resultados = self$bd_resultados,
-                                                    variable = variables[1],
-                                                    valores_interes = valores_interes,
-                                                    sin_peso = sin_peso) |>
-                                left_join(calcular_mediaMovil(bd_resultados = self$bd_resultados,
-                                                              variable = variables[2],
-                                                              valores_interes = valores_interes,
-                                                              sin_peso = sin_peso),
-                                          by = "hora") |>
-                                tidyr::pivot_longer(cols = c(paste0("movil_", variables[1]),
-                                                             paste0("movil_", variables[2])),
-                                                    names_to = "variable",
-                                                    values_to = "pct")
+                            conocimiento = function(variables, colores, sin_peso = T, valores_interes = "Sí", linea_peso = F){
+                              bd_mediaMovil<- variables|>
+                                purrr::map(~{
+                                  var_aux <- .x
+                                  calcular_mediaMovil(bd_resultados = self$bd_resultados,
+                                                      variable = .x,
+                                                      valores_interes = valores_interes,
+                                                      sin_peso = sin_peso)|>
+                                    rename_with(~paste0(.x,'_',var_aux),starts_with('pos_gen') )
+                                })|>
+                                reduce(left_join, by = 'hora' )|>
+                                rename_with(~{gsub(paste0('_',variables[1]),'',.x)},matches(paste0('(pos_gen.*',variables[1],')')))|>
+                                select(-matches('pos_gen_.*_'))|>
+                                tidyr::pivot_longer(cols = contains('movil_'),
+                                                    names_to = 'variable',
+                                                    values_to = 'pct')
 
                               g <-
                                 bd_mediaMovil |>
@@ -2042,17 +2064,24 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 geom_point(size = 3) +
                                 geom_line(linewidth = 1, show.legend = F) +
                                 labs(subtitle = "Conocimiento", color = "") +
-                                scale_color_manual(values = purrr::set_names(colores[1:2], paste0("movil_", variables)),
+                                scale_color_manual(values = purrr::set_names(colores, paste0("movil_", variables)),
                                                    labels = purrr::set_names(variables, paste0("movil_", variables))) +
                                 scale_x_datetime(date_breaks = "1 days",
                                                  labels = scales::date_format("%B %d")) +
                                 scale_y_continuous(labels = scales::percent) +
-                                tema_default() +
+                                {if(sin_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                         color = "red", size = 1)   }+
+                                {if(!sin_peso)
+                                  geom_vline(aes(xintercept =  pos_gen_snp),
+                                             color = "red", size = 1)}+
+                                {if(!sin_peso & linea_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                          color = "red", linetype = "dashed", size = 1)}+
+                                tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted"))
                               return(g)
                             },
-                            intencion_voto_region = function(variable, valores_interes, colores, sin_peso = T, variable_region = "region"){
+                            intencion_voto_region = function(variable, valores_interes, colores, sin_peso = T, variable_region = "region",  linea_peso = F){
                               bd_mediaMovil <-
                                 calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
                                                            variable = variable,
@@ -2061,7 +2090,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                                            sin_peso = sin_peso) |>
                                 rename(pct = !!rlang::sym(paste0("movil_", variable)))
                               g <-
-                                bd_mediaMovil |>
+                                bd_mediaMovil|>
                                 ggplot(aes(x = hora, y = pct, color = !!rlang::sym(variable))) +
                                 geom_point(size = 3) +
                                 geom_line(linewidth = 1, show.legend = F) +
@@ -2070,29 +2099,46 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                                  labels = scales::date_format("%B %d")) +
                                 scale_y_continuous(labels = scales::percent) +
                                 scale_color_manual(values = colores) +
-                                tema_default() +
+                                tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted")) +
+                                {if(sin_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                         color = "red", size = 1)   }+
+                                # {if(sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
+                                #                          color = "blue", size = 1)   }+
+                                {if(!sin_peso)
+                                  geom_vline(aes(xintercept =  pos_gen_snp),
+                                             color = "red", size = 1)}+
+                                # {if(!sin_peso)
+                                  # geom_vline(aes(xintercept =  pos_reg_gen_snp),
+                                  #            color = "blue", size = 1)}+
+                                {if(!sin_peso &  linea_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                          color = "red", linetype = "dashed", size = 1)}+
+                                # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
+                                #                           color = "blue", linetype = "dashed", size = 1)}+
                                 facet_wrap(as.formula(paste0("~", variable_region)))
                               return(g)
                             },
-                            conocimiento_region = function(variables, colores, sin_peso = T, valores_interes = "Sí", variable_region = "region"){
-                              bd_mediaMovil <-
-                                calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
-                                                           variable = variables[1],
-                                                           valores_interes = valores_interes,
-                                                           variable_region = variable_region,
-                                                           sin_peso = sin_peso) |>
-                                left_join(calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
-                                                                     variable = variables[2],
-                                                                     valores_interes = valores_interes,
-                                                                     variable_region = variable_region,
-                                                                     sin_peso = sin_peso),
-                                          by = c("hora", variable_region)) |>
-                                tidyr::pivot_longer(cols = c(paste0("movil_", variables[1]),
-                                                             paste0("movil_", variables[2])),
-                                                    names_to = "variable",
-                                                    values_to = "pct")
+                            conocimiento_region = function(variables, colores, sin_peso = T, valores_interes = "Sí", variable_region = "region",  linea_peso = F){
+                              bd_mediaMovil <-variables|>
+                                purrr::map(~{
+                                  var_aux <- .x
+                                  calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
+                                                             variable = .x,
+                                                             valores_interes = valores_interes,
+                                                             variable_region = variable_region,
+                                                             sin_peso = sin_peso)|>
+                                    rename_with(~paste0(.x,'_',var_aux),starts_with('pos_gen') )|>
+                                    rename_with(~paste0(.x,'_',var_aux),starts_with('pos_reg_gen') )
+
+                                })|>
+                                reduce(left_join, by = c(variable_region,'hora') )|>
+                                rename_with(~{gsub(paste0('_',variables[1]),'',.x)},matches(paste0('(pos_gen.*',variables[1],')')))|>
+                                rename_with(~{gsub(paste0('_',variables[1]),'',.x)},matches(paste0('(pos_reg_gen.*',variables[1],')')))|>
+                                select(-matches('pos_gen_.*_'),-matches('pos_reg_gen_.*_') )|>
+                                tidyr::pivot_longer(cols = contains('movil_'),
+                                                    names_to = 'variable',
+                                                    values_to = 'pct')
 
                               g <-
                                 bd_mediaMovil |>
@@ -2100,14 +2146,28 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 geom_point(size = 3) +
                                 geom_line(linewidth = 1, show.legend = F) +
                                 labs(subtitle = "Conocimiento", color = "") +
-                                scale_color_manual(values = purrr::set_names(colores[1:2], paste0("movil_", variables)),
+                                scale_color_manual(values = purrr::set_names(colores, paste0("movil_", variables)),
                                                    labels = purrr::set_names(variables, paste0("movil_", variables))) +
                                 scale_x_datetime(date_breaks = "1 days",
                                                  labels = scales::date_format("%B %d")) +
                                 scale_y_continuous(labels = scales::percent) +
-                                tema_default() +
+                                tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted")) +
+                                {if(sin_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                         color = "red", size = 1)   }+
+                                # {if(sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
+                                #                          color = "blue", size = 1)   }+
+                                {if(!sin_peso)
+                                  geom_vline(aes(xintercept =  pos_gen_snp),
+                                             color = "red", size = 1)}+
+                                # {if(!sin_peso)
+                                #   geom_vline(aes(xintercept =  pos_reg_gen_snp),
+                                #              color = "blue", size = 1)}+
+                                {if(!sin_peso &  linea_peso) geom_vline(aes(xintercept =  pos_gen),
+                                                          color = "red", linetype = "dashed", size = 1)}+
+                                # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
+                                #                           color = "blue", linetype = "dashed", size = 1)}+
                                 facet_wrap(as.formula(paste0("~", variable_region)))
                               return(g)
                             }
