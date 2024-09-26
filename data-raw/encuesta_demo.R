@@ -183,6 +183,8 @@ quitar <- c()
 # Clusters a los que forzar entrevistas
 mantener <- ""
 
+variables_interes <- c("voto_pm_24", "conoce_pm_astiazaran", "voto_pr_24")
+
 # Clase -------------------------------------------------------------------
 #+ Se crea la clase encuesta, que contiene la base de datos, asi como el diseno muestral, y la app de auditoria
 encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
@@ -199,7 +201,7 @@ encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
                               mantener_falta_coordenadas = F, # mantener entrevistas sin coordenadas
                               rake = T, ######### con postestratificacion
                               patron = "\\(No leer\\)| \\(No leer\\)|\\(ROTAR\\)|\\(No leer)|:",
-                              auditar = c("")
+                              auditar = variables_interes
 )
 
 # encuesta_demo$auditoria$run_app()
