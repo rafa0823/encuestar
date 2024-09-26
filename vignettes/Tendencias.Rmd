@@ -29,7 +29,7 @@ La clase Tendencias es capaz de generar datos cruzados entre al menos dos o más
 
 ## Intención de voto
 
-Esta función genera una gráfica de tendencia por media móvil con la principal intención de analizar la variable correspondiente a la intención de voto dentro de la encuesta. La función puede graficar la tendencia de cualquier variable de tipo categórica o multirrespuesta.
+Esta función genera una gráfica de tendencia por media móvil con la principal intención de analizar la variable correspondiente a la intención de voto dentro de la encuesta. La función puede graficar la tendencia de cualquier variable de tipo categórica o multirrespuesta. La línea roja vertical mostrará la fecha en la que se obtuvo el 50 % de los datos registrados al momento.
 
 ```{r ejemplo1,  fig.width = 14, fig.height = 7.56, echo = TRUE}
 encuesta_demo$Resultados$Tendencias$intencion_voto(variable = "voto_pr_24",
@@ -37,7 +37,8 @@ encuesta_demo$Resultados$Tendencias$intencion_voto(variable = "voto_pr_24",
                                                                        "Xóchitl Gálvez por PAN-PRI-PRD"),
                                                    colores = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F",
                                                                "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6"), 
-                                                   sin_peso = FALSE)
+                                                   sin_peso = FALSE,
+                                                   linea_peso = F)
 
 ```
 
@@ -55,10 +56,13 @@ Indica los colores que se desean asignar a cada una de las categorías en la gr�
 `sin_peso`
 Indica si se quiere aplicar peso estadístico al cálculo de la media móvil, siendo TRUE la variable que indica que no se desea utilizar el uso de pesos. Recibe valores booleanos TRUE o FALSE.
 
+`linea_peso`
+Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
+
 
 ## Conocimiento de personajes
 
-Esta función genera una gráfica de tendencia por media móvil con la principal intención de analizar las variables correspondientes al conocimiento dentro de la encuesta. En este caso la función compara diferentes variables que comparten las mismas categorías. Por lo general estas variables compartirán en su nombre (llave) el mismo prefijo relacionado a la temática/pregunta de la que se hace referencia.
+Esta función genera una gráfica de tendencia por media móvil con la principal intención de analizar las variables correspondientes al conocimiento dentro de la encuesta. En este caso la función compara diferentes variables que comparten las mismas categorías. Por lo general estas variables compartirán en su nombre (llave) el mismo prefijo relacionado a la temática/pregunta de la que se hace referencia. La línea roja vertical mostrará la fecha en la que se obtuvo el 50 % de los datos registrados al momento.
 
 ```{r dicc_ejemp_1,warning=FALSE,message=FALSE,echo = FALSE}
 library(dplyr)
@@ -78,14 +82,15 @@ encuesta_demo$Resultados$Tendencias$conocimiento(variables = c("conoce_pm_astiaz
                                                  colores = c("Antonio \"Toño\" Astiazarán" = "green", 
                                                                                      "María Dolores Del Río" = "blue"),
                                                  sin_peso = FALSE, 
-                                                 valores_interes = "Sí")
+                                                 valores_interes = "Sí",
+                                                 linea_peso = F)
 
 ```
 
 ##### Argumentos:
 
 `variables`
-Corresponde a las variables que se desean graficar. Las variables deben compartir las mismas categorías. Recibe un vector con valores de tipo string.
+Corresponde a las variables que se desean graficar. Las variables deben compartir las mismas categorías. Recibe un vector con valores de tipo string. La línea roja vertical mostrará la fecha en la que se obtuvo el 50 % de los datos registrados al momento.
 
 `colores`
 `colores_candidatos`
@@ -97,11 +102,14 @@ Indica si se quiere aplicar peso estadístico al cálculo de la media móvil, si
 `valores_interes`
 Especifica la categoría que se va a analizar. Recibe un valor de tipo string. 
 
+`linea_peso`
+Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
+
 # Tendencia de resultados por estrato o región
 
 ## Intención de voto
 
-Esta función genera una gráfica que cruza la tendencia por media móvil de alguna variable con respecto a otra variable categórica, con la principal intención de analizar la variable correspondiente a la intención de voto respecto a la clasificación de los clusters en la muestra. La función puede graficar la tendencia de cualquier variable de tipo categórica o multirrespuesta.
+Esta función genera una gráfica que cruza la tendencia por media móvil de alguna variable con respecto a otra variable categórica, con la principal intención de analizar la variable correspondiente a la intención de voto respecto a la clasificación de los clusters en la muestra. La función puede graficar la tendencia de cualquier variable de tipo categórica o multirrespuesta. La línea roja vertical mostrará la fecha en la que se obtuvo el 50 % de los datos registrados al momento.
 
 ```{r ejemplo3,  fig.width = 14, fig.height = 7.56, echo = TRUE}
 encuesta_demo$Resultados$Tendencias$intencion_voto_region(variable = "voto_pr_24",
@@ -110,7 +118,8 @@ encuesta_demo$Resultados$Tendencias$intencion_voto_region(variable = "voto_pr_24
                                                    colores = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F",
                                                                "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6"), 
                                                    variable_region = "region", 
-                                                   sin_peso = FALSE)
+                                                   sin_peso = FALSE,
+                                                   linea_peso = F)
 
 ```
 
@@ -132,10 +141,12 @@ Indica si se quiere aplicar peso estadístico al cálculo de la media móvil, si
 `variable_region`
 Corresponde a la variable que contiene la clasificación de los clusters. La variable debe ser múltiple o categórica. Recibe un valor de tipo string.
 
+`linea_peso`
+Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
 
 ## Conocimiento de personajes
 
-Esta función genera una gráfica de tendencia por media móvil con la principal intención de analizar las variables correspondientes al conocimiento dentro de la encuesta y hacer un cruce con respecto a otra variable categórica. En este caso la función compara diferentes variables que comparten las mismas categorías. Por lo general estas variables compartirán en su nombre (llave) el mismo prefijo relacionado a la temática/pregunta de la que se hace referencia, para después mostrar los valores respecto a las clasificaciones de los clusters.
+Esta función genera una gráfica de tendencia por media móvil con la principal intención de analizar las variables correspondientes al conocimiento dentro de la encuesta y hacer un cruce con respecto a otra variable categórica. En este caso la función compara diferentes variables que comparten las mismas categorías. Por lo general estas variables compartirán en su nombre (llave) el mismo prefijo relacionado a la temática/pregunta de la que se hace referencia, para después mostrar los valores respecto a las clasificaciones de los clusters. La línea roja vertical mostrará la fecha en la que se obtuvo el 50 % de los datos registrados al momento.
 
 ```{r dicc_ejemp_1_1,warning=FALSE,message=FALSE,echo = FALSE}
 
@@ -149,7 +160,8 @@ encuesta_demo$Resultados$Tendencias$conocimiento_region(variables = c("conoce_pm
                                                                                      "María Dolores Del Río" = "blue"),
                                                  variable_region = "region",
                                                  sin_peso = FALSE, 
-                                                 valores_interes = "Sí")
+                                                 valores_interes = "Sí",
+                                                 linea_peso = F)
 
 ```
 
@@ -170,4 +182,7 @@ Especifica la categoría que se va a analizar. Recibe un valor de tipo string.
 
 `variable_region`
 Corresponde a la variable que contiene la clasificación de los clusters. La variable debe ser múltiple o categórica. Recibe un valor de tipo string.
+
+`linea_peso`
+Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
 

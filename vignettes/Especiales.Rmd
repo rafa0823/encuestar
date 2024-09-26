@@ -213,6 +213,23 @@ El color de la barra de la gráfica tipo negativo. Recibe un valor tipo string.
 `orden_cat`
 Indica el orden en el que se desea mostrar las categorías contenidas en el eje Y de la gráfica. Recibe un vector de valores de tipo string.
 
+`salto_cat`
+Corresponde al salto de línea de las categorías contenidas en el eje Y de la gráfica. Recibe valores de tipo entero.
+
+`size_text_legend`
+Corresponde al tamaño del texto de la leyenda. Recibe valores de tipo entero.
+
+`size_text_cat`
+Corresponde al tamaño del texto de las categorias. Recibe valores de tipo entero.
+
+`size_pct`
+Corresponde al tamaño del texto de los porcentajes. Recibe valores de tipo entero.
+
+`size_caption_opinion`
+Corresponde al tamaño del texto del caption. Recibe valores de tipo entero.
+
+
+
 ## Candidato opinion 2
 
 Esta función genera una tabla que muestra la proporción de diversas categorías de varias variables dentro de la base de datos. Las variables a graficar deben tener el mismo prefijo en su nombre (llave), pero diferente nombre en su sufijo para poderlas identificar. Este grupo de sufijos serán conocidos como **aspectos **, y el prefijo único será conocido como **patrón opinión**. Para asignar los nombres de cada categoría en la gráfica se apoya del diccionario en el apartado de “tema”.  Las categorías referidas como **aspectos** corresponden a las filas, y los valores de las variables con el **patrón opinión** corresponde a las columnas de la tabla.
