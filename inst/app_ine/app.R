@@ -278,10 +278,59 @@ graficar_mapa_mza <- function(lflt = NULL, bd, nivel, muestra, shp){
   return(mapa)
 }
 
+asignar_colores <- function(tb_respuestas, partidos = T){
+  tb_respuestas |>
+    mutate(color = dplyr::case_when(grepl(pattern = "por MORENA, ", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_morena,
+                                    grepl(pattern = "Astiazarán", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pri,
+                                    grepl(pattern = "por PAN, ", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pan,
+                                    grepl(pattern = "por Movimiento Ciudadano, ", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_mc,
+                                    grepl(pattern = "MORENA", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_morena,
+                                    grepl(pattern = "Morena", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_morena,
+                                    grepl(pattern = "PAN", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pan,
+                                    grepl(pattern = "PRI", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pri,
+                                    grepl(pattern = "PRD", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_prd,
+                                    grepl(pattern = "PT", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pt,
+                                    grepl(pattern = "PES", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pes,
+                                    grepl(pattern = "Partido Verde", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pvem,
+                                    grepl(pattern = "PVEM", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pvem,
+                                    grepl(pattern = "Movimiento Ciudadano|MC", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_mc,
+                                    grepl(pattern = "Fuerza por", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_fuerzaxmexico,
+                                    grepl(pattern = "Otro", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_otro,
+                                    grepl(pattern = "Ninguno", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_ninguno,
+                                    grepl(pattern = "Candidato independiente", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_otro,
+                                    grepl(pattern = "no registrado", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_otro,
+                                    grepl(pattern = "No iré a votar", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_ninguno,
+                                    grepl(pattern = "Anular", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_ninguno,
+                                    grepl(pattern = "No sabe", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_nsnc,
+                                    grepl(pattern = "No contesta", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_nsnc,
+                                    grepl(pattern = "Ns/Nc", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_nsnc,
+                                    grepl(pattern = "Chiapas Unido", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_chisunido,
+                                    grepl(pattern = "Encuentro Solidario", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pencsolchis,
+                                    grepl(pattern = "Mover a Chiapas", x = !!rlang::sym(names(tb_respuestas)[1])) ~ color_pmchis,
+                                    T ~ color_general)) |>
+    pull(color) |>
+    purrr::set_names(tb_respuestas |>
+                       pull())
+}
+
 # Parámetros --------------------------------------------------------------
 
-PRINCIPAL <- "#A6032F"
-gray70 <- "#B3B3B3"
+color_general <- "#CF6177"
+color_general_complemento <- '#61CF74'
+
+color_morena <- "#A6032F"
+color_morena_complemento <- "#F5CD5F"
+color_pan <- "#0339a6"
+color_mc <- "#F27405"
+color_pri <- "#038C33"
+color_pvem <- "#98BF5E"
+color_prd <- "#F2B705"
+color_pt <- "#D91136"
+color_panal <- "#03A6A6"
+color_pes <- "#632D79"
+color_futuro <- "#2b0541"
+color_hagamos <- "#8323CD"
+color_fuerzaxmexico <- "#ff6392"
 
 # vars necesarios para app ------------------------------------------------
 
@@ -424,6 +473,29 @@ ui <- bslib::page_navbar(
     icon = icon("bar-chart")
   ),
   bslib::nav_panel(
+    title = "Resultados",
+    bslib::card(
+      full_screen = TRUE,
+      bslib::card_header("Variables a monitorear"),
+      bslib::accordion(
+        open = c("variables_monitoreadas"),
+        bslib::accordion_panel(
+          title = "Variables a monitorear",
+          value = "variables_monitoreadas",
+          shinycssloaders::withSpinner(plotOutput("variable1")),
+          shinycssloaders::withSpinner(plotOutput("variable2")),
+          shinycssloaders::withSpinner(plotOutput("variable3"))
+        ),
+        bslib::accordion_panel(
+          title = "Tendencias",
+          value = "tendencias",
+          # shinycssloaders::withSpinner(plotOutput("variable2"))
+        ),
+      )
+    ),
+    icon = shiny::icon("map")
+  ),
+  bslib::nav_panel(
     title = "Encuestadores",
     value = "Encuestadores",
     full_screen = T,
@@ -514,7 +586,6 @@ ui <- bslib::page_navbar(
 
 # SERVER ------------------------------------------------------------------
 
-# Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
   # Pestaña "Mapa" ----------------------------------------------------------
@@ -793,7 +864,89 @@ server <- function(input, output, session) {
          longitud = as.double(coord$lon))
   })
 
-  # Pestaña "Entrevistas" ---------------------------------------------------
+  # Pestana "Resultados" ------------------------------------------------------------------------
+
+  ## Variables monitoreadas ---------------------------------------------------------------------
+
+  output$variable1 <- renderPlot({
+
+    colores_var1 <-
+    preguntas$encuesta$muestra$diseno$variables |>
+      distinct(!!rlang::sym(preguntas$encuesta$auditar[1])) |>
+      as_tibble() |>
+      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[1])) |>
+      asignar_colores()
+
+    caption <-
+      preguntas$encuesta$cuestionario$diccionario |>
+      filter(llaves == preguntas$encuesta$auditar[1]) |>
+      mutate(caption = paste0(pregunta, " ", tema)) |>
+      pull(caption) |>
+      gsub(pattern = "NA", replacement = "") |>
+      stringr::str_wrap(width = 45)
+
+    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[1], salto = 34) +
+      scale_fill_manual(values = colores_var1) +
+      labs(caption = caption)
+
+  })
+
+  output$variable2 <- renderPlot({
+
+    colores_var2 <-
+      preguntas$encuesta$muestra$diseno$variables |>
+      distinct(!!rlang::sym(preguntas$encuesta$auditar[2])) |>
+      as_tibble() |>
+      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[2])) |>
+      asignar_colores()
+
+    caption <-
+      preguntas$encuesta$cuestionario$diccionario |>
+      filter(llaves == preguntas$encuesta$auditar[2]) |>
+      mutate(caption = paste0(pregunta, " ", tema)) |>
+      pull(caption) |>
+      gsub(pattern = "NA", replacement = "") |>
+      stringr::str_wrap(width = 45)
+
+    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[2], salto = 34) +
+      scale_fill_manual(values = colores_var2) +
+      labs(caption = caption)
+
+  })
+
+  output$variable3 <- renderPlot({
+
+    colores_var3 <-
+      preguntas$encuesta$muestra$diseno$variables |>
+      distinct(!!rlang::sym(preguntas$encuesta$auditar[3])) |>
+      as_tibble() |>
+      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[3])) |>
+      asignar_colores()
+
+    caption <-
+      preguntas$encuesta$cuestionario$diccionario |>
+      filter(llaves == preguntas$encuesta$auditar[3]) |>
+      mutate(caption = paste0(pregunta, " ", tema)) |>
+      pull(caption) |>
+      gsub(pattern = "NA", replacement = "") |>
+      stringr::str_wrap(width = 45)
+
+    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[3], salto = 34) +
+      scale_fill_manual(values = colores_var3) +
+      labs(caption = caption)
+
+  })
+
+  ## Tendencia de resultados --------------------------------------------------------------------
+
+  # output$monitoreada1 <- renderPlot({
+  #
+  #   preguntas$Tendencias$intencion_voto(variable = )
+  #
+  # })
+
+
+  # Pestana "Entrevistas" -----------------------------------------------------------------------
 
   efectivas_filter <- eventReactive(c(bd, input$municipio),{
 
