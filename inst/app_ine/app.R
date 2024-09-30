@@ -504,7 +504,7 @@ ui <- bslib::page_navbar(
       bslib::accordion(
         open = c("variables_monitoreadas"),
         bslib::accordion_panel(
-          title = "Variables a monitorear",
+          title = "Intención de voto",
           value = "variables_monitoreadas",
           shinycssloaders::withSpinner(plotOutput("variable1")),
           shinycssloaders::withSpinner(plotOutput("variable2")),
@@ -513,7 +513,8 @@ ui <- bslib::page_navbar(
         bslib::accordion_panel(
           title = "Tendencias",
           value = "tendencias",
-          shinycssloaders::withSpinner(plotOutput("monitoreada1"))
+          shinycssloaders::withSpinner(plotOutput("monitoreada1")),
+          shinycssloaders::withSpinner(plotOutput("monitoreada2"))
         ),
       )
     ),
@@ -1258,12 +1259,30 @@ server <- function(input, output, session) {
 
   output$monitoreada1 <- renderPlot({
 
-    encuesta_demo$muestra$diseno$variables |>
-      distinct(voto_pr_24)
+    top_3 <-
+      encuestar:::analizar_frecuencias(diseno = preguntas$encuesta$muestra$diseno,
+                                       pregunta = preguntas$encuesta$vars_tendencias[1]) |>
+      dplyr::top_n(n = 3, wt = media)
 
-    preguntas$encuesta$
+    preguntas$Tendencias$intencion_voto(variable = preguntas$encuesta$vars_tendencias[1],
+                                        valores_interes = top_3 |>
+                                          pull(respuesta),
+                                        colores = top_3 |>
+                                          select(respuesta) |>
+                                          asignar_colores()) +
+      theme(legend.position = "bottom")
 
-      preguntas$Tendencias$intencion_voto(variable = )
+  })
+
+  output$monitoreada2 <- renderPlot({
+
+    preguntas$Tendencias$conocimiento(variables = variables_tendencias[2:3],
+                                      colores = preguntas$encuesta$cuestionario$diccionario |>
+                                        filter(llaves %in% variables_tendencias[2:3]) |>
+                                        select(respuestas = tema) |>
+                                        asignar_colores(),
+                                      sin_peso = FALSE) +
+      theme(legend.position = "bottom")
 
   })
 
