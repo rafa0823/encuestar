@@ -20,6 +20,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           tipo_encuesta = NULL,
                           mantener = NULL,
                           auditoria = NULL,
+                          tendencias = NULL,
                           patron = NA,
                           auditar = NA,
                           sin_peso = NA,
@@ -43,6 +44,7 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 mantener = NA,
                                                 patron = NA,
                                                 auditar = NA,
+                                                vars_tendencias = NULL,
                                                 sin_peso = F,
                                                 rake = T,
                                                 mantener_falta_coordenadas = F,
@@ -56,6 +58,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
                             self$auditar <- auditar
+                            self$vars_tendencias = vars_tendencias
                             self$mantener_falta_coordenadas <- mantener_falta_coordenadas
                             self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
                             # Valorar si no es mejor un active binding
