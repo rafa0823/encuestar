@@ -44,7 +44,7 @@ mza_select <- shp$shp$MANZANA |>
 
 Sys.setlocale(locale = "es_ES.UTF-8")
 
-# funciones ---------------------------------------------------------------
+# Funciones -----------------------------------------------------------------------------------
 
 unidades_app <- function(diseno, u_nivel) {
   unidades <- u_nivel %>% pull(variable)
@@ -313,7 +313,7 @@ asignar_colores <- function(tb_respuestas, partidos = T){
                        pull())
 }
 
-# Parámetros --------------------------------------------------------------
+# Constantes ----------------------------------------------------------------------------------
 
 color_general <- "#CF6177"
 color_general_complemento <- '#61CF74'
@@ -332,23 +332,45 @@ color_futuro <- "#2b0541"
 color_hagamos <- "#8323CD"
 color_fuerzaxmexico <- "#ff6392"
 
-# vars necesarios para app ------------------------------------------------
+color_pmp <- color_panal
+color_rsp <- color_prd
+color_pencsolchis <- "#AE95BF"
+color_chisunido <- "#0396A6"
+color_rspchis <-"#D9526B"
+color_pmchis <- "#6B3A8C"
+color_movpro <- color_rspchis
+
+color_otro <- "gray30"
+color_nsnc <- "gray60"
+color_ninguno <- "black"
+
+gray70 <- "#B3B3B3"
+PRINCIPAL <- color_morena
+
+# vars necesarios para app
 
 u_nivel <- diseno$niveles %>% filter(nivel == diseno$ultimo_nivel)
 u_nivel_tipo <- u_nivel %>% transmute(paste(tipo,nivel,sep = "_")) %>% pull(1)
 aulr <- unidades_app(diseno, u_nivel)
 
-# cuotas ------------------------------------------------------------------
+# cuotas
 
 n_entrevista <- entrevistas(diseno, bd, u_nivel, u_nivel_tipo)
-hecho <- n_entrevista$hecho
+hecho <- n_entrevista$hecho |>
+  left_join(preguntas$encuesta$muestra$muestra$muestra$SECCION |>
+              tidyr::unnest(cols = data) |>
+              distinct(cluster_2, region),
+            by = c("cluster" = "cluster_2"))
+
 por_hacer <- n_entrevista$por_hacer
 
 faltan_shp <- aulr %>%
   left_join(hecho %>% count(!!rlang::sym(paste("cluster",u_nivel$nivel, sep = "_")) := cluster,
                             wt =  faltan))
 
-# UI ----------------------------------------------------------------------
+# Shiny app -----------------------------------------------------------------------------------
+
+## UI -----------------------------------------------------------------------------------------
 
 ui <- bslib::page_navbar(
   useShinyjs(),
@@ -409,9 +431,11 @@ ui <- bslib::page_navbar(
             outputId = "descargar_region",
             label = "Descargar resumen por region"),
           selectInput(
-            inputId = "municipio",
-            label =  "Municipio",
-            choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))),
+            inputId = "estrato",
+            label =  "Regón",
+            choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$muestra$SECCION |>
+                                               tidyr::unnest(cols = data) |>
+                                               pull(region)))),
             selected = "Todos")),
         bslib::accordion(
           open = c("Progreso"),
@@ -489,7 +513,7 @@ ui <- bslib::page_navbar(
         bslib::accordion_panel(
           title = "Tendencias",
           value = "tendencias",
-          # shinycssloaders::withSpinner(plotOutput("variable2"))
+          shinycssloaders::withSpinner(plotOutput("monitoreada1"))
         ),
       )
     ),
@@ -504,10 +528,13 @@ ui <- bslib::page_navbar(
       title = "Encuestadores",
       full_screen = T,
       sidebar = sidebar(
-        open = "closed",
+        open = "open",
         selectInput(
-          inputId = "municipio_encuestadores", "Municipio",
-          choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$cuotas$Municipio))), selected = "Todos"),
+          inputId = "estrato_encuestadores",
+          label = "Region",
+          choices = c("Todos", sort(unique(preguntas$encuesta$muestra$muestra$muestra$SECCION |>
+                                             tidyr::unnest(cols = data) |>
+                                             pull(region)))), selected = "Todos"),
         selectInput(inputId = "encuestador",
                     label = "Encuestador",
                     choices = c("Seleccionar", sort(unique(bd$Srvyr))),
@@ -584,7 +611,7 @@ ui <- bslib::page_navbar(
   # )
 )
 
-# SERVER ------------------------------------------------------------------
+## Server -------------------------------------------------------------------------------------
 
 server <- function(input, output, session) {
 
@@ -864,147 +891,75 @@ server <- function(input, output, session) {
          longitud = as.double(coord$lon))
   })
 
-  # Pestana "Resultados" ------------------------------------------------------------------------
+  # Pestana "Progreso" --------------------------------------------------------------------------
 
-  ## Variables monitoreadas ---------------------------------------------------------------------
-
-  output$variable1 <- renderPlot({
-
-    colores_var1 <-
-    preguntas$encuesta$muestra$diseno$variables |>
-      distinct(!!rlang::sym(preguntas$encuesta$auditar[1])) |>
-      as_tibble() |>
-      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[1])) |>
-      asignar_colores()
-
-    caption <-
-      preguntas$encuesta$cuestionario$diccionario |>
-      filter(llaves == preguntas$encuesta$auditar[1]) |>
-      mutate(caption = paste0(pregunta, " ", tema)) |>
-      pull(caption) |>
-      gsub(pattern = "NA", replacement = "") |>
-      stringr::str_wrap(width = 45)
-
-    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[1], salto = 34) +
-      scale_fill_manual(values = colores_var1) +
-      labs(caption = caption)
-
-  })
-
-  output$variable2 <- renderPlot({
-
-    colores_var2 <-
-      preguntas$encuesta$muestra$diseno$variables |>
-      distinct(!!rlang::sym(preguntas$encuesta$auditar[2])) |>
-      as_tibble() |>
-      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[2])) |>
-      asignar_colores()
-
-    caption <-
-      preguntas$encuesta$cuestionario$diccionario |>
-      filter(llaves == preguntas$encuesta$auditar[2]) |>
-      mutate(caption = paste0(pregunta, " ", tema)) |>
-      pull(caption) |>
-      gsub(pattern = "NA", replacement = "") |>
-      stringr::str_wrap(width = 45)
-
-    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[2], salto = 34) +
-      scale_fill_manual(values = colores_var2) +
-      labs(caption = caption)
-
-  })
-
-  output$variable3 <- renderPlot({
-
-    colores_var3 <-
-      preguntas$encuesta$muestra$diseno$variables |>
-      distinct(!!rlang::sym(preguntas$encuesta$auditar[3])) |>
-      as_tibble() |>
-      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[3])) |>
-      asignar_colores()
-
-    caption <-
-      preguntas$encuesta$cuestionario$diccionario |>
-      filter(llaves == preguntas$encuesta$auditar[3]) |>
-      mutate(caption = paste0(pregunta, " ", tema)) |>
-      pull(caption) |>
-      gsub(pattern = "NA", replacement = "") |>
-      stringr::str_wrap(width = 45)
-
-    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[3], salto = 34) +
-      scale_fill_manual(values = colores_var3) +
-      labs(caption = caption)
-
-  })
-
-  ## Tendencia de resultados --------------------------------------------------------------------
-
-  # output$monitoreada1 <- renderPlot({
-  #
-  #   preguntas$Tendencias$intencion_voto(variable = )
-  #
-  # })
-
-
-  # Pestana "Entrevistas" -----------------------------------------------------------------------
-
-  efectivas_filter <- eventReactive(c(bd, input$municipio),{
+  efectivas_filter <- eventReactive(c(bd, input$estrato),{
 
     bd %>%
       {
-        if(input$municipio != "Todos"){
-          filter(., MUNI == input$municipio)
+        if(input$estrato != "Todos"){
+          filter(., region == input$estrato)
         } else{
           .
         }}
   })
 
-  eliminadas_filter <- eventReactive(c(eliminadas, input$municipio),{
+  eliminadas_filter <- eventReactive(c(eliminadas, input$estrato),{
 
     eliminadas %>%
+      mutate(cluster = as.integer(cluster)) |>
+      left_join(diseno$poblacion$marco_muestral %>%
+                  distinct(cluster_2, region),
+                by = c("cluster" = "cluster_2")) %>%
       {
-        if(input$municipio != "Todos"){
-          filter(., MUNI == input$municipio)
+        if(input$estrato != "Todos"){
+          filter(., region == input$estrato)
         } else{
           .
         }}
   })
 
-  corregidas_filter <- eventReactive(c(corregidas_shp, input$municipio),{
+  corregidas_filter <- eventReactive(c(corregidas_shp, input$estrato),{
 
-    corregidas_shp %>% as_tibble %>%
-      left_join(bd %>% distinct(SbjNum, MUNI), by = "SbjNum") %>%
+    corregidas_shp %>%
+      as_tibble %>%
+      left_join(bd %>%
+                  distinct(SbjNum, region),
+                by = "SbjNum") %>%
       {
-        if(input$municipio != "Todos"){
-          filter(., MUNI == input$municipio)
+        if(input$estrato != "Todos"){
+          filter(., region == input$estrato)
         } else{
           .
         }}
   })
 
-  por_hacer_filter <- eventReactive(c(por_hacer, input$municipio),{
+  por_hacer_filter <- eventReactive(c(por_hacer, input$estrato),{
 
     por_hacer %>%
+      left_join(bd %>%
+                  distinct(cluster_2, region),
+                by = c("cluster" = "cluster_2")) %>%
       {
-        if(input$municipio != "Todos"){
-          filter(., Municipio == input$municipio)
+        if(input$estrato != "Todos"){
+          filter(., region == input$estrato)
         } else{
           .
         }}
   })
 
-  hecho_filter <- eventReactive(c(hecho, input$municipio),{
+  hecho_filter <- eventReactive(c(hecho, input$estrato),{
 
     hecho %>%
       {
-        if(input$municipio != "Todos"){
-          filter(., Municipio == input$municipio)
+        if(input$estrato != "Todos"){
+          filter(., region == input$estrato)
         } else{
           .
         }}
   })
 
-  ## Progreso ----------------------------------------------------------------
+  ## Avance -------------------------------------------------------------------------------------
 
   output$avance_region <- renderHighchart({
 
@@ -1162,8 +1117,6 @@ server <- function(input, output, session) {
   output$sexo <- renderPlot({
     preguntas$encuesta$muestra$revisar_sexo()
 
-    # preguntas$encuesta$muestra$muestra$poblacion$marco_muestral
-
   })
 
   output$rango_edad <- renderPlot({
@@ -1171,46 +1124,45 @@ server <- function(input, output, session) {
   })
 
   output$descargar_region <- downloadHandler(filename = function(){
-
     paste("avance_regional_", format(Sys.time(), "%Y_%m_%d-%H_%M"), ".xlsx", sep = "")
   },
   content = function(file){
 
-    clusters_en_muestra <- diseno$poblacion$marco_muestral |>
+    clusters_en_muestra <-
+      diseno$poblacion$marco_muestral |>
       distinct(strata_1, region, cluster_2)
 
-    datos_de_levantamiento <- por_hacer |>
+    datos_de_levantamiento <-
+      por_hacer |>
       group_by(cluster) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x)))
 
-    datos_de_levantamiento_mun <- por_hacer |>
+    datos_de_levantamiento_mun <-
+      por_hacer |>
       group_by(cluster, Municipio) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x)))
 
-    bd_region <- clusters_en_muestra |>
+    bd_region <-
+      clusters_en_muestra |>
       inner_join(datos_de_levantamiento, by = c("cluster_2" = "cluster")) |>
-      group_by(region, strata_1) |>
-      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) %>%
-      mutate(region = paste("Región ", strata_1, sep = "")) |>
-      select(!strata_1)
+      group_by(region) |>
+      summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x)))
 
-    bd_region_municipio <- clusters_en_muestra |>
+    bd_region_municipio <-
+      clusters_en_muestra |>
       inner_join(datos_de_levantamiento_mun, by = c("cluster_2" = "cluster")) |>
       relocate(Municipio, .after = region) |>
-      group_by(strata_1, region, Municipio) |>
+      group_by(region, Municipio) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
-      ungroup() %>%
-      mutate(region = paste("Región ", strata_1, sep = "")) |>
-      select(!strata_1)
+      ungroup()
 
-    bd_region_municipio_cluster <- clusters_en_muestra |>
+    bd_region_municipio_cluster <-
+      clusters_en_muestra |>
       inner_join(datos_de_levantamiento_mun, by = c("cluster_2" = "cluster")) |>
       relocate(Municipio, .after = region) |>
-      group_by(strata_1, region, Municipio, cluster_2) |>
+      group_by(region, Municipio, cluster_2) |>
       summarise(across(.cols = c(cuota, hecho, por_hacer), .fns = ~ sum(.x))) |>
-      ungroup() %>%
-      mutate(region = paste("Región ", strata_1, sep = "")) |>
-      select(!strata_1)
+      ungroup()
 
     wb <- openxlsx::createWorkbook()
 
@@ -1229,61 +1181,151 @@ server <- function(input, output, session) {
   contentType = "file/xlsx"
   )
 
+  # Pestana "Resultados" ------------------------------------------------------------------------
+
+  ## Variables monitoreadas ---------------------------------------------------------------------
+
+  output$variable1 <- renderPlot({
+
+    colores_var1 <-
+      preguntas$encuesta$muestra$diseno$variables |>
+      distinct(!!rlang::sym(preguntas$encuesta$auditar[1])) |>
+      as_tibble() |>
+      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[1])) |>
+      asignar_colores()
+
+    caption <-
+      preguntas$encuesta$cuestionario$diccionario |>
+      filter(llaves == preguntas$encuesta$auditar[1]) |>
+      mutate(caption = paste0(pregunta, " ", tema)) |>
+      pull(caption) |>
+      gsub(pattern = "NA", replacement = "") |>
+      stringr::str_wrap(width = 45)
+
+    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[1], salto = 34) +
+      scale_fill_manual(values = colores_var1) +
+      labs(caption = caption)
+
+  })
+
+  output$variable2 <- renderPlot({
+
+    colores_var2 <-
+      preguntas$encuesta$muestra$diseno$variables |>
+      distinct(!!rlang::sym(preguntas$encuesta$auditar[2])) |>
+      as_tibble() |>
+      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[2])) |>
+      asignar_colores()
+
+    caption <-
+      preguntas$encuesta$cuestionario$diccionario |>
+      filter(llaves == preguntas$encuesta$auditar[2]) |>
+      mutate(caption = paste0(pregunta, " ", tema)) |>
+      pull(caption) |>
+      gsub(pattern = "NA", replacement = "") |>
+      stringr::str_wrap(width = 45)
+
+    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[2], salto = 34) +
+      scale_fill_manual(values = colores_var2) +
+      labs(caption = caption)
+
+  })
+
+  output$variable3 <- renderPlot({
+
+    colores_var3 <-
+      preguntas$encuesta$muestra$diseno$variables |>
+      distinct(!!rlang::sym(preguntas$encuesta$auditar[3])) |>
+      as_tibble() |>
+      rename(respuesta := rlang::sym(preguntas$encuesta$auditar[3])) |>
+      asignar_colores()
+
+    caption <-
+      preguntas$encuesta$cuestionario$diccionario |>
+      filter(llaves == preguntas$encuesta$auditar[3]) |>
+      mutate(caption = paste0(pregunta, " ", tema)) |>
+      pull(caption) |>
+      gsub(pattern = "NA", replacement = "") |>
+      stringr::str_wrap(width = 45)
+
+    preguntas$Descriptiva$barras_categorica(codigo = preguntas$encuesta$auditar[3], salto = 34) +
+      scale_fill_manual(values = colores_var3) +
+      labs(caption = caption)
+
+  })
+
+  ## Tendencia de resultados --------------------------------------------------------------------
+
+  output$monitoreada1 <- renderPlot({
+
+    encuesta_demo$muestra$diseno$variables |>
+      distinct(voto_pr_24)
+
+    preguntas$encuesta$
+
+      preguntas$Tendencias$intencion_voto(variable = )
+
+  })
+
   # Pestaña "Encuestadores" -------------------------------------------------
 
   ## Estadisticas colectivas ------------------------------------------------
 
-  efectivas_filter_encuestadores <- eventReactive(c(bd, input$municipio_encuestadores),{
+  efectivas_filter_encuestadores <- eventReactive(c(bd, input$estrato_encuestadores),{
 
     bd %>%
       {
-        if(input$municipio_encuestadores != "Todos"){
-          filter(., MUNI == input$municipio_encuestadores)
+        if(input$estrato_encuestadores != "Todos"){
+          filter(., region == input$estrato_encuestadores)
         } else{
           .
         }}
   })
 
-  eliminadas_filter_encuestadores <- eventReactive(c(eliminadas, input$municipio_encuestadores),{
+  eliminadas_filter_encuestadores <- eventReactive(c(eliminadas, input$estrato_encuestadores),{
 
     eliminadas %>%
+      mutate(cluster = as.integer(cluster)) |>
+      left_join(diseno$poblacion$marco_muestral %>%
+                  distinct(cluster_2, region),
+                by = c("cluster" = "cluster_2")) %>%
       {
-        if(input$municipio_encuestadores != "Todos"){
-          filter(., MUNI == input$municipio_encuestadores)
+        if(input$estrato_encuestadores != "Todos"){
+          filter(., region == input$estrato_encuestadores)
         } else{
           .
         }}
   })
 
-  corregidas_filter_encuestadores <- eventReactive(c(corregidas_shp, input$municipio_encuestadores),{
+  corregidas_filter_encuestadores <- eventReactive(c(corregidas_shp, input$estrato_encuestadores),{
 
     corregidas_shp %>% as_tibble %>%
-      left_join(bd %>% distinct(SbjNum, MUNI), by = "SbjNum") %>%
+      left_join(bd %>% distinct(SbjNum, region), by = "SbjNum") %>%
       {
-        if(input$municipio_encuestadores != "Todos"){
-          filter(., MUNI == input$municipio_encuestadores)
+        if(input$estrato_encuestadores != "Todos"){
+          filter(., region == input$estrato_encuestadores)
         } else{
           .
         }}
   })
 
-  por_hacer_filter_encuestadores <- eventReactive(c(por_hacer, input$municipio_encuestadores),{
+  por_hacer_filter_encuestadores <- eventReactive(c(por_hacer, input$estrato_encuestadores),{
 
     por_hacer %>%
       {
-        if(input$municipio_encuestadores != "Todos"){
-          filter(., Municipio == input$municipio_encuestadores)
+        if(input$estrato_encuestadores != "Todos"){
+          filter(., region == input$estrato_encuestadores)
         } else{
           .
         }}
   })
 
-  hecho_filter_encuestadores <- eventReactive(c(hecho, input$municipio_encuestadores),{
+  hecho_filter_encuestadores <- eventReactive(c(hecho, input$estrato_encuestadores),{
 
     hecho %>%
       {
-        if(input$municipio_encuestadores != "Todos"){
-          filter(., Municipio == input$municipio_encuestadores)
+        if(input$estrato_encuestadores != "Todos"){
+          filter(., region == input$estrato_encuestadores)
         } else{
           .
         }}
@@ -1307,7 +1349,8 @@ server <- function(input, output, session) {
 
   output$eliminadas_encuestador <- renderHighchart({
 
-    lista <- eliminadas_filter_encuestadores() %>%
+    lista <-
+      eliminadas_filter_encuestadores() %>%
       count(Srvyr) %>%
       arrange(desc(n)) %>%
       tibble::rownames_to_column("id") %>%
@@ -1546,7 +1589,7 @@ server <- function(input, output, session) {
 
     res <- corregidas_shp %>%
       as_tibble %>%
-      left_join(bd %>% distinct(SbjNum, MUNI), by = "SbjNum") %>%
+      left_join(bd %>% distinct(SbjNum, region), by = "SbjNum") %>%
       count(Srvyr) %>%
       tidyr::complete(Srvyr = preguntas$encuesta$muestra$diseno$variables |> distinct(Srvyr) |> pull(),
                       fill = list(n = 0)) |>
