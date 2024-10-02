@@ -184,6 +184,7 @@ quitar <- c()
 mantener <- ""
 
 variables_interes <- c("voto_pm_24", "conoce_pm_astiazaran", "voto_pr_24")
+variables_tendencias <- c("voto_pm_24", "conoce_pm_astiazaran", "conoce_pm_delrio")
 
 # Clase -------------------------------------------------------------------
 #+ Se crea la clase encuesta, que contiene la base de datos, asi como el diseno muestral, y la app de auditoria
@@ -201,7 +202,8 @@ encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
                               mantener_falta_coordenadas = F, # mantener entrevistas sin coordenadas
                               rake = T, ######### con postestratificacion
                               patron = "\\(No leer\\)| \\(No leer\\)|\\(ROTAR\\)|\\(No leer)|:",
-                              auditar = variables_interes
+                              auditar = variables_interes,
+                              vars_tendencias = variables_tendencias,
 )
 
 # encuesta_demo$auditoria$run_app()
