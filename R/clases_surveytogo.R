@@ -380,24 +380,27 @@ Respuestas <- R6::R6Class("Respuestas",
 
                             categorias = function(bd, diccionario){
 
-                              discrepancia <- diccionario %>%
-                                filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) %>%
+                              discrepancia <-
+                                diccionario %>%
+                                filter(tipo_pregunta != "Abierta") |>
                                 pull(llaves) %>%
                                 map_df(~{
-
-                                  res <- bd %>%
+                                  res <-
+                                    bd %>%
                                     count(across(all_of(.x))) %>%
                                     na.omit %>%
                                     pull(1)
 
-                                  m <- match(res, diccionario %>%
+                                  m <- match(res,
+                                             diccionario %>%
                                                filter(llaves == .x) %>%
-                                               unnest(respuestas) %>%
-                                               pull(respuestas)
+                                               mutate(respuestas = stringr::str_split(string = respuestas, pattern = "_")) |>
+                                               pull(respuestas) |>
+                                               pluck(1)
                                   )
 
                                   tibble(llave = .x,
-                                         faltantes = res[is.na(m)]
+                                         sin_respuestas = res[is.na(m)]
                                   )
 
                                 })
@@ -408,7 +411,8 @@ Respuestas <- R6::R6Class("Respuestas",
                                         immediate. = T)
                                 print(discrepancia |>
                                         rename(codigo_pregunta = llave,
-                                               respuesta_campo = faltantes))
+                                               respuesta_campo = sin_respuestas),
+                                      n = Inf)
                                 warning("Revise las respuestas entre la base de campo y el cuestionario de procesamiento y corrija.",
                                         immediate. = T)
 
@@ -418,27 +422,31 @@ Respuestas <- R6::R6Class("Respuestas",
 
                             respuestas_sin_seleccion = function(bd, diccionario){
 
-                              bd_sinregistros <- diccionario |>
-                                filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) |>
+                              bd_sinregistros <-
+                                diccionario |>
+                                filter(tipo_pregunta != "Abierta") |>
                                 pull(llaves) %>%
-                                purrr::map_df(.x = ., .f = ~ {
+                                purrr::map_df(.x = .,
+                                              .f = ~ {
+                                                respuestas_sin_registros <-
+                                                  diccionario %>%
+                                                  filter(llaves == .x) %>%
+                                                  mutate(respuestas = stringr::str_split(string = respuestas, pattern = "_")) |>
+                                                  pull(respuestas) |>
+                                                  pluck(1) |>
+                                                  as_tibble() |>
+                                                  anti_join(bd |>
+                                                              count(across(all_of(.x))) %>%
+                                                              arrange(1) |>
+                                                              pull(1) |>
+                                                              as_tibble(),
+                                                            by = "value") |>
+                                                  pull()
 
-                                  respuestas_sin_registros <- diccionario %>%
-                                    filter(llaves == .x) %>%
-                                    unnest(respuestas) |>
-                                    pull(respuestas) |>
-                                    as_tibble() |>
-                                    anti_join(bd |>
-                                                count(across(all_of(.x))) %>%
-                                                arrange(1) |>
-                                                pull(1) |>
-                                                as_tibble(), by = "value") |>
-                                    pull()
+                                                tibble(codigo_pregunta = .x,
+                                                       respuesta_sin_registros = respuestas_sin_registros)
 
-                                  tibble(codigo_pregunta = .x,
-                                         respuesta_sin_registros = respuestas_sin_registros)
-
-                                })
+                                              })
 
                               if(nrow(bd_sinregistros) > 0) {
 
@@ -1055,7 +1063,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                }
 
                                analizar_frecuencias_multirespuesta(diseno = diseno,
-                                                                  patron_inicial) %>%
+                                                                   patron_inicial) %>%
                                  graficar_barras(salto = salto,
                                                  porcentajes_fuera = porcentajes_fuera,
                                                  desplazar_porcentajes = desplazar_porcentajes) +
@@ -1231,7 +1239,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                }
 
                                analizar_frecuencias_multirespuesta(diseno = diseno,
-                                                                  patron_inicial) %>%
+                                                                   patron_inicial) %>%
                                  rename(pct = media) |>
                                  graficar_lollipops(orden = orden,
                                                     limits = limits,
@@ -2037,7 +2045,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                   geom_vline(aes(xintercept =  pos_gen_snp),
                                              color = "red", size = 1)}+
                                 {if(!sin_peso & linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                       color = "red", linetype = "dashed", size = 1)}+
                                 scale_color_manual(values = colores) +
                                 tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
@@ -2078,7 +2086,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                   geom_vline(aes(xintercept =  pos_gen_snp),
                                              color = "red", size = 1)}+
                                 {if(!sin_peso & linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                       color = "red", linetype = "dashed", size = 1)}+
                                 tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted"))
@@ -2113,10 +2121,10 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                   geom_vline(aes(xintercept =  pos_gen_snp),
                                              color = "red", size = 1)}+
                                 # {if(!sin_peso)
-                                  # geom_vline(aes(xintercept =  pos_reg_gen_snp),
-                                  #            color = "blue", size = 1)}+
+                                # geom_vline(aes(xintercept =  pos_reg_gen_snp),
+                                #            color = "blue", size = 1)}+
                                 {if(!sin_peso &  linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                        color = "red", linetype = "dashed", size = 1)}+
                                 # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
                                 #                           color = "blue", linetype = "dashed", size = 1)}+
                                 facet_wrap(as.formula(paste0("~", variable_region)))
@@ -2168,7 +2176,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 #   geom_vline(aes(xintercept =  pos_reg_gen_snp),
                                 #              color = "blue", size = 1)}+
                                 {if(!sin_peso &  linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                        color = "red", linetype = "dashed", size = 1)}+
                                 # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
                                 #                           color = "blue", linetype = "dashed", size = 1)}+
                                 facet_wrap(as.formula(paste0("~", variable_region)))
