@@ -188,11 +188,7 @@ variables_tendencias <- c("voto_pm_24", "conoce_pm_astiazaran", "conoce_pm_delri
 
 # Clase -------------------------------------------------------------------
 #+ Se crea la clase encuesta, que contiene la base de datos, asi como el diseno muestral, y la app de auditoria
-encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto |>
-                                head(690) |>
-                                select(!c(Latitude, Longitude, edad, sexo)) |>
-                                bind_cols(hola_formateada) |>
-                                filter(!is.na(Longitude)),
+encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
                               # n_simulaciones = 200,
                               quitar_vars = quitar,
                               mantener = mantener,
