@@ -76,9 +76,14 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             self$shp_completo <- shp
 
-                            self$shp <- shp$shp %>% purrr::pluck(var_n) %>%
-                              inner_join(muestra$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
-                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n), !!rlang::sym(nivel)))
+                            self$shp <-
+                              shp$shp %>%
+                              purrr::pluck(var_n) %>%
+                              inner_join(muestra$muestra %>%
+                                           purrr::pluck(var_n) %>%
+                                           unnest(data) %>%
+                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),
+                                                    !!rlang::sym(nivel)))
                             self$mantener <- mantener
                             # Respuestas
 
@@ -111,9 +116,9 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         sin_peso = self$sin_peso,
                                                         rake = self$rake)
 
-                            print(paste0("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
-                            print(paste0("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
-                            print(paste0("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
+                            print(glue::glue("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
+                            print(glue::glue("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
+                            print(glue::glue("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
 
                             #Preguntas
                             self$Resultados <- Resultados$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = tema_morant())
@@ -133,7 +138,8 @@ Encuesta <- R6::R6Class("Encuesta",
                                       to = "R")
                             source(file = paste0(getwd(), "/R/constantes.R"))
                             beepr::beep()
-                            return(print(match_dicc_base(self, self$quitar_vars), n = Inf))
+                            print(glue::glue("Las siguientes variables no son de sistema, plataforma o están en el diccionario"))
+                            print(match_dicc_base(self), n = Inf)
                           },
 
                           simular_surveytogo = function(cuestionario, n, diseño, shp){
@@ -267,19 +273,22 @@ Respuestas <- R6::R6Class("Respuestas",
                             eliminadas = NULL,
                             cluster_corregido = NULL,
                             base = NULL,
-                            n=NULL,
-                            m=NULL,
+                            catalogo = NULL,
+                            n = NULL,
+                            m = NULL,
                             sin_coordenadas = NULL,
                             mantener_falta_coordenadas = NULL,
                             #' @description
                             #' Crear respuesta
                             #' @param base Base de datos de respuestas.
-                            initialize=function(base,
-                                                encuesta,
-                                                muestra_completa,
-                                                mantener_falta_coordenadas,
-                                                patron,
-                                                nivel, var_n) {
+                            initialize = function(base,
+                                                  catalogo = NULL,
+                                                  encuesta,
+                                                  muestra_completa,
+                                                  mantener_falta_coordenadas,
+                                                  patron,
+                                                  nivel,
+                                                  var_n) {
                               shp <- encuesta$shp
                               mantener <- encuesta$mantener
                               diccionario <- encuesta$cuestionario$diccionario
@@ -295,9 +304,66 @@ Respuestas <- R6::R6Class("Respuestas",
                               muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
+                              self$catalogo <-
+                                tibble::tibble(variable = c("SbjNum",
+                                                            "Date",
+                                                            "Srvyr",
+                                                            "VStart",
+                                                            "VEnd",
+                                                            "Duration",
+                                                            "Latitude",
+                                                            "Longitude",
+                                                            paste0("GPS_INT", "_LA"),
+                                                            paste0("GPS_INT", "_LO"),
+                                                            paste0("GPS_INT", "_ALT"),
+                                                            paste0("GPS_INT", "_BEAR"),
+                                                            paste0("GPS_INT", "_SPEED"),
+                                                            paste0("GPS_INT", "_DATE"),
+                                                            "INT",
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_LA"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_LO"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_ALT"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_BEAR"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_SPEED"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_DATE"),
+                                                            paste0("INT", seq.int(from = 1, 20)),
+                                                            "SECCION",
+                                                            "cluster_0",
+                                                            "cluster_2",
+                                                            "strata_1",
+                                                            "region",
+                                                            "total",
+                                                            "fpc_0",
+                                                            "fpc_2",
+                                                            "distancia",
+                                                            encuesta$cuestionario$diccionario$llaves)) |>
+                                mutate(tipo_variable = dplyr::if_else(condition = variable %in% c("SbjNum",
+                                                                                                  "Date",
+                                                                                                  "Srvyr",
+                                                                                                  "VStart",
+                                                                                                  "VEnd",
+                                                                                                  "Duration",
+                                                                                                  "Latitude",
+                                                                                                  "Longitude"),
+                                                                      true = "sistema",
+                                                                      false = NA_character_),
+                                       tipo_variable = dplyr::if_else(condition = variable %in% c("municipio",
+                                                                                                  "cluster"),
+                                                                      true = "cuestionario",
+                                                                      false = tipo_variable),
+                                       tipo_variable = dplyr::if_else(condition = grepl(pattern = "GPS_", x = variable),
+                                                                      true = "plataforma",
+                                                                      false = tipo_variable),
+                                       tipo_variable = dplyr::if_else(condition = grepl(pattern = "^INT[0-9]+$|INT", x = variable),
+                                                                      true = "plataforma",
+                                                                      false = tipo_variable),
+                                       tipo_variable = dplyr::if_else(condition = variable %in% (diccionario_hermosillo_agosto |>
+                                                                                                   pull(llaves)),
+                                                                      true = "cuestionario",
+                                                                      false = tipo_variable))
 
-                              # Parar si nombres de respuestas no coinciden con diccionario
-                              self$nombres(self$base, diccionario)
+                              # Parar si faltan variables de sistema o del cuestionario
+                              self$nombres(catalogo_variables = self$catalogo, self$base, diccionario)
 
                               # Quitar patrones a respuestas
                               self$q_patron(self$base, diccionario, patron)
@@ -360,11 +426,17 @@ Respuestas <- R6::R6Class("Respuestas",
                               # self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
                             },
 
-                            nombres = function(bd, diccionario){
+                            nombres = function(catalogo_variables, bd, diccionario){
 
-                              faltantes <- is.na(match(diccionario$llaves, names(bd)))
-                              if(!all(!faltantes)){
-                                stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(diccionario$llaves[faltantes], collapse = ', ')}"))
+                              faltantes <-
+                                catalogo_variables |>
+                                filter(tipo_variable %in% c("sistema", "cuestionario")) |>
+                                anti_join(tibble(variable = names(bd)),
+                                          by = 'variable')
+
+                              # faltantes <- is.na(match(diccionario$llaves, names(bd)))
+                              if(nrow(faltantes) > 0){
+                                stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(faltantes$variable, collapse = ', ')}"))
                               }
 
                             },

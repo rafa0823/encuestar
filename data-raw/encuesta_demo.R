@@ -16,7 +16,7 @@ diseno_hermosillo_agosto <- readr::read_rds("./data-raw/diseno.rda")
 #+ Se carga el diccionario de variables en la encuesta
 diccionario_hermosillo_agosto <-
   readxl::read_xlsx(path = "./data-raw/diccionario_enc_demo.xlsx") |> #dicc_enc_hermosillo_agosto.xlsx
-  dplyr::filter(!grepl(pattern = "Registro de ubicación|Filtros", x = bloque))
+  filter(!llaves %in% c("gps", "intentos"))
 
 # data-raw ------------------------------------------------------------------------------------
 
@@ -94,6 +94,14 @@ bd_respuestas_hermosillo_agosto <-
                   suma_amai>=202~"A_B",.default = NA)) |>
   #+ Se Hacen correcciones en alguna de las varibles, en caso de ser detectado
   mutate(voto_pr_24 = gsub('Xóchilt','Xóchitl', voto_pr_24))
+
+set.seed(123)
+
+bd_respuestas_hermosillo_agosto <-
+  bd_respuestas_hermosillo_agosto |>
+  mutate(ine = sample(c("Sí", "No"),
+                        size = nrow(bd_respuestas_hermosillo_agosto),
+                        replace = TRUE))
 
 #+ Se definen lo intentos efectivos, que son las enetrevistas que se realizaron correctamente y las que se rechazaron
 intentos_efectivos <-
