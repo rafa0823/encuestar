@@ -1282,6 +1282,11 @@ server <- function(input, output, session) {
                                         select(respuestas = tema) |>
                                         asignar_colores(),
                                       sin_peso = FALSE) +
+      labs(caption = preguntas$encuesta$cuestionario$diccionario |>
+             filter(llaves %in% variables_tendencias[2:3]) |>
+             distinct(pregunta) |>
+             pull() |>
+             stringr::str_wrap(width = 45)) +
       theme(legend.position = "bottom")
 
   })
