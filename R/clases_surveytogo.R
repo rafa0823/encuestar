@@ -10,7 +10,7 @@ Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
                           quitar_vars = NULL,
-                          cuestionario=NULL,
+                          cuestionario = NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           bd_correcciones = NULL,
