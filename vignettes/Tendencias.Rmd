@@ -59,6 +59,11 @@ Indica si se quiere aplicar peso estadístico al cálculo de la media móvil, si
 `linea_peso`
 Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
 
+`size_fech`
+Tamaño de las fechas presentes en el eje Y de la gráfica. Recibe un valor de tipo entero.
+
+`size_text_legend`
+Tamaño de las leyendas. Recibe un valor de tipo entero.
 
 ## Conocimiento de personajes
 
@@ -105,6 +110,12 @@ Especifica la categoría que se va a analizar. Recibe un valor de tipo string.
 `linea_peso`
 Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
 
+`size_fech`
+Tamaño de las fechas presentes en el eje Y de la gráfica. Recibe un valor de tipo entero.
+
+`size_text_legend`
+Tamaño de las leyendas. Recibe un valor de tipo entero.
+
 # Tendencia de resultados por estrato o región
 
 ## Intención de voto
@@ -143,6 +154,12 @@ Corresponde a la variable que contiene la clasificación de los clusters. La var
 
 `linea_peso`
 Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
+
+`size_fech`
+Tamaño de las fechas presentes en el eje Y de la gráfica. Recibe un valor de tipo entero.
+
+`size_text_legend`
+Tamaño de las leyendas. Recibe un valor de tipo entero.
 
 ## Conocimiento de personajes
 
@@ -186,3 +203,8 @@ Corresponde a la variable que contiene la clasificación de los clusters. La var
 `linea_peso`
 Indica si se quiere mostrar una línea vertical punteada que indica en que momento se obtuvo el 50 % de la suma total de los pesos de los datos registrados al momento. True corresponde a mostrar la línea.  Recibe valores booleanos TRUE o FALSE.
 
+`size_fech`
+Tamaño de las fechas presentes en el eje Y de la gráfica. Recibe un valor de tipo entero.
+
+`size_text_legend`
+Tamaño de las leyendas. Recibe un valor de tipo entero.

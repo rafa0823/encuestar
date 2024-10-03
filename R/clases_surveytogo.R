@@ -2015,7 +2015,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                               self$bd_resultados <- self$encuesta$respuestas$base |>
                                 mutate(peso = weights(self$encuesta$muestra$diseno))
                             },
-                            intencion_voto = function(variable, valores_interes, colores, sin_peso = T, linea_peso = F){
+                            intencion_voto = function(variable, valores_interes, colores, sin_peso = T, linea_peso = F, size_fech = 8,size_text_legend = 12){
                               bd_mediaMovil <-
                                 calcular_mediaMovil(bd_resultados = self$bd_resultados,
                                                     variable = variable,
@@ -2041,10 +2041,13 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 scale_color_manual(values = colores) +
                                 tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
-                                                                        linetype = "dotted"))
+                                                                        linetype = "dotted"),
+                                      legend.position = "bottom",
+                                      axis.text.x = element_text(size = size_fech),
+                                      legend.text = element_text(size = size_text_legend))
                               return(g)
                             },
-                            conocimiento = function(variables, colores, sin_peso = T, valores_interes = "Sí", linea_peso = F){
+                            conocimiento = function(variables, colores, sin_peso = T, valores_interes = "Sí", linea_peso = F, size_fech = 8,size_text_legend = 12){
                               bd_mediaMovil<- variables|>
                                 purrr::map(~{
                                   var_aux <- .x
@@ -2081,10 +2084,13 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                                           color = "red", linetype = "dashed", size = 1)}+
                                 tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
-                                                                        linetype = "dotted"))
+                                                                        linetype = "dotted"),
+                                      legend.position = "bottom",
+                                      axis.text.x = element_text(size = size_fech),
+                                      legend.text = element_text(size = size_text_legend))
                               return(g)
                             },
-                            intencion_voto_region = function(variable, valores_interes, colores, sin_peso = T, variable_region = "region",  linea_peso = F){
+                            intencion_voto_region = function(variable, valores_interes, colores, sin_peso = T, variable_region = "region",  linea_peso = F, size_fech = 8,size_text_legend = 12){
                               bd_mediaMovil <-
                                 calcular_mediaMovil_region(bd_resultados = self$bd_resultados,
                                                            variable = variable,
@@ -2119,10 +2125,13 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                                           color = "red", linetype = "dashed", size = 1)}+
                                 # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
                                 #                           color = "blue", linetype = "dashed", size = 1)}+
-                                facet_wrap(as.formula(paste0("~", variable_region)))
+                                facet_wrap(as.formula(paste0("~", variable_region)))+
+                                theme(legend.position = "bottom",
+                                      axis.text.x = element_text(size = size_fech),
+                                      legend.text = element_text(size = size_text_legend))
                               return(g)
                             },
-                            conocimiento_region = function(variables, colores, sin_peso = T, valores_interes = "Sí", variable_region = "region",  linea_peso = F){
+                            conocimiento_region = function(variables, colores, sin_peso = T, valores_interes = "Sí", variable_region = "region",  linea_peso = F, size_fech = 8,size_text_legend = 12){
                               bd_mediaMovil <-variables|>
                                 purrr::map(~{
                                   var_aux <- .x
@@ -2171,7 +2180,10 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                                           color = "red", linetype = "dashed", size = 1)}+
                                 # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
                                 #                           color = "blue", linetype = "dashed", size = 1)}+
-                                facet_wrap(as.formula(paste0("~", variable_region)))
+                                facet_wrap(as.formula(paste0("~", variable_region)))+
+                                theme(legend.position = "bottom",
+                                      axis.text.x = element_text(size = size_fech),
+                                      legend.text = element_text(size = size_text_legend))
                               return(g)
                             }
                           ))
