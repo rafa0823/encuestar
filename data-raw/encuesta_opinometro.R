@@ -71,3 +71,5 @@ encuesta_opinometro <- Encuesta$new(respuestas = NA,
                                     patron = "\\(No leer\\)| \\(No leer\\)|\\(ROTAR\\)|\\(No leer)|:",
                                     auditar = c("")
 )
+
+options(survey.lonely.psu = "remove")
