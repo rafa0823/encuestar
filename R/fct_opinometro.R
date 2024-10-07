@@ -68,6 +68,9 @@ consultar_respuestas <- function(pool, codigos, encuesta_id){
 #' @examples
 rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_cuestionario){
   bd_respuestasOpinometro |>
+    mutate(intentos = stringr::str_trim(string = intentos,
+                                        side = "both")) |>
+    filter(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil") |>
     filter(ubicacion_aplicada != "No aplica") |>
     mutate(ubicacion_aplicada = dplyr::if_else(condition = ubicacion_aplicada == ",",
                                                true = NA_character_,
