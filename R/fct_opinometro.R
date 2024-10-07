@@ -1,0 +1,89 @@
+#' Title
+#'
+#' @param pool
+#' @param id_cuestionario
+#'
+#' @return
+#' @export
+#'
+#' @examples
+determinarVariables_cuestinoarioOpinometro <- function(pool, id_cuestionario){
+    tbl(src = pool, "Registros") |>
+    filter(EncuestaId == id_cuestionario) |>
+    collect() %>%
+    purrr::pmap_df(function(Id, fecha, Resultado, UsuarioNum, ...){
+      aux <-
+        Resultado |>
+        jsonlite::fromJSON() |>
+        as_tibble()}) |>
+    colnames()
+}
+#' Title
+#'
+#' @param pool
+#' @param codigos
+#' @param encuesta_id
+#'
+#' @return
+#'
+#' @examples
+consultar_respuestas <- function(pool, codigos, encuesta_id){
+  query_claves <- paste0("REPLACE(JSON_VALUE(r.Resultado, '$.", codigos, "'), 'ñ', 'n') AS ", codigos, collapse = ", ")
+  encuesta_id <- encuesta_id |> toString()
+
+  query <- glue::glue("
+  SELECT
+    r.Id,
+    r.EncuestaId,
+    r.FechaInicio,
+    r.FechaFin,
+    r.FechaCreada,
+    r.UbicacionAplicada,
+    r.UsuarioNum,
+    r.isComplete,
+    ", query_claves, "
+  FROM
+    Registros r
+  WHERE EncuestaId in ({encuesta_id})
+")
+
+  dplyr::tbl(pool, dplyr::sql(query)) |>
+    left_join(tbl(pool, "Usuarios") |>
+                semi_join(tbl(pool, "UsuariosEncuesta") |>
+                            filter(EncuestaId == encuesta_id),
+                          join_by(Id == UsuarioId)) |>
+                select(UsuarioNum = Num, Nombre, APaterno, AMaterno),
+              by = "UsuarioNum") |>
+    janitor::clean_names() |>
+    collect()
+}
+#' Title
+#'
+#' @param bd_respuestasOpinometro
+#' @param variables_cuestionario
+#'
+#' @return
+#' @export
+#'
+#' @examples
+rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_cuestionario){
+  bd_respuestasOpinometro |>
+    filter(ubicacion_aplicada != "No aplica") |>
+    mutate(ubicacion_aplicada = dplyr::if_else(condition = ubicacion_aplicada == ",",
+                                               true = NA_character_,
+                                               false = ubicacion_aplicada)) |>
+    tidyr::separate(col = ubicacion_aplicada,
+                    into = c("Latitude", "Longitude"),
+                    sep = ",",
+                    remove = TRUE) |>
+    transmute(SbjNum = id,
+              Date = lubridate::as_datetime(fecha_inicio),
+              Srvyr = paste(nombre, a_paterno, a_materno, sep = " "),
+              VStart = lubridate::as_datetime(fecha_inicio),
+              VEnd = lubridate::as_datetime(fecha_fin),
+              Duration = as.character(difftime(VEnd, VStart, units = "hours")),
+              Latitude,
+              Longitude,
+              across(all_of(variables_cuestionario)),
+              SECCION = as.character(cluster))
+}

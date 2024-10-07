@@ -9,8 +9,10 @@
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
+                          n_simulaciones = NA,
+                          opinometro_id = NULL,
                           quitar_vars = NULL,
-                          cuestionario=NULL,
+                          cuestionario = NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           bd_correcciones = NULL,
@@ -26,19 +28,19 @@ Encuesta <- R6::R6Class("Encuesta",
                           sin_peso = NA,
                           rake = NA,
                           mantener_falta_coordenadas = NULL,
-                          n_simulaciones = NA,
                           dir_app = NULL,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
                           #' @param diccionario Hair colour
                           initialize = function(respuestas = NA,
-                                                n_simulaciones = 100,
+                                                n_simulaciones = NULL,
+                                                opinometro_id = NULL,
                                                 quitar_vars = NA,
                                                 muestra = NA,
                                                 auditoria_telefonica = NA,
                                                 bd_correcciones = NULL,
-                                                cuestionario=NA,
+                                                cuestionario = NA,
                                                 shp = NA,
                                                 tipo_encuesta = NA,
                                                 mantener = NA,
@@ -51,16 +53,17 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 dir_app = "auditoria"
                           ) {
                             sf_use_s2(F)
-                            tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
+                            tipo_encuesta <- match.arg(tipo_encuesta, c("inegi","ine"))
                             self$sin_peso <- sin_peso
                             self$quitar_vars <- quitar_vars
                             self$rake <- rake
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
                             self$auditar <- auditar
-                            self$vars_tendencias = vars_tendencias
+                            self$vars_tendencias <- vars_tendencias
                             self$mantener_falta_coordenadas <- mantener_falta_coordenadas
                             self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
+                            self$opinometro_id <- opinometro_id
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
@@ -76,25 +79,40 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             self$shp_completo <- shp
 
-                            self$shp <- shp$shp %>% purrr::pluck(var_n) %>%
-                              inner_join(muestra$muestra %>% purrr::pluck(var_n) %>% unnest(data) %>%
-                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n), !!rlang::sym(nivel)))
+                            self$shp <-
+                              shp$shp %>%
+                              purrr::pluck(var_n) %>%
+                              inner_join(muestra$muestra %>%
+                                           purrr::pluck(var_n) %>%
+                                           unnest(data) %>%
+                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),
+                                                    !!rlang::sym(nivel)))
                             self$mantener <- mantener
-                            # Respuestas
 
-                            if(!"data.frame" %in% class(respuestas)){ respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
-                                                                                                            n = self$n_simulaciones,
-                                                                                                            diseño = muestra,
-                                                                                                            shp = shp)
+                            # Respuestas
+                            if(!("data.frame" %in% class(respuestas)) & !is.null(n_simulaciones)){
+                              respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
+                                                                    n = self$n_simulaciones,
+                                                                    diseño = muestra,
+                                                                    shp = shp)
                             }
+
+                            if(!is.null(opinometro_id)) {
+
+                              opinometro <- Opinometro$new(id_cuestionarioOpinometro = self$opinometro_id,
+                                                           diccionario = self$cuestionario$diccionario)
+
+                              respuestas <- opinometro$bd_respuestas_cuestionario
+
+                            }
+
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
                                                               mantener_falta_coordenadas = self$mantener_falta_coordenadas,
                                                               muestra_completa = muestra,
                                                               patron = patron,
                                                               nivel = nivel,
-                                                              var_n = var_n
-                            )
+                                                              var_n = var_n)
 
                             # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra,
@@ -111,9 +129,9 @@ Encuesta <- R6::R6Class("Encuesta",
                                                         sin_peso = self$sin_peso,
                                                         rake = self$rake)
 
-                            print(paste0("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
-                            print(paste0("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
-                            print(paste0("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
+                            print(glue::glue("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
+                            print(glue::glue("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
+                            print(glue::glue("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
 
                             #Preguntas
                             self$Resultados <- Resultados$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = tema_morant())
@@ -133,7 +151,8 @@ Encuesta <- R6::R6Class("Encuesta",
                                       to = "R")
                             source(file = paste0(getwd(), "/R/constantes.R"))
                             beepr::beep()
-                            return(print(match_dicc_base(self, self$quitar_vars), n = Inf))
+                            print(glue::glue("Las siguientes variables no son de sistema, plataforma o están en el diccionario"))
+                            print(match_dicc_base(self), n = Inf)
                           },
 
                           simular_surveytogo = function(cuestionario, n, diseño, shp){
@@ -267,19 +286,22 @@ Respuestas <- R6::R6Class("Respuestas",
                             eliminadas = NULL,
                             cluster_corregido = NULL,
                             base = NULL,
-                            n=NULL,
-                            m=NULL,
+                            catalogo = NULL,
+                            n = NULL,
+                            m = NULL,
                             sin_coordenadas = NULL,
                             mantener_falta_coordenadas = NULL,
                             #' @description
                             #' Crear respuesta
                             #' @param base Base de datos de respuestas.
-                            initialize=function(base,
-                                                encuesta,
-                                                muestra_completa,
-                                                mantener_falta_coordenadas,
-                                                patron,
-                                                nivel, var_n) {
+                            initialize = function(base,
+                                                  catalogo = NULL,
+                                                  encuesta,
+                                                  muestra_completa,
+                                                  mantener_falta_coordenadas,
+                                                  patron,
+                                                  nivel,
+                                                  var_n) {
                               shp <- encuesta$shp
                               mantener <- encuesta$mantener
                               diccionario <- encuesta$cuestionario$diccionario
@@ -295,9 +317,66 @@ Respuestas <- R6::R6Class("Respuestas",
                               muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
+                              self$catalogo <-
+                                tibble::tibble(variable = c("SbjNum",
+                                                            "Date",
+                                                            "Srvyr",
+                                                            "VStart",
+                                                            "VEnd",
+                                                            "Duration",
+                                                            "Latitude",
+                                                            "Longitude",
+                                                            paste0("GPS_INT", "_LA"),
+                                                            paste0("GPS_INT", "_LO"),
+                                                            paste0("GPS_INT", "_ALT"),
+                                                            paste0("GPS_INT", "_BEAR"),
+                                                            paste0("GPS_INT", "_SPEED"),
+                                                            paste0("GPS_INT", "_DATE"),
+                                                            "INT",
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_LA"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_LO"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_ALT"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_BEAR"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_SPEED"),
+                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_DATE"),
+                                                            paste0("INT", seq.int(from = 1, 20)),
+                                                            "SECCION",
+                                                            "cluster_0",
+                                                            "cluster_2",
+                                                            "strata_1",
+                                                            "region",
+                                                            "total",
+                                                            "fpc_0",
+                                                            "fpc_2",
+                                                            "distancia",
+                                                            encuesta$cuestionario$diccionario$llaves)) |>
+                                mutate(tipo_variable = dplyr::if_else(condition = variable %in% c("SbjNum",
+                                                                                                  "Date",
+                                                                                                  "Srvyr",
+                                                                                                  "VStart",
+                                                                                                  "VEnd",
+                                                                                                  "Duration",
+                                                                                                  "Latitude",
+                                                                                                  "Longitude"),
+                                                                      true = "sistema",
+                                                                      false = NA_character_),
+                                       tipo_variable = dplyr::if_else(condition = variable %in% c("municipio",
+                                                                                                  "cluster"),
+                                                                      true = "cuestionario",
+                                                                      false = tipo_variable),
+                                       tipo_variable = dplyr::if_else(condition = grepl(pattern = "GPS_", x = variable),
+                                                                      true = "plataforma",
+                                                                      false = tipo_variable),
+                                       tipo_variable = dplyr::if_else(condition = grepl(pattern = "^INT[0-9]+$|INT", x = variable),
+                                                                      true = "plataforma",
+                                                                      false = tipo_variable),
+                                       tipo_variable = dplyr::if_else(condition = variable %in% (encuesta$cuestionario$diccionario |>
+                                                                                                   pull(llaves)),
+                                                                      true = "cuestionario",
+                                                                      false = tipo_variable))
 
-                              # Parar si nombres de respuestas no coinciden con diccionario
-                              self$nombres(self$base, diccionario)
+                              # Parar si faltan variables de sistema o del cuestionario
+                              self$nombres(catalogo_variables = self$catalogo, self$base, diccionario)
 
                               # Quitar patrones a respuestas
                               self$q_patron(self$base, diccionario, patron)
@@ -360,11 +439,17 @@ Respuestas <- R6::R6Class("Respuestas",
                               # self$eliminadas <- anti_join(base, self$base, by = "SbjNum")
                             },
 
-                            nombres = function(bd, diccionario){
+                            nombres = function(catalogo_variables, bd, diccionario){
 
-                              faltantes <- is.na(match(diccionario$llaves, names(bd)))
-                              if(!all(!faltantes)){
-                                stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(diccionario$llaves[faltantes], collapse = ', ')}"))
+                              faltantes <-
+                                catalogo_variables |>
+                                filter(tipo_variable %in% c("sistema", "cuestionario")) |>
+                                anti_join(tibble(variable = names(bd)),
+                                          by = 'variable')
+
+                              # faltantes <- is.na(match(diccionario$llaves, names(bd)))
+                              if(nrow(faltantes) > 0){
+                                stop(glue::glue("Las siguientes variables no se encuentran en la base de datos: {paste(faltantes$variable, collapse = ', ')}"))
                               }
 
                             },
@@ -380,36 +465,39 @@ Respuestas <- R6::R6Class("Respuestas",
 
                             categorias = function(bd, diccionario){
 
-                              discrepancia <- diccionario %>%
-                                filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) %>%
+                              discrepancia <-
+                                diccionario %>%
+                                filter(tipo_pregunta != "Abierta") |>
                                 pull(llaves) %>%
                                 map_df(~{
-
-                                  res <- bd %>%
+                                  res <-
+                                    bd %>%
                                     count(across(all_of(.x))) %>%
                                     na.omit %>%
                                     pull(1)
 
-                                  m <- match(res, diccionario %>%
+                                  m <- match(res,
+                                             diccionario %>%
                                                filter(llaves == .x) %>%
-                                               unnest(respuestas) %>%
-                                               pull(respuestas)
+                                               mutate(respuestas = stringr::str_split(string = respuestas, pattern = "_")) |>
+                                               pull(respuestas) |>
+                                               pluck(1)
                                   )
 
                                   tibble(llave = .x,
-                                         faltantes = res[is.na(m)]
+                                         sin_respuestas = res[is.na(m)]
                                   )
 
                                 })
 
                               if(nrow(discrepancia)>0){
 
-                                warning(paste("La siguiente tabla muestra las respuestas en la base de campo que no están contempladas en el cuestionario de procesamiento", " (total: ", nrow(discrepancia), ").", sep = ""),
-                                        immediate. = T)
+                                print(glue::glue("La siguiente tabla muestra las respuestas en la base de campo que no están contempladas en el diccionario"))
                                 print(discrepancia |>
                                         rename(codigo_pregunta = llave,
-                                               respuesta_campo = faltantes))
-                                warning("Revise las respuestas entre la base de campo y el cuestionario de procesamiento y corrija.",
+                                               respuesta_campo = sin_respuestas),
+                                      n = Inf)
+                                print(glue::glue("Revise las respuestas entre la base de campo y el cuestionario de procesamiento y corrija. Estas discrepancias no deberían existir."),
                                         immediate. = T)
 
                               }
@@ -418,31 +506,35 @@ Respuestas <- R6::R6Class("Respuestas",
 
                             respuestas_sin_seleccion = function(bd, diccionario){
 
-                              bd_sinregistros <- diccionario |>
-                                filter(tipo_pregunta == "multiples", !grepl("_otro", llaves)) |>
+                              bd_sinregistros <-
+                                diccionario |>
+                                filter(tipo_pregunta != "Abierta") |>
                                 pull(llaves) %>%
-                                purrr::map_df(.x = ., .f = ~ {
+                                purrr::map_df(.x = .,
+                                              .f = ~ {
+                                                respuestas_sin_registros <-
+                                                  diccionario %>%
+                                                  filter(llaves == .x) %>%
+                                                  mutate(respuestas = stringr::str_split(string = respuestas, pattern = "_")) |>
+                                                  pull(respuestas) |>
+                                                  pluck(1) |>
+                                                  as_tibble() |>
+                                                  anti_join(bd |>
+                                                              count(across(all_of(.x))) %>%
+                                                              arrange(1) |>
+                                                              pull(1) |>
+                                                              as_tibble(),
+                                                            by = "value") |>
+                                                  pull()
 
-                                  respuestas_sin_registros <- diccionario %>%
-                                    filter(llaves == .x) %>%
-                                    unnest(respuestas) |>
-                                    pull(respuestas) |>
-                                    as_tibble() |>
-                                    anti_join(bd |>
-                                                count(across(all_of(.x))) %>%
-                                                arrange(1) |>
-                                                pull(1) |>
-                                                as_tibble(), by = "value") |>
-                                    pull()
+                                                tibble(codigo_pregunta = .x,
+                                                       respuesta_sin_registros = respuestas_sin_registros)
 
-                                  tibble(codigo_pregunta = .x,
-                                         respuesta_sin_registros = respuestas_sin_registros)
-
-                                })
+                                              })
 
                               if(nrow(bd_sinregistros) > 0) {
 
-                                warning(paste("La siguiente tabla muestra las respuestas que tienen cero registros en la base de respuestas de campo", " (total: ", nrow(bd_sinregistros), ").", sep = ""),
+                                warning(paste("La siguiente tabla muestra las respuestas que tienen cero registros en la base de respuestas", sep = ""),
                                         immediate. = T)
                                 print(bd_sinregistros, n = Inf)
 
@@ -1055,7 +1147,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                }
 
                                analizar_frecuencias_multirespuesta(diseno = diseno,
-                                                                  patron_inicial) %>%
+                                                                   patron_inicial) %>%
                                  graficar_barras(salto = salto,
                                                  porcentajes_fuera = porcentajes_fuera,
                                                  desplazar_porcentajes = desplazar_porcentajes) +
@@ -1231,7 +1323,7 @@ Descriptiva <- R6::R6Class(classname = "Descriptiva",
                                }
 
                                analizar_frecuencias_multirespuesta(diseno = diseno,
-                                                                  patron_inicial) %>%
+                                                                   patron_inicial) %>%
                                  rename(pct = media) |>
                                  graficar_lollipops(orden = orden,
                                                     limits = limits,
@@ -2037,7 +2129,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                   geom_vline(aes(xintercept =  pos_gen_snp),
                                              color = "red", size = 1)}+
                                 {if(!sin_peso & linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                       color = "red", linetype = "dashed", size = 1)}+
                                 scale_color_manual(values = colores) +
                                 tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
@@ -2081,7 +2173,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                   geom_vline(aes(xintercept =  pos_gen_snp),
                                              color = "red", size = 1)}+
                                 {if(!sin_peso & linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                       color = "red", linetype = "dashed", size = 1)}+
                                 tema_morant() +
                                 theme(panel.grid.major.y = element_line(colour = "#C5C5C5",
                                                                         linetype = "dotted"),
@@ -2119,10 +2211,10 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                   geom_vline(aes(xintercept =  pos_gen_snp),
                                              color = "red", size = 1)}+
                                 # {if(!sin_peso)
-                                  # geom_vline(aes(xintercept =  pos_reg_gen_snp),
-                                  #            color = "blue", size = 1)}+
+                                # geom_vline(aes(xintercept =  pos_reg_gen_snp),
+                                #            color = "blue", size = 1)}+
                                 {if(!sin_peso &  linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                        color = "red", linetype = "dashed", size = 1)}+
                                 # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
                                 #                           color = "blue", linetype = "dashed", size = 1)}+
                                 facet_wrap(as.formula(paste0("~", variable_region)))+
@@ -2177,7 +2269,7 @@ Tendencias <- R6::R6Class(classname = "Tendencias",
                                 #   geom_vline(aes(xintercept =  pos_reg_gen_snp),
                                 #              color = "blue", size = 1)}+
                                 {if(!sin_peso &  linea_peso) geom_vline(aes(xintercept =  pos_gen),
-                                                          color = "red", linetype = "dashed", size = 1)}+
+                                                                        color = "red", linetype = "dashed", size = 1)}+
                                 # {if(!sin_peso) geom_vline(aes(xintercept =  pos_reg_gen),
                                 #                           color = "blue", linetype = "dashed", size = 1)}+
                                 facet_wrap(as.formula(paste0("~", variable_region)))+
