@@ -89,5 +89,5 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
               across(all_of(variables_cuestionario)),
               SECCION = as.character(cluster),
               corte = update(Sys.time(), minute = floor(lubridate::minute(Sys.time())/15)*15, second = 0, tz = "America/Mexico_City")) |>
-    filter(Date <= update(Sys.time(), minute = floor(lubridate::minute(Sys.time())/15)*15, second = 0, tz = "America/Mexico_City"))
+    filter(Date <= corte)
 }
