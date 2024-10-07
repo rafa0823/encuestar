@@ -9,6 +9,8 @@
 Encuesta <- R6::R6Class("Encuesta",
                         public = list(
                           respuestas = NULL,
+                          n_simulaciones = NA,
+                          opinometro_id = NULL,
                           quitar_vars = NULL,
                           cuestionario = NULL,
                           muestra = NULL,
@@ -26,19 +28,19 @@ Encuesta <- R6::R6Class("Encuesta",
                           sin_peso = NA,
                           rake = NA,
                           mantener_falta_coordenadas = NULL,
-                          n_simulaciones = NA,
                           dir_app = NULL,
                           #' @description
                           #' Create a person
                           #' @param respuestas Name of the person
                           #' @param diccionario Hair colour
                           initialize = function(respuestas = NA,
-                                                n_simulaciones = 100,
+                                                n_simulaciones = NULL,
+                                                opinometro_id = NULL,
                                                 quitar_vars = NA,
                                                 muestra = NA,
                                                 auditoria_telefonica = NA,
                                                 bd_correcciones = NULL,
-                                                cuestionario=NA,
+                                                cuestionario = NA,
                                                 shp = NA,
                                                 tipo_encuesta = NA,
                                                 mantener = NA,
@@ -51,16 +53,17 @@ Encuesta <- R6::R6Class("Encuesta",
                                                 dir_app = "auditoria"
                           ) {
                             sf_use_s2(F)
-                            tipo_encuesta <- match.arg(tipo_encuesta,c("inegi","ine"))
+                            tipo_encuesta <- match.arg(tipo_encuesta, c("inegi","ine"))
                             self$sin_peso <- sin_peso
                             self$quitar_vars <- quitar_vars
                             self$rake <- rake
                             self$tipo_encuesta <- tipo_encuesta
                             self$patron <- patron
                             self$auditar <- auditar
-                            self$vars_tendencias = vars_tendencias
+                            self$vars_tendencias <- vars_tendencias
                             self$mantener_falta_coordenadas <- mantener_falta_coordenadas
                             self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
+                            self$opinometro_id <- opinometro_id
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
@@ -85,21 +88,31 @@ Encuesta <- R6::R6Class("Encuesta",
                                            distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),
                                                     !!rlang::sym(nivel)))
                             self$mantener <- mantener
-                            # Respuestas
 
-                            if(!"data.frame" %in% class(respuestas)){ respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
-                                                                                                            n = self$n_simulaciones,
-                                                                                                            diseño = muestra,
-                                                                                                            shp = shp)
+                            # Respuestas
+                            if(!("data.frame" %in% class(respuestas)) & !is.null(n_simulaciones)){
+                              respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
+                                                                    n = self$n_simulaciones,
+                                                                    diseño = muestra,
+                                                                    shp = shp)
                             }
+
+                            if(!is.null(opinometro_id)) {
+
+                              opinometro <- Opinometro$new(id_cuestionarioOpinometro = self$opinometro_id,
+                                                           diccionario = self$cuestionario$diccionario)
+
+                              respuestas <- opinometro$bd_respuestas_cuestionario
+
+                            }
+
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
                                                               mantener_falta_coordenadas = self$mantener_falta_coordenadas,
                                                               muestra_completa = muestra,
                                                               patron = patron,
                                                               nivel = nivel,
-                                                              var_n = var_n
-                            )
+                                                              var_n = var_n)
 
                             # Muestra (recalcula fpc)
                             self$muestra <- Muestra$new(muestra = muestra,
@@ -357,7 +370,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                        tipo_variable = dplyr::if_else(condition = grepl(pattern = "^INT[0-9]+$|INT", x = variable),
                                                                       true = "plataforma",
                                                                       false = tipo_variable),
-                                       tipo_variable = dplyr::if_else(condition = variable %in% (diccionario_hermosillo_agosto |>
+                                       tipo_variable = dplyr::if_else(condition = variable %in% (encuesta$cuestionario$diccionario |>
                                                                                                    pull(llaves)),
                                                                       true = "cuestionario",
                                                                       false = tipo_variable))
@@ -479,13 +492,12 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               if(nrow(discrepancia)>0){
 
-                                warning(paste("La siguiente tabla muestra las respuestas en la base de campo que no están contempladas en el cuestionario de procesamiento", " (total: ", nrow(discrepancia), ").", sep = ""),
-                                        immediate. = T)
+                                print(glue::glue("La siguiente tabla muestra las respuestas en la base de campo que no están contempladas en el diccionario"))
                                 print(discrepancia |>
                                         rename(codigo_pregunta = llave,
                                                respuesta_campo = sin_respuestas),
                                       n = Inf)
-                                warning("Revise las respuestas entre la base de campo y el cuestionario de procesamiento y corrija.",
+                                print(glue::glue("Revise las respuestas entre la base de campo y el cuestionario de procesamiento y corrija. Estas discrepancias no deberían existir."),
                                         immediate. = T)
 
                               }
@@ -522,7 +534,7 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               if(nrow(bd_sinregistros) > 0) {
 
-                                warning(paste("La siguiente tabla muestra las respuestas que tienen cero registros en la base de respuestas de campo", " (total: ", nrow(bd_sinregistros), ").", sep = ""),
+                                warning(paste("La siguiente tabla muestra las respuestas que tienen cero registros en la base de respuestas", sep = ""),
                                         immediate. = T)
                                 print(bd_sinregistros, n = Inf)
 
