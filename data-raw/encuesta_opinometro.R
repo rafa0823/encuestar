@@ -59,13 +59,12 @@ encuesta_opinometro <- Encuesta$new(respuestas = NA,
                                       filter(!llaves %in% c("razon_calificacion_gobierno",
                                                             "otro_problema_principal",
                                                             "otro_problema_secundario",
-                                                            # "ine",
+                                                            "ine",
                                                             "otro_ocupacion",
                                                             "salario")) |>
                                       filter(!grepl(pattern = "medio", x = llaves)),
                                     shp = shp_hermosillo_agosto,
                                     sin_peso = T,
-                                    tipo_encuesta = "ine",
                                     mantener_falta_coordenadas = F, # mantener entrevistas sin coordenadas
                                     rake = T, ######### con postestratificacion
                                     patron = "\\(No leer\\)| \\(No leer\\)|\\(ROTAR\\)|\\(No leer)|:",
@@ -73,3 +72,5 @@ encuesta_opinometro <- Encuesta$new(respuestas = NA,
 )
 
 options(survey.lonely.psu = "remove")
+
+# encuesta_opinometro$auditoria$run_app()

@@ -12,8 +12,7 @@ Opinometro <- R6::R6Class(classname = "Opinometro",
                               self$construir_respuestas()
                               self$diccionario <- diccionario
                               self$verificar_variables()
-                              # self$terminar_conexion()
-
+                              self$terminar_conexion()
                             },
                             inicar_conexion = function(){
                               private$pool
@@ -22,7 +21,6 @@ Opinometro <- R6::R6Class(classname = "Opinometro",
                               self$variables_cuestionario <-
                                 determinarVariables_cuestinoarioOpinometro(pool = private$pool,
                                                                            id_cuestionario = self$id_cuestionarioOpinometro)
-
                             },
                             construir_respuestas = function(){
                               self$bd_respuestas_cuestionario <-
@@ -51,7 +49,6 @@ Opinometro <- R6::R6Class(classname = "Opinometro",
                                             colnames() |>
                                             as_tibble(),
                                           by = "value")
-
                               if(nrow(variables_sobrantes) != 0) {
                                 print(glue::glue("Las siguientes variables están en el opinometro pero no estan en el diccionario: "))
                                 print(variables_sobrantes |>
@@ -59,8 +56,6 @@ Opinometro <- R6::R6Class(classname = "Opinometro",
                               }
 
                               if(nrow(variables_faltantes) != 0) {
-
-
                                 print(glue::glue("Las siguientes variables están en el diccionario pero no existen en los registros del opinometro:"))
                                 print(variables_faltantes |>
                                         rename(variable = value))
