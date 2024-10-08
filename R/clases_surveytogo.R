@@ -2308,26 +2308,27 @@ Modelo <- R6::R6Class(classname = "Modelo",
                           pc <- survey::svyprcomp(survey::make.formula(variables),
                                                   design = self$diseno,
                                                   scale=TRUE, scores=TRUE)
-                          factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)
-                        },
-                        blackBox = function(vars, stimuli){
-
-                          if(is.null(self$diseno)) {
-
-                            diseno <- self$encuesta$muestra$diseno
-
-                          } else {
-
-                            diseno <- self$diseno
-
-                          }
-
-                          diseno$variables %>%
-                            as_tibble() |>
-                            analizar_blackbox_1d(vars, stimuli) %>%
-                            graficar_blackbox_1d()
-
-                        }
+                          factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)}
+                      #   ,
+                      #   blackBox = function(vars, stimuli){
+                      #
+                      #     if(is.null(self$diseno)) {
+                      #
+                      #       diseno <- self$encuesta$muestra$diseno
+                      #
+                      #     } else {
+                      #
+                      #       diseno <- self$diseno
+                      #
+                      #     }
+                      #
+                      #     diseno$variables %>%
+                      #       as_tibble() |>
+                      #       analizar_blackbox_1d(vars, stimuli) %>%
+                      #       graficar_blackbox_1d()
+                      #
+                      #   }
+                      # )
                       ))
 
 #' Title

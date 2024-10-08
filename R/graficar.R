@@ -795,32 +795,32 @@ graficar_mapaRegiones <- function(bd, variable, categorica = T){
   }
   return(g)
 }
-#' Title
-#'
-#' @param lst
-#'
-#' @return
-#'
-#' @examples
-graficar_blackbox_1d <- function(lst){
-  print(lst$stimuli)
-  print(lst$slf)
-
-  lst$individuals %>%# mutate(c1 =c1*-1) %>%
-    ggplot(aes(x = c1)) +
-    geom_density(color = "#871938") +
-    facet_wrap(~stimuli) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "gray") +
-    labs(subtitle = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))+
-    theme_minimal()+
-    theme(   # legend.position = "bottom",
-      panel.grid.minor = element_blank(),
-      panel.grid.major.x = element_blank(),
-      strip.text = element_text(color  = "#A0B12F"),
-      panel.grid.major.y = element_line(linetype = "dotted"),
-      # axis.text = element_blank(),
-      text = element_text(family = "Poppins", size=14))
-}
+# Title
+#
+# @param lst
+#
+# @return
+#
+# @examples
+# graficar_blackbox_1d <- function(lst){
+#   print(lst$stimuli)
+#   print(lst$slf)
+#
+#   lst$individuals %>%# mutate(c1 =c1*-1) %>%
+#     ggplot(aes(x = c1)) +
+#     geom_density(color = "#871938") +
+#     facet_wrap(~stimuli) +
+#     geom_vline(xintercept = 0, linetype = "dashed", color = "gray") +
+#     labs(subtitle = glue::glue("Explica el {scales::percent(lst$fits$percent/100)} de la varianza total"))+
+#     theme_minimal()+
+#     theme(   # legend.position = "bottom",
+#       panel.grid.minor = element_blank(),
+#       panel.grid.major.x = element_blank(),
+#       strip.text = element_text(color  = "#A0B12F"),
+#       panel.grid.major.y = element_line(linetype = "dotted"),
+#       # axis.text = element_blank(),
+#       text = element_text(family = "Poppins", size=14))
+# }
 
 #' Graficar metodología de MORENA con un geom_tile
 #'
