@@ -48,6 +48,7 @@ Crear respuesta
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$new(
   base,
+  catalogo = NULL,
   encuesta,
   muestra_completa,
   mantener_falta_coordenadas,
@@ -70,7 +71,7 @@ Crear respuesta
 \if{latex}{\out{\hypertarget{method-Respuestas-nombres}{}}}
 \subsection{Method \code{nombres()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Respuestas$nombres(bd, diccionario)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$nombres(catalogo_variables, bd, diccionario)}\if{html}{\out{</div>}}
 }
 
 }

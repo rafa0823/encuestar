@@ -33,7 +33,15 @@ Esta es la clase de Tendencias
 \if{latex}{\out{\hypertarget{method-Tendencias-intencion_voto}{}}}
 \subsection{Method \code{intencion_voto()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Tendencias$intencion_voto(variable, valores_interes, colores, sin_peso = T)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Tendencias$intencion_voto(
+  variable,
+  valores_interes,
+  colores,
+  sin_peso = T,
+  linea_peso = F,
+  size_fech = 8,
+  size_text_legend = 12
+)}\if{html}{\out{</div>}}
 }
 
 }
@@ -46,7 +54,10 @@ Esta es la clase de Tendencias
   variables,
   colores,
   sin_peso = T,
-  valores_interes = "Sí"
+  valores_interes = "Sí",
+  linea_peso = F,
+  size_fech = 8,
+  size_text_legend = 12
 )}\if{html}{\out{</div>}}
 }
 
@@ -61,7 +72,10 @@ Esta es la clase de Tendencias
   valores_interes,
   colores,
   sin_peso = T,
-  variable_region = "region"
+  variable_region = "region",
+  linea_peso = F,
+  size_fech = 8,
+  size_text_legend = 12
 )}\if{html}{\out{</div>}}
 }
 
@@ -76,7 +90,10 @@ Esta es la clase de Tendencias
   colores,
   sin_peso = T,
   valores_interes = "Sí",
-  variable_region = "region"
+  variable_region = "region",
+  linea_peso = F,
+  size_fech = 8,
+  size_text_legend = 12
 )}\if{html}{\out{</div>}}
 }
 

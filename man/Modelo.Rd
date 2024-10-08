@@ -14,7 +14,6 @@ Esta es la clase de Modelo
 \item \href{#method-Modelo-new}{\code{Modelo$new()}}
 \item \href{#method-Modelo-correspondencia}{\code{Modelo$correspondencia()}}
 \item \href{#method-Modelo-componentesPrincipales}{\code{Modelo$componentesPrincipales()}}
-\item \href{#method-Modelo-blackBox}{\code{Modelo$blackBox()}}
 \item \href{#method-Modelo-clone}{\code{Modelo$clone()}}
 }
 }
@@ -54,15 +53,6 @@ Esta es la clase de Modelo
 \subsection{Method \code{componentesPrincipales()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Modelo$componentesPrincipales(variables)}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Modelo-blackBox"></a>}}
-\if{latex}{\out{\hypertarget{method-Modelo-blackBox}{}}}
-\subsection{Method \code{blackBox()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Modelo$blackBox(vars, stimuli)}\if{html}{\out{</div>}}
 }
 
 }

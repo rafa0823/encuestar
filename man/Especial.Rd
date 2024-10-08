@@ -131,7 +131,12 @@ Esta es la clase de Especial
   color_positivo = "green",
   color_negativo = "red",
   orden_cat = NULL,
-  caption_opinion
+  salto_cat = 25,
+  caption_opinion,
+  size_text_cat = 14,
+  size_text_legend = 10,
+  size_pct = 12,
+  size_caption_opinion = 10
 )}\if{html}{\out{</div>}}
 }
 
