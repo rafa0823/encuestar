@@ -8,15 +8,18 @@
 #'
 #' @examples
 determinarVariables_cuestinoarioOpinometro <- function(pool, id_cuestionario){
-    tbl(src = pool, "Registros") |>
-    filter(EncuestaId == id_cuestionario) |>
+  tbl(src = pool, "Encuesta") |>
+    filter(Id == id_cuestionario) |>
     collect() %>%
-    purrr::pmap_df(function(Id, fecha, Resultado, UsuarioNum, ...){
+    purrr::pmap_df(function(JsonData, Descripcion, ...){
       aux <-
-        Resultado |>
+        JsonData |>
         jsonlite::fromJSON() |>
-        as_tibble()}) |>
-    colnames()
+        as_tibble()|>
+        tidyr::unnest(pages)|>
+        as_tibble()|>
+        tidyr::unnest(elements, names_sep = '')}) |>
+    pull(elementsname)
 }
 #' Title
 #'
