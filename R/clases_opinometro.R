@@ -23,11 +23,19 @@ Opinometro <- R6::R6Class(classname = "Opinometro",
                                                                            id_cuestionario = self$id_cuestionarioOpinometro)
                             },
                             construir_respuestas = function(){
-                              self$bd_respuestas_cuestionario <-
+
+                              bd_respuestas_opinometro_raw <-
                                 consultar_respuestas(pool = private$pool,
                                                      codigos = self$variables_cuestionario,
-                                                     encuesta_id = self$id_cuestionarioOpinometro) |>
-                                rectificar_respuestasOpinometro(variables_cuestionario = self$variables_cuestionario)
+                                                     encuesta_id = self$id_cuestionarioOpinometro)
+
+                              self$bd_respuestas_cuestionario <-
+                                bd_respuestas_opinometro_raw |>
+                                rectificar_respuestasOpinometro(variables_cuestionario = self$variables_cuestionario) |>
+                                left_join(bd_respuestas_opinometro_raw |>
+                                            calcular_tasaRechazo_opinometro(),
+                                          by = "SbjNum")
+
                             },
                             verificar_variables = function(){
                               variables_sobrantes <-

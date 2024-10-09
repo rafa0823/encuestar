@@ -16,9 +16,11 @@ shp_hermosillo_agosto <-
 diseno_hermosillo_agosto <-
   readr::read_rds("./data-raw/diseno.rda")
 
-diccionario_sonora_agosto <-
+diccionario_sonora_opinometro <-
   readxl::read_xlsx(path = "./data-raw/diccionario_sonora_20240802.xlsx") |>
-  filter(!llaves %in% c("gps", "intentos"))
+  mutate(llaves = gsub(pattern = "prioridad_gobireno",
+                       replacement = "prioridad_gobierno",
+                       x = llaves))
 
 # Base de eliminadas --------------------------------------------------------------------------
 
@@ -31,28 +33,6 @@ eliminadas <-
 quitar <- c()
 
 mantener <- ""
-
-diccionario_sonora_opinometro <-
-  diccionario_sonora_agosto |>
-  mutate(llaves = gsub(pattern = "prioridad_gobireno",
-                       replacement = "prioridad_gobierno",
-                       x = llaves),
-         llaves = gsub(pattern = "01",
-                       replacement = "O1",
-                       x = llaves),
-         llaves = gsub(pattern = "02",
-                       replacement = "O2",
-                       x = llaves),
-         llaves = gsub(pattern = "03",
-                       replacement = "O3",
-                       x = llaves)) |>
-  filter(!llaves %in% c("razon_calificacion_gobierno",
-                        "otro_problema_principal",
-                        "otro_problema_secundario",
-                        "ine",
-                        "otro_ocupacion",
-                        "salario")) |>
-  filter(!grepl(pattern = "medio", x = llaves))
 
 # Clase -------------------------------------------------------------------
 

@@ -91,3 +91,24 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
               SECCION = as.character(cluster)) |>
     filter(Date <= corte)
 }
+#' Title
+#'
+#' @param bd_respuestasOpinometro
+#'
+#' @return
+#' @export
+#'
+#' @examples
+calcular_tasaRechazo_opinometro <- function(bd_respuestasOpinometro){
+  bd_respuestasOpinometro |>
+    transmute(SbjNum = id,
+              Srvyr = paste(nombre, a_paterno, a_materno, sep = " "),
+              intentos = stringr::str_trim(string = intentos, side = "both")) |>
+    mutate(intento_efectivo = dplyr::case_when(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil" ~ "efectivo",
+                                               .default = "no efectivo")) |>
+    mutate(flag = cumsum(intento_efectivo == "efectivo")) %>%
+    group_by(flag) %>%
+    mutate(intento_efectivo = n()) %>%
+    ungroup() %>%
+    select(SbjNum, intento_efectivo)
+}
