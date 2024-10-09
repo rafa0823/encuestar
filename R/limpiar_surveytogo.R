@@ -137,7 +137,10 @@ match_dicc_base <- function(self) {
                 as_tibble(),
               by = "value") |>
     rename(bd = value) |>
-    transmute(variable = bd)
+    transmute(variable = bd) |>
+    filter(!variable %in% (catalogo_variables |>
+             filter(plataforma == "encuestar") |>
+             pull(variable)))
 
 }
 

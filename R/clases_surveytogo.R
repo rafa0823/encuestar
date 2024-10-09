@@ -13,6 +13,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           opinometro_id = NULL,
                           quitar_vars = NULL,
                           cuestionario = NULL,
+                          bd_categorias = NULL,
                           muestra = NULL,
                           auditoria_telefonica=NA,
                           bd_correcciones = NULL,
@@ -36,6 +37,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           initialize = function(respuestas = NA,
                                                 n_simulaciones = NULL,
                                                 opinometro_id = NULL,
+                                                bd_categorias = NULL,
                                                 quitar_vars = NA,
                                                 muestra = NA,
                                                 auditoria_telefonica = NA,
@@ -64,6 +66,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$mantener_falta_coordenadas <- mantener_falta_coordenadas
                             self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
                             self$opinometro_id <- opinometro_id
+                            self$bd_categorias <- bd_categorias
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
                             nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
@@ -89,12 +92,46 @@ Encuesta <- R6::R6Class("Encuesta",
                                                     !!rlang::sym(nivel)))
                             self$mantener <- mantener
 
-                            # Respuestas
-                            if(!("data.frame" %in% class(respuestas)) & !is.null(n_simulaciones)){
-                              respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
-                                                                    n = self$n_simulaciones,
-                                                                    diseño = muestra,
-                                                                    shp = shp)
+                            catalogo_variables <-
+                              catalogo_variables |>
+                              bind_rows(self$cuestionario$diccionario |>
+                                          select(variable = llaves) |>
+                                          mutate(plataforma = "cuestionario",
+                                                 primer_nivel = "cuestionario",
+                                                 segundo_nivel = dplyr::if_else(condition = variable %in% c("cluster",
+                                                                                                            "edad",
+                                                                                                            "sexo"),
+                                                                                true = "sistema",
+                                                                                false = "cuestionario")))
+
+                            if("data.frame" %in% class(respuestas)) {
+
+                              intentos_efectivos <-
+                                respuestas |>
+                                select(SbjNum, num_range("INT", 1:20)) |>
+                                mutate(across(.cols = !SbjNum, .fns = ~ as.character(.x))) |>
+                                tidyr::pivot_longer(cols = !SbjNum, names_to = "variable", values_to = "rechazo") |>
+                                filter(grepl(pattern = 'Iniciar entrevista', x = rechazo)) |>
+                                mutate(intento_efectivo = gsub(pattern = "INT", replacement = "", x = variable)) |>
+                                select(SbjNum, intento_efectivo)
+
+                              geolocalizacion_efectiva <-
+                                purrr::pmap_df(.l = list(ids = intentos_efectivos %>% pull(SbjNum),
+                                                         intento_efectivo = intentos_efectivos %>% pull(intento_efectivo)),
+                                               .f = ~ obtener_ubicacionEfectiva_surveyToGo(bd_respuestas = respuestas,
+                                                                                           id = ..1,
+                                                                                           intento_efectivo = ..2))
+
+                              respuestas <-
+                                respuestas |>
+                                left_join(geolocalizacion_efectiva, by = "SbjNum") |>
+                                mutate(Latitude = GPS_INT_LA,
+                                       Longitude = GPS_INT_LO) |>
+                                transmute(across(all_of(catalogo_variables |>
+                                                          filter(plataforma %in% c("surveytogo", "encuestar", "cuestionario"),
+                                                                 segundo_nivel %in% c("sistema", "cuestionario")) |>
+                                                          pull(variable))))
+
                             }
 
                             if(!is.null(opinometro_id)) {
@@ -106,8 +143,25 @@ Encuesta <- R6::R6Class("Encuesta",
 
                             }
 
+                            if(!is.null(bd_categorias)) {
+
+                              respuestas <-
+                                respuestas |>
+                                left_join(bd_categorias,
+                                          by = "SbjNum")
+
+                            }
+
+                            if(!("data.frame" %in% class(respuestas)) & !is.null(n_simulaciones)){
+                              respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
+                                                                    n = self$n_simulaciones,
+                                                                    diseño = muestra,
+                                                                    shp = shp)
+                            }
+
                             self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
                                                               encuesta = self,
+                                                              catalogo = catalogo_variables,
                                                               mantener_falta_coordenadas = self$mantener_falta_coordenadas,
                                                               muestra_completa = muestra,
                                                               patron = patron,
@@ -317,63 +371,7 @@ Respuestas <- R6::R6Class("Respuestas",
                               muestra <- muestra_completa$muestra %>% purrr::pluck(var_n)
 
                               self$base <- base
-                              self$catalogo <-
-                                tibble::tibble(variable = c("SbjNum",
-                                                            "Date",
-                                                            "Srvyr",
-                                                            "VStart",
-                                                            "VEnd",
-                                                            "Duration",
-                                                            "Latitude",
-                                                            "Longitude",
-                                                            paste0("GPS_INT", "_LA"),
-                                                            paste0("GPS_INT", "_LO"),
-                                                            paste0("GPS_INT", "_ALT"),
-                                                            paste0("GPS_INT", "_BEAR"),
-                                                            paste0("GPS_INT", "_SPEED"),
-                                                            paste0("GPS_INT", "_DATE"),
-                                                            "INT",
-                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_LA"),
-                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_LO"),
-                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_ALT"),
-                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_BEAR"),
-                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_SPEED"),
-                                                            paste0("GPS_INT", seq.int(from = 1, 20), "_DATE"),
-                                                            paste0("INT", seq.int(from = 1, 20)),
-                                                            "SECCION",
-                                                            "cluster_0",
-                                                            "cluster_2",
-                                                            "strata_1",
-                                                            "region",
-                                                            "total",
-                                                            "fpc_0",
-                                                            "fpc_2",
-                                                            "distancia",
-                                                            encuesta$cuestionario$diccionario$llaves)) |>
-                                mutate(tipo_variable = dplyr::if_else(condition = variable %in% c("SbjNum",
-                                                                                                  "Date",
-                                                                                                  "Srvyr",
-                                                                                                  "VStart",
-                                                                                                  "VEnd",
-                                                                                                  "Duration",
-                                                                                                  "Latitude",
-                                                                                                  "Longitude"),
-                                                                      true = "sistema",
-                                                                      false = NA_character_),
-                                       tipo_variable = dplyr::if_else(condition = variable %in% c("municipio",
-                                                                                                  "cluster"),
-                                                                      true = "cuestionario",
-                                                                      false = tipo_variable),
-                                       tipo_variable = dplyr::if_else(condition = grepl(pattern = "GPS_", x = variable),
-                                                                      true = "plataforma",
-                                                                      false = tipo_variable),
-                                       tipo_variable = dplyr::if_else(condition = grepl(pattern = "^INT[0-9]+$|INT", x = variable),
-                                                                      true = "plataforma",
-                                                                      false = tipo_variable),
-                                       tipo_variable = dplyr::if_else(condition = variable %in% (encuesta$cuestionario$diccionario |>
-                                                                                                   pull(llaves)),
-                                                                      true = "cuestionario",
-                                                                      false = tipo_variable))
+                              self$catalogo <- catalogo
 
                               # Parar si faltan variables de sistema o del cuestionario
                               self$nombres(catalogo_variables = self$catalogo, self$base, diccionario)
@@ -396,6 +394,8 @@ Respuestas <- R6::R6Class("Respuestas",
                                 self$base <- self$corregir_respuestas(respuestas = self$base, bd_correcciones_raw = bd_correcciones)
 
                               }
+
+                              self$crear_variablesSecundarias(diccionario = diccionario)
 
                               # Mantener respuestas que no tienen coordenadas
                               if(mantener_falta_coordenadas){
@@ -443,7 +443,8 @@ Respuestas <- R6::R6Class("Respuestas",
 
                               faltantes <-
                                 catalogo_variables |>
-                                filter(tipo_variable %in% c("sistema", "cuestionario")) |>
+                                filter(segundo_nivel %in% c("sistema", "cuestionario")) |>
+                                filter(!variable %in% c("id", "fecha_inicio", "ubicacion_aplicada")) |>
                                 anti_join(tibble(variable = names(bd)),
                                           by = 'variable')
 
@@ -458,7 +459,9 @@ Respuestas <- R6::R6Class("Respuestas",
                               if(!is.na(patron)){
                                 aux <- bd %>%
                                   mutate(across(c(all_of(dicc$llaves),where(is.character)),
-                                                ~stringr::str_squish(gsub(x = .x,pattern = patron, ""))))
+                                                ~stringr::str_squish(gsub(x = .x,
+                                                                          pattern = patron,
+                                                                          ""))))
                                 self$base <- aux
                               }
                             },
@@ -498,7 +501,7 @@ Respuestas <- R6::R6Class("Respuestas",
                                                respuesta_campo = sin_respuestas),
                                       n = Inf)
                                 print(glue::glue("Revise las respuestas entre la base de campo y el cuestionario de procesamiento y corrija. Estas discrepancias no deberían existir."),
-                                        immediate. = T)
+                                      immediate. = T)
 
                               }
 
@@ -590,6 +593,75 @@ Respuestas <- R6::R6Class("Respuestas",
                                 select(!all_of(names(bd_correcciones)[-1]))
 
                               return(respuestas)
+
+                            },
+
+                            crear_variablesSecundarias = function(diccionario){
+                              self$base <-
+                                self$base |>
+                                dplyr::mutate(generacion = case_when(edad >= 18 & edad <= 25 ~ "Generación Z (18 a 25 años)",
+                                                                     edad >= 26 & edad <= 40 ~ "Millenials (26 a 40 años)",
+                                                                     edad >= 41 & edad <= 55 ~ "Generación X (41 a 55 años)",
+                                                                     edad >= 56  ~ "Baby Boomers (56 años o más)"),
+                                              generacion = factor(generacion, levels = c("Generación Z (18 a 25 años)",
+                                                                                         "Millenials (26 a 40 años)",
+                                                                                         "Generación X (41 a 55 años)",
+                                                                                         "Baby Boomers (56 años o más)"))) |>
+                                dplyr::mutate(amai_jefegrado = case_when(jefe_grado %in% c("No estudió", "No contesta") ~ 0,
+                                                                         jefe_grado == "Primaria incompleta" ~ 6,
+                                                                         jefe_grado == "Primaria completa" ~ 11,
+                                                                         jefe_grado == "Secundaria incompleta" ~ 12,
+                                                                         jefe_grado == "Secundaria completa" ~ 18,
+                                                                         jefe_grado == "Preparatoria incompleta" ~ 23,
+                                                                         jefe_grado == "Preparatoria completa" ~ 27,
+                                                                         jefe_grado == "Licenciatura incompleta" ~ 36,
+                                                                         jefe_grado == "Licenciatura completa" ~ 59,
+                                                                         jefe_grado == "Diplomado o maestría" ~ 85,
+                                                                         jefe_grado == "Diplomado o maestría" ~ 85,
+                                                                         jefe_grado == "Doctorado" ~ 85, .default = NA),
+                                              #+ Se crean las variables para definir nivel socieconómico segun el estandar AMAI 2022
+                                              #+ Revisar: https://amai.org/descargas/Nota_Metodologico_NSE_2022_v5.pdf
+                                              amai_cantidadwc = case_when(cantidad_wc == "0" ~ 0,
+                                                                          cantidad_wc == "1" ~ 24,
+                                                                          cantidad_wc == "2 o más" ~ 47,
+                                                                          .default = NA),
+                                              amai_cantidadautos = case_when(cantidad_autos == "0" ~ 0,
+                                                                             cantidad_autos == "1" ~ 22,
+                                                                             cantidad_autos == "2 o más" ~ 43,
+                                                                             .default = NA),
+                                              amai_internet=case_when(internet == "No tiene" ~ 0,
+                                                                      internet == "Sí tiene" ~ 32,
+                                                                      .default = NA),
+                                              amai_trabajo=case_when(trabajo == "0" ~ 0,
+                                                                     trabajo == "1" ~ 15,
+                                                                     trabajo == "2" ~ 31,
+                                                                     trabajo == "3" ~ 46,
+                                                                     trabajo == "4 o más" ~ 61,
+                                                                     .default = NA),
+                                              amai_cantidadcuartos = case_when(cantidad_cuartos == "0" ~ 0,
+                                                                               cantidad_cuartos == "1" ~ 8,
+                                                                               cantidad_cuartos == "2" ~ 16,
+                                                                               cantidad_cuartos == "3" ~ 24,
+                                                                               cantidad_cuartos == "4 o más" ~ 32,
+                                                                               .default = NA)) %>%
+                                dplyr::mutate(suma_amai = rowSums(select(., contains("amai_")), na.rm = TRUE),
+                                              nivel_socioec = case_when(
+                                                (suma_amai >= 0 & suma_amai <= 47) ~ "E",
+                                                (suma_amai >= 48 & suma_amai <= 94) ~ "D",
+                                                (suma_amai >= 95 & suma_amai <= 115) ~ "D_mas",
+                                                (suma_amai >= 116 & suma_amai <= 140) ~ "C_menos",
+                                                (suma_amai >= 141 & suma_amai <= 167) ~ "C",
+                                                (suma_amai >= 168 & suma_amai <= 201) ~ "C_mas",
+                                                suma_amai >= 202 ~ "A_B",
+                                                .default = NA),
+                                              nivel_socioec = factor(x = nivel_socioec,
+                                                                     levels = c("E",
+                                                                                "D",
+                                                                                "D_mas",
+                                                                                "C_menos",
+                                                                                "C",
+                                                                                "C_mas",
+                                                                                "A_B")))
 
                             },
 
@@ -894,7 +966,7 @@ Muestra <- R6::R6Class("Muestra",
                          comparar_calibraciones = function(variables, valor_variables, vartype){
                            list(original = self$diseno) |>
                              append(self$calibraciones |> purrr::map(~.x$diseno)) |>
-                             encuestar:::comparar_disenos(variables, valor_variables, vartype)
+                             comparar_disenos(variables, valor_variables, vartype)
                          },
                          elegir_calibracion = function(nombre){
 
@@ -918,7 +990,7 @@ Cuestionario <- R6::R6Class("Cuestionario",
                               diccionario = NULL,
                               initialize = function(documento, patron){
                                 if("data.frame" %in% class(documento)){
-                                  llaves_repetidas = encuestar:::comprobar_unicidadLlaves(diccionario = documento)
+                                  llaves_repetidas = comprobar_unicidadLlaves(diccionario = documento)
                                   if(0 < llaves_repetidas) {
                                     stop(glue::glue("Hay ", llaves_repetidas, " llaves repetidas en el diccionario"))
                                   }
@@ -953,7 +1025,7 @@ Cuestionario <- R6::R6Class("Cuestionario",
                             ,
                             private = list(
                               crear_diccionario = function(patron){
-                                diccionario <- encuestar:::diccionario_cuestionario(self$documento, patron)
+                                diccionario <- diccionario_cuestionario(self$documento, patron)
                                 return(diccionario)
                               })
 )

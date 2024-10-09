@@ -87,7 +87,7 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
               Latitude,
               Longitude,
               across(all_of(variables_cuestionario)),
-              SECCION = as.character(cluster),
-              corte = update(Sys.time(), minute = floor(lubridate::minute(Sys.time())/15)*15, second = 0, tz = "America/Mexico_City")) |>
+              corte = update(Sys.time(), minute = floor(lubridate::minute(Sys.time())/15)*15, second = 0, tz = "America/Mexico_City"),
+              SECCION = as.character(cluster)) |>
     filter(Date <= corte)
 }

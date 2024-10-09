@@ -7,7 +7,6 @@
 
 library(dplyr)
 library(encuestar)
-# devtools::load_all()
 
 # Insumos -------------------------------------------------------------------------------------
 
@@ -33,6 +32,28 @@ quitar <- c()
 
 mantener <- ""
 
+diccionario_sonora_opinometro <-
+  diccionario_sonora_agosto |>
+  mutate(llaves = gsub(pattern = "prioridad_gobireno",
+                       replacement = "prioridad_gobierno",
+                       x = llaves),
+         llaves = gsub(pattern = "01",
+                       replacement = "O1",
+                       x = llaves),
+         llaves = gsub(pattern = "02",
+                       replacement = "O2",
+                       x = llaves),
+         llaves = gsub(pattern = "03",
+                       replacement = "O3",
+                       x = llaves)) |>
+  filter(!llaves %in% c("razon_calificacion_gobierno",
+                        "otro_problema_principal",
+                        "otro_problema_secundario",
+                        "ine",
+                        "otro_ocupacion",
+                        "salario")) |>
+  filter(!grepl(pattern = "medio", x = llaves))
+
 # Clase -------------------------------------------------------------------
 
 encuesta_opinometro <- Encuesta$new(respuestas = NA,
@@ -43,26 +64,7 @@ encuesta_opinometro <- Encuesta$new(respuestas = NA,
                                     bd_correcciones = NULL,
                                     muestra = diseno_hermosillo_agosto,
                                     auditoria_telefonica = eliminadas,
-                                    cuestionario = diccionario_sonora_agosto |>
-                                      mutate(llaves = gsub(pattern = "prioridad_gobireno",
-                                                           replacement = "prioridad_gobierno",
-                                                           x = llaves),
-                                             llaves = gsub(pattern = "01",
-                                                           replacement = "O1",
-                                                           x = llaves),
-                                             llaves = gsub(pattern = "02",
-                                                           replacement = "O2",
-                                                           x = llaves),
-                                             llaves = gsub(pattern = "03",
-                                                           replacement = "O3",
-                                                           x = llaves)) |>
-                                      filter(!llaves %in% c("razon_calificacion_gobierno",
-                                                            "otro_problema_principal",
-                                                            "otro_problema_secundario",
-                                                            "ine",
-                                                            "otro_ocupacion",
-                                                            "salario")) |>
-                                      filter(!grepl(pattern = "medio", x = llaves)),
+                                    cuestionario = diccionario_sonora_opinometro,
                                     shp = shp_hermosillo_agosto,
                                     sin_peso = T,
                                     mantener_falta_coordenadas = F, # mantener entrevistas sin coordenadas
