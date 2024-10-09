@@ -68,8 +68,7 @@ consultar_respuestas <- function(pool, codigos, encuesta_id){
 #' @examples
 rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_cuestionario){
   bd_respuestasOpinometro |>
-    mutate(intentos = stringr::str_trim(string = intentos,
-                                        side = "both")) |>
+    mutate(intentos = stringr::str_trim(string = intentos, side = "both")) |>
     filter(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil") |>
     filter(ubicacion_aplicada != "No aplica") |>
     mutate(ubicacion_aplicada = dplyr::if_else(condition = ubicacion_aplicada == ",",
@@ -80,7 +79,7 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
                     sep = ",",
                     remove = TRUE) |>
     transmute(SbjNum = id,
-              Date = lubridate::as_datetime(fecha_inicio),
+              Date = lubridate::as_datetime(fecha_inicio, tz = "America/Mexico_City"),
               Srvyr = paste(nombre, a_paterno, a_materno, sep = " "),
               VStart = lubridate::as_datetime(fecha_inicio),
               VEnd = lubridate::as_datetime(fecha_fin),
@@ -88,5 +87,7 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
               Latitude,
               Longitude,
               across(all_of(variables_cuestionario)),
-              SECCION = as.character(cluster))
+              corte = update(Sys.time(), minute = floor(lubridate::minute(Sys.time())/15)*15, second = 0, tz = "America/Mexico_City"),
+              SECCION = as.character(cluster)) |>
+    filter(Date <= corte)
 }
