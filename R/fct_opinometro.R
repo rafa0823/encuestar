@@ -4,7 +4,6 @@
 #' @param id_cuestionario
 #'
 #' @return
-#' @export
 #'
 #' @examples
 determinarVariables_cuestinoarioOpinometro <- function(pool, id_cuestionario){
@@ -66,7 +65,6 @@ consultar_respuestas <- function(pool, codigos, encuesta_id){
 #' @param variables_cuestionario
 #'
 #' @return
-#' @export
 #'
 #' @examples
 rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_cuestionario){
@@ -99,7 +97,6 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
 #' @param bd_respuestasOpinometro
 #'
 #' @return
-#' @export
 #'
 #' @examples
 calcular_tasaRechazo_opinometro <- function(bd_respuestasOpinometro){
