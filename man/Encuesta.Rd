@@ -44,6 +44,7 @@ Create a person
   respuestas = NA,
   n_simulaciones = NULL,
   opinometro_id = NULL,
+  bd_categorias = NULL,
   quitar_vars = NA,
   muestra = NA,
   auditoria_telefonica = NA,

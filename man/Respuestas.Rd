@@ -21,6 +21,7 @@ Esta es la clase Respuestas
 \item \href{#method-Respuestas-respuestas_sin_seleccion}{\code{Respuestas$respuestas_sin_seleccion()}}
 \item \href{#method-Respuestas-eliminar_auditoria_telefonica}{\code{Respuestas$eliminar_auditoria_telefonica()}}
 \item \href{#method-Respuestas-corregir_respuestas}{\code{Respuestas$corregir_respuestas()}}
+\item \href{#method-Respuestas-crear_variablesSecundarias}{\code{Respuestas$crear_variablesSecundarias()}}
 \item \href{#method-Respuestas-coordenadas_faltantes}{\code{Respuestas$coordenadas_faltantes()}}
 \item \href{#method-Respuestas-eliminar_falta_coordenadas}{\code{Respuestas$eliminar_falta_coordenadas()}}
 \item \href{#method-Respuestas-correccion_cluster}{\code{Respuestas$correccion_cluster()}}
@@ -117,6 +118,15 @@ Crear respuesta
 \subsection{Method \code{corregir_respuestas()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Respuestas$corregir_respuestas(respuestas, bd_correcciones_raw)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Respuestas-crear_variablesSecundarias"></a>}}
+\if{latex}{\out{\hypertarget{method-Respuestas-crear_variablesSecundarias}{}}}
+\subsection{Method \code{crear_variablesSecundarias()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Respuestas$crear_variablesSecundarias(diccionario)}\if{html}{\out{</div>}}
 }
 
 }
