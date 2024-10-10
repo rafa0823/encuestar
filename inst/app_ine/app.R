@@ -442,14 +442,30 @@ ui <- bslib::page_navbar(
           bslib::accordion_panel(
             title = "Progreso",
             value = "Progreso",
-            progressBar(
-              id = "enc_hechas",
-              value = nrow(bd),
-              display_pct = T,
-              striped = T,
-              total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
-              status = "success"),
-            shinycssloaders::withSpinner(highchartOutput(outputId = "avance_region"))
+            bslib::card_body(
+              max_height = 600,
+              bslib::layout_column_wrap(
+                width = 1/2,
+                flexdashboard::gauge(
+                  value = round((encuestar:::calcular_tasa_rechazo(bd_respuestas_efectivas = preguntas$encuesta$muestra$diseno$variables) |>
+                                   pull(rechazo))*100, digits = 0),
+                  symbol = "%",
+                  min = 0,
+                  max = 100,
+                  sectors =  flexdashboard::gaugeSectors(success = c(0, 32),
+                                                         warning = c(33, 65),
+                                                         danger = c(66, 99)),
+                  label = "Rechazo"),
+                shinyWidgets::progressBar(
+                  id = "enc_hechas",
+                  value = nrow(bd),
+                  display_pct = T,
+                  striped = T,
+                  total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
+                  status = "success")
+              ),
+              shinycssloaders::withSpinner(highchartOutput(outputId = "avance_region"))
+            )
           ),
           bslib::accordion_panel(
             title = "Histórico de entrevistas",
