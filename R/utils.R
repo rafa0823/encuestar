@@ -44,3 +44,27 @@ formato_archivo = function(nombre, extension, tolerancia = 10) {
          "h.",
          extension)
 }
+#' Calcular el porcentaje de intentos rechazados de inciar una encuesta
+#'
+#' @param bd_respuestas_efectivas [tibble::tibble()] que contiene las respuesyas efectivas
+#' @param usuario_plataforma Logical. Para determinar si el calculo se hace por usuario de plataforma o por
+#'  total de respuestas
+#'
+#' @return [tibble::tibble()] con variable rechazo en escala de porcentaje natural
+#'
+#' @examples
+calcular_tasa_rechazo <- function(bd_respuestas_efectivas, por_usuario = FALSE){
+  bd_respuestas_efectivas %>%
+    {
+      if(!por_usuario) {
+        summarise(.data = .,
+                  rechazo = (sum(as.integer(intento_efectivo)) - n())/sum(as.integer(intento_efectivo)))
+      }
+      else {
+        group_by(.data = .,
+                 Srvyr) %>%
+          summarise(rechazo = (sum(as.integer(intento_efectivo)) - n())/sum(as.integer(intento_efectivo))) |>
+          arrange(desc(rechazo))
+      }
+    }
+}

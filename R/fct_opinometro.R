@@ -99,7 +99,7 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
 #' @return
 #'
 #' @examples
-calcular_tasaRechazo_opinometro <- function(bd_respuestasOpinometro){
+calcular_intentosEfectivos_opinometro <- function(bd_respuestasOpinometro){
   bd_respuestasOpinometro |>
     transmute(SbjNum = id,
               Srvyr = paste(nombre, a_paterno, a_materno, sep = " "),

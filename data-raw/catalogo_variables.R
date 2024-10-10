@@ -31,11 +31,11 @@ variables_encuestar <-
                       "region")) |>
   mutate(plataforma = "encuestar",
          primer_nivel = "plataforma",
-         segundo_nivel = dplyr::if_else(condition = grepl(pattern = "INT|intento_efectivo",
+         segundo_nivel = dplyr::if_else(condition = grepl(pattern = "INT",
                                                           x = variable),
                                         true = "plataforma",
                                         false = "auxiliar"),
-         segundo_nivel = dplyr::if_else(condition = variable == "SECCION",
+         segundo_nivel = dplyr::if_else(condition = variable %in% c("SECCION", "intento_efectivo"),
                                         true = "sistema",
                                         false = segundo_nivel))
 
