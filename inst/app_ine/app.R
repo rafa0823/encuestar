@@ -570,6 +570,14 @@ ui <- bslib::page_navbar(
             value = "Entrevistas del encuestador",
             leafletOutput(outputId = "mapa_auditoria")),
           bslib::accordion_panel(
+            title = "Tasa de rechazo",
+            value = "rechazo_individual",
+            bslib::card_body(
+              shinycssloaders::withSpinner(highchartOutput(outputId = "tasa_rechazo_ind")),
+              shinycssloaders::withSpinner(plotOutput("rechazo_distribucion_ind"))
+              )
+            ),
+          bslib::accordion_panel(
             title = "Puntaje del encuestador",
             value = "Puntaje del encuestador",
             bslib::value_box(
@@ -589,7 +597,8 @@ ui <- bslib::page_navbar(
               value = textOutput(outputId = "efectivas_individual"),
               bsicons::bs_icon(name = "check-square-fill"),
               showcase_layout = "top right",
-              theme = value_box_theme(bg = "green")))),
+              theme = value_box_theme(bg = "green")))
+          ),
         icon = icon("person"))),
     icon = icon("users")
   )#,
@@ -1583,6 +1592,8 @@ server <- function(input, output, session) {
 
   ## Estadísticas individuales ----------------------------------------------
 
+  ### Mapa --------------------------------------------------------------------------------------
+
   output$mapa_auditoria <- renderLeaflet({
 
     req(input$encuestador != "Seleccionar")
@@ -1659,6 +1670,83 @@ server <- function(input, output, session) {
   })
 
   proxy <- leafletProxy("mapa_auditoria")
+
+  ### Rechazo -----------------------------------------------------------------------------------
+
+  output$tasa_rechazo_ind <- renderHighchart({
+
+    req(input$encuestador != "Seleccionar")
+
+    col_stops <-
+      data.frame(
+        q = c(0.15, 0.4, .8),
+        c = c('#55BF3B', '#DDDF0D', '#DF5353'),
+        stringsAsFactors = FALSE
+      )
+
+    highchart() %>%
+      hc_chart(type = "solidgauge") %>%
+      hc_pane(
+        startAngle = -90,
+        endAngle = 90,
+        background = list(
+          outerRadius = '100%',
+          innerRadius = '60%',
+          shape = "arc")) %>%
+      hc_tooltip(enabled = FALSE) %>%
+      hc_yAxis(
+        stops = list_parse2(col_stops),
+        lineWidth = 0,
+        minorTickWidth = 0,
+        tickAmount = 2,
+        min = 0,
+        max = 100,
+        labels = list(y = 26,
+                      style = list(fontSize = "22px"),
+                      formatter = JS("function() { return this.value + '%'; }")
+        )
+      ) %>%
+      hc_add_series(
+        data = round(encuestar:::calcular_tasa_rechazo(
+          preguntas$encuesta$muestra$diseno$variables,
+          por_usuario = TRUE) |>
+            filter(Srvyr == input$encuestador) |>
+            pull()*100, digits = 0),
+        dataLabels = list(
+          y = -50,
+          borderWidth = 0,
+          useHTML = TRUE,
+          format = '{y}%',  # Aquí se agrega el símbolo de porcentaje
+          style = list(fontSize = "40px")
+        )
+      )
+  })
+
+  output$rechazo_distribucion_ind <- renderPlot({
+
+    req(input$encuestador != "Seleccionar")
+
+    preguntas$encuesta$muestra$diseno$variables |>
+      filter(Srvyr == input$encuestador) |>
+      select(SbjNum, intento_efectivo) |>
+      mutate(intento_efectivo = as.integer(intento_efectivo)) |>
+      count(intento_efectivo) |>
+      ggplot(aes(x = intento_efectivo,
+                 y = n,
+                 fill = color_general)) +
+      geom_col() +
+      geom_text(aes(label = n), size = 10, nudge_y = 20) +
+      tema_morant() +
+      scale_x_continuous(breaks = seq.int(from = 0,
+                                          to = 15,
+                                          by = 1)) +
+      labs(x = "Intentos de levantar la encuesta",
+           y = "Encuestas efectivas") +
+      theme(axis.title.x = element_text(),
+            axis.title.y = element_text())
+  })
+
+  ### Puntaje del encuestador -------------------------------------------------------------------
 
   output$eliminadas_individual <- renderText({
 
