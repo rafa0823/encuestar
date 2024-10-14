@@ -32,6 +32,6 @@ Calcular media movil de una variable agrupado por region
 de un diseno muestral construido con la paqueteria \code{survey}
 }
 \examples{
-encuestar:::calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = TRUE)
-encuestar:::calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = FALSE)
+calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = TRUE)
+calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = FALSE)
 }

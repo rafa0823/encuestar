@@ -10,6 +10,16 @@ library(encuestar)
 
 # Insumos -------------------------------------------------------------------------------------
 
+pool = pool::dbPool(
+    drv = odbc::odbc(),
+    Driver= 'ODBC Driver 17 for SQL Server',
+    Database = "SVNET",
+    Server = "tcp:morant.database.windows.net",
+    UID = "emorones",
+    PWD = "Mor@nt2024",
+    Port = 1433,
+    timeout = 120)
+
 shp_hermosillo_agosto <-
   readr::read_rds("./data-raw/shp.rda")
 
@@ -39,6 +49,7 @@ mantener <- ""
 encuesta_opinometro <- Encuesta$new(respuestas = NA,
                                     # n_simulaciones = 200,
                                     opinometro_id = 167,
+                                    pool = pool,
                                     quitar_vars = quitar,
                                     mantener = mantener,
                                     bd_correcciones = NULL,

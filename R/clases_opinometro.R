@@ -1,12 +1,15 @@
 Opinometro <- R6::R6Class(classname = "Opinometro",
                           public = list(
                             id_cuestionarioOpinometro = NULL,
+                            pool = NULL,
                             variables_cuestionario = NULL,
                             bd_respuestas_cuestionario = NULL,
                             diccionario = NULL,
                             initialize = function(id_cuestionarioOpinometro = NA,
+                                                  pool = NA,
                                                   diccionario = NA) {
-                              self$inicar_conexion()
+                              # self$inicar_conexion()
+                              self$pool <- pool
                               self$id_cuestionarioOpinometro <- id_cuestionarioOpinometro
                               self$definir_variables()
                               self$construir_respuestas()
@@ -14,18 +17,18 @@ Opinometro <- R6::R6Class(classname = "Opinometro",
                               self$verificar_variables()
                               self$terminar_conexion()
                             },
-                            inicar_conexion = function(){
-                              private$pool
-                            },
+                            # inicar_conexion = function(){
+                            #   private$pool
+                            # },
                             definir_variables = function(){
                               self$variables_cuestionario <-
-                                determinarVariables_cuestinoarioOpinometro(pool = private$pool,
+                                determinarVariables_cuestinoarioOpinometro(pool = self$pool,
                                                                            id_cuestionario = self$id_cuestionarioOpinometro)
                             },
                             construir_respuestas = function(){
 
                               bd_respuestas_opinometro_raw <-
-                                consultar_respuestas(pool = private$pool,
+                                consultar_respuestas(pool = self$pool,
                                                      codigos = self$variables_cuestionario,
                                                      encuesta_id = self$id_cuestionarioOpinometro)
 
@@ -84,17 +87,6 @@ Opinometro <- R6::R6Class(classname = "Opinometro",
                             terminar_conexion = function(){
                               pool::poolClose(pool = private$pool)
                             }
-                          ),
-                          private = list(
-                            pool = pool::dbPool(
-                              drv = odbc::odbc(),
-                              Driver= 'ODBC Driver 17 for SQL Server',
-                              Database = "SVNET",
-                              Server = "tcp:morant.database.windows.net",
-                              UID = "emorones",
-                              PWD = "Mor@nt2024",
-                              Port = 1433,
-                              timeout = 120)
                           )
 )
 

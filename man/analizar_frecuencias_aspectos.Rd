@@ -24,6 +24,6 @@ Calcula la media de multiples variables cuyos nombres comparten un patron inicia
 de un diseno muestral construido con la paqueteria \code{survey}
 }
 \examples{
-encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("astiazaran", "delrio"))
-encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("lia", "javier"))
+analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("astiazaran", "delrio"))
+analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("lia", "javier"))
 }

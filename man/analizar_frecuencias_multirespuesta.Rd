@@ -20,5 +20,5 @@ Analizar frecuencias a multiples variables asociadas a una misma pregunta con op
 de un diseno muestral construido con la paqueteria \code{survey}
 }
 \examples{
-encuestar:::analizar_frecuencia_multirespuesta(diseno = encuesta_demo$muestra$diseno, patron_inicial = "medios_com_O")
+analizar_frecuencia_multirespuesta(diseno = encuesta_demo$muestra$diseno, patron_inicial = "medios_com_O")
 }

@@ -685,9 +685,6 @@ graficar_lineas <- function(bd, orden_var_x, colores_var_y, salto_x = 25, salto_
 #' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
-#'
-#' @examples
-#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
 graficar_conocimientoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
   if(is.null(ordenRegiones)) {
     ordenRegiones <- bd |>
@@ -723,9 +720,6 @@ graficar_conocimientoRegion <- function(bd, ordenRegiones, salto_labelRegiones =
 #' @param salto_labelRegiones Parámetro 'width' usado por stringr::str_wrap en las etiquetas superiores
 #'
 #' @return
-#'
-#' @examples
-#' graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
 graficar_saldoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
 
   if(is.null(ordenRegiones)) {
@@ -760,9 +754,9 @@ graficar_saldoRegion <- function(bd, ordenRegiones, salto_labelRegiones = 5){
 }
 #' Graficar mapa por categorías
 #'
-#' @param bd Base de datos resultado de la función 'calcular_ganadorRegion
+#' @param bd Base de datos resultado de la función "calcular_ganadorRegion"
 #' @param variable Variable categórica a graficar
-#' @param categorica Si la variable es categórica, cambia la posición del 'legend.position'
+#' @param categorica Si la variable es categórica, cambia la posición del "legend.position"
 #'
 #' @return
 #'

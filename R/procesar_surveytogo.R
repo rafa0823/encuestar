@@ -5,8 +5,8 @@
 #' @param pregunta Nombre de la variable a calcular la estimación de proporciones de valores en la base de datos
 #' @return Tibble con la media de las estimaciones por valor unico de la variable seleccionada
 #' @examples
-#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "sexo")
-#' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "voto_pr_24")
+#' analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "sexo")
+#' analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "voto_pr_24")
 analizar_frecuencias <- function(diseno, pregunta){
   surveySummary_mean <- survey::svymean(survey::make.formula(pregunta),
                                         design = diseno,
@@ -45,8 +45,8 @@ analizar_frecuencias <- function(diseno, pregunta){
 #'  Separada de patron_pregunta por un guion bajo.
 #' @return Base de datos con las estimaciones de frecuencia para cada categoria respondida por cada aspecto distinto.
 #' @examples
-#' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("astiazaran", "delrio"))
-#' encuestar:::analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("lia", "javier"))
+#' analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("astiazaran", "delrio"))
+#' analizar_frecuencias_aspectos(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_pregunta = "conoce_pm", aspectos = c("lia", "javier"))
 analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, aspectos){
   estimaciones <-
     paste(patron_pregunta, aspectos, sep = "_") %>%
@@ -69,7 +69,7 @@ analizar_frecuencias_aspectos <- function(diseno, diccionario, patron_pregunta, 
 #' @param patron_inicial Cadena de texto en comun (inicial) entre los nombres de las variables asociadas a la pregunta
 #' @return [tibble()] con las estimaciones de frecuencia para cada valor unico entre las variables
 #' @examples
-#' encuestar:::analizar_frecuencia_multirespuesta(diseno = encuesta_demo$muestra$diseno, patron_inicial = "medios_com_O")
+#' analizar_frecuencia_multirespuesta(diseno = encuesta_demo$muestra$diseno, patron_inicial = "medios_com_O")
 analizar_frecuencias_multirespuesta <- function(diseno, patron_inicial){
   aux <- diseno$variables %>%
     tibble::rownames_to_column() %>%
@@ -98,7 +98,7 @@ analizar_frecuencias_multirespuesta <- function(diseno, patron_inicial){
 #' @param na_rm na_rm=FALSE Variable booleana que indica si se desea filtrar NAs (TRUE) o no (FALSE)
 #' @return [tibble()] con las estimaciones de frecuencia para cada valor unico entre las variables
 #' @examples
-#' encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno,  variable_principal = "sexo",  variable_secundaria = "voto_pr_24", vartype = "cv")
+#' analizar_cruce(diseno = encuesta_demo$muestra$diseno,  variable_principal = "sexo",  variable_secundaria = "voto_pr_24", vartype = "cv")
 analizar_cruce <- function(diseno, variable_principal, variable_secundaria, vartype,na_rm = FALSE){
   res <-
     srvyr::as_survey_design(diseno) %>%
@@ -126,7 +126,7 @@ analizar_cruce <- function(diseno, variable_principal, variable_secundaria, vart
 #' @param vartype Parametro de [srvyr::survey_mean()] que reporta la variabilidad de la estimacion
 #' @return [tibble()] con las estimaciones de frecuencia para cada valor unico entre las variables
 #' @examples
-#' encuestar:::analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = c("conoce_pm_lia", "conoce_pm_javier"), filtro_variables_secundarias = "Sí", vartype = "cv")
+#' analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = c("conoce_pm_lia", "conoce_pm_javier"), filtro_variables_secundarias = "Sí", vartype = "cv")
 analizar_cruce_aspectos <- function(diseno, variable_principal, variables_secundarias, filtro_variables_secundarias, vartype){
   variables_secundarias <- rlang::enquo(variables_secundarias)
   res <-
@@ -142,7 +142,7 @@ analizar_cruce_aspectos <- function(diseno, variable_principal, variables_secund
     tidyr::pivot_wider(names_from = separar, values_from = valor)
   return(res)
 }
-#' Calcular datos necesarios para la funcion [encuestar:::graficar_sankey()]
+#' Calcular datos necesarios para la funcion [graficar_sankey()]
 #' @param variables Vector tipo caracter que contiene los nombres de las variables de las cuales
 #'  se va a hacer el cruce
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
@@ -193,7 +193,7 @@ analizar_sankey <- function(diseno, variables, filtro_var1, filtro_var2){
 #' @param corte_otro Parámetro 'prop' de la función 'fct_lump' de la paquetería 'forcats' usado para agrupar valores pequeños de partidos políticos
 #' @return Lista de donde cada elemento es un [tibble()] asociado al conocimiento y asociacion partidista
 #' @examples
-#' encuestar:::analizar_candidatoPartido(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_partido = "partido_pm", llave_conocimiento = "conoce_pm", respuesta_conoce = "Sí", candidatos = c("lia", "javier"))
+#' analizar_candidatoPartido(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_partido = "partido_pm", llave_conocimiento = "conoce_pm", respuesta_conoce = "Sí", candidatos = c("lia", "javier"))
 analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro = 0.05){
 
   conoce <- paste(llave_conocimiento, candidatos, sep = "_")
@@ -228,7 +228,7 @@ analizar_candidatoPartido <- function(diseno, diccionario, llave_partido, llave_
 #' @param grupo_positivo Conjunto de valores de la variable opinión tratados como positivos.
 #' @param grupo_negativo Conjunto de valores de la variable opinión tratados como negativos
 #' @examples
-#' encuestar:::analizar_saldoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_opinion = "opinion_pm", candidatos = c("astiazaran", "delrio"), grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"))
+#' analizar_saldoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_opinion = "opinion_pm", candidatos = c("astiazaran", "delrio"), grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"))
 analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos, grupo_positivo, grupo_negativo){
 
   llave_op = paste(llave_opinion) # BUG
@@ -256,8 +256,8 @@ analizar_saldoOpinion <- function(diseno, diccionario, llave_opinion, candidatos
 #'
 #' @return [tibble()] con las variables: hora, variable_interes, movil_variable_nteres
 #' @examples
-#' encuestar:::calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = TRUE)
-#' encuestar:::calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = FALSE)
+#' calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = TRUE)
+#' calcular_mediaMovil(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", sin_peso = FALSE)
 calcular_mediaMovil <- function(bd_resultados, variable, valores_interes, sin_peso) {
     res <- bd_resultados %>%
     {
@@ -324,8 +324,8 @@ calcular_mediaMovil <- function(bd_resultados, variable, valores_interes, sin_pe
 #' @return [tibble()] con las variables: hora, variable_interes, movil_variable_nteres
 #'
 #' @examples
-#' encuestar:::calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = TRUE)
-#' encuestar:::calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = FALSE)
+#' calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = TRUE)
+#' calcular_mediaMovil_region(bd_resultados = encuesta_demo$Resultados$Tendencias$bd_resultados, variable = "voto_pr_24", valores_interes = "Claudia Sheinbaum por MORENA-PT-Partido Verde", variable_region = "region", sin_peso = FALSE)
 calcular_mediaMovil_region <- function(bd_resultados, variable, valores_interes, variable_region, sin_peso) {
   res <- bd_resultados %>%
     {
@@ -409,7 +409,7 @@ calcular_mediaMovil_region <- function(bd_resultados, variable, valores_interes,
 }
 #'  Calcular resultados de opinion por candidato en formato tabla
 #'
-#'  Produce y ordena los resultados necesarios para la funcion [encuestar:::formatear_tabla_candidatoOpinion()]
+#'  Produce y ordena los resultados necesarios para la funcion [formatear_tabla_candidatoOpinion()]
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
 #' @param diccionario Cuestionario de la encuesta en formato de procesamiento requerido
@@ -421,10 +421,10 @@ calcular_mediaMovil_region <- function(bd_resultados, variable, valores_interes,
 #' @param ns_nc Cadena de texto asociada a las respues en que No sabe o No contesta
 #' @param salto_respuestas Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos los encabezados de la tabla
 #'
-#' @return [tibble()] con las variables necesarias para la funcion [encuestar:::formatear_tabla_candidatoOpinion()]
+#' @return [tibble()] con las variables necesarias para la funcion [formatear_tabla_candidatoOpinion()]
 #'
 #' @examples
-#' encuestar:::calcular_tabla_candidatoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_opinion = "opinion_pm", patron_conocimiento = "conoce_pm", aspectos = c("astiazaran", "delrio"), filtro_conocimiento = "respuesta == 'Sí'", orden_opinion = c("Muy mala", "Mala", "Regular", "Buena", "Muy buena"), ns_nc =  "Ns/Nc", salto_respuestas = 60)
+#' calcular_tabla_candidatoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_opinion = "opinion_pm", patron_conocimiento = "conoce_pm", aspectos = c("astiazaran", "delrio"), filtro_conocimiento = "respuesta == 'Sí'", orden_opinion = c("Muy mala", "Mala", "Regular", "Buena", "Muy buena"), ns_nc =  "Ns/Nc", salto_respuestas = 60)
 calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion, patron_conocimiento, aspectos, filtro_conocimiento, orden_opinion, ns_nc, salto_respuestas) {
 
   bd_opinion <-
@@ -468,7 +468,7 @@ calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion,
 #'
 #' Calcular y ordena los resultados de un cruce entre una variable principal y una variable secundaria.
 #'  Muestra los valores indicados en el filtro de la segunda variable. Produce la base de datos
-#'  necesaria para la funcion [encuestar:::formatear_tabla_votoCruzado()]
+#'  necesaria para la funcion [formatear_tabla_votoCruzado()]
 #'
 #' @param diseno Diseno muestral que contiene los pesos por individuo y las variables relacionadas.
 #' @param var1 Variable principal para hacer el cruce
@@ -476,10 +476,10 @@ calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion,
 #' @param filtro_var2 Valores unicos de la variable secundaria que son de interes
 #' @param na_rm na_rm=TRUE Variable booleana que indica si se desea filtrar NAs (TRUE) o no (FALSE)
 #'
-#' @return [tibble()] con las variables necesarias para la funcion [encuestar:::formatear_tabla_votoCruzado()]
+#' @return [tibble()] con las variables necesarias para la funcion [formatear_tabla_votoCruzado()]
 #'
 #' @examples
-#' encuestar:::calcular_tabla_votoCruzado(diseno = encuesta_demo$muestra$diseno, var1 = "voto_pm_24", var2 = "voto_pr_24", filtro_var2 = c("Claudia Sheinbaum por MORENA-PT-Partido Verde", "Xóchitl Gálvez por PAN-PRI-PRD"))
+#' calcular_tabla_votoCruzado(diseno = encuesta_demo$muestra$diseno, var1 = "voto_pm_24", var2 = "voto_pr_24", filtro_var2 = c("Claudia Sheinbaum por MORENA-PT-Partido Verde", "Xóchitl Gálvez por PAN-PRI-PRD"))
 calcular_tabla_votoCruzado = function(diseno, var1, var2, filtro_var2,na_rm = TRUE){
 
   orden_var1 <-

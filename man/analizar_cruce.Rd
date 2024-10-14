@@ -32,5 +32,5 @@ Analizar cruce entre dos variables
 de un diseno muestral construido con la paqueteria \code{survey}
 }
 \examples{
-encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno,  variable_principal = "sexo",  variable_secundaria = "voto_pr_24", vartype = "cv")
+analizar_cruce(diseno = encuesta_demo$muestra$diseno,  variable_principal = "sexo",  variable_secundaria = "voto_pr_24", vartype = "cv")
 }

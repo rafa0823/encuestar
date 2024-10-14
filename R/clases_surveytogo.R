@@ -11,6 +11,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           respuestas = NULL,
                           n_simulaciones = NA,
                           opinometro_id = NULL,
+                          pool = NULL,
                           quitar_vars = NULL,
                           cuestionario = NULL,
                           bd_categorias = NULL,
@@ -37,6 +38,7 @@ Encuesta <- R6::R6Class("Encuesta",
                           initialize = function(respuestas = NA,
                                                 n_simulaciones = NULL,
                                                 opinometro_id = NULL,
+                                                pool = NULL,
                                                 bd_categorias = NULL,
                                                 quitar_vars = NA,
                                                 muestra = NA,
@@ -66,6 +68,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             self$mantener_falta_coordenadas <- mantener_falta_coordenadas
                             self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
                             self$opinometro_id <- opinometro_id
+                            self$pool <- pool
                             self$bd_categorias <- bd_categorias
                             # Valorar si no es mejor un active binding
                             un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
@@ -137,6 +140,7 @@ Encuesta <- R6::R6Class("Encuesta",
                             if(!is.null(opinometro_id)) {
 
                               opinometro <- Opinometro$new(id_cuestionarioOpinometro = self$opinometro_id,
+                                                           pool = self$pool,
                                                            diccionario = self$cuestionario$diccionario)
 
                               respuestas <- opinometro$bd_respuestas_cuestionario

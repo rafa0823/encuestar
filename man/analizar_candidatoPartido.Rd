@@ -36,5 +36,5 @@ Lista de donde cada elemento es un \code{\link[=tibble]{tibble()}} asociado al c
 Calcula las estimaciones de asociacion partidista de un personaje en particular
 }
 \examples{
-encuestar:::analizar_candidatoPartido(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_partido = "partido_pm", llave_conocimiento = "conoce_pm", respuesta_conoce = "Sí", candidatos = c("lia", "javier"))
+analizar_candidatoPartido(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_partido = "partido_pm", llave_conocimiento = "conoce_pm", respuesta_conoce = "Sí", candidatos = c("lia", "javier"))
 }

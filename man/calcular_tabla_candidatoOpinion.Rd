@@ -36,11 +36,11 @@ calcular_tabla_candidatoOpinion(
 \item{salto_respuestas}{Valor entero usato como parametro en \code{\link[stringr:str_wrap]{stringr::str_wrap()}} aplicado a todos los encabezados de la tabla}
 }
 \value{
-\code{\link[=tibble]{tibble()}} con las variables necesarias para la funcion \code{\link[encuestar:::formatear_tabla_candidatoOpinion]{encuestar::::formatear_tabla_candidatoOpinion()}}
+\code{\link[=tibble]{tibble()}} con las variables necesarias para la funcion \code{\link[=formatear_tabla_candidatoOpinion]{formatear_tabla_candidatoOpinion()}}
 }
 \description{
-Produce y ordena los resultados necesarios para la funcion \code{\link[encuestar:::formatear_tabla_candidatoOpinion]{encuestar::::formatear_tabla_candidatoOpinion()}}
+Produce y ordena los resultados necesarios para la funcion \code{\link[=formatear_tabla_candidatoOpinion]{formatear_tabla_candidatoOpinion()}}
 }
 \examples{
-encuestar:::calcular_tabla_candidatoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_opinion = "opinion_pm", patron_conocimiento = "conoce_pm", aspectos = c("astiazaran", "delrio"), filtro_conocimiento = "respuesta == 'Sí'", orden_opinion = c("Muy mala", "Mala", "Regular", "Buena", "Muy buena"), ns_nc =  "Ns/Nc", salto_respuestas = 60)
+calcular_tabla_candidatoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, patron_opinion = "opinion_pm", patron_conocimiento = "conoce_pm", aspectos = c("astiazaran", "delrio"), filtro_conocimiento = "respuesta == 'Sí'", orden_opinion = c("Muy mala", "Mala", "Regular", "Buena", "Muy buena"), ns_nc =  "Ns/Nc", salto_respuestas = 60)
 }

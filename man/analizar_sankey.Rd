@@ -2,7 +2,7 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_sankey}
 \alias{analizar_sankey}
-\title{Calcular datos necesarios para la funcion \code{\link[encuestar:::graficar_sankey]{encuestar::::graficar_sankey()}}}
+\title{Calcular datos necesarios para la funcion \code{\link[=graficar_sankey]{graficar_sankey()}}}
 \usage{
 analizar_sankey(diseno, variables, filtro_var1, filtro_var2)
 }
@@ -20,5 +20,5 @@ se va a hacer el cruce}
 \code{\link[=tibble]{tibble()}} con las estimaciones de frecuencia para cada valor unico entre las variables
 }
 \description{
-Calcular datos necesarios para la funcion \code{\link[encuestar:::graficar_sankey]{encuestar::::graficar_sankey()}}
+Calcular datos necesarios para la funcion \code{\link[=graficar_sankey]{graficar_sankey()}}
 }

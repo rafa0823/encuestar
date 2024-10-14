@@ -30,5 +30,5 @@ analizar_saldoOpinion(
 Calcular el saldo de opinión por personaje
 }
 \examples{
-encuestar:::analizar_saldoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_opinion = "opinion_pm", candidatos = c("astiazaran", "delrio"), grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"))
+analizar_saldoOpinion(diseno = encuesta_demo$muestra$diseno, diccionario = encuesta_demo$cuestionario$diccionario, llave_opinion = "opinion_pm", candidatos = c("astiazaran", "delrio"), grupo_positivo = c("Muy buena", "Buena"), grupo_negativo = c("Muy mala", "Mala"))
 }
