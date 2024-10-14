@@ -6,7 +6,7 @@ Authors@R: c(
     person(given = "Allan", family = "Meza", email = "al.josue93@gmail.com", role = c("aut"), comment = c(ORCID = "YOUR-ORCID-ID")),
     person(given = "Carlos", family = "Avilez", email = "cavilez@morant.com.mx", role = c("ctb"), comment = c(ORCID = "YOUR-ORCID-ID")),
     person(given = "Ivan", family = "Martinez", email = "imartinez@morant.com.mx", role = c("aut"), comment = c(ORCID = "YOUR-ORCID-ID")))
-Description: El ojetivo de la paquetería encuestar es producir los resultados de las estimaciones asociadas al diseño muestral generado por la paquetería muestrear.
+Description: El ojetivo de la paquetería es producir los resultados de las estimaciones asociadas al diseño muestral generado por la paquetería muestrear.
   También contiene contiene la aplicación de seguimiento de levantamiento de la encuesta.
 License: MIT + file LICENSE
 Depends: 
