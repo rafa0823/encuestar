@@ -438,35 +438,30 @@ ui <- bslib::page_navbar(
                                                pull(region)))),
             selected = "Todos")),
         bslib::accordion(
-          open = c("Progreso"),
+          open = c("Progreso", "Rechazo"),
           bslib::accordion_panel(
             title = "Progreso",
             value = "Progreso",
             bslib::card_body(
               max_height = 600,
-              bslib::layout_column_wrap(
-                width = 1/2,
-                flexdashboard::gauge(
-                  value = round((encuestar:::calcular_tasa_rechazo(bd_respuestas_efectivas = preguntas$encuesta$muestra$diseno$variables) |>
-                                   pull(rechazo))*100, digits = 0),
-                  symbol = "%",
-                  min = 0,
-                  max = 100,
-                  sectors =  flexdashboard::gaugeSectors(success = c(0, 32),
-                                                         warning = c(33, 65),
-                                                         danger = c(66, 99)),
-                  label = "Rechazo"),
-                shinyWidgets::progressBar(
-                  id = "enc_hechas",
-                  value = nrow(bd),
-                  display_pct = T,
-                  striped = T,
-                  total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
-                  status = "success")
-              ),
+              shinyWidgets::progressBar(
+                id = "enc_hechas",
+                value = nrow(bd),
+                display_pct = T,
+                striped = T,
+                total = (diseno$niveles %>% filter(nivel == 0) %>% pull(unidades))*diseno$n_0,
+                status = "success"),
               shinycssloaders::withSpinner(highchartOutput(outputId = "avance_region"))
             )
           ),
+          bslib::accordion_panel(
+            title = "Rechazo",
+            value = "Rechazo",
+            bslib::card_body(
+              shinycssloaders::withSpinner(highchartOutput(outputId = "tasa_rechazo_global")),
+              shinycssloaders::withSpinner(plotOutput("rechazo_distribucion"))
+              )
+            ),
           bslib::accordion_panel(
             title = "Histórico de entrevistas",
             value = "Histórico de entrevistas",
@@ -501,7 +496,8 @@ ui <- bslib::page_navbar(
             title = "Balance de entrevistas",
             value = "Balance de entrevistas",
             shinycssloaders::withSpinner(highchartOutput("por_hacer")),
-            shinycssloaders::withSpinner(plotOutput("por_hacer_cuotas"))),
+            shinycssloaders::withSpinner(plotOutput("por_hacer_cuotas"))
+            ),
           bslib::accordion_panel(
             title = "Distribución por edad y sexo",
             value = "Distribución por edad y sexo",
@@ -1007,6 +1003,73 @@ server <- function(input, output, session) {
 
     return(g)
 
+  })
+
+  output$tasa_rechazo_global <- renderHighchart({
+
+    col_stops <-
+      data.frame(
+        q = c(0.15, 0.4, .8),
+        c = c('#55BF3B', '#DDDF0D', '#DF5353'),
+        stringsAsFactors = FALSE
+      )
+
+    highchart() %>%
+      hc_chart(type = "solidgauge") %>%
+      hc_pane(
+        startAngle = -90,
+        endAngle = 90,
+        background = list(
+          outerRadius = '100%',
+          innerRadius = '60%',
+          shape = "arc")) %>%
+      hc_tooltip(enabled = FALSE) %>%
+      hc_yAxis(
+        stops = list_parse2(col_stops),
+        lineWidth = 0,
+        minorTickWidth = 0,
+        tickAmount = 2,
+        min = 0,
+        max = 100,
+        labels = list(y = 26,
+                      style = list(fontSize = "22px"),
+                      formatter = JS("function() { return this.value + '%'; }")
+                      )
+      ) %>%
+      hc_add_series(
+        data = round(encuestar:::calcular_tasa_rechazo(
+          preguntas$encuesta$muestra$diseno$variables,
+          por_usuario = FALSE) |>
+            pull()*100, digits = 0),
+        dataLabels = list(
+          y = -50,
+          borderWidth = 0,
+          useHTML = TRUE,
+          format = '{y}%',  # Aquí se agrega el símbolo de porcentaje
+          style = list(fontSize = "40px")
+        )
+      )
+  })
+
+  output$rechazo_distribucion <- renderPlot({
+
+    preguntas$encuesta$muestra$diseno$variables |>
+      select(SbjNum, intento_efectivo) |>
+      mutate(intento_efectivo = as.integer(intento_efectivo)) |>
+      count(intento_efectivo) |>
+      ggplot(aes(x = intento_efectivo,
+                 y = n,
+                 fill = color_general)) +
+      geom_col() +
+      geom_text(aes(label = n), size = 10, nudge_y = 20) +
+      tema_morant() +
+      scale_x_continuous(breaks = seq.int(from = 0,
+                                          to = 15,
+                                          by = 1)) +
+      labs(x = "Intentos de levantar la encuesta",
+           y = "Encuestas efectivas") +
+      theme(axis.title.x = element_text(),
+            axis.title.y = element_text())
   })
 
   ## Histórico ---------------------------------------------------------------
