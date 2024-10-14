@@ -428,7 +428,7 @@ calcular_mediaMovil_region <- function(bd_resultados, variable, valores_interes,
 calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion, patron_conocimiento, aspectos, filtro_conocimiento, orden_opinion, ns_nc, salto_respuestas) {
 
   bd_opinion <-
-    encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
+    analizar_frecuencias_aspectos(diseno = diseno,
                                   diccionario = diccionario,
                                   patron_pregunta = patron_opinion,
                                   aspectos = aspectos) |>
@@ -443,7 +443,7 @@ calcular_tabla_candidatoOpinion <- function(diseno, diccionario, patron_opinion,
 
   if(!is.na(patron_conocimiento)) {
     bd_conocimiento <-
-      encuestar:::analizar_frecuencias_aspectos(diseno = diseno,
+      analizar_frecuencias_aspectos(diseno = diseno,
                                     diccionario = diccionario,
                                     patron_pregunta = patron_conocimiento,
                                     aspectos = aspectos) %>%
