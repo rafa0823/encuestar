@@ -2060,7 +2060,7 @@ Regiones <- R6::R6Class(classname = "Regiones",
                             self$tema <- tema
                             self$crear_shp_regiones()
                           },
-                          mapa_ganador = function(variable, lugar = 1){
+                          mapa_ganador = function(variable,region = 'region', lugar = 1, na_rm = T){
 
                             if(is.null(self$diseno)) {
 
@@ -2072,10 +2072,17 @@ Regiones <- R6::R6Class(classname = "Regiones",
 
                             }
 
-                            calcular_ganadorRegion(diseno = diseno,
-                                                   regiones = self$shp,
-                                                   variable = {{variable}},
-                                                   lugar = lugar) %>%
+                            self$shp_regiones|>
+                              left_join(
+                                analizar_cruce(diseno = diseno,
+                                                           variable_principal = region,
+                                                           variable_secundaria = variable,
+                                                           vartype = 'cv',na_rm = na_rm)|>
+                                  group_by(region)|>
+                                  filter(dense_rank(-coef) == lugar)|>
+                                  select(- c('_cv','pres')),
+                                by = 'region')|>
+                              filter(!is.na(region))%>%
                               graficar_mapaRegiones(variable = {{variable}})
                           },
                           mapa_degradadoNumerico = function(variable){
