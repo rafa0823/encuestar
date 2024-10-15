@@ -6,7 +6,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-El ojetivo de la paquetería encuestar es producir los resultados de las
+El ojetivo de la paquetería es producir los resultados de las
 estimaciones asociadas al diseño muestral generado por la paquetería
 muestrear. También contiene contiene la aplicación de seguimiento de
 levantamiento de la encuesta.
