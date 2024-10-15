@@ -17,7 +17,7 @@ Sírvase de instalar la versión de producción desde
 [GitHub](https://github.com/) con:
 
 ``` r
-devtools::install_github(repo = "https://github.com/morant-consultores/encuestar.git", ref = "master")
+devtools::install_github(repo = "https://github.com/morant-consultores/encuestar.git", ref = "master", build_vignettes =  TRUE)
 ```
 
 ## Ejemplo
