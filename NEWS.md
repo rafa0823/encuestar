@@ -13,7 +13,7 @@
 * Los parámetros como  colores y orden de valores únicos en variables de uso frecuente y funciones auxiliares pasan a formar parte de la paquetería en forma de scripts que se escriben si la clase "Encuesta" se genera de manera exitosa una primera vez. 
 * Se consolida e incluyen datos demos en forma de una encuesta demo y con ello se construyen las vignettes de todos lo método contenidos en la clase "Resultados" y algunos misceláneos. Se comienza el libro de la paquetería que consta del manual de usuario y del manual técnico.
 
-# encuestar 0.9000 Modificaciones en campa\ xF100 a
+# encuestar 0.9000 Modificaciones en campa \xF100 a
 
 * Durante el periodo entre enero y julio del 2024 la paquetería sufrió modificaciones desarrolladas directamente y durante la produccion.
 * Cambios asociados principalmente a la clase 'Graficas' que es la que se usa para producir y entregar los resultados. De manera menos frecuente la aplicacion de monitoreo tambien ha recibido cambios fundamentalmente en las visualizaciones que ofrece.
