@@ -110,16 +110,13 @@ variables_tendencias <- c("voto_pm_24", "conoce_pm_astiazaran", "conoce_pm_delri
 #+ Se crea la clase encuesta, que contiene la base de datos, asi como el diseno muestral, y la app de auditoria
 encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
                               # n_simulaciones = 200,
-                              quitar_vars = quitar,
                               bd_categorias = categorias,
-                              mantener = mantener,
                               bd_correcciones = bd_correcciones_hermosillo_agosto,
                               muestra = diseno_hermosillo_agosto,
                               auditoria_telefonica = eliminadas,
                               cuestionario = diccionario_hermosillo_agosto,
                               shp = shp_hermosillo_agosto,
                               sin_peso = F,
-                              tipo_encuesta = "ine",
                               mantener_falta_coordenadas = F, # mantener entrevistas sin coordenadas
                               rake = T, ######### con postestratificacion
                               patron = "\\(No leer\\)| \\(No leer\\)|\\(ROTAR\\)|\\(No leer)|:",
@@ -127,6 +124,6 @@ encuesta_demo <- Encuesta$new(respuestas = bd_respuestas_hermosillo_agosto,
                               vars_tendencias = variables_tendencias,
 )
 
-# encuesta_demo$auditoria$run_app()
+# encuesta_demo$Auditoria$run_app()
 
 usethis::use_data(encuesta_demo, overwrite = TRUE)

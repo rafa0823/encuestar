@@ -1,340 +1,389 @@
-#' Esta es la clase Encuesta
-#' @description La clase Encuesta contiene todos los metodos, y atributos que puede tener una encuesta.
-#' @field respuestas Base de datos de respuestas
-#' @field muestra Base de datos de muestra.
-#' @field dicionario Base de datos de diccionario
+#' Clase Encuesta
+#'
+#' @description La clase encuesta es la interfaz de usuario de la paquetería encuestar.
+#'  A través de la clase encuesta se producen los resultados y se puede consultar información
+#'  relacionada al levantamiento, respuestas y equipo que trabaja en campo. La clase Encuesta tiene
+#'  cuatro clases subordinadas: `Respuestas`, `Muestra`, `Resultados` y `Auditoria`.
+#'
+#' @field muestra Objeto tipo `.rda` generado por la paquetería `muestrear`. Es el diseño muestral
+#'  de la encuesta. El dobjeto `muestra` es de formato personalizado por lo que no es posible
+#'  (o práctico) sustituirlo.
+#' @field shp Objeto tipo `.rda` generado por la paquetería `muestrear`. Contiene toda la cartografía
+#'  utilizada para el equipo de campo y que a su vez es utilizada por la aplicación de monitoreo del
+#'  levantamiento. El objeto `shp` es de formato personalizado por lo que no es posible (o práctico)
+#'  sustituirlo.
+#' @field cuestionaro [tibble()] que es el diccionario del cuestionario que se aplica a los entrevistados.
+#'  El parámetro `cuestionario`, después de una actualización, actúa como el diccionario (o codebbok).
+#' @field respuestas [tibble()] de respuestas obtenidas por las personas entrevistadas.
+#' @field n_simulaciones Valor entero. Con el objetivo de publicar la aplicación de monitoreio antes
+#'  de inciar el levantamiento es posible simular una base de respuestas. `n_simulaciones` es el
+#'  total de respuestas simuladas, es decir, es el [nrow()] que simula al campo `respuestas`.
+#'  El valor recomendado es del 10% del total de entrevistas objetivo de la encuesta.
+#' @field opinometro_id Valor entero. Identificador del cuestionario aplicado en campo generado en
+#'  la plataforma `Opinómetro`. Es necesario consultar a la persona que construyó el cuestionario
+#'  para conocer el `opinometro_id` asociado.
+#' @field pool Objeto tipo [pool] generado al conectarse a la base de datos que almacena las
+#'  respuestas. Se recomienda utilizar la función [dbPool()] de la paquetería [pool] para esto.
+#' @field bd_categorias [tibble()] que contiene los resultados generados por IA a partir de las
+#'  preguntas abiertas.
+#' @field bd_correcciones [tibble()] que contiene las correcciones de los registros de las encuestas
+#'  efectivas.
+#' @field patron Valor tipo caracter que indica qué cadenas de texto quitar de las posibles opciones
+#'  de respuesta a las preguntas para no presentarlas en los resultados.
+#' @field auditoria_telefonica [tibble()] que contiene las entrevistas que, por auditoría telefónica,
+#'  han sido eliminadas de los registros.
+#' @field quitar_vars `DEPRECATED` Vector tipo caracter que contiene las variables que se desean
+#'  omitir del procesamiento.
+#' @field mantener Vector tipo caracter que indica los clusters a los cuales habrá que forzar las
+#'  entrevistas que se hayan levantado cerca de los mismos.
+#' @field auditar Vector tipo caracter que contiene las varaibles que se mostraán en la aplicación
+#'  de monitoreo de levantamiento en la pestala `Resultados`.
+#' @field vars_tendencias Vector tipo caracter que contiene las variables que se mostrarán en la
+#'  aplicación de monitoreo de levantamiento en la sección `Tendencias`.
+#' @field sin_peso `LOGICAL` Determina si esl diseno muestral construido será ponderado o no.
+#' @field rake `LOGICAL` Determina si el diseno muestral será postestratificado por edad y sexo.
+#' @field mantener_falta_coordenadas `LOGICAL`. Determina si se descartan o no las entrevistas sin
+#'  geolocalización válida o nula.
+#' @field tipo_encuesta `DEPRECATED`. La paquetería cuenta con un modo de cálculo de diseño muestral
+#'  análogo al `INEGI`. Sin embargo, este modo ha entrado en desuso y en un futuro desaparecerá.
+#' @field shp_completo Extensión del campo `shp`. Una vez calculadas las entrevistas efectivas y
+#'  asignadas las ponderaciones. Se determinan las ubicaciones puntuales donde se levantaron las
+#'  entrevistas y se agrega al objeto `shp`.
+#' @field Resultados Clase subordinada. La clase `Resultados` contiene todos los método utilizados
+#'  para generar el entregable final.
+#' @field Auditoria Clase subordinada. La clase `Auditoria` en su mayor parte escribe el script de
+#'  la aplicación de monitorio de en un `folder` llamado `auditoria` en el `working directory`.
+#'
 #' @export
 #' @import dplyr ggplot2 tidyr sf purrr stringr
 
-Encuesta <- R6::R6Class("Encuesta",
-                        public = list(
-                          respuestas = NULL,
-                          n_simulaciones = NA,
-                          opinometro_id = NULL,
-                          pool = NULL,
-                          quitar_vars = NULL,
-                          cuestionario = NULL,
-                          bd_categorias = NULL,
-                          muestra = NULL,
-                          auditoria_telefonica=NA,
-                          bd_correcciones = NULL,
-                          Resultados = NULL,
-                          shp_completo = NULL,
-                          shp = NULL,
-                          tipo_encuesta = NULL,
-                          mantener = NULL,
-                          auditoria = NULL,
-                          patron = NA,
-                          auditar = NA,
-                          vars_tendencias = NULL,
-                          sin_peso = NA,
-                          rake = NA,
-                          mantener_falta_coordenadas = NULL,
-                          dir_app = NULL,
-                          #' @description
-                          #' Create a person
-                          #' @param respuestas Name of the person
-                          #' @param diccionario Hair colour
-                          initialize = function(respuestas = NA,
-                                                n_simulaciones = NULL,
-                                                opinometro_id = NULL,
-                                                pool = NULL,
-                                                bd_categorias = NULL,
-                                                quitar_vars = NA,
-                                                muestra = NA,
-                                                auditoria_telefonica = NA,
-                                                bd_correcciones = NULL,
-                                                cuestionario = NA,
-                                                shp = NA,
-                                                tipo_encuesta = "ine",
-                                                mantener = NA,
-                                                patron = NA,
-                                                auditar = NA,
-                                                vars_tendencias = NULL,
-                                                sin_peso = F,
-                                                rake = T,
-                                                mantener_falta_coordenadas = F,
-                                                dir_app = "auditoria"
-                          ) {
-                            sf_use_s2(F)
-                            tipo_encuesta <- match.arg(tipo_encuesta, c("inegi","ine"))
-                            self$sin_peso <- sin_peso
-                            self$quitar_vars <- quitar_vars
-                            self$rake <- rake
-                            self$tipo_encuesta <- tipo_encuesta
-                            self$patron <- patron
-                            self$auditar <- auditar
-                            self$vars_tendencias <- vars_tendencias
-                            self$mantener_falta_coordenadas <- mantener_falta_coordenadas
-                            self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
-                            self$opinometro_id <- opinometro_id
-                            self$pool <- pool
-                            self$bd_categorias <- bd_categorias
-                            # Valorar si no es mejor un active binding
-                            un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
-                            nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
-                            var_n <- un %>% pull(variable)
+Encuesta <-
+  R6::R6Class(
+    classname = "Encuesta",
+    public = list(
+      muestra = NULL,
+      shp = NULL,
+      cuestionario = NULL,
+      respuestas = NULL,
+      n_simulaciones = NA,
+      opinometro_id = NULL,
+      pool = NULL,
+      bd_categorias = NULL,
+      bd_correcciones = NULL,
+      patron = NA,
+      auditoria_telefonica = NA,
+      quitar_vars = NULL,
+      mantener = NULL,
+      auditar = NA,
+      vars_tendencias = NULL,
+      sin_peso = NA,
+      rake = NA,
+      mantener_falta_coordenadas = NULL,
+      tipo_encuesta = NULL,
+      shp_completo = NULL,
+      Resultados = NULL,
+      Auditoria = NULL,
+      #' @description
+      #' Create a person
+      #' @param respuestas Name of the person
+      #' @param diccionario Hair colour
+      initialize = function(respuestas = NA,
+                            n_simulaciones = NULL,
+                            opinometro_id = NULL,
+                            pool = NULL,
+                            bd_categorias = NULL,
+                            quitar_vars = c(),
+                            muestra = NA,
+                            auditoria_telefonica = NA,
+                            bd_correcciones = NULL,
+                            cuestionario = NA,
+                            shp = NA,
+                            tipo_encuesta = "ine",
+                            mantener = "",
+                            patron = NA,
+                            auditar = NA,
+                            vars_tendencias = NULL,
+                            sin_peso = F,
+                            rake = T,
+                            mantener_falta_coordenadas = FALSE) {
+        sf_use_s2(F)
+        tipo_encuesta <- match.arg(tipo_encuesta, c("inegi","ine"))
+        self$sin_peso <- sin_peso
+        self$quitar_vars <- quitar_vars
+        self$rake <- rake
+        self$tipo_encuesta <- tipo_encuesta
+        self$patron <- patron
+        self$auditar <- auditar
+        self$vars_tendencias <- vars_tendencias
+        self$mantener_falta_coordenadas <- mantener_falta_coordenadas
+        self$n_simulaciones <- if("logical" %in% class(respuestas)) n_simulaciones else 0
+        self$opinometro_id <- opinometro_id
+        self$pool <- pool
+        self$bd_categorias <- bd_categorias
+        # Valorar si no es mejor un active binding
+        un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
+        nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
+        var_n <- un %>% pull(variable)
 
-                            # Valorar active binding
-                            self$cuestionario <- Cuestionario$new(documento = cuestionario, patron)
-                            # Valorar active binding
-                            self$auditoria_telefonica <- auditoria_telefonica %>% distinct(SbjNum, .keep_all = T)
+        # Valorar active binding
+        self$cuestionario <- Cuestionario$new(documento = cuestionario, patron)
+        # Valorar active binding
+        self$auditoria_telefonica <- auditoria_telefonica %>% distinct(SbjNum, .keep_all = T)
 
-                            # Base de respuestas incorrectas y su correccion
-                            self$bd_correcciones <- bd_correcciones
+        # Base de respuestas incorrectas y su correccion
+        self$bd_correcciones <- bd_correcciones
 
-                            self$shp_completo <- shp
+        self$shp_completo <- shp
 
-                            self$shp <-
-                              shp$shp %>%
-                              purrr::pluck(var_n) %>%
-                              inner_join(muestra$muestra %>%
-                                           purrr::pluck(var_n) %>%
-                                           unnest(data) %>%
-                                           distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),
-                                                    !!rlang::sym(nivel)))
-                            self$mantener <- mantener
+        self$shp <-
+          shp$shp %>%
+          purrr::pluck(var_n) %>%
+          inner_join(muestra$muestra %>%
+                       purrr::pluck(var_n) %>%
+                       unnest(data) %>%
+                       distinct(!!rlang::sym(var_n) := !!rlang::sym(var_n),
+                                !!rlang::sym(nivel)))
+        self$mantener <- mantener
 
-                            catalogo_variables <-
-                              catalogo_variables |>
-                              bind_rows(self$cuestionario$diccionario |>
-                                          select(variable = llaves) |>
-                                          mutate(plataforma = "cuestionario",
-                                                 primer_nivel = "cuestionario",
-                                                 segundo_nivel = dplyr::if_else(condition = variable %in% c("cluster",
-                                                                                                            "edad",
-                                                                                                            "sexo"),
-                                                                                true = "sistema",
-                                                                                false = "cuestionario")))
+        catalogo_variables <-
+          catalogo_variables |>
+          bind_rows(self$cuestionario$diccionario |>
+                      select(variable = llaves) |>
+                      mutate(plataforma = "cuestionario",
+                             primer_nivel = "cuestionario",
+                             segundo_nivel = dplyr::if_else(condition = variable %in% c("cluster",
+                                                                                        "edad",
+                                                                                        "sexo"),
+                                                            true = "sistema",
+                                                            false = "cuestionario")))
 
-                            if("data.frame" %in% class(respuestas)) {
+        if("data.frame" %in% class(respuestas)) {
 
-                              intentos_efectivos <-
-                                respuestas |>
-                                select(SbjNum, num_range("INT", 1:20)) |>
-                                mutate(across(.cols = !SbjNum, .fns = ~ as.character(.x))) |>
-                                tidyr::pivot_longer(cols = !SbjNum, names_to = "variable", values_to = "rechazo") |>
-                                filter(grepl(pattern = 'Iniciar entrevista', x = rechazo)) |>
-                                mutate(intento_efectivo = gsub(pattern = "INT", replacement = "", x = variable)) |>
-                                select(SbjNum, intento_efectivo)
+          intentos_efectivos <-
+            respuestas |>
+            select(SbjNum, num_range("INT", 1:20)) |>
+            mutate(across(.cols = !SbjNum, .fns = ~ as.character(.x))) |>
+            tidyr::pivot_longer(cols = !SbjNum, names_to = "variable", values_to = "rechazo") |>
+            filter(grepl(pattern = 'Iniciar entrevista', x = rechazo)) |>
+            mutate(intento_efectivo = gsub(pattern = "INT", replacement = "", x = variable)) |>
+            select(SbjNum, intento_efectivo)
 
-                              geolocalizacion_efectiva <-
-                                purrr::pmap_df(.l = list(ids = intentos_efectivos %>% pull(SbjNum),
-                                                         intento_efectivo = intentos_efectivos %>% pull(intento_efectivo)),
-                                               .f = ~ obtener_ubicacionEfectiva_surveyToGo(bd_respuestas = respuestas,
-                                                                                           id = ..1,
-                                                                                           intento_efectivo = ..2))
+          geolocalizacion_efectiva <-
+            purrr::pmap_df(.l = list(ids = intentos_efectivos %>% pull(SbjNum),
+                                     intento_efectivo = intentos_efectivos %>% pull(intento_efectivo)),
+                           .f = ~ obtener_ubicacionEfectiva_surveyToGo(bd_respuestas = respuestas,
+                                                                       id = ..1,
+                                                                       intento_efectivo = ..2))
 
-                              respuestas <-
-                                respuestas |>
-                                left_join(geolocalizacion_efectiva, by = "SbjNum") |>
-                                mutate(Latitude = GPS_INT_LA,
-                                       Longitude = GPS_INT_LO) |>
-                                transmute(across(all_of(catalogo_variables |>
-                                                          filter(plataforma %in% c("surveytogo", "encuestar", "cuestionario"),
-                                                                 segundo_nivel %in% c("sistema", "cuestionario")) |>
-                                                          pull(variable))))
+          respuestas <-
+            respuestas |>
+            left_join(geolocalizacion_efectiva, by = "SbjNum") |>
+            mutate(Latitude = GPS_INT_LA,
+                   Longitude = GPS_INT_LO) |>
+            transmute(across(all_of(catalogo_variables |>
+                                      filter(plataforma %in% c("surveytogo", "encuestar", "cuestionario"),
+                                             segundo_nivel %in% c("sistema", "cuestionario")) |>
+                                      pull(variable))))
 
-                            }
+        }
 
-                            if(!is.null(opinometro_id)) {
+        if(!is.null(opinometro_id)) {
 
-                              opinometro <- Opinometro$new(id_cuestionarioOpinometro = self$opinometro_id,
-                                                           pool = self$pool,
-                                                           diccionario = self$cuestionario$diccionario)
+          opinometro <- Opinometro$new(id_cuestionarioOpinometro = self$opinometro_id,
+                                       pool = self$pool,
+                                       diccionario = self$cuestionario$diccionario)
 
-                              respuestas <- opinometro$bd_respuestas_cuestionario
+          respuestas <- opinometro$bd_respuestas_cuestionario
 
-                            }
+        }
 
-                            if(!is.null(bd_categorias)) {
+        if(!is.null(bd_categorias)) {
 
-                              respuestas <-
-                                respuestas |>
-                                left_join(bd_categorias,
-                                          by = "SbjNum")
+          respuestas <-
+            respuestas |>
+            left_join(bd_categorias,
+                      by = "SbjNum")
 
-                            }
+        }
 
-                            if(!("data.frame" %in% class(respuestas)) & !is.null(n_simulaciones)){
-                              respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
-                                                                    n = self$n_simulaciones,
-                                                                    diseño = muestra,
-                                                                    shp = shp)
-                            }
+        if(!("data.frame" %in% class(respuestas)) & !is.null(n_simulaciones)){
+          respuestas <- self$simular_surveytogo(cuestionario = self$cuestionario,
+                                                n = self$n_simulaciones,
+                                                diseño = muestra,
+                                                shp = shp)
+        }
 
-                            self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
-                                                              encuesta = self,
-                                                              catalogo = catalogo_variables,
-                                                              mantener_falta_coordenadas = self$mantener_falta_coordenadas,
-                                                              muestra_completa = muestra,
-                                                              patron = patron,
-                                                              nivel = nivel,
-                                                              var_n = var_n)
+        self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
+                                          encuesta = self,
+                                          catalogo = catalogo_variables,
+                                          mantener_falta_coordenadas = self$mantener_falta_coordenadas,
+                                          muestra_completa = muestra,
+                                          patron = patron,
+                                          nivel = nivel,
+                                          var_n = var_n)
 
-                            # Muestra (recalcula fpc)
-                            self$muestra <- Muestra$new(muestra = muestra,
-                                                        respuestas = self$respuestas$base,
-                                                        nivel = nivel,
-                                                        var_n = var_n)
+        # Muestra (recalcula fpc)
+        self$muestra <- Muestra$new(muestra = muestra,
+                                    respuestas = self$respuestas$base,
+                                    nivel = nivel,
+                                    var_n = var_n)
 
-                            # Informacion muestral
-                            self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n, tipo_encuesta = self$tipo_encuesta)
-                            # Diseno
-                            self$muestra$extraer_diseno(respuestas = self$respuestas$base,
-                                                        marco_muestral = self$muestra$muestra$poblacion$marco_muestral,
-                                                        tipo_encuesta = self$tipo_encuesta,
-                                                        sin_peso = self$sin_peso,
-                                                        rake = self$rake)
+        # Informacion muestral
+        self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n, tipo_encuesta = self$tipo_encuesta)
+        # Diseno
+        self$muestra$extraer_diseno(respuestas = self$respuestas$base,
+                                    marco_muestral = self$muestra$muestra$poblacion$marco_muestral,
+                                    tipo_encuesta = self$tipo_encuesta,
+                                    sin_peso = self$sin_peso,
+                                    rake = self$rake)
 
-                            print(glue::glue("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
-                            print(glue::glue("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
-                            print(glue::glue("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
+        print(glue::glue("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
+        print(glue::glue("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
+        print(glue::glue("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
 
-                            #Preguntas
-                            self$Resultados <- Resultados$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = tema_morant())
+        #Preguntas
+        self$Resultados <- Resultados$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = tema_morant())
 
-                            # Shiny app de auditoria
-                            self$dir_app <- dir_app
-                            self$auditoria <- Auditoria$new(self, tipo_encuesta = self$tipo_encuesta, dir = self$dir_app)
-                            file.copy(overwrite = FALSE,
-                                      from = system.file("constantes_y_funciones/constantes.R",
-                                                         package = "encuestar",
-                                                         mustWork = TRUE),
-                                      to = "R")
-                            file.copy(overwrite = FALSE,
-                                      from = system.file("constantes_y_funciones/funciones.R",
-                                                         package = "encuestar",
-                                                         mustWork = TRUE),
-                                      to = "R")
-                            source(file = paste0(getwd(), "/R/constantes.R"))
-                            beepr::beep()
-                            print(glue::glue("Las siguientes variables no son de sistema, plataforma o están en el diccionario"))
-                            print(match_dicc_base(self), n = Inf)
-                          },
+        # Shiny app de auditoria
+        self$Auditoria <- Auditoria$new(encuesta = self, tipo_encuesta = self$tipo_encuesta)
+        file.copy(overwrite = FALSE,
+                  from = system.file("constantes_y_funciones/constantes.R",
+                                     package = "encuestar",
+                                     mustWork = TRUE),
+                  to = "R")
+        file.copy(overwrite = FALSE,
+                  from = system.file("constantes_y_funciones/funciones.R",
+                                     package = "encuestar",
+                                     mustWork = TRUE),
+                  to = "R")
+        source(file = paste0(getwd(), "/R/constantes.R"))
+        beepr::beep()
+        print(glue::glue("Las siguientes variables no son de sistema, plataforma o están en el diccionario"))
+        print(match_dicc_base(self), n = Inf)
+      },
 
-                          simular_surveytogo = function(cuestionario, n, diseño, shp){
-                            #simular respuestas
-                            respuestas <- cuestionario$diccionario %>% mutate(n = n) %>%
-                              pmap_dfc(function(llaves, respuestas, tipo_pregunta, n,...){
-                                if(tipo_pregunta == "numericas") {
-                                  aux_r <- respuestas[1] %>%
-                                    str_split(pattern = "-") %>%
-                                    pluck(1) %>%
-                                    as.numeric()
+      simular_surveytogo = function(cuestionario, n, diseño, shp){
+        #simular respuestas
+        respuestas <- cuestionario$diccionario %>% mutate(n = n) %>%
+          pmap_dfc(function(llaves, respuestas, tipo_pregunta, n,...){
+            if(tipo_pregunta == "numericas") {
+              aux_r <- respuestas[1] %>%
+                str_split(pattern = "-") %>%
+                pluck(1) %>%
+                as.numeric()
 
-                                  respuestas <- seq(aux_r[1], aux_r[2]) %>%
-                                    as.character() %>%
-                                    c(respuestas[2])
-                                }
+              respuestas <- seq(aux_r[1], aux_r[2]) %>%
+                as.character() %>%
+                c(respuestas[2])
+            }
 
-                                tibble(llaves = sample(respuestas,size = n, replace = T)) %>%
-                                  set_names(llaves)
-                              })
-                            #ubicación aleatoria en muestra
-                            secc <- diseño$poblacion$marco_muestral %>%
-                              semi_join(diseño$muestra$MZA %>%
-                                          distinct(cluster_2),
-                                        by = "cluster_2") %>%
-                              distinct(cluster_2,SECCION)
+            tibble(llaves = sample(respuestas,size = n, replace = T)) %>%
+              set_names(llaves)
+          })
+        #ubicación aleatoria en muestra
+        secc <- diseño$poblacion$marco_muestral %>%
+          semi_join(diseño$muestra$MZA %>%
+                      distinct(cluster_2),
+                    by = "cluster_2") %>%
+          distinct(cluster_2,SECCION)
 
-                            respuestas <- shp$shp$SECCION %>%
-                              semi_join(secc) %>%
-                              st_sample(size = n) %>%
-                              st_coordinates() %>%
-                              as_tibble %>%
-                              sf::st_as_sf(coords = c("X","Y"), crs = "+init=epsg:4326") %>%
-                              st_join(shp$shp$SECCION) %>%
-                              select(SECCION) %>%
-                              left_join(secc) %>%
-                              transmute(SECCION = as.character(cluster_2)) %>%
-                              bind_cols(st_coordinates(.)) %>%
-                              as_tibble() %>% select(-geometry) %>% rename(Longitude = X, Latitude = Y) %>% bind_cols(respuestas) %>%
-                              tibble::rownames_to_column(var = "SbjNum") %>% mutate(SbjNum = as.numeric(SbjNum))
-                            #simular sexo y edad para postestratificación
-                            respuestas <- respuestas %>%
-                              mutate(sexo = sample(c("Hombre", "Mujer"),
-                                                   size = n, replace = T),
-                                     edad = sample(18:100,size = n, replace = T))
-                            #formato de base
-                            respuestas <- respuestas %>%
-                              mutate(Srvyr = NA,
-                                     Date = sample(x = seq(from = lubridate::today(),
-                                                           to = lubridate::today() + lubridate::days(3),
-                                                           by = "days"),
-                                                   size = nrow(respuestas),
-                                                   replace = T),
-                                     INT15 = NA,
-                                     T_Q = NA)
+        respuestas <- shp$shp$SECCION %>%
+          semi_join(secc) %>%
+          st_sample(size = n) %>%
+          st_coordinates() %>%
+          as_tibble %>%
+          sf::st_as_sf(coords = c("X","Y"), crs = "+init=epsg:4326") %>%
+          st_join(shp$shp$SECCION) %>%
+          select(SECCION) %>%
+          left_join(secc) %>%
+          transmute(SECCION = as.character(cluster_2)) %>%
+          bind_cols(st_coordinates(.)) %>%
+          as_tibble() %>% select(-geometry) %>% rename(Longitude = X, Latitude = Y) %>% bind_cols(respuestas) %>%
+          tibble::rownames_to_column(var = "SbjNum") %>% mutate(SbjNum = as.numeric(SbjNum))
+        #simular sexo y edad para postestratificación
+        respuestas <- respuestas %>%
+          mutate(sexo = sample(c("Hombre", "Mujer"),
+                               size = n, replace = T),
+                 edad = sample(18:100,size = n, replace = T))
+        #formato de base
+        respuestas <- respuestas %>%
+          mutate(Srvyr = NA,
+                 Date = sample(x = seq(from = lubridate::today(),
+                                       to = lubridate::today() + lubridate::days(3),
+                                       by = "days"),
+                               size = nrow(respuestas),
+                               replace = T),
+                 INT15 = NA,
+                 T_Q = NA)
 
-                            respuestas <- respuestas %>%
-                              relocate(Srvyr, Date, .before = Longitude) %>%
-                              relocate(SECCION, INT15, .after = Latitude)
-                          },
+        respuestas <- respuestas %>%
+          relocate(Srvyr, Date, .before = Longitude) %>%
+          relocate(SECCION, INT15, .after = Latitude)
+      },
 
-                          error_muestral_maximo = function(quitar_patron = NULL){
-                            aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiple")
-                            if(!is.null(quitar_patron)) {
-                              quitar_patron <- paste(quitar_patron, collapse = "|")
-                              aux <- aux %>% filter(!grepl(quitar_patron, x = llaves))
-                            }
+      error_muestral_maximo = function(quitar_patron = NULL){
+        aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiple")
+        if(!is.null(quitar_patron)) {
+          quitar_patron <- paste(quitar_patron, collapse = "|")
+          aux <- aux %>% filter(!grepl(quitar_patron, x = llaves))
+        }
 
-                            aux <- aux %>% mutate(n = map_int(respuestas,~length(.x)))
-                            aux <- aux %>%
-                              pull(llaves) %>% map_df(~{
-                                # nas <- self$respuestas$base %>% summarise(any(is.na(c_across(.x)))) %>% pull(1)
-                                survey::svymean(survey::make.formula(.x), design = self$muestra$diseno, na.rm = T) %>%
-                                  tibble::as_tibble(rownames = "respuesta") %>%
-                                  # rename(SE = 3) %>%
-                                  mutate(pregunta = .x,
-                                         # tiene_na = !!nas,
-                                         # respuesta = stringr::str_replace(string = respuesta,
-                                         #                                  pattern = as.character(.x),
-                                         #                                  replacement = "")
-                                  ) %>% select(respuesta, mean, SE)
-                              }) %>% mutate(SE = qnorm(.95)*SE)
+        aux <- aux %>% mutate(n = map_int(respuestas,~length(.x)))
+        aux <- aux %>%
+          pull(llaves) %>% map_df(~{
+            # nas <- self$respuestas$base %>% summarise(any(is.na(c_across(.x)))) %>% pull(1)
+            survey::svymean(survey::make.formula(.x), design = self$muestra$diseno, na.rm = T) %>%
+              tibble::as_tibble(rownames = "respuesta") %>%
+              # rename(SE = 3) %>%
+              mutate(pregunta = .x,
+                     # tiene_na = !!nas,
+                     # respuesta = stringr::str_replace(string = respuesta,
+                     #                                  pattern = as.character(.x),
+                     #                                  replacement = "")
+              ) %>% select(respuesta, mean, SE)
+          }) %>% mutate(SE = qnorm(.95)*SE)
 
-                            labels <- aux %>% summarise(inf = quantile(SE,.25,na.rm = T),
-                                                        mid = quantile(SE,.5,na.rm = T),
-                                                        sup = quantile(SE,.75,na.rm = T),
-                                                        max = max(SE,na.rm = T)
-                            ) %>% mutate(iqr_min = inf-1.5*(sup-inf),
-                                         iqr_max = sup + 1.5*(sup-inf)) %>%
-                              pivot_longer(everything(), names_to = "stat", values_to = "valor")
+        labels <- aux %>% summarise(inf = quantile(SE,.25,na.rm = T),
+                                    mid = quantile(SE,.5,na.rm = T),
+                                    sup = quantile(SE,.75,na.rm = T),
+                                    max = max(SE,na.rm = T)
+        ) %>% mutate(iqr_min = inf-1.5*(sup-inf),
+                     iqr_max = sup + 1.5*(sup-inf)) %>%
+          pivot_longer(everything(), names_to = "stat", values_to = "valor")
 
-                            a <- aux %>%
-                              ggplot() +
-                              geom_boxplot(aes(x = 0, y = SE)) +
-                              geom_label(data = labels, aes(x = 0, y = valor, label = scales::percent(valor)),
-                                         hjust = 0, vjust = 0, nudge_x = .01) + labs(x = NULL) +
-                              scale_y_continuous(labels = scales::percent_format(1))
+        a <- aux %>%
+          ggplot() +
+          geom_boxplot(aes(x = 0, y = SE)) +
+          geom_label(data = labels, aes(x = 0, y = valor, label = scales::percent(valor)),
+                     hjust = 0, vjust = 0, nudge_x = .01) + labs(x = NULL) +
+          scale_y_continuous(labels = scales::percent_format(1))
 
-                            b <- aux %>% filter(SE >= labels %>% filter(stat == "sup") %>% pull(valor)) %>%
-                              ggplot() + geom_col(aes(y = reorder(respuesta, SE), x = SE)) +
-                              geom_vline(xintercept = labels %>% filter(stat == "sup") %>% pull(valor))+
-                              labs(y = NULL)+
-                              scale_x_continuous(labels = scales::percent_format(1))
+        b <- aux %>% filter(SE >= labels %>% filter(stat == "sup") %>% pull(valor)) %>%
+          ggplot() + geom_col(aes(y = reorder(respuesta, SE), x = SE)) +
+          geom_vline(xintercept = labels %>% filter(stat == "sup") %>% pull(valor))+
+          labs(y = NULL)+
+          scale_x_continuous(labels = scales::percent_format(1))
 
-                            print(a + b)
-                            return(aux)
-                          },
+        print(a + b)
+        return(aux)
+      },
 
-                          exportar_entregable = function(carpeta = "entregables", agregar = NULL, quitar = NULL){
+      exportar_entregable = function(carpeta = "entregables", agregar = NULL, quitar = NULL){
 
-                            if(!file.exists(carpeta)) dir.create(carpeta)
+        if(!file.exists(carpeta)) dir.create(carpeta)
 
-                            # Exportar bd
-                            exportar_bd(self, carpeta, agregar, quitar)
+        # Exportar bd
+        exportar_bd(self, carpeta, agregar, quitar)
 
-                            # Exportar diccionario
-                            self$cuestionario$diccionario %>%
-                              unnest(respuestas) %>%
-                              readr::write_excel_csv(glue::glue("{carpeta}/diccionario.csv"))
+        # Exportar diccionario
+        self$cuestionario$diccionario %>%
+          unnest(respuestas) %>%
+          readr::write_excel_csv(glue::glue("{carpeta}/diccionario.csv"))
 
-                          }),
+      }),
 
-                        private = list()
-)
+    private = list()
+  )
 
 #' Esta es la clase Respuestas
 #' @export
@@ -2079,9 +2128,9 @@ Regiones <- R6::R6Class(classname = "Regiones",
                             self$shp_regiones|>
                               left_join(
                                 analizar_cruce(diseno = diseno,
-                                                           variable_principal = region,
-                                                           variable_secundaria = variable,
-                                                           vartype = 'cv',na_rm = na_rm)|>
+                                               variable_principal = region,
+                                               variable_secundaria = variable,
+                                               vartype = 'cv',na_rm = na_rm)|>
                                   group_by(region)|>
                                   filter(dense_rank(-coef) == lugar)|>
                                   select(- c('_cv','pres')),
@@ -2392,26 +2441,26 @@ Modelo <- R6::R6Class(classname = "Modelo",
                                                   design = self$diseno,
                                                   scale=TRUE, scores=TRUE)
                           factoextra::fviz_pca_biplot(pc, geom.ind = "point", labelsize = 2, repel = T)}
-                      #   ,
-                      #   blackBox = function(vars, stimuli){
-                      #
-                      #     if(is.null(self$diseno)) {
-                      #
-                      #       diseno <- self$encuesta$muestra$diseno
-                      #
-                      #     } else {
-                      #
-                      #       diseno <- self$diseno
-                      #
-                      #     }
-                      #
-                      #     diseno$variables %>%
-                      #       as_tibble() |>
-                      #       analizar_blackbox_1d(vars, stimuli) %>%
-                      #       graficar_blackbox_1d()
-                      #
-                      #   }
-                      # )
+                        #   ,
+                        #   blackBox = function(vars, stimuli){
+                        #
+                        #     if(is.null(self$diseno)) {
+                        #
+                        #       diseno <- self$encuesta$muestra$diseno
+                        #
+                        #     } else {
+                        #
+                        #       diseno <- self$diseno
+                        #
+                        #     }
+                        #
+                        #     diseno$variables %>%
+                        #       as_tibble() |>
+                        #       analizar_blackbox_1d(vars, stimuli) %>%
+                        #       graficar_blackbox_1d()
+                        #
+                        #   }
+                        # )
                       ))
 
 #' Title
@@ -2426,7 +2475,9 @@ Modelo <- R6::R6Class(classname = "Modelo",
 Auditoria <- R6::R6Class("Auditoria",
                          public = list(
                            dir = NULL,
-                           initialize = function(encuesta, tipo_encuesta, dir){
+                           initialize = function(encuesta,
+                                                 tipo_encuesta,
+                                                 dir = "auditoria"){
                              if(!file.exists(dir)){
                                dir.create(dir)
                              }

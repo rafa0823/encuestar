@@ -2,25 +2,93 @@
 % Please edit documentation in R/clases_surveytogo.R
 \name{Encuesta}
 \alias{Encuesta}
-\title{Esta es la clase Encuesta}
+\title{Clase Encuesta}
 \description{
-La clase Encuesta contiene todos los metodos, y atributos que puede tener una encuesta.
+La clase encuesta es la interfaz de usuario de la paquetería encuestar.
+A través de la clase encuesta se producen los resultados y se puede consultar información
+relacionada al levantamiento, respuestas y equipo que trabaja en campo. La clase Encuesta tiene
+cuatro clases subordinadas: \code{Respuestas}, \code{Muestra}, \code{Resultados} y \code{Auditoria}.
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{respuestas}}{Base de datos de respuestas}
+\item{\code{muestra}}{Objeto tipo \code{.rda} generado por la paquetería \code{muestrear}. Es el diseño muestral
+de la encuesta. El dobjeto \code{muestra} es de formato personalizado por lo que no es posible
+(o práctico) sustituirlo.}
 
-\item{\code{muestra}}{Base de datos de muestra.}
+\item{\code{shp}}{Objeto tipo \code{.rda} generado por la paquetería \code{muestrear}. Contiene toda la cartografía
+utilizada para el equipo de campo y que a su vez es utilizada por la aplicación de monitoreo del
+levantamiento. El objeto \code{shp} es de formato personalizado por lo que no es posible (o práctico)
+sustituirlo.}
 
-\item{\code{dicionario}}{Base de datos de diccionario}
+\item{\code{cuestionaro}}{\code{\link[=tibble]{tibble()}} que es el diccionario del cuestionario que se aplica a los entrevistados.
+El parámetro \code{cuestionario}, después de una actualización, actúa como el diccionario (o codebbok).}
+
+\item{\code{respuestas}}{\code{\link[=tibble]{tibble()}} de respuestas obtenidas por las personas entrevistadas.}
+
+\item{\code{n_simulaciones}}{Valor entero. Con el objetivo de publicar la aplicación de monitoreio antes
+de inciar el levantamiento es posible simular una base de respuestas. \code{n_simulaciones} es el
+total de respuestas simuladas, es decir, es el \code{\link[=nrow]{nrow()}} que simula al campo \code{respuestas}.
+El valor recomendado es del 10\% del total de entrevistas objetivo de la encuesta.}
+
+\item{\code{opinometro_id}}{Valor entero. Identificador del cuestionario aplicado en campo generado en
+la plataforma \code{Opinómetro}. Es necesario consultar a la persona que construyó el cuestionario
+para conocer el \code{opinometro_id} asociado.}
+
+\item{\code{pool}}{Objeto tipo \link{pool} generado al conectarse a la base de datos que almacena las
+respuestas. Se recomienda utilizar la función \code{\link[=dbPool]{dbPool()}} de la paquetería \link{pool} para esto.}
+
+\item{\code{bd_categorias}}{\code{\link[=tibble]{tibble()}} que contiene los resultados generados por IA a partir de las
+preguntas abiertas.}
+
+\item{\code{bd_correcciones}}{\code{\link[=tibble]{tibble()}} que contiene las correcciones de los registros de las encuestas
+efectivas.}
+
+\item{\code{patron}}{Valor tipo caracter que indica qué cadenas de texto quitar de las posibles opciones
+de respuesta a las preguntas para no presentarlas en los resultados.}
+
+\item{\code{auditoria_telefonica}}{\code{\link[=tibble]{tibble()}} que contiene las entrevistas que, por auditoría telefónica,
+han sido eliminadas de los registros.}
+
+\item{\code{quitar_vars}}{\code{DEPRECATED} Vector tipo caracter que contiene las variables que se desean
+omitir del procesamiento.}
+
+\item{\code{mantener}}{Vector tipo caracter que indica los clusters a los cuales habrá que forzar las
+entrevistas que se hayan levantado cerca de los mismos.}
+
+\item{\code{auditar}}{Vector tipo caracter que contiene las varaibles que se mostraán en la aplicación
+de monitoreo de levantamiento en la pestala \code{Resultados}.}
+
+\item{\code{vars_tendencias}}{Vector tipo caracter que contiene las variables que se mostrarán en la
+aplicación de monitoreo de levantamiento en la sección \code{Tendencias}.}
+
+\item{\code{sin_peso}}{\code{LOGICAL} Determina si esl diseno muestral construido será ponderado o no.}
+
+\item{\code{rake}}{\code{LOGICAL} Determina si el diseno muestral será postestratificado por edad y sexo.}
+
+\item{\code{mantener_falta_coordenadas}}{\code{LOGICAL}. Determina si se descartan o no las entrevistas sin
+geolocalización válida o nula.}
+
+\item{\code{tipo_encuesta}}{\code{DEPRECATED}. La paquetería cuenta con un modo de cálculo de diseño muestral
+análogo al \code{INEGI}. Sin embargo, este modo ha entrado en desuso y en un futuro desaparecerá.}
+
+\item{\code{shp_completo}}{Extensión del campo \code{shp}. Una vez calculadas las entrevistas efectivas y
+asignadas las ponderaciones. Se determinan las ubicaciones puntuales donde se levantaron las
+entrevistas y se agrega al objeto \code{shp}.}
+
+\item{\code{Resultados}}{Clase subordinada. La clase \code{Resultados} contiene todos los método utilizados
+para generar el entregable final.}
+
+\item{\code{Auditoria}}{Clase subordinada. La clase \code{Auditoria} en su mayor parte escribe el script de
+la aplicación de monitorio de en un \code{folder} llamado \code{auditoria} en el \verb{working directory}.}
 }
 \if{html}{\out{</div>}}
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
-\item{\code{dicionario}}{Base de datos de diccionario}
+\item{\code{cuestionaro}}{\code{\link[=tibble]{tibble()}} que es el diccionario del cuestionario que se aplica a los entrevistados.
+El parámetro \code{cuestionario}, después de una actualización, actúa como el diccionario (o codebbok).}
 }
 \if{html}{\out{</div>}}
 }
@@ -46,21 +114,20 @@ Create a person
   opinometro_id = NULL,
   pool = NULL,
   bd_categorias = NULL,
-  quitar_vars = NA,
+  quitar_vars = c(),
   muestra = NA,
   auditoria_telefonica = NA,
   bd_correcciones = NULL,
   cuestionario = NA,
   shp = NA,
   tipo_encuesta = "ine",
-  mantener = NA,
+  mantener = "",
   patron = NA,
   auditar = NA,
   vars_tendencias = NULL,
   sin_peso = F,
   rake = T,
-  mantener_falta_coordenadas = F,
-  dir_app = "auditoria"
+  mantener_falta_coordenadas = FALSE
 )}\if{html}{\out{</div>}}
 }
 
