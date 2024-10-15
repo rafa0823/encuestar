@@ -33,4 +33,4 @@
 
 # encuestar 0.9000
 
-*La paquetería encuestar nace con la necesidad de procesar datos de encuestas de opinión pública levantadas en domicilio. Inicialmente es capaz de mostrar resultados de una o varias variables en forma de visualizaciones usando `ggplot2`. También contiene la primera versión de la app de auditoría usando el framework de shinydashboard.
+* La paquetería encuestar nace con la necesidad de procesar datos de encuestas de opinión pública levantadas en domicilio. Inicialmente es capaz de mostrar resultados de una o varias variables en forma de visualizaciones usando `ggplot2`. También contiene la primera versión de la app de auditoría usando el framework de shinydashboard.
