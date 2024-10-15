@@ -8,11 +8,11 @@
 
 # Tercer sprint
 
-*El tercer sprint arregla un error fundamental en la construccion del diseno muestral. Los rangos de edades que se necesitan son de 18 a 24, de 25 a 59 y 60 y mas. Aunque el código estaba bien implementado, las etiquetas de la variable que contiene esa inforamción estaban incorrectas pues decían "18 a 24", "25 a 60" y "60 y mas" lo que genera una ambiguedad. Este error se hereda desde el paquete `muestrear` utilizado para generar los disenos y muestras utilizados en cada encuesta. El arreglo implica la modificacion de ambas paqueterías y, en `encuestar`, afecta a todo el proceso de generación de diseno muestral y al código contenido en la aplicación de monitoreo. Esto implica que cualquier diseño muestral generado antes de esta modificación (Diciembre 2023) no podrá ser utilizado en la paquetería a partir de esta actualización. Si se busca reproducir los resultados de cualquier encuesta anterior a esa fecha, existe una rama llamada diseno_anterior que conserva ese error.
+* El tercer sprint arregla un error fundamental en la construccion del diseno muestral. Los rangos de edades que se necesitan son de 18 a 24, de 25 a 59 y 60 y mas. Aunque el código estaba bien implementado, las etiquetas de la variable que contiene esa inforamción estaban incorrectas pues decían "18 a 24", "25 a 60" y "60 y mas" lo que genera una ambiguedad. Este error se hereda desde el paquete `muestrear` utilizado para generar los disenos y muestras utilizados en cada encuesta. El arreglo implica la modificacion de ambas paqueterías y, en `encuestar`, afecta a todo el proceso de generación de diseno muestral y al código contenido en la aplicación de monitoreo. Esto implica que cualquier diseño muestral generado antes de esta modificación (Diciembre 2023) no podrá ser utilizado en la paquetería a partir de esta actualización. Si se busca reproducir los resultados de cualquier encuesta anterior a esa fecha, existe una rama llamada diseno_anterior que conserva ese error.
 
 # Segundo sprint
 
-*El segundo sprint se enfoca en el script de la aplicación `Shiny` desplegada en el modo de encuesta tipo INE. Se reorganiza la UI, se comenta el código fuente y el cambio más relevante es el cambio del framework de `shinydashboard` a `bslib`. Se incluye tambien la pestana rutas en fase de desarrollo.
+* El segundo sprint se enfoca en el script de la aplicación `Shiny` desplegada en el modo de encuesta tipo INE. Se reorganiza la UI, se comenta el código fuente y el cambio más relevante es el cambio del framework de `shinydashboard` a `bslib`. Se incluye tambien la pestana rutas en fase de desarrollo.
 
 # Primer sprint
 
