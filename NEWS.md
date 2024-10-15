@@ -13,7 +13,7 @@
 * Los parámetros como  colores y orden de valores únicos en variables de uso frecuente y funciones auxiliares pasan a formar parte de la paquetería en forma de scripts que se escriben si la clase "Encuesta" se genera de manera exitosa una primera vez. 
 * Se consolida e incluyen datos demos en forma de una encuesta demo y con ello se construyen las vignettes de todos lo método contenidos en la clase "Resultados" y algunos misceláneos. Se comienza el libro de la paquetería que consta del manual de usuario y del manual técnico.
 
-# encuestar 0.9000 Modificaciones en campa\xF1a
+# encuestar 0.9000 Modificaciones en campa\xF100a
 
 * Durante el periodo entre enero y julio del 2024 la paquetería sufrió modificaciones desarrolladas directamente y durante la produccion.
 * Cambios asociados principalmente a la clase 'Graficas' que es la que se usa para producir y entregar los resultados. De manera menos frecuente la aplicacion de monitoreo tambien ha recibido cambios fundamentalmente en las visualizaciones que ofrece.
@@ -21,8 +21,8 @@
 
 # encuestar 0.9000 Tercer sprint
 
-* El tercer sprint arregla un error fundamental en la construccion del dise\xF1o muestral. Los rangos de edades que se necesitan son de 18 a 24, de 25 a 59 y 60 y mas. Aunque el código estaba bien implementado, las etiquetas de la variable que contiene esa inforamción estaban incorrectas pues decían "18 a 24", "25 a 60" y "60 y mas" lo que genera una ambiguedad. Este error se hereda desde el paquete `muestrear` utilizado para generar los dise\xF1os y muestras utilizados en cada encuesta. El arreglo implica la modificacion de ambas paqueterías y, en `encuestar`, afecta a todo el proceso de generación de dise\xF1o muestral y al código contenido en la aplicación de monitoreo. Esto implica que cualquier dise\xF1o muestral generado antes de esta modificación (Diciembre 2023) no podrá ser utilizado en la paquetería a partir de esta actualización. 
-* Si se busca reproducir los resultados de cualquier encuesta anterior a esa fecha, existe una rama llamada dise\xF1o_anterior que conserva ese error.
+* El tercer sprint arregla un error fundamental en la construccion del dise\xF100o muestral. Los rangos de edades que se necesitan son de 18 a 24, de 25 a 59 y 60 y mas. Aunque el código estaba bien implementado, las etiquetas de la variable que contiene esa inforamción estaban incorrectas pues decían "18 a 24", "25 a 60" y "60 y mas" lo que genera una ambiguedad. Este error se hereda desde el paquete `muestrear` utilizado para generar los dise\xF100os y muestras utilizados en cada encuesta. El arreglo implica la modificacion de ambas paqueterías y, en `encuestar`, afecta a todo el proceso de generación de dise\xF100o muestral y al código contenido en la aplicación de monitoreo. Esto implica que cualquier dise\xF100o muestral generado antes de esta modificación (Diciembre 2023) no podrá ser utilizado en la paquetería a partir de esta actualización. 
+* Si se busca reproducir los resultados de cualquier encuesta anterior a esa fecha, existe una rama llamada dise\xF100o_anterior que conserva ese error.
 
 # encuestar 0.9000 Segundo sprint
 
