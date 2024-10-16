@@ -19,7 +19,7 @@
 #' @field respuestas El campo `respuestas` contiene los resultados de ejecutar la clase `Respuestas`
 #'  de jerarquía menor. Dicha clase tiene como objetivo verificar, limpiar y estandarizar las
 #'  respuestas recibidas de campo.
-#' @param n_simulaciones Valor entero usado para simular un [tibble()] necesario para generar
+#' @field n_simulaciones Valor entero usado para simular un [tibble()] necesario para generar
 #'  la clase `Respuestas`.
 #' @field opinometro_id Valor entero usado para generar el [tibble()] de respuestas a través
 #'  de la plataforma Opinómetro y que es necesario para generar la clase `Respuestas`.
