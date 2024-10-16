@@ -30,6 +30,9 @@ que contiene el diccionario y realiza unas cuantas verificaciones.}
 de jerarquía menor. Dicha clase tiene como objetivo verificar, limpiar y estandarizar las
 respuestas recibidas de campo.}
 
+\item{\code{n_simulaciones}}{Valor entero usado para simular un \code{\link[=tibble]{tibble()}} necesario para generar
+la clase \code{Respuestas}.}
+
 \item{\code{opinometro_id}}{Valor entero usado para generar el \code{\link[=tibble]{tibble()}} de respuestas a través
 de la plataforma Opinómetro y que es necesario para generar la clase \code{Respuestas}.}
 
@@ -189,24 +192,50 @@ análogo al \code{INEGI}. Sin embargo, este modo ha entrado en desuso y en un fu
 \if{html}{\out{<a id="method-Encuesta-simular_surveytogo"></a>}}
 \if{latex}{\out{\hypertarget{method-Encuesta-simular_surveytogo}{}}}
 \subsection{Method \code{simular_surveytogo()}}{
+Simula una base de respuestas de campo a parti del diccionario delos insumos mínumos necesarios
+y suficientes.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$simular_surveytogo(cuestionario, n, diseño, shp)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{cuestionario}}{Campo de la clase encuesta.}
+
+\item{\code{n}}{Valor entero. Define el \code{\link[=nrow]{nrow()}} del \code{\link[=tibble]{tibble()}} de respuestas simuladas.}
+
+\item{\code{diseño}}{Parámetro inicial de la clase \code{Encuesta}.}
+
+\item{\code{shp}}{Parámetro inicial de la clase \code{Encuesta}.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Encuesta-error_muestral_maximo"></a>}}
 \if{latex}{\out{\hypertarget{method-Encuesta-error_muestral_maximo}{}}}
 \subsection{Method \code{error_muestral_maximo()}}{
+Cálculo del error muestral de cada pregunta de opción múltiple y despliegue de resultados
+en forma de objeto de ggplot2
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$error_muestral_maximo(quitar_patron = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{quitar_patron}}{Vector tipo vacater que contiene los patrones coumnes entre nombres
+de variables que se deben omitir en el cálculo.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Encuesta-exportar_entregable"></a>}}
 \if{latex}{\out{\hypertarget{method-Encuesta-exportar_entregable}{}}}
 \subsection{Method \code{exportar_entregable()}}{
+Exportar entregables al terminar cada levantamiento.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Encuesta$exportar_entregable(
   carpeta = "entregables",
@@ -215,6 +244,19 @@ análogo al \code{INEGI}. Sin embargo, este modo ha entrado en desuso y en un fu
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{carpeta}}{Nombre de la carpeta de destino}
+
+\item{\code{agregar}}{Vector tipo caracter que contiene las variables que se entregan en la base
+de datos.}
+
+\item{\code{quitar}}{Vector tipo caracter que contiene las variables que se omiten en la base
+de datos.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Encuesta-clone"></a>}}

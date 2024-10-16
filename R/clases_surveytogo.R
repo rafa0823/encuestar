@@ -297,7 +297,14 @@ Encuesta <-
         print(glue::glue("Las siguientes variables no son de sistema, plataforma o están en el diccionario"))
         print(match_dicc_base(self), n = Inf)
       },
-
+      #' @description
+      #' Simula una base de respuestas de campo a parti del diccionario delos insumos mínumos necesarios
+      #'  y suficientes.
+      #' @method simular_surveytogo Encuesta
+      #' @param cuestionario Campo de la clase encuesta.
+      #' @param n Valor entero. Define el [nrow()] del [tibble()] de respuestas simuladas.
+      #' @param diseño Parámetro inicial de la clase `Encuesta`.
+      #' @param shp Parámetro inicial de la clase `Encuesta`.
       simular_surveytogo = function(cuestionario, n, diseño, shp){
         #simular respuestas
         respuestas <- cuestionario$diccionario %>% mutate(n = n) %>%
@@ -356,7 +363,12 @@ Encuesta <-
           relocate(Srvyr, Date, .before = Longitude) %>%
           relocate(SECCION, INT15, .after = Latitude)
       },
-
+      #' @description
+      #' Cálculo del error muestral de cada pregunta de opción múltiple y despliegue de resultados
+      #'  en forma de objeto de ggplot2
+      #' @method error_muestral_maximo Encuesta
+      #' @param quitar_patron Vector tipo vacater que contiene los patrones coumnes entre nombres
+      #'  de variables que se deben omitir en el cálculo.
       error_muestral_maximo = function(quitar_patron = NULL){
         aux <- self$cuestionario$diccionario %>% filter(tipo_pregunta == "multiple")
         if(!is.null(quitar_patron)) {
@@ -403,7 +415,14 @@ Encuesta <-
         print(a + b)
         return(aux)
       },
-
+      #' @description
+      #' Exportar entregables al terminar cada levantamiento.
+      #' @method exportar_entregable Encuesta
+      #' @param carpeta Nombre de la carpeta de destino
+      #' @param agregar Vector tipo caracter que contiene las variables que se entregan en la base
+      #'  de datos.
+      #' @param quitar Vector tipo caracter que contiene las variables que se omiten en la base
+      #'  de datos.
       exportar_entregable = function(carpeta = "entregables", agregar = NULL, quitar = NULL){
 
         if(!file.exists(carpeta)) dir.create(carpeta)
