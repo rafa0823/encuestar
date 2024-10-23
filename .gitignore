@@ -9,3 +9,6 @@ R/constantes.R
 inst/doc
 /doc/
 /Meta/
+data-raw/desarrollo.R
+data-raw/exploratorio_opinometro.R
+data-raw/pruebas.R
