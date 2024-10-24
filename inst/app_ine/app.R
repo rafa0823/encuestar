@@ -701,7 +701,8 @@ server <- function(input, output, session) {
       mapa_base %>%
       left_join(nombres_region |> select(strata_1, nombre_region), by = "strata_1") |>
       leaflet(options = leafletOptions(zoomControl = FALSE)) %>%
-      addProviderTiles("CartoDB.Positron") %>%
+      addTiles(urlTemplate = "https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}",
+               attribution = '© Google') |>
       addPolygons(color = ~pal_region(nombre_region),
                   opacity = 1,
                   fill = T,
