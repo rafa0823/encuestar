@@ -53,6 +53,7 @@ Imports:
     yesno
 Suggests: 
     knitr,
+    odbc,
     pool,
     rmarkdown,
     testthat (>= 3.0.0)
