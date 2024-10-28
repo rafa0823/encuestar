@@ -45,11 +45,15 @@ Opinometro <-
                   self$verificar_variables()
                   self$terminar_conexion()
                 },
+                #' @description Determina las variables que están contenidas en la plataforma
+                #'  `Opinometro`a partir de los campos construidos en el cuestinoario.
                 definir_variables = function(){
                   self$variables_cuestionario <-
                     determinarVariables_cuestinoarioOpinometro(pool = self$pool,
                                                                id_cuestionario = self$id_cuestionarioOpinometro)
                 },
+                #' @description Construye el [tibble()] de respuestas contenidas en la base de datos
+                #'  que tiene implementada la plataforma ``Opinometro`.
                 construir_respuestas = function(){
 
                   bd_respuestas_opinometro_raw <-
@@ -65,6 +69,8 @@ Opinometro <-
                               by = "SbjNum")
 
                 },
+                #' @description Notifica al usuario si hay variables faltantes o sobrantes en el [tibble]
+                #'  que contiene las respuestas.
                 verificar_variables = function(){
                   variables_sobrantes <-
                     self$bd_respuestas_cuestionario |>
@@ -109,6 +115,8 @@ Opinometro <-
                     }
                   }
                 },
+                #' @description Cierra la conexion con la base de datos que contiene la impmlementación
+                #'  del `Opinometro`.
                 terminar_conexion = function(){
                   pool::poolClose(pool = private$pool)
                 }

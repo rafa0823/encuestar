@@ -72,6 +72,8 @@ en el campo \code{diccionario}.}
 \if{html}{\out{<a id="method-Opinometro-definir_variables"></a>}}
 \if{latex}{\out{\hypertarget{method-Opinometro-definir_variables}{}}}
 \subsection{Method \code{definir_variables()}}{
+Determina las variables que están contenidas en la plataforma
+\code{Opinometro}a partir de los campos construidos en el cuestinoario.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Opinometro$definir_variables()}\if{html}{\out{</div>}}
 }
@@ -81,6 +83,8 @@ en el campo \code{diccionario}.}
 \if{html}{\out{<a id="method-Opinometro-construir_respuestas"></a>}}
 \if{latex}{\out{\hypertarget{method-Opinometro-construir_respuestas}{}}}
 \subsection{Method \code{construir_respuestas()}}{
+Construye el \code{\link[=tibble]{tibble()}} de respuestas contenidas en la base de datos
+que tiene implementada la plataforma ``Opinometro`.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Opinometro$construir_respuestas()}\if{html}{\out{</div>}}
 }
@@ -90,6 +94,8 @@ en el campo \code{diccionario}.}
 \if{html}{\out{<a id="method-Opinometro-verificar_variables"></a>}}
 \if{latex}{\out{\hypertarget{method-Opinometro-verificar_variables}{}}}
 \subsection{Method \code{verificar_variables()}}{
+Notifica al usuario si hay variables faltantes o sobrantes en el \link{tibble}
+que contiene las respuestas.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Opinometro$verificar_variables()}\if{html}{\out{</div>}}
 }
@@ -99,6 +105,8 @@ en el campo \code{diccionario}.}
 \if{html}{\out{<a id="method-Opinometro-terminar_conexion"></a>}}
 \if{latex}{\out{\hypertarget{method-Opinometro-terminar_conexion}{}}}
 \subsection{Method \code{terminar_conexion()}}{
+Cierra la conexion con la base de datos que contiene la impmlementación
+del \code{Opinometro}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Opinometro$terminar_conexion()}\if{html}{\out{</div>}}
 }
