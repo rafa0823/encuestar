@@ -1,5 +1,35 @@
-#'Esta es la clase de Resultados
+#' Clase Resultados
 #'
+#' @description La clase `Resultados` es el nodo principal entre el cálculo de las estimaciones y la
+#'  interfaz de usuario. Después de la clase `Encuesta`, la clase `Resultados` es la segunda más
+#'  importante dentro de la paquetería. Áunque tiene clases de jerarquía menor, estas clumplen el papel
+#'  de clasificadoras de métodos. De esta forma, la clase `Resultados` escencialmente realiza dos pasos
+#'  procesat y visualizar.
+#'
+#' @field encuesta Clase de jerarquía superior. Campo heredado por la clase `Encuesta`.
+#' @field diseno Diseno muestral actual. Aunque el diseno esté contenido en la clase `Encuesta`,
+#'  el modo de procesamiento de encuesta que no se levantó en campo requiere de alimentar la clase
+#'  `Resultados` con un diseno muestral independiente a la clase `Muestra`.
+#' @field diccionario Diccionario de procesamiento. Aunque el diccionario esté contendio en la
+#'  clase `Cuestionario` que a su vez está dentro de la clase `Encuesta` el modo de procesamiento de
+#'  encuesta que no se levantói en campo requiere de alimentar la clase con un diccionario que no
+#'  haya sido procesado por la clase `Cuestionario`.
+#' @field Descriptiva Clase de jerarquía menor. Contiene los métodos que visualizan resultados de
+#'  forma más simple como gráficas de barras de resultados de una sola variable.
+#' @field Regiones Clase de jerarquía menor, Contiene los métodos que visualizan resultados basados
+#'  en la estratificación de la encuesta.
+#' @field Modelo Clase de jerarquía menor. Contiene métodos de análisis estadísitico como PCA.
+#' @field Cruce Clase de jerarquía menor. Contiene métodos enfocados en presentar resultados
+#'  cruzando dos o más variables.
+#' @field Especial Clase de jerarquía menor. Contiene métodos para visualizar resultados construidos
+#'  de forma personalizada.
+#' @field Tendencias Clase de jerarquía menor. Contiene los metodos de estimacions usando la media móvil
+#' @field tema Objeto [theme] de la paquetería [ggplot2] que contiene el formato e identidad gráfica
+#'  de Morant Consultores
+#' @field graficadas En desuso. Contiene un [ tibble] que indica qué variables ya han sido procesadas
+#'  durante la producción.
+#'
+#' @export
 Resultados <- R6::R6Class(classname = "Resultados",
                           public = list(
                             encuesta = NULL,
@@ -13,6 +43,16 @@ Resultados <- R6::R6Class(classname = "Resultados",
                             Tendencias = NULL,
                             tema = NULL,
                             graficadas = NULL,
+                            #' @description Carga los insumos necesarios para producir resultados en
+                            #'  forma de visualizaciones con objetos tipo [ggplot2] o [flextable]
+                            #' @param encuesta Clase de jerarquía superior que se carga de forma
+                            #'  implítica.
+                            #' @param diseno Objeto tipo [desing] de la paquetería [survey]. Si el
+                            #'  parámetro es no nullo, el objeto `diseno` es el usado para calcular
+                            #'  las estimaciones. No se espera que ambos parámetros `encuesta` y
+                            #'  `diseno` sean no nulos al mismo tiempo.
+                            #' @param diccionario Diccionario de procesamiento de la encuesta.
+                            #' @param tema Objetio tipo [theme] de la paquetería [ggplot2].
                             initialize = function(encuesta, diseno, diccionario, tema = tema_morant()){
 
                               self$encuesta <- encuesta
@@ -71,308 +111,434 @@ Resultados <- R6::R6Class(classname = "Resultados",
 
                               }
                             },
+                            #' @description Visualiza las variables que aún no han sido producidas
+                            #'  por la paqutería durante la producción.
                             faltantes = function(){
                               gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
                             }
                           )
 )
 
-#'Esta es la clase de Descriptiva
-#'@export
+#' Clase Descriptiva
 #'
-Descriptiva <- R6::R6Class(classname = "Descriptiva",
-                           public = list(
-                             encuesta = NULL,
-                             diseno = NULL,
-                             diccionario = NULL,
-                             tema = NULL,
-                             graficadas = NULL,
-                             initialize = function(encuesta = NULL, diseno = NULL, diccionario = NULL, tema, graficadas = NULL){
-                               self$encuesta <- encuesta
-                               self$diseno <- diseno
-                               self$diccionario <- diccionario
-                               self$tema <- tema
-                               self$graficadas <- graficadas
-                             },
-                             barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
+#' @description La clase `Descriptiva` contiene los métodos necesarios para producir los resultados
+#'  más básicos relacionados a la encuesta como graficas de barras de estimaciones de una sola variable
+#'  o graficas tipo `gauge` que muestan el porcentaje de uno de los valores una variable binaria.
+#' @field encuesta Clase de jerarquía superior. Se requiere para extraer el diseno de la encuesta.
+#' @field diseno Objeto tipo [design] de la paquetería [survey] relacionado con el diseno de la
+#'  encuesta.
+#' @field diccionario Diccionario de procesamiento de la encuesta.
+#' @field tema Objeto tipo [theme] de la paquetería [ggplot2]
+#' @field graficadas Campo heredado por la clase `Resultados`.
+Descriptiva <- R6::R6Class(
+  classname = "Descriptiva",
+  public = list(
+    encuesta = NULL,
+    diseno = NULL,
+    diccionario = NULL,
+    tema = NULL,
+    graficadas = NULL,
+    #' @description Define los insumos necesarios para preparar los métodos que producen los resultados
+    #'  más básicos de la paquetería.
+    #' @param encuesta Clase de jerarquía superior. Es el formato de la paquetería `encuestar`. Contiene
+    #'  el diseno muestral de la encuesta.
+    #' @param diseno Objeto tipo [design] de la paquetería [survey]. No se espera que los parametros
+    #'  `encuesta` y `diseno` sean no nullos. El segundo sobreescribe el primero.
+    #' @param diccionario Diccionario (o codebook) del cuestionario de la encuesta.
+    #' @param tema Objeto tipo [theme] de la paquetería [ggplot2].
+    #' @param graficadas Parametro heredado de la clase `Resultados`.
+    initialize = function(encuesta = NULL, diseno = NULL, diccionario = NULL, tema, graficadas = NULL){
+      self$encuesta <- encuesta
+      self$diseno <- diseno
+      self$diccionario <- diccionario
+      self$tema <- tema
+      self$graficadas <- graficadas
+    },
+    #' @description Calcula las estimaciones de una variable y muestra los resultados en una
+    #'  gráfica de barras ordenadas de mayor a menor de forma vertical de acuerdo a las esitmaciones.
+    #' @param codigo Valor tipo caracter. Nombre de la variable que se va a analizar.
+    #' @param salto Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.
+    #'  Aplica la función [str_wrap()] de la paquetería [stringr] a los valores únicos de la
+    #'  variable de interés.
+    #' @param porcentajes_fuera `LOGICAL`. Visualiza las labels que muestran las estimaciones dentro
+    #'  o fuera de la barra. Útil para cuando hay muchas categorías.
+    #' @param desplazar_porcentajes Valor real. Parámetro [nudge_y] de la función [geom_text]. Aplica
+    #' sólo si `porcentajes_fuera` es `TRUE`.
+    #' @param pct_otros Valor real definido entre 0 y 1. A las categorias cuyas estimaciones sean menor
+    #'  o igual que `pct_otros` las agrupa, las suma y las muestra en `Otros`.
+    #' @param orden_respuestas Vector tipo caracter que contiene, de manera ordenada, los valores únicos
+    #'  de la variable de interés y reordena las barras de la gráfica de barras de acuerdo a ese orden.
+    barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
+
+      llave_aux <- codigo
+      if(!(llave_aux %in% self$graficadas)){
+        if(llave_aux %in% self$diccionario$llaves){
+          self$graficadas <- self$graficadas %>% append(llave_aux)
+        } else {
+          stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+        }
+      } else {
+        warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+      }
+
+      tema <- self$diccionario |>
+        filter(llaves == rlang::ensym(codigo)) |>
+        pull(tema)
+
+      if(is.null(self$diseno)) {
+
+        diseno <- self$encuesta$muestra$diseno
+
+      } else {
+
+        diseno <- self$diseno
+
+      }
+
+      analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
+        mutate(tema = tema) |>
+        mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = media, other_level = "Otros"),
+               respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
+        group_by(respuesta) |>
+        summarise(media = sum(media)) |>
+        graficar_barras(salto = salto,
+                        porcentajes_fuera = porcentajes_fuera,
+                        desplazar_porcentajes = desplazar_porcentajes,
+                        orden_respuestas = orden_respuestas) +
+        self$tema
+
+    },
+    #' @description Calcula las estimaciones de varias variables cuyos nombres inician con el mismo
+    #'  patron de caracteres. Las variables tienen que contener al menos un valor común entre todas.
+    #'  El formato esperado de los nombres de las variables son patron_inicial_aspecto1, patron_inicial_aspecto2
+    #'  patron_inicial_aspecto3 etc.
+    #' @param patron_inicial Valor tipo caracter. Es el patron inicial de caracteres que comparten
+    #'  los nombres de las variables.
+    #' @param aspectos Vector tipo caracter que identifica a las diferentes variables a procesar. De
+    #'  acuerdo al método, el ejemplo sería c("aspecto1", "aspecto2", "aspecto3").
+    #' @param salto Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.
+    #'  Aplica la función [str_wrap()] de la paquetería [stringr] a las labels del eje x.
+    #' @param filtro Valor tipo caracter. Operación de identidad que se aplica como filtro entre los
+    #'  resultados de las variables de interés. Por defecto, la variable que contiene los valores
+    #'  únicos se llama "respuesta" por lo que el filtro aplica sobre esa variable muda. por ejemplo
+    #'  filtro = "respuesta == 'azul'".
+    #' @param porcentajes_fuera `LOGICAL`. Visualiza las labels que muestran las estimaciones dentro
+    #'  o fuera de la barra. Útil para cuando hay muchas categorías.
+    #' @param desplazar_porcentajes Valor real. Parámetro [nudge_y] de la función [geom_text]. Aplica
+    #' sólo si `porcentajes_fuera` es `TRUE`.
+    barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = "respuesta == 'Sí'", porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+      if(is.null(filtro) | is.null(aspectos)) {
+
+        stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro` o indique los aspectos correctos."))
+
+      } else {
+
+        tema <- self$diccionario |>
+          filter(llaves == rlang::ensym(patron_inicial)) |>
+          pull(pregunta)
+
+        if(is.null(self$diseno)) {
+
+          diseno <- self$encuesta$muestra$diseno
+
+        } else {
+
+          diseno <- self$diseno
+
+        }
+
+        analizar_frecuencias_aspectos(diseno = diseno,
+                                      diccionario = self$diccionario,
+                                      patron_pregunta = {{patron_inicial}},
+                                      aspectos = aspectos) |>
+          left_join(self$diccionario |>
+                      select(llaves, tema), by = c("aspecto" = "llaves")) |>
+          filter(eval(rlang::parse_expr(filtro))) |>
+          transmute(respuesta = tema, media) |>
+          graficar_barras(salto = salto,
+                          porcentajes_fuera = porcentajes_fuera,
+                          desplazar_porcentajes = desplazar_porcentajes,
+                          orden_respuestas = NA) +
+          self$tema
+
+      }
+
+    },
+    #' @description Calcula las estimaciones de varias variables cuyos nombres inician con el mismo
+    #'  patrón de caracteres. Dichas variables representan un conjunto de preguntar multirespuesta.
+    #'  Muestra los resultados en un gráfico tipo gráfica de barras.
+    #' @param patron_inicial Valor tipo caracter. Es el patron inicial de caracteres que comparten
+    #'  los nombres de las variables.
+    #' @param salto Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.
+    #'  Aplica la función [str_wrap()] de la paquetería [stringr] a las labels del eje x.
+    #' @param porcentajes_fuera `LOGICAL`. Visualiza las labels que muestran las estimaciones dentro
+    #'  o fuera de la barra. Útil para cuando hay muchas categorías.
+    #' @param desplazar_porcentajes Valor real. Parámetro [nudge_y] de la función [geom_text]. Aplica
+    #' sólo si `porcentajes_fuera` es `TRUE`.
+    barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+
+      if(is.null(self$diseno)) {
+
+        diseno <- self$encuesta$muestra$diseno
+
+      } else {
+
+        diseno <- self$diseno
 
-                               llave_aux <- codigo
-                               if(!(llave_aux %in% self$graficadas)){
-                                 if(llave_aux %in% self$diccionario$llaves){
-                                   self$graficadas <- self$graficadas %>% append(llave_aux)
-                                 } else {
-                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                 }
-                               } else {
-                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               }
-
-                               tema <- self$diccionario |>
-                                 filter(llaves == rlang::ensym(codigo)) |>
-                                 pull(tema)
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
-                                 mutate(tema = tema) |>
-                                 mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = media, other_level = "Otros"),
-                                        respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
-                                 group_by(respuesta) |>
-                                 summarise(media = sum(media)) |>
-                                 graficar_barras(salto = salto,
-                                                 porcentajes_fuera = porcentajes_fuera,
-                                                 desplazar_porcentajes = desplazar_porcentajes,
-                                                 orden_respuestas = orden_respuestas) +
-                                 self$tema
-
-                             },
-                             barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = "respuesta == 'Sí'", porcentajes_fuera = F, desplazar_porcentajes = 0){
-
-                               if(is.null(filtro) | is.null(aspectos)) {
-
-                                 stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro` o indique los aspectos correctos."))
-
-                               } else {
-
-                                 tema <- self$diccionario |>
-                                   filter(llaves == rlang::ensym(patron_inicial)) |>
-                                   pull(pregunta)
-
-                                 if(is.null(self$diseno)) {
-
-                                   diseno <- self$encuesta$muestra$diseno
-
-                                 } else {
-
-                                   diseno <- self$diseno
-
-                                 }
-
-                                 analizar_frecuencias_aspectos(diseno = diseno,
-                                                               diccionario = self$diccionario,
-                                                               patron_pregunta = {{patron_inicial}},
-                                                               aspectos = aspectos) |>
-                                   left_join(self$diccionario |>
-                                               select(llaves, tema), by = c("aspecto" = "llaves")) |>
-                                   filter(eval(rlang::parse_expr(filtro))) |>
-                                   transmute(respuesta = tema, media) |>
-                                   graficar_barras(salto = salto,
-                                                   porcentajes_fuera = porcentajes_fuera,
-                                                   desplazar_porcentajes = desplazar_porcentajes,
-                                                   orden_respuestas = NA) +
-                                   self$tema
-
-                               }
-
-                             },
-                             barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               analizar_frecuencias_multirespuesta(diseno = diseno,
-                                                                   patron_inicial) %>%
-                                 graficar_barras(salto = salto,
-                                                 porcentajes_fuera = porcentajes_fuera,
-                                                 desplazar_porcentajes = desplazar_porcentajes) +
-                                 self$tema
-
-                             },
-                             gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
-
-                               llave_aux <- codigo
-                               if(!(llave_aux %in% self$graficadas)){
-                                 if(llave_aux %in% self$diccionario$llaves){
-                                   self$graficadas <- self$graficadas %>% append(llave_aux)
-                                 } else {
-                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                 }
-                               } else {
-                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               }
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               bd_estimacion <- analizar_frecuencias(diseno = diseno, pregunta = {{codigo}})
-
-                               tema <- self$diccionario |>
-                                 filter(llaves == rlang::ensym(codigo)) |>
-                                 pull(tema)
-
-                               bd_estimacion |>
-                                 mutate(tema = tema) |>
-                                 graficar_gauge(color_principal = color,
-                                                escala = escala,
-                                                size_text_pct = size_text_pct)
-
-                             },
-                             gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 1), size_text_pct = 14){
-
-                               if(is.null(filtro)) {
-
-                                 stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
-
-                               }
-
-                               else {
-
-                                 llave_aux <- codigo
-                                 if(!(llave_aux %in% self$graficadas)){
-                                   if(llave_aux %in% self$diccionario$llaves){
-                                     self$graficadas <- self$graficadas %>% append(llave_aux)
-                                   } else {
-                                     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                   }
-                                 } else {
-                                   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                                 }
-
-                                 if(is.null(self$diseno)) {
-
-                                   diseno <- self$encuesta$muestra$diseno
-
-                                 } else {
-
-                                   diseno <- self$diseno
-
-                                 }
-
-                                 bd_estimacion <- analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
-                                   filter(eval(rlang::parse_expr(filtro)))
-
-                                 tema <- self$diccionario |>
-                                   filter(llaves == rlang::ensym(codigo)) |>
-                                   pull(tema)
-
-                                 bd_estimacion %>%
-                                   mutate(tema = tema) |>
-                                   graficar_gauge(color_principal = color,
-                                                  escala = escala,
-                                                  size_text_pct = size_text_pct)
-                               }
-
-                             },
-                             intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
-
-                               # llave_aux <- codigo
-                               # if(!(llave_aux %in% self$graficadas)){
-                               #   if(llave_aux %in% self$diccionario$llaves){
-                               #     self$graficadas <- self$graficadas %>% append(llave_aux)
-                               #   } else {
-                               #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                               #   }
-                               # } else {
-                               #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               # }
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               analizar_frecuencias_aspectos(diseno = diseno,
-                                                             diccionario = self$diccionario,
-                                                             patron_pregunta = {{patron}},
-                                                             aspectos = aspectos) %>%
-                                 left_join(self$diccionario %>%
-                                             select(aspecto = llaves, tema), by = "aspecto") |>
-                                 graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
-                                 self$tema
-
-
-                             },
-                             lollipops_categorica = function(codigo, orden = NULL, limits = c(0, 1.0), width_cats = 15 , size=3, size_pct = 6,pct_otros = 0.01){
-                               llave_aux <- codigo
-                               if(!(llave_aux %in% self$graficadas)){
-                                 if(llave_aux %in% self$diccionario$llaves){
-                                   self$graficadas <- self$graficadas %>% append(llave_aux)
-                                 } else {
-                                   stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-                                 }
-                               } else {
-                                 warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-                               }
-
-                               tema <- self$diccionario |>
-                                 filter(llaves == rlang::ensym(codigo)) |>
-                                 pull(tema)
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
-                                 mutate(tema = tema) |>
-                                 rename(pct = media) |>
-                                 mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = pct, other_level = "Otros"),
-                                        respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
-                                 group_by(respuesta) |>
-                                 summarise(pct = sum(pct)) |>
-                                 graficar_lollipops(orden = orden,
-                                                    limits = limits,
-                                                    width_cats = width_cats ,
-                                                    size = size,
-                                                    size_pct = size_pct) +
-                                 self$tema
-                             },
-                             lollipops_multirespuesta = function(patron_inicial, orden = NULL, limits = c(0, 1.0), width_cats = 15 , size=3, size_pct = 6){
-
-                               if(is.null(self$diseno)) {
-
-                                 diseno <- self$encuesta$muestra$diseno
-
-                               } else {
-
-                                 diseno <- self$diseno
-
-                               }
-
-                               analizar_frecuencias_multirespuesta(diseno = diseno,
-                                                                   patron_inicial) %>%
-                                 rename(pct = media) |>
-                                 graficar_lollipops(orden = orden,
-                                                    limits = limits,
-                                                    width_cats = width_cats ,
-                                                    size = size,
-                                                    size_pct = size_pct)  +
-                                 self$tema
-
-                             }
-                           ))
+      }
+
+      analizar_frecuencias_multirespuesta(diseno = diseno,
+                                          patron_inicial) %>%
+        graficar_barras(salto = salto,
+                        porcentajes_fuera = porcentajes_fuera,
+                        desplazar_porcentajes = desplazar_porcentajes) +
+        self$tema
+
+    },
+    #' @description Calcula las estimaciones de una única variable que representa una pregunta
+    #'  cuyas respuestas son únicamente del tipo numérica.
+    #' @param codigo Valor tipo caracter. Nombre de la variable que se va a analizar.
+    #' @param color Valor tipo caracter. Color en formato `HEX`. Es ekl color con el que se 'rellena'
+    #'  el gráfico tipo gauge.
+    #' @param escala Dupla tipo numérica. Son los posibles valores mínimos y máximos posibles asociados
+    #'  a la pregunta que representa la variable.
+    #' @param size_text_pct Valor entero. Determina el tamano del dentro dento del gráfico. Es el parámetro
+    #' [size] de la función [ggplot2::geom_text()].
+    gauge_numerica = function(codigo, color = "#850D2D", escala = c(0, 10), size_text_pct = 14){
+
+      llave_aux <- codigo
+      if(!(llave_aux %in% self$graficadas)){
+        if(llave_aux %in% self$diccionario$llaves){
+          self$graficadas <- self$graficadas %>% append(llave_aux)
+        } else {
+          stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+        }
+      } else {
+        warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+      }
+
+      if(is.null(self$diseno)) {
+
+        diseno <- self$encuesta$muestra$diseno
+
+      } else {
+
+        diseno <- self$diseno
+
+      }
+
+      bd_estimacion <- analizar_frecuencias(diseno = diseno, pregunta = {{codigo}})
+
+      tema <- self$diccionario |>
+        filter(llaves == rlang::ensym(codigo)) |>
+        pull(tema)
+
+      bd_estimacion |>
+        mutate(tema = tema) |>
+        graficar_gauge(color_principal = color,
+                       escala = escala,
+                       size_text_pct = size_text_pct)
+
+    },
+    #' @description Calcula las estimaciones de un valor único de una única variable y lo muestra en
+    #'  una gráfica tipo gauge.
+    #' @param codigo Valor tipo caracter. Nombre de la variable que se va a analizar.
+    #' @param filtro Valor tipo caracter. Operación de identidad que se aplica como filtro entre los
+    #'  resultados de la variable de interés. Por ejemplo filtro = "respuesta == 'azul'".
+    #' @param color Valor tipo caracter. Color en formato `HEX`. Es ekl color con el que se 'rellena'
+    #'  el gráfico tipo gauge.
+    #' @param escala Dupla tipo numérica. Por lo general, la escala es porcentual.
+    #' @param size_text_pct Valor entero. Determina el tamano del dentro dento del gráfico. Es el parámetro
+    #'  [size] de la función [ggplot2::geom_text()].
+    gauge_categorica = function(codigo, filtro, color = "#850D2D", escala = c(0, 1), size_text_pct = 14){
+
+      if(is.null(filtro)) {
+
+        stop(paste("Especifique la respuesta en la cual hacer filtro con el argumento `filtro`"))
+
+      }
+
+      else {
+
+        llave_aux <- codigo
+        if(!(llave_aux %in% self$graficadas)){
+          if(llave_aux %in% self$diccionario$llaves){
+            self$graficadas <- self$graficadas %>% append(llave_aux)
+          } else {
+            stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+          }
+        } else {
+          warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+        }
+
+        if(is.null(self$diseno)) {
+
+          diseno <- self$encuesta$muestra$diseno
+
+        } else {
+
+          diseno <- self$diseno
+
+        }
+
+        bd_estimacion <- analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
+          filter(eval(rlang::parse_expr(filtro)))
+
+        tema <- self$diccionario |>
+          filter(llaves == rlang::ensym(codigo)) |>
+          pull(tema)
+
+        bd_estimacion %>%
+          mutate(tema = tema) |>
+          graficar_gauge(color_principal = color,
+                         escala = escala,
+                         size_text_pct = size_text_pct)
+      }
+
+    },
+    #' @description Calcula las estimaciones de varias variables cuyos nombres inician con el mismo
+    #'  patrón de caractere, cuyas respuestas son del tipo numérico y lo muestra en una gráfica única
+    #'  usando un [ggplot2::geom_pointrange] para cada variable. Por ejemplo calificacion_nombre1,
+    #'  calificacion_nombre2, calificacion_nombre3
+    #' @param patron Valor tipo caracter. Es el patron inicial de caracteres que comparten
+    #'  los nombres de las variables. De acuerdo al método sería "calificacion"
+    #' @param aspectos Vector tipo caracter que identifica a las diferentes variables a procesar. De
+    #'  acuerdo al ejemplo del método sería c("nombre1", "nombre2", "nombre3").
+    #' @param escala Dupla tipo numérica. Son los posibles valores mínimos y máximos posibles asociados
+    #'  a la pregunta que representa la variable.
+    #' @param point_size valor tipo entero. Determina el tamano del punto en la visuaización. Es
+    #'  el parámetro [size] de la funcion [ggplot2::geom_pointrange()]
+    #' @param text_point_size valor tipo entero. Determina el tamano del texto mostrado arriba del
+    #'  punto. Es el parámetro [size] de la funcion [ggplot2::geom_text()]
+    intervalo_numerica = function(patron, aspectos, escala = c(0, 10), point_size = 1, text_point_size = 8){
+
+      # llave_aux <- codigo
+      # if(!(llave_aux %in% self$graficadas)){
+      #   if(llave_aux %in% self$diccionario$llaves){
+      #     self$graficadas <- self$graficadas %>% append(llave_aux)
+      #   } else {
+      #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+      #   }
+      # } else {
+      #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+      # }
+
+      if(is.null(self$diseno)) {
+
+        diseno <- self$encuesta$muestra$diseno
+
+      } else {
+
+        diseno <- self$diseno
+
+      }
+
+      analizar_frecuencias_aspectos(diseno = diseno,
+                                    diccionario = self$diccionario,
+                                    patron_pregunta = {{patron}},
+                                    aspectos = aspectos) %>%
+        left_join(self$diccionario %>%
+                    select(aspecto = llaves, tema), by = "aspecto") |>
+        graficar_intervalo_numerica(escala = escala, point_size = point_size, text_point_size = text_point_size) +
+        self$tema
+
+
+    },
+    #' @description Calcula las estimaciones de una variable y muestra los resultados en una
+    #'  gráfica tipo lollipops ordenadas de mayor a menor de forma vertical de acuerdo a las esitmaciones.
+    #' @param codigo Valor tipo caracter. Nombre de la variable que se va a analizar.
+    #' @param orden Vector tipo caracter que contiene, de manera ordenada, los valores únicos de
+    #'  la variable de interés y reordena las barras de la gráfica de barras de acuerdo a ese orden.
+    #' @param limits Dupla tipo numérica. Delimita el límite inferior y superior del gráfico. Es el
+    #'  parámetro [limits] de la función [ggplot2::scale_y_continuous()].
+    #' @param width_cats Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.
+    #'  Aplica la función [str_wrap()] de la paquetería [stringr] a las labels del eje x.
+    #' @param size Valor tipo entero. define el grueso de la linea del gráfico tipo lollipop. Es el
+    #'  argumento [linewidth] de la función [ggplot2::geom_segment()]
+    #' @param size_pct Valor entero. Determina el tamano del dentro dento del gráfico. Es el parámetro
+    #'  [size] de la función [ggplot2::geom_text()].
+    #' @param pct_otros Valor real definido entre 0 y 1. A las categorias cuyas estimaciones sean menor
+    #'  o igual que `pct_otros` las agrupa, las suma y las muestra en `Otros`.
+    lollipops_categorica = function(codigo, orden = NULL, limits = c(0, 1.0), width_cats = 15 , size = 3, size_pct = 6, pct_otros = 0.01){
+      llave_aux <- codigo
+      if(!(llave_aux %in% self$graficadas)){
+        if(llave_aux %in% self$diccionario$llaves){
+          self$graficadas <- self$graficadas %>% append(llave_aux)
+        } else {
+          stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+        }
+      } else {
+        warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+      }
+
+      tema <- self$diccionario |>
+        filter(llaves == rlang::ensym(codigo)) |>
+        pull(tema)
+
+      if(is.null(self$diseno)) {
+
+        diseno <- self$encuesta$muestra$diseno
+
+      } else {
+
+        diseno <- self$diseno
+
+      }
+
+      analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
+        mutate(tema = tema) |>
+        rename(pct = media) |>
+        mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = pct, other_level = "Otros"),
+               respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
+        group_by(respuesta) |>
+        summarise(pct = sum(pct)) |>
+        graficar_lollipops(orden = orden,
+                           limits = limits,
+                           width_cats = width_cats ,
+                           size = size,
+                           size_pct = size_pct) +
+        self$tema
+    },
+    #' @description Calcula las estimaciones de varias variables cuyos nombres inician con el mismo
+    #'  patrón de caracteres. Dichas variables representan un conjunto de preguntar multirespuesta.
+    #'  Muestra los resultados en un gráfico tipo lollipops.
+    #' @param patron_inicial Valor tipo caracter. Es el patron inicial de caracteres que comparten
+    #'  los nombres de las variables.
+    #' @param orden Vector tipo caracter que contiene, de manera ordenada, los valores únicos
+    #'  de la variable de interés y reordena las barras de la gráfica de barras de acuerdo a ese orden.
+    #' @param limits Dupla tipo numérica. Son los posibles valores mínimos y máximos posibles asociados
+    #'  a la pregunta que representa la variable.
+    #' @param width_cats Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.
+    #'  Aplica la función [str_wrap()] de la paquetería [stringr] a las labels del eje x.
+    #' @param size Valor tipo entero. define el grueso de la linea del gráfico tipo lollipop. Es el
+    #'  argumento [linewidth] de la función [ggplot2::geom_segment()]
+    #' @param size_pct Valor entero. Determina el tamano del dentro dento del gráfico. Es el parámetro
+    #'  [size] de la función [ggplot2::geom_text()].
+    lollipops_multirespuesta = function(patron_inicial, orden = NULL, limits = c(0, 1.0), width_cats = 15 , size = 3, size_pct = 6){
+
+      if(is.null(self$diseno)) {
+
+        diseno <- self$encuesta$muestra$diseno
+
+      } else {
+
+        diseno <- self$diseno
+
+      }
+
+      analizar_frecuencias_multirespuesta(diseno = diseno,
+                                          patron_inicial) %>%
+        rename(pct = media) |>
+        graficar_lollipops(orden = orden,
+                           limits = limits,
+                           width_cats = width_cats ,
+                           size = size,
+                           size_pct = size_pct)  +
+        self$tema
+
+    }
+  ))
 
 #'Esta es la clase de Cruce
 #'@export

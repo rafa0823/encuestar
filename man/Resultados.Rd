@@ -2,11 +2,51 @@
 % Please edit documentation in R/clase_resultados.R
 \name{Resultados}
 \alias{Resultados}
-\title{Esta es la clase de Resultados}
+\title{Clase Resultados}
 \description{
-Esta es la clase de Resultados
+La clase \code{Resultados} es el nodo principal entre el cálculo de las estimaciones y la
+interfaz de usuario. Después de la clase \code{Encuesta}, la clase \code{Resultados} es la segunda más
+importante dentro de la paquetería. Áunque tiene clases de jerarquía menor, estas clumplen el papel
+de clasificadoras de métodos. De esta forma, la clase \code{Resultados} escencialmente realiza dos pasos
+procesat y visualizar.
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{encuesta}}{Clase de jerarquía superior. Campo heredado por la clase \code{Encuesta}.}
 
-Esta es la clase de Resultados
+\item{\code{diseno}}{Diseno muestral actual. Aunque el diseno esté contenido en la clase \code{Encuesta},
+el modo de procesamiento de encuesta que no se levantó en campo requiere de alimentar la clase
+\code{Resultados} con un diseno muestral independiente a la clase \code{Muestra}.}
+
+\item{\code{diccionario}}{Diccionario de procesamiento. Aunque el diccionario esté contendio en la
+clase \code{Cuestionario} que a su vez está dentro de la clase \code{Encuesta} el modo de procesamiento de
+encuesta que no se levantói en campo requiere de alimentar la clase con un diccionario que no
+haya sido procesado por la clase \code{Cuestionario}.}
+
+\item{\code{Descriptiva}}{Clase de jerarquía menor. Contiene los métodos que visualizan resultados de
+forma más simple como gráficas de barras de resultados de una sola variable.}
+
+\item{\code{Regiones}}{Clase de jerarquía menor, Contiene los métodos que visualizan resultados basados
+en la estratificación de la encuesta.}
+
+\item{\code{Modelo}}{Clase de jerarquía menor. Contiene métodos de análisis estadísitico como PCA.}
+
+\item{\code{Cruce}}{Clase de jerarquía menor. Contiene métodos enfocados en presentar resultados
+cruzando dos o más variables.}
+
+\item{\code{Especial}}{Clase de jerarquía menor. Contiene métodos para visualizar resultados construidos
+de forma personalizada.}
+
+\item{\code{Tendencias}}{Clase de jerarquía menor. Contiene los metodos de estimacions usando la media móvil}
+
+\item{\code{tema}}{Objeto \link{theme} de la paquetería \link{ggplot2} que contiene el formato e identidad gráfica
+de Morant Consultores}
+
+\item{\code{graficadas}}{En desuso. Contiene un \link{ tibble} que indica qué variables ya han sido procesadas
+durante la producción.}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -20,15 +60,36 @@ Esta es la clase de Resultados
 \if{html}{\out{<a id="method-Resultados-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Resultados-new}{}}}
 \subsection{Method \code{new()}}{
+Carga los insumos necesarios para producir resultados en
+forma de visualizaciones con objetos tipo \link{ggplot2} o \link{flextable}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Resultados$new(encuesta, diseno, diccionario, tema = tema_morant())}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{encuesta}}{Clase de jerarquía superior que se carga de forma
+implítica.}
+
+\item{\code{diseno}}{Objeto tipo \link{desing} de la paquetería \link{survey}. Si el
+parámetro es no nullo, el objeto \code{diseno} es el usado para calcular
+las estimaciones. No se espera que ambos parámetros \code{encuesta} y
+\code{diseno} sean no nulos al mismo tiempo.}
+
+\item{\code{diccionario}}{Diccionario de procesamiento de la encuesta.}
+
+\item{\code{tema}}{Objetio tipo \link{theme} de la paquetería \link{ggplot2}.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Resultados-faltantes"></a>}}
 \if{latex}{\out{\hypertarget{method-Resultados-faltantes}{}}}
 \subsection{Method \code{faltantes()}}{
+Visualiza las variables que aún no han sido producidas
+por la paqutería durante la producción.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Resultados$faltantes()}\if{html}{\out{</div>}}
 }

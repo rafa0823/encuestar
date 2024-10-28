@@ -2,11 +2,27 @@
 % Please edit documentation in R/clase_resultados.R
 \name{Descriptiva}
 \alias{Descriptiva}
-\title{Esta es la clase de Descriptiva}
+\title{Clase Descriptiva}
 \description{
-Esta es la clase de Descriptiva
+La clase \code{Descriptiva} contiene los métodos necesarios para producir los resultados
+más básicos relacionados a la encuesta como graficas de barras de estimaciones de una sola variable
+o graficas tipo \code{gauge} que muestan el porcentaje de uno de los valores una variable binaria.
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{encuesta}}{Clase de jerarquía superior. Se requiere para extraer el diseno de la encuesta.}
 
-Esta es la clase de Descriptiva
+\item{\code{diseno}}{Objeto tipo \link{design} de la paquetería \link{survey} relacionado con el diseno de la
+encuesta.}
+
+\item{\code{diccionario}}{Diccionario de procesamiento de la encuesta.}
+
+\item{\code{tema}}{Objeto tipo \link{theme} de la paquetería \link{ggplot2}}
+
+\item{\code{graficadas}}{Campo heredado por la clase \code{Resultados}.}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
