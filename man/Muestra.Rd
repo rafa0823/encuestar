@@ -4,7 +4,36 @@
 \alias{Muestra}
 \title{Clase Muestra}
 \description{
+La clase \code{Muestra} recibe las respuestas estandarizadas de las entrevistas
+levantadas en campo y calcula los pesos de los individuos de acuerdo al cluster donde
+es asignada la entrevista, la edad y el sexo. También provee métodos para modificar el
+diseno muestral de la clase para producir resultados con diferentes ponderaciones.
+
 La clase \code{Muestra} recibe.
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{muestra}}{Campo de la clase \code{Encuesta}. Contiene toda la información necesaria para
+calcular los pesos asignados a los individuos de acuerdo al proceso de muestreo.}
+
+\item{\code{base}}{\code{\link[=tibble]{tibble()}} que contiene la informacion de los factores de correccion poblacional
+de cada cluster}
+
+\item{\code{diseno_original}}{Diseno canonico u original de la encuesta}
+
+\item{\code{region}}{Region (o estrato) del diseno actual de la encuesta. Es uno de los valores únicos
+de la variable \code{region} creada durante el diseno muestral. Dicha variable actúa como estrato
+del marco muestral.}
+
+\item{\code{calibracion}}{Nombre de la calibración actualmente aplicada al diseno muestral.}
+
+\item{\code{diseno}}{Objeto tipo \code{design} de la paquetería \link{survey}}
+
+\item{\code{calibraciones}}{Lista de distintas calibraciones que se han agregado durante la produccion
+a la clase.}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -27,24 +56,57 @@ La clase \code{Muestra} recibe.
 \if{html}{\out{<a id="method-Muestra-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-new}{}}}
 \subsection{Method \code{new()}}{
+Se crean y calculan las variables y los pesos relacionados a los individuos
+entrevistados.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$new(muestra, respuestas, nivel, var_n)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{muestra}}{Campo heredado de la clase \code{Encuesta}.}
+
+\item{\code{respuestas}}{\code{\link[=tibble]{tibble()}} que contiene las respuestas de los individuos entrevistados
+en campo y que ha sido procesado por la clase \code{Respuestas}.}
+
+\item{\code{nivel}}{Valor tipo entero que indica el número de etapas de muestro.}
+
+\item{\code{var_n}}{Valor tipo caracter que indica el nombre de la variable asociado al último
+nivel de la etapa de muestreo.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-recalcular_fpc"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-recalcular_fpc}{}}}
 \subsection{Method \code{recalcular_fpc()}}{
+Recalcula los factores de correccion poblacional de acuerdo a los individuos
+entrevistados en campo
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$recalcular_fpc(respuestas, nivel, var_n)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{respuestas}}{\code{\link[=tibble]{tibble()}} que contiene las respuestas de los individuos entrevistados}
+
+\item{\code{nivel}}{Valor tipo entero que indica el número de etapas de muestro.}
+
+\item{\code{var_n}}{Valor tipo caracter que indica el nombre de la variable asociado al último
+nivel de la etapa de muestreo.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-extraer_diseno"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-extraer_diseno}{}}}
 \subsection{Method \code{extraer_diseno()}}{
+Construye el objeto tipo \code{design} usado por la paquetería \link{survey} para
+alimentar el resto de la clase.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$extraer_diseno(
   respuestas,
@@ -55,11 +117,31 @@ La clase \code{Muestra} recibe.
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{respuestas}}{\code{\link[=tibble]{tibble()}} que contiene las respuestas de los individuos entrevistados}
+
+\item{\code{marco_muestral}}{\code{\link[=tibble]{tibble()}} que contiene el marco muestral del proceso de muestreo}
+
+\item{\code{tipo_encuesta}}{Parametro heredado de la clase \code{Encuesta}. Define el tipo de diseno
+muestral usado para calcular los pesos de los individuos}
+
+\item{\code{sin_peso}}{\code{LOGICAL}. Parámetro heredado de la clase encuesta. Si es \code{TRUE}, el diseno
+se asume equiprobable.}
+
+\item{\code{rake}}{\code{LOGICAL} Parámetro heredado de la clase encuesta. Determina la postestratificacion
+por edad y sexo.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-revisar_sexo"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-revisar_sexo}{}}}
 \subsection{Method \code{revisar_sexo()}}{
+Visualiza las proporciones de sexo entre los individuos entrevistados en
+campo y lo que el diseno muestral indica que debe ser entrevistado.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_sexo()}\if{html}{\out{</div>}}
 }
@@ -69,6 +151,8 @@ La clase \code{Muestra} recibe.
 \if{html}{\out{<a id="method-Muestra-revisar_rango_edad"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-revisar_rango_edad}{}}}
 \subsection{Method \code{revisar_rango_edad()}}{
+Visualiza las proporciones de rangos de edad entre los individuos entrevistados
+en campo y lo que el diseno muestral indica que debe ser entrevistado.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_rango_edad()}\if{html}{\out{</div>}}
 }
@@ -78,15 +162,27 @@ La clase \code{Muestra} recibe.
 \if{html}{\out{<a id="method-Muestra-diseno_region"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-diseno_region}{}}}
 \subsection{Method \code{diseno_region()}}{
+El método hace uso de la función \code{\link[=subset]{subset()}} para tomar un subconjunto de los
+datos obtenidos y producir resultados a partir de ellos respetando los pesos.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$diseno_region(seleccion)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{seleccion}}{Valor tipo caracter de la variable \code{región}.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-regresar_diseno_original"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-regresar_diseno_original}{}}}
 \subsection{Method \code{regresar_diseno_original()}}{
+Reinicia la modificación del diseño muestral aplicado a la clase. Si el diseño
+muestral ha sido modificado ya sea por métodos de la clase \code{Muestra} o de alguna otra forma
+este método garantiza aplica el diseño como si la clase recién se hubiera ejecutado.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$regresar_diseno_original()}\if{html}{\out{</div>}}
 }
@@ -96,37 +192,80 @@ La clase \code{Muestra} recibe.
 \if{html}{\out{<a id="method-Muestra-agregar_calibracion"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-agregar_calibracion}{}}}
 \subsection{Method \code{agregar_calibracion()}}{
+Define calibraciones para aplicarlas al diseño muestral. El método está basado
+en \code{\link[survey:calibrate]{survey::calibrate()}}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$agregar_calibracion(vars, poblacion, nombre)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{vars}}{Vector que indica las variables usadas en la calibración}
+
+\item{\code{poblacion}}{poblacion poblacion contenida en cada estrato de la calibracion}
+
+\item{\code{nombre}}{Nombre asignado a la calibración. Sirve para identificar diferentes calibraciones}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-revisar_calibracion"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-revisar_calibracion}{}}}
 \subsection{Method \code{revisar_calibracion()}}{
+Calcula el total poblacional de una calibracion aplicada al diseño muestral.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$revisar_calibracion(nombre)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{nombre}}{Nombre asignado a la calibración. Sirve para identificar diferentes calibraciones}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-comparar_calibraciones"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-comparar_calibraciones}{}}}
 \subsection{Method \code{comparar_calibraciones()}}{
+Compara las estimaciones para un mismo valor de diferentes variables aplciando
+las calibraciones existentes al diseño muestral
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$comparar_calibraciones(variables, valor_variables, vartype)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{variables}}{Vector tipo caracter que contiene los nombres de las variables a evaluar}
+
+\item{\code{valor_variables}}{Valores únicos de cada variable de interés para ser estimados}
+
+\item{\code{vartype}}{Argumento \link{vartype} de la función \code{\link[srvyr:survey_mean]{srvyr::survey_mean()}} que define el tipo
+de calculo de la variación.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-elegir_calibracion"></a>}}
 \if{latex}{\out{\hypertarget{method-Muestra-elegir_calibracion}{}}}
 \subsection{Method \code{elegir_calibracion()}}{
+Aplica la calibración seleccionada al diseño muestra de la encuesta.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Muestra$elegir_calibracion(nombre)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{nombre}}{Nombre de la calibración a aplicar.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Muestra-clone"></a>}}
