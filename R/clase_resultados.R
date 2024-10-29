@@ -724,7 +724,7 @@ Cruce <-
       #'  secundarias y que es de interés para mostrar resultados.
       #' @param orden_variablePrincipal Vector tipo caracter. Contiene los valores únicos de la
       #'  variable principal en forma ordenada.
-      #' @param colores_variable_secundaria Vector que identifica los colores asociados a los valores
+      #' @param colores_variables_secundarias Vector que identifica los colores asociados a los valores
       #'  únicos de las variables secundaria. Es el argumento [values] de la función [ggplot2::scale_fill_manual()].
       #' @param caption Valor tipo caracter. Es el [caption] del gráfico.
       #' @param nudge_x Valor real. Parámetro [nudge_x] de la función [ggplot2::geom_text()].
@@ -947,297 +947,431 @@ Cruce <-
 
         return(tabla_salida)
       }
-      ))
+    ))
 
-#'Esta es la clase de Especial
-#'@export
+#' Clase Especial
 #'
-Especial <- R6::R6Class(classname = "Especial",
-                        public = list(
-                          encuesta = NULL,
-                          diseno = NULL,
-                          diccionario = NULL,
-                          tema = NULL,
-                          graficadas = NULL,
-                          initialize = function(encuesta = NULL, diseno = NULL, diccionario = NULL, tema, graficadas = NULL){
-                            self$encuesta <- encuesta
-                            self$diseno <- diseno
-                            self$diccionario <- diccionario
-                            self$tema <- tema
-                            self$graficadas <- graficadas
-                          },
-                          candidatoOpinion = function(patron_inicial,
-                                                      aspectos,
-                                                      ns_nc = "Ns/Nc",
-                                                      regular = "Regular",
-                                                      llave_burbuja = NA,
-                                                      filtro_burbuja = "respuesta == 'Sí'",
-                                                      size_burbuja = 8,
-                                                      grupo_positivo,
-                                                      grupo_negativo,
-                                                      orden_resp,
-                                                      colores_opinion = c("red", "yellow", "green"),
-                                                      color_nsnc = "gray70",
-                                                      color_burbuja = "blue",
-                                                      caption_opinion = "",
-                                                      caption_nsnc = "Ns/Nc",
-                                                      caption_burbuja = "Conocimiento",
-                                                      size_caption_opinion = 12,
-                                                      size_caption_nsnc = 14,
-                                                      size_caption_burbuja = 14,
-                                                      size_text_cat = 16,
-                                                      size_pct = 12,
-                                                      burbuja = T,
-                                                      salto = 20,
-                                                      salto_respuestas = 100,
-                                                      mostrar_nsnc = T,
-                                                      orden_cat = NULL){
+#' @description La clase `Especial` contiene los métodos necesarios para producir los resultados
+#'  cuya naturaleza inherente de la pregunta requiera de una adaptación particular o compuesta
+#'  para visualizar los resultados.
+#' @field encuesta Clase de jerarquía superior. Se requiere para extraer el diseno de la encuesta.
+#' @field diseno Objeto tipo [design] de la paquetería [survey] relacionado con el diseno de la
+#'  encuesta.
+#' @field diccionario Diccionario de procesamiento de la encuesta.
+#' @field tema Objeto tipo [theme] de la paquetería [ggplot2]
+#' @field graficadas Campo heredado por la clase `Resultados`.
+Especial <-
+  R6::R6Class(
+    classname = "Especial",
+    public = list(
+      encuesta = NULL,
+      diseno = NULL,
+      diccionario = NULL,
+      tema = NULL,
+      graficadas = NULL,
+      #' @description Define los insumos necesarios para preparar los métodos que producen los resultados
+      #'  que requieren un tipo de visualización particular o compuesta.
+      #' @param encuesta Clase de jerarquía superior. Es el formato de la paquetería `encuestar`. Contiene
+      #'  el diseno muestral de la encuesta.
+      #' @param diseno Objeto tipo [design] de la paquetería [survey]. No se espera que los parametros
+      #'  `encuesta` y `diseno` sean no nullos. El segundo sobreescribe el primero.
+      #' @param diccionario Diccionario (o codebook) del cuestionario de la encuesta.
+      #' @param tema Objeto tipo [theme] de la paquetería [ggplot2].
+      #' @param graficadas Parametro heredado de la clase `Resultados`.
+      initialize = function(encuesta = NULL,
+                            diseno = NULL,
+                            diccionario = NULL,
+                            tema,
+                            graficadas = NULL){
+        self$encuesta <- encuesta
+        self$diseno <- diseno
+        self$diccionario <- diccionario
+        self$tema <- tema
+        self$graficadas <- graficadas
+      },
+      #' @description Visualiza los resultados de preguntas con mismas posibles respuestas y aplicadas
+      #'  sobre diferentes tópicos. Usualmente este tipo de preguntas son asociadas a la opinión y/o
+      #'  el conocimiento de personajes. El conjunto de preguntas están identificas, por ejemplo, como
+      #'  conocimiento_persona1, conocimiento_persona2, etc y opinion_persona1, opinion_persona2, etc.
+      #'  Por lo general, las variables de opinion destán condicionadas por las de conocimiento. Esto
+      #'  está considerado en el procesamiento de los resultados.
+      #' @param patron_inicial Valor tipo caracter. Es el patron inicial de caracteres que comparten
+      #'  los nombres de las variables que representan la opinion. En el ejemplo este parámetro seía
+      #'  "opinion".
+      #' @param aspectos Vector tipo caracter que identifica a las diferentes variables a procesar. De
+      #'  acuerdo al método, el ejemplo sería c("persona1", "persona2").
+      #' @param ns_nc Valor tipo caracter. Es el valor asociado a la respuesta  'No sabe o no contesta'
+      #'  en la pregunta de opinión. Ya que este valor no aporta información, se separa de los resultados.
+      #' @param regular Valor tipo caracter. Es el valor asociado a la respuesta  'Regular' que
+      #'  representa una opinión neutra.
+      #' @param llave_burbuja Valor tipo caracter. Si es no vacío, se visualizan las estimaciones
+      #'  relacionadas a la pregunta de conocimiento del personaje.
+      #' @param filtro_burbuja Valor tipo caracter. Operación de identidad que se aplica como filtro
+      #'  entre los resultados de las preguntas asociadas al conocimiento. Por lo general el filtro
+      #'  tiene la forma filtro = "respuesta == 'Sí'". Este parámetro no afecta al cálculo de las
+      #'  estimaciones de las variables asociadas a la opinion, unicamente a las asociadas al conocimiento.
+      #' @param size_burbuja Valor tipo entero. Determina el tamano de las "burbujas" que se usan para
+      #'  visualizar los resultados de las preguntas asociadas al conocimiento. Es el parámetro [max_size]
+      #'  de la función [ggplot2::scale_size_area()].
+      #' @param grupo_positivo Vector tipo caracter. Indica los valores únicos de las variables asociadas
+      #'  a la pregunta de opinión que se consideran como 'opinion positiva" con el objetivo de ordenarlas
+      #'  de acuerdo a un gradiente de opinión
+      #' @param grupo_negativo Vector tipo caracter. Indica los valores únicos de las variables asociadas
+      #'  a la pregunta de opinión que se consideran como 'opinion negativa" con el objetivo de ordenarlas
+      #'  de acuerdo a un gradiente de opinión
+      #' @param orden_resp Vector tipo caracter que contiene los valores posibles de las respuestas
+      #'  de preguntas asociadas a la opinión.
+      #' @param colores_opinion Vector tipo caracter. Color en formato `HEX`. Es el color con el que
+      #'  se 'rellena'cada proporción de opinión.
+      #' @param color_nsnc Valor tipo caracter. Color en formato `HEX`. Es el color con el que
+      #'  se 'rellena' la proporción asociada a la respuesta 'No sabe o no contesta".
+      #' @param color_burbuja Valor tipo caracter. Color en formato `HEX`. Es el color con el que
+      #'  se 'rellena' el gráfico relacionado a los resultados de la pregunta de conocimiento.
+      #' @param size_caption_opinion Valor tipo entero. Determina el tamano del texto mostrado en el
+      #'  [caption] de la visualizacion principal. Es el parámetro [size] de la función
+      #'  [ggplot2::element_text()] aplicada al argumento [plot.caption] del [ggplot2::theme()].
+      #' @param size_caption_nsnc Valor tipo entero. Determina el tamano del texto mostrado en el
+      #'  [caption] de la visualizacion relacionada a la respuesta 'No sabe o no contesta". Es el
+      #'  parámetro [size] de la función [ggplot2::element_text()] aplicada al argumento
+      #'  [plot.caption] del [ggplot2::theme()].
+      #' @param caption_burbuja Valor tipo entero. Determina el tamano del texto mostrado en el
+      #'  [caption] de la visualizacion relacionada al conocimiento de la persona. Es el
+      #'  parámetro [size] de la función [ggplot2::element_text()] aplicada al argumento
+      #'  [plot.caption] del [ggplot2::theme()].
+      #' @param size_text_cat Valor tipo entero. Determina el tamano del texto mostrado en las
+      #'  etiquetas relacionadas a la opinión de personajes. Es el parámetro [size] de la función
+      #'  [ggplot2::element_text()] aplicada al argumento [axis.text.y] del [ggplot2::theme()].
+      #' @param size_pct Valor tipo entero. Determina el tamano del texto mostrado dentro de las
+      #'  barras que representan las proporciones de opinion. Es el parámetro [size] de la función
+      #'  [ggfittext::geom_fit_text()].
+      #' @param burbuja `LOGICAL`. Determina si mostrar o no el gráfico relacionado a los resultados
+      #'  de la pregunta de conocimiento.
+      #' @param salto Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.
+      #' @param salto_respuestas Valor tipo entero. Reduce o aumenta la longitud de las categorías
+      #'  posibles de respuestas de las preguntas de opinion.
+      #' @param mostrar_nsnc `LOGICAL`. Determina si mostrar o no los resultados de los valores
+      #'  "No sabe o no contesta".
+      #' @param orden_cat Vector ordenado tipo caracter. Son los sufijos que las variables asociadas
+      #'  a las preguntas y ordena los resultados de acuerdo a dicho vector.
+      candidatoOpinion = function(patron_inicial,
+                                  aspectos,
+                                  ns_nc = "Ns/Nc",
+                                  regular = "Regular",
+                                  llave_burbuja = NA,
+                                  filtro_burbuja = "respuesta == 'Sí'",
+                                  size_burbuja = 8,
+                                  grupo_positivo,
+                                  grupo_negativo,
+                                  orden_resp,
+                                  colores_opinion = c("red", "yellow", "green"),
+                                  color_nsnc = "gray70",
+                                  color_burbuja = "blue",
+                                  caption_opinion = "",
+                                  caption_nsnc = "Ns/Nc",
+                                  caption_burbuja = "Conocimiento",
+                                  size_caption_opinion = 12,
+                                  size_caption_nsnc = 14,
+                                  size_caption_burbuja = 14,
+                                  size_text_cat = 16,
+                                  size_pct = 12,
+                                  burbuja = T,
+                                  salto = 20,
+                                  salto_respuestas = 100,
+                                  mostrar_nsnc = T,
+                                  orden_cat = NULL){
 
-                            if(is.null(self$diseno)) {
+        if(is.null(self$diseno)) {
 
-                              diseno <- self$encuesta$muestra$diseno
+          diseno <- self$encuesta$muestra$diseno
 
-                            } else {
+        } else {
 
-                              diseno <- self$diseno
+          diseno <- self$diseno
 
-                            }
+        }
 
-                            if(!is.na(llave_burbuja)){
+        if(!is.na(llave_burbuja)){
 
-                              bd_burbuja <- analizar_frecuencias_aspectos(diseno = diseno,
-                                                                          diccionario = self$diccionario,
-                                                                          patron_pregunta = llave_burbuja,
-                                                                          aspectos = aspectos) %>%
-                                filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
-                                left_join(self$diccionario %>% select(aspecto = llaves, tema))
-                            } else {
-                              bd_burbuja <- NA
-                            }
-
-                            analizar_frecuencias_aspectos(diseno = diseno,
-                                                          diccionario = self$diccionario,
-                                                          patron_pregunta = patron_inicial,
-                                                          aspectos = aspectos) |>
-                              left_join(self$diccionario %>%
-                                          select(aspecto = llaves, tema)) %>%
-                              graficar_candidato_opinion(ns_nc = ns_nc,
-                                                         regular = regular,
-                                                         grupo_positivo= grupo_positivo,
-                                                         grupo_negativo = grupo_negativo,
-                                                         caption_opinion = caption_opinion,
-                                                         caption_nsnc = caption_nsnc,
-                                                         caption_burbuja = caption_burbuja,
-                                                         size_caption_opinion = size_caption_opinion,
-                                                         size_caption_nsnc = size_caption_nsnc,
-                                                         size_caption_burbuja = size_caption_burbuja,
-                                                         size_text_cat = size_text_cat,
-                                                         size_pct = size_pct,
-                                                         orden_resp = orden_resp,
-                                                         colores = colores_opinion,
-                                                         color_nsnc = color_nsnc,
-                                                         burbuja = bd_burbuja,
-                                                         color_burbuja = color_burbuja,
-                                                         size_burbuja = size_burbuja,
-                                                         salto = salto,
-                                                         tema = self$tema,
-                                                         mostrar_nsnc = mostrar_nsnc,
-                                                         salto_respuestas = salto_respuestas,
-                                                         orden_cat = orden_cat,
-                                                         patron_inicial = patron_inicial)
-
-                          },
-                          candidatoOpinion2 = function(patron_opinion,
-                                                       aspectos,
-                                                       ns_nc = "Ns/Nc",
-                                                       regular = "Regular",
-                                                       patron_conocimiento,
-                                                       filtro_conocimiento = "respuesta == 'Sí'",
-                                                       orden_opinion,
-                                                       etiquetas = c("Candidato", "Opinión"),
-                                                       colores_opinion = c("red", "yellow", "green"),
-                                                       colores_candidato = colores_candidato,
-                                                       color_principal = "#BF498A",
-                                                       color_conocimiento = "blue",
-                                                       size_text_header = 18,
-                                                       size_text_body = 14,
-                                                       salto = 20,
-                                                       salto_respuestas = 100){
-
-                            if(is.null(self$diseno)) {
-
-                              diseno <- self$encuesta$muestra$diseno
-
-                            } else {
-
-                              diseno <- self$diseno
-
-                            }
-
-                            calcular_tabla_candidatoOpinion(diseno = diseno,
-                                                            diccionario = self$diccionario,
-                                                            patron_opinion = patron_opinion,
-                                                            patron_conocimiento = patron_conocimiento,
-                                                            aspectos = aspectos,
-                                                            filtro_conocimiento = filtro_conocimiento,
-                                                            orden_opinion = orden_opinion,
-                                                            ns_nc = ns_nc,
-                                                            salto_respuestas = salto_respuestas) %>%
-                              formatear_tabla_candidatoOpinion(orden_opinion = orden_opinion,
-                                                               etiquetas = etiquetas,
-                                                               colores_opinion = colores_opinion,
-                                                               color_principal = color_principal,
-                                                               colores_candidato = colores_candidato,
-                                                               size_text_header = size_text_header,
-                                                               size_text_body = size_text_body,
-                                                               salto = salto,
-                                                               color_conocimiento = color_conocimiento)
-
-                          },
-                          candidatoPartido = function(llave_partido, llave_conocimiento, respuesta_conoce, candidatos, corte_otro, cliente, colores_candidatos, colores_partido,corte_vis = 0.0){
-
-                            if(is.null(self$diseno)) {
-
-                              diseno <- self$encuesta$muestra$diseno
-
-                            } else {
-
-                              diseno <- self$diseno
-
-                            }
-
-                            analizar_candidatoPartido(diseno = diseno,
+          bd_burbuja <- analizar_frecuencias_aspectos(diseno = diseno,
                                                       diccionario = self$diccionario,
-                                                      llave_partido = llave_partido,
-                                                      llave_conocimiento = llave_conocimiento,
-                                                      respuesta_conoce = respuesta_conoce,
-                                                      candidatos = candidatos,
-                                                      corte_otro = corte_otro) %>%
-                              purrr::map(~.x %>%
-                                           left_join(self$diccionario %>% select(aspecto = llaves, tema))
-                              ) %>%
-                              graficar_candidatoPartido(cliente = cliente,
-                                                        tipo_conoce = "intervalos",
-                                                        colores_candidato = colores_candidatos,
-                                                        colores_partido = colores_partido,
-                                                        solo_respondidos = T,
-                                                        tema = self$tema,
-                                                        corte_vis = corte_vis)
-                          },
-                          candidatoSaldo = function(llave_opinion,
-                                                    candidatos,
-                                                    positivos,
-                                                    negativos,
-                                                    regular = "Regular",
-                                                    ns_nc = "Ns/Nc",
-                                                    color_positivo = "green",
-                                                    color_negativo = "red",
-                                                    orden_cat = NULL,
-                                                    salto_cat = 25,
-                                                    caption_opinion,
-                                                    size_text_cat = 14,
-                                                    size_text_legend = 10,
-                                                    size_pct = 12,
-                                                    size_caption_opinion = 10){
+                                                      patron_pregunta = llave_burbuja,
+                                                      aspectos = aspectos) %>%
+            filter(eval(rlang::parse_expr(filtro_burbuja))) %>%
+            left_join(self$diccionario %>% select(aspecto = llaves, tema))
+        } else {
+          bd_burbuja <- NA
+        }
 
-                            if(is.null(self$diseno)) {
+        analizar_frecuencias_aspectos(diseno = diseno,
+                                      diccionario = self$diccionario,
+                                      patron_pregunta = patron_inicial,
+                                      aspectos = aspectos) |>
+          left_join(self$diccionario %>%
+                      select(aspecto = llaves, tema)) %>%
+          graficar_candidato_opinion(ns_nc = ns_nc,
+                                     regular = regular,
+                                     grupo_positivo= grupo_positivo,
+                                     grupo_negativo = grupo_negativo,
+                                     caption_opinion = caption_opinion,
+                                     caption_nsnc = caption_nsnc,
+                                     caption_burbuja = caption_burbuja,
+                                     size_caption_opinion = size_caption_opinion,
+                                     size_caption_nsnc = size_caption_nsnc,
+                                     size_caption_burbuja = size_caption_burbuja,
+                                     size_text_cat = size_text_cat,
+                                     size_pct = size_pct,
+                                     orden_resp = orden_resp,
+                                     colores = colores_opinion,
+                                     color_nsnc = color_nsnc,
+                                     burbuja = bd_burbuja,
+                                     color_burbuja = color_burbuja,
+                                     size_burbuja = size_burbuja,
+                                     salto = salto,
+                                     tema = self$tema,
+                                     mostrar_nsnc = mostrar_nsnc,
+                                     salto_respuestas = salto_respuestas,
+                                     orden_cat = orden_cat,
+                                     patron_inicial = patron_inicial)
 
-                              diseno <- self$encuesta$muestra$diseno
+      },
+      #' @description Visualiza los resultados de preguntas con mismas posibles respuestas y aplicadas
+      #'  sobre diferentes tópicos. Usualmente este tipo de preguntas son asociadas a la opinión y/o
+      #'  el conocimiento de personajes. El conjunto de preguntas están identificas, por ejemplo, como
+      #'  conocimiento_persona1, conocimiento_persona2, etc y opinion_persona1, opinion_persona2, etc.
+      #'  Por lo general, las variables de opinion destán condicionadas por las de conocimiento. Esto
+      #'  está considerado en el procesamiento de los resultados. La vsualizacion es en forma de
+      #'  tabla usando la paquetería [flextable].
+      #' @param patron_opinion Valor tipo caracter. Es el patron inicial de caracteres que comparten
+      #'  los nombres de las variables que representan la opinion. En el ejemplo este parámetro seía
+      #'  "opinion".
+      #' @param aspectos Vector tipo caracter que identifica a las diferentes variables a procesar. De
+      #'  acuerdo al método, el ejemplo sería c("persona1", "persona2").
+      #' @param ns_nc Valor tipo caracter. Es el valor asociado a la respuesta  'No sabe o no contesta'
+      #'  en la pregunta de opinión. Ya que este valor no aporta información, se separa de los resultados.
+      #' @param regular Valor tipo caracter. Es el valor asociado a la respuesta  'Regular' que
+      #'  representa una opinión neutra.
+      #' @param patron_conocimiento Valor tipo caracter. Es el patron inicial de caracteres que comparten
+      #'  los nombres de las variables que representan el conocimiento En el ejemplo este parámetro seía
+      #'  "opinion".
+      #' @param filtro_conocimiento Valor tipo caracter. Operación de identidad que se aplica como filtro
+      #'  entre los resultados de las preguntas asociadas al conocimiento. Por lo general el filtro
+      #'  tiene la forma filtro = "respuesta == 'Sí'". Este parámetro no afecta al cálculo de las
+      #'  estimaciones de las variables asociadas a la opinion, unicamente a las asociadas al conocimiento.
+      #' @param orden_opinion Vector tipo caracter que contiene los valores posibles de las respuestas
+      #'  de preguntas asociadas a la opinión. Las columnas de la tabla se orden de acuerdo a este vector
+      #' @param etiquetas Dupla ordenada tipo caracter. Nombres de las variables para mostrar en el
+      #'  resultado final.
+      #' @param colores_opinion Vector tipo caracter. Color en formato `HEX`. Es el color con el que
+      #'  se 'rellena'cada proporción de opinión. Tantos colores como opiniones posibles.
+      #' @param colores_candidato Vector que identifica los colores asociados a los valores únicos de la
+      #'  variable relacionada al candidato.
+      #' @param color_principal Valor tipo caracter. Color en formato `HEX`. Es el color con el que
+      #'  se 'rellena'la parte principal de la tabla
+      #' @param color_conocimiento Valor tipo caracter. Color en formato `HEX`. Es el color con el que
+      #'  se 'rellena'la columna de la tabla relacionada con los resultados de conocimiento.
+      #' @param size_text_header Valor entero. Define el tamano del texto del encabezado
+      #' @param size_text_body Valor entero. Define el tamano del texto del cuerpo de la tabla
+      #' @param salto Valor entero. Define la longitud del texto de las filas
+      #' @param salto_respuestas Valor entero. Define la longitu del texto de los encabezadps.
+      candidatoOpinion2 = function(patron_opinion,
+                                   aspectos,
+                                   ns_nc = "Ns/Nc",
+                                   regular = "Regular",
+                                   patron_conocimiento,
+                                   filtro_conocimiento = "respuesta == 'Sí'",
+                                   orden_opinion,
+                                   etiquetas = c("Candidato", "Opinión"),
+                                   colores_opinion = c("red", "yellow", "green"),
+                                   colores_candidato = colores_candidato,
+                                   color_principal = "#BF498A",
+                                   color_conocimiento = "blue",
+                                   size_text_header = 18,
+                                   size_text_body = 14,
+                                   salto = 20,
+                                   salto_respuestas = 100){
 
-                            } else {
+        if(is.null(self$diseno)) {
 
-                              diseno <- self$diseno
+          diseno <- self$encuesta$muestra$diseno
 
-                            }
+        } else {
 
-                            bd_saldo <- analizar_saldoOpinion(diseno = diseno,
-                                                              diccionario = self$diccionario,
-                                                              llave_opinion = llave_opinion,
-                                                              candidatos = candidatos,
-                                                              grupo_positivo = positivos,
-                                                              grupo_negativo = negativos)
+          diseno <- self$diseno
 
-                            bd_saldo_aux <-
-                              analizar_frecuencias_aspectos(diseno = diseno,
-                                                            diccionario = self$diccionario,
-                                                            patron_pregunta = llave_opinion,
-                                                            aspectos = candidatos) |>
-                              left_join(self$diccionario %>%
-                                          select(aspecto = llaves, tema), by = "aspecto")
+        }
 
-                            if(!is.null(ns_nc)){
-                              bd <- bd_saldo_aux %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
-                            }
+        calcular_tabla_candidatoOpinion(diseno = diseno,
+                                        diccionario = self$diccionario,
+                                        patron_opinion = patron_opinion,
+                                        patron_conocimiento = patron_conocimiento,
+                                        aspectos = aspectos,
+                                        filtro_conocimiento = filtro_conocimiento,
+                                        orden_opinion = orden_opinion,
+                                        ns_nc = ns_nc,
+                                        salto_respuestas = salto_respuestas) %>%
+          formatear_tabla_candidatoOpinion(orden_opinion = orden_opinion,
+                                           etiquetas = etiquetas,
+                                           colores_opinion = colores_opinion,
+                                           color_principal = color_principal,
+                                           colores_candidato = colores_candidato,
+                                           size_text_header = size_text_header,
+                                           size_text_body = size_text_body,
+                                           salto = salto,
+                                           color_conocimiento = color_conocimiento)
 
-                            grupo_negativo = negativos
-                            grupo_positivo = positivos
+      },
+      candidatoPartido = function(llave_partido,
+                                  llave_conocimiento,
+                                  respuesta_conoce,
+                                  candidatos,
+                                  corte_otro,
+                                  cliente,
+                                  colores_candidatos,
+                                  colores_partido,
+                                  corte_vis = 0.0){
 
-                            ejemplo <- bd %>%
-                              filter(respuesta != regular) |>
-                              mutate(respuesta = case_when(respuesta %in% positivos ~ "Positiva",
-                                                           respuesta %in% negativos ~ "Negativa",
-                                                           .default = respuesta)) |>
-                              group_by(tema, respuesta) |>
-                              summarise(media = sum(media, na.rm = TRUE),
-                                        .groups = "drop") |>
-                              mutate(media = dplyr::if_else(condition = respuesta == "Negativa",
-                                                            true = -media,
-                                                            false = media)) |>
-                              mutate(etiqueta = scales::percent(abs(media), 1),
-                                     media = if_else(respuesta %in% grupo_negativo, -1*media, media),
-                                     media = if_else(respuesta == regular, media/2, media)) %>%
-                              group_by(tema) %>%
-                              mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
+        if(is.null(self$diseno)) {
 
-                            orden <- ejemplo %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit
+          diseno <- self$encuesta$muestra$diseno
 
-                            if(!is.null(orden_cat)) {
+        } else {
 
-                              orden <- aux %>%
-                                ungroup() |>
-                                mutate(aspecto = gsub(pattern = paste0(patron_inicial, "_"),
-                                                      replacement = "",
-                                                      x = aspecto)) |>
-                                distinct(aspecto, tema) |>
-                                mutate(aspecto = factor(aspecto, levels = orden_cat, ordered = TRUE)) |>
-                                arrange(desc(aspecto)) |>
-                                pull() |>
-                                as.factor()
+          diseno <- self$diseno
 
-                            }
+        }
 
-                            ejemplo %>%
-                              {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
-                              mutate(respuesta = factor(respuesta, levels = c("Negativa", "Positiva"))) |>
-                              graficar_barras_saldo(orden = orden,
-                                                    grupo_positivo = "Positiva",
-                                                    grupo_negativo = "Negativa",
-                                                    Regular = NA_character_,
-                                                    colores = c("Positiva" = color_positivo,
-                                                                "Negativa" = color_negativo),
-                                                    salto_respuestas = 50,
-                                                    salto_tema = salto_cat,
-                                                    caption_opinion = caption_opinion,
-                                                    size_text_cat = size_text_cat,
-                                                    size_pct = size_pct,
-                                                    size_caption_opinion = size_caption_opinion,
-                                                    size_text_legend = size_text_legend)
+        analizar_candidatoPartido(diseno = diseno,
+                                  diccionario = self$diccionario,
+                                  llave_partido = llave_partido,
+                                  llave_conocimiento = llave_conocimiento,
+                                  respuesta_conoce = respuesta_conoce,
+                                  candidatos = candidatos,
+                                  corte_otro = corte_otro) %>%
+          purrr::map(~.x %>%
+                       left_join(self$diccionario %>% select(aspecto = llaves, tema))
+          ) %>%
+          graficar_candidatoPartido(cliente = cliente,
+                                    tipo_conoce = "intervalos",
+                                    colores_candidato = colores_candidatos,
+                                    colores_partido = colores_partido,
+                                    solo_respondidos = T,
+                                    tema = self$tema,
+                                    corte_vis = corte_vis)
+      },
+      candidatoSaldo = function(llave_opinion,
+                                candidatos,
+                                positivos,
+                                negativos,
+                                regular = "Regular",
+                                ns_nc = "Ns/Nc",
+                                color_positivo = "green",
+                                color_negativo = "red",
+                                orden_cat = NULL,
+                                salto_cat = 25,
+                                caption_opinion,
+                                size_text_cat = 14,
+                                size_text_legend = 10,
+                                size_pct = 12,
+                                size_caption_opinion = 10){
 
-                          },
-                          metodo_morena = function(personajes, atributos){
-                            if(is.null(self$diseno)) {
+        if(is.null(self$diseno)) {
 
-                              diseno <- self$encuesta$muestra$diseno
+          diseno <- self$encuesta$muestra$diseno
 
-                            } else {
+        } else {
 
-                              diseno <- self$diseno
+          diseno <- self$diseno
 
-                            }
-                            analizar_morena(diseno = diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
-                              graficar_morena(personajes = personajes, atributos = atributos)
-                          }
-                        ))
+        }
+
+        bd_saldo <- analizar_saldoOpinion(diseno = diseno,
+                                          diccionario = self$diccionario,
+                                          llave_opinion = llave_opinion,
+                                          candidatos = candidatos,
+                                          grupo_positivo = positivos,
+                                          grupo_negativo = negativos)
+
+        bd_saldo_aux <-
+          analizar_frecuencias_aspectos(diseno = diseno,
+                                        diccionario = self$diccionario,
+                                        patron_pregunta = llave_opinion,
+                                        aspectos = candidatos) |>
+          left_join(self$diccionario %>%
+                      select(aspecto = llaves, tema), by = "aspecto")
+
+        if(!is.null(ns_nc)){
+          bd <- bd_saldo_aux %>% group_by(tema) %>% complete(respuesta = ns_nc, fill = list(media = 0)) %>% ungroup
+        }
+
+        grupo_negativo = negativos
+        grupo_positivo = positivos
+
+        ejemplo <- bd %>%
+          filter(respuesta != regular) |>
+          mutate(respuesta = case_when(respuesta %in% positivos ~ "Positiva",
+                                       respuesta %in% negativos ~ "Negativa",
+                                       .default = respuesta)) |>
+          group_by(tema, respuesta) |>
+          summarise(media = sum(media, na.rm = TRUE),
+                    .groups = "drop") |>
+          mutate(media = dplyr::if_else(condition = respuesta == "Negativa",
+                                        true = -media,
+                                        false = media)) |>
+          mutate(etiqueta = scales::percent(abs(media), 1),
+                 media = if_else(respuesta %in% grupo_negativo, -1*media, media),
+                 media = if_else(respuesta == regular, media/2, media)) %>%
+          group_by(tema) %>%
+          mutate(saldo = sum(as.numeric(!(respuesta %in% c(regular, ns_nc)))*media))
+
+        orden <- ejemplo %>% arrange(saldo) %>% pull(tema) %>% unique %>% na.omit
+
+        if(!is.null(orden_cat)) {
+
+          orden <- aux %>%
+            ungroup() |>
+            mutate(aspecto = gsub(pattern = paste0(patron_inicial, "_"),
+                                  replacement = "",
+                                  x = aspecto)) |>
+            distinct(aspecto, tema) |>
+            mutate(aspecto = factor(aspecto, levels = orden_cat, ordered = TRUE)) |>
+            arrange(desc(aspecto)) |>
+            pull() |>
+            as.factor()
+
+        }
+
+        ejemplo %>%
+          {if(!is.null(ns_nc)) filter(., respuesta!= ns_nc) else .}  %>%
+          mutate(respuesta = factor(respuesta, levels = c("Negativa", "Positiva"))) |>
+          graficar_barras_saldo(orden = orden,
+                                grupo_positivo = "Positiva",
+                                grupo_negativo = "Negativa",
+                                Regular = NA_character_,
+                                colores = c("Positiva" = color_positivo,
+                                            "Negativa" = color_negativo),
+                                salto_respuestas = 50,
+                                salto_tema = salto_cat,
+                                caption_opinion = caption_opinion,
+                                size_text_cat = size_text_cat,
+                                size_pct = size_pct,
+                                size_caption_opinion = size_caption_opinion,
+                                size_text_legend = size_text_legend)
+
+      },
+      metodo_morena = function(personajes, atributos){
+        if(is.null(self$diseno)) {
+
+          diseno <- self$encuesta$muestra$diseno
+
+        } else {
+
+          diseno <- self$diseno
+
+        }
+        analizar_morena(diseno = diseno, diccionario = self$diccionario, personajes = personajes, atributos = atributos) %>%
+          graficar_morena(personajes = personajes, atributos = atributos)
+      }
+    ))
 
 #'Esta es la clase de Regiones
 #'@export

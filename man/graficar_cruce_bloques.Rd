@@ -10,7 +10,6 @@ graficar_cruce_bloques(
   variable,
   colores_variable_secundaria,
   vartype,
-  filter = NULL,
   linea_grosor = 2,
   linea_color = "white"
 )
@@ -25,8 +24,6 @@ graficar_cruce_bloques(
 \item{colores_variable_secundaria}{Vector que contiene los codigos de colores para cada categoria de la variable secundaria}
 
 \item{vartype}{Parametro de \code{\link[srvyr:survey_mean]{srvyr::survey_mean()}} que reporta la variabilidad de la estimacion}
-
-\item{filter}{Valores de interes de la variable secundaria a mostrar}
 
 \item{linea_grosor}{Parametro \link{size} de la funcion \code{\link[treemapify:geom_treemap_subgroup_border]{treemapify::geom_treemap_subgroup_border()}} que modifica el grosor de las lineas que dividen los subgrupos de un bloque}
 

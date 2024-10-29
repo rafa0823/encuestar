@@ -249,7 +249,7 @@ una gráfica tipo gauge.
 \item{\code{filtro}}{Valor tipo caracter. Operación de identidad que se aplica como filtro entre los
 resultados de la variable de interés. Por ejemplo filtro = "respuesta == 'azul'".}
 
-\item{\code{color}}{Valor tipo caracter. Color en formato \code{HEX}. Es ekl color con el que se 'rellena'
+\item{\code{color}}{Valor tipo caracter. Color en formato \code{HEX}. Es el color con el que se 'rellena'
 el gráfico tipo gauge.}
 
 \item{\code{escala}}{Dupla tipo numérica. Por lo general, la escala es porcentual.}

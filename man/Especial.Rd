@@ -2,11 +2,27 @@
 % Please edit documentation in R/clase_resultados.R
 \name{Especial}
 \alias{Especial}
-\title{Esta es la clase de Especial}
+\title{Clase Especial}
 \description{
-Esta es la clase de Especial
+La clase \code{Especial} contiene los métodos necesarios para producir los resultados
+cuya naturaleza inherente de la pregunta requiera de una adaptación particular o compuesta
+para visualizar los resultados.
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{encuesta}}{Clase de jerarquía superior. Se requiere para extraer el diseno de la encuesta.}
 
-Esta es la clase de Especial
+\item{\code{diseno}}{Objeto tipo \link{design} de la paquetería \link{survey} relacionado con el diseno de la
+encuesta.}
+
+\item{\code{diccionario}}{Diccionario de procesamiento de la encuesta.}
+
+\item{\code{tema}}{Objeto tipo \link{theme} de la paquetería \link{ggplot2}}
+
+\item{\code{graficadas}}{Campo heredado por la clase \code{Resultados}.}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -24,6 +40,8 @@ Esta es la clase de Especial
 \if{html}{\out{<a id="method-Especial-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Especial-new}{}}}
 \subsection{Method \code{new()}}{
+Define los insumos necesarios para preparar los métodos que producen los resultados
+que requieren un tipo de visualización particular o compuesta.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Especial$new(
   encuesta = NULL,
@@ -34,11 +52,34 @@ Esta es la clase de Especial
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{encuesta}}{Clase de jerarquía superior. Es el formato de la paquetería \code{encuestar}. Contiene
+el diseno muestral de la encuesta.}
+
+\item{\code{diseno}}{Objeto tipo \link{design} de la paquetería \link{survey}. No se espera que los parametros
+\code{encuesta} y \code{diseno} sean no nullos. El segundo sobreescribe el primero.}
+
+\item{\code{diccionario}}{Diccionario (o codebook) del cuestionario de la encuesta.}
+
+\item{\code{tema}}{Objeto tipo \link{theme} de la paquetería \link{ggplot2}.}
+
+\item{\code{graficadas}}{Parametro heredado de la clase \code{Resultados}.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Especial-candidatoOpinion"></a>}}
 \if{latex}{\out{\hypertarget{method-Especial-candidatoOpinion}{}}}
 \subsection{Method \code{candidatoOpinion()}}{
+Visualiza los resultados de preguntas con mismas posibles respuestas y aplicadas
+sobre diferentes tópicos. Usualmente este tipo de preguntas son asociadas a la opinión y/o
+el conocimiento de personajes. El conjunto de preguntas están identificas, por ejemplo, como
+conocimiento_persona1, conocimiento_persona2, etc y opinion_persona1, opinion_persona2, etc.
+Por lo general, las variables de opinion destán condicionadas por las de conocimiento. Esto
+está considerado en el procesamiento de los resultados.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Especial$candidatoOpinion(
   patron_inicial,
@@ -70,11 +111,104 @@ Esta es la clase de Especial
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{patron_inicial}}{Valor tipo caracter. Es el patron inicial de caracteres que comparten
+los nombres de las variables que representan la opinion. En el ejemplo este parámetro seía
+"opinion".}
+
+\item{\code{aspectos}}{Vector tipo caracter que identifica a las diferentes variables a procesar. De
+acuerdo al método, el ejemplo sería c("persona1", "persona2").}
+
+\item{\code{ns_nc}}{Valor tipo caracter. Es el valor asociado a la respuesta  'No sabe o no contesta'
+en la pregunta de opinión. Ya que este valor no aporta información, se separa de los resultados.}
+
+\item{\code{regular}}{Valor tipo caracter. Es el valor asociado a la respuesta  'Regular' que
+representa una opinión neutra.}
+
+\item{\code{llave_burbuja}}{Valor tipo caracter. Si es no vacío, se visualizan las estimaciones
+relacionadas a la pregunta de conocimiento del personaje.}
+
+\item{\code{filtro_burbuja}}{Valor tipo caracter. Operación de identidad que se aplica como filtro
+entre los resultados de las preguntas asociadas al conocimiento. Por lo general el filtro
+tiene la forma filtro = "respuesta == 'Sí'". Este parámetro no afecta al cálculo de las
+estimaciones de las variables asociadas a la opinion, unicamente a las asociadas al conocimiento.}
+
+\item{\code{size_burbuja}}{Valor tipo entero. Determina el tamano de las "burbujas" que se usan para
+visualizar los resultados de las preguntas asociadas al conocimiento. Es el parámetro \link{max_size}
+de la función \code{\link[ggplot2:scale_size]{ggplot2::scale_size_area()}}.}
+
+\item{\code{grupo_positivo}}{Vector tipo caracter. Indica los valores únicos de las variables asociadas
+a la pregunta de opinión que se consideran como 'opinion positiva" con el objetivo de ordenarlas
+de acuerdo a un gradiente de opinión}
+
+\item{\code{grupo_negativo}}{Vector tipo caracter. Indica los valores únicos de las variables asociadas
+a la pregunta de opinión que se consideran como 'opinion negativa" con el objetivo de ordenarlas
+de acuerdo a un gradiente de opinión}
+
+\item{\code{orden_resp}}{Vector tipo caracter que contiene los valores posibles de las respuestas
+de preguntas asociadas a la opinión.}
+
+\item{\code{colores_opinion}}{Vector tipo caracter. Color en formato \code{HEX}. Es el color con el que
+se 'rellena'cada proporción de opinión.}
+
+\item{\code{color_nsnc}}{Valor tipo caracter. Color en formato \code{HEX}. Es el color con el que
+se 'rellena' la proporción asociada a la respuesta 'No sabe o no contesta".}
+
+\item{\code{color_burbuja}}{Valor tipo caracter. Color en formato \code{HEX}. Es el color con el que
+se 'rellena' el gráfico relacionado a los resultados de la pregunta de conocimiento.}
+
+\item{\code{caption_burbuja}}{Valor tipo entero. Determina el tamano del texto mostrado en el
+\link{caption} de la visualizacion relacionada al conocimiento de la persona. Es el
+parámetro \link{size} de la función \code{\link[ggplot2:element]{ggplot2::element_text()}} aplicada al argumento
+\link{plot.caption} del \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
+
+\item{\code{size_caption_opinion}}{Valor tipo entero. Determina el tamano del texto mostrado en el
+\link{caption} de la visualizacion principal. Es el parámetro \link{size} de la función
+\code{\link[ggplot2:element]{ggplot2::element_text()}} aplicada al argumento \link{plot.caption} del \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
+
+\item{\code{size_caption_nsnc}}{Valor tipo entero. Determina el tamano del texto mostrado en el
+\link{caption} de la visualizacion relacionada a la respuesta 'No sabe o no contesta". Es el
+parámetro \link{size} de la función \code{\link[ggplot2:element]{ggplot2::element_text()}} aplicada al argumento
+\link{plot.caption} del \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
+
+\item{\code{size_text_cat}}{Valor tipo entero. Determina el tamano del texto mostrado en las
+etiquetas relacionadas a la opinión de personajes. Es el parámetro \link{size} de la función
+\code{\link[ggplot2:element]{ggplot2::element_text()}} aplicada al argumento \link{axis.text.y} del \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
+
+\item{\code{size_pct}}{Valor tipo entero. Determina el tamano del texto mostrado dentro de las
+barras que representan las proporciones de opinion. Es el parámetro \link{size} de la función
+\code{\link[ggfittext:geom_fit_text]{ggfittext::geom_fit_text()}}.}
+
+\item{\code{burbuja}}{\code{LOGICAL}. Determina si mostrar o no el gráfico relacionado a los resultados
+de la pregunta de conocimiento.}
+
+\item{\code{salto}}{Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.}
+
+\item{\code{salto_respuestas}}{Valor tipo entero. Reduce o aumenta la longitud de las categorías
+posibles de respuestas de las preguntas de opinion.}
+
+\item{\code{mostrar_nsnc}}{\code{LOGICAL}. Determina si mostrar o no los resultados de los valores
+"No sabe o no contesta".}
+
+\item{\code{orden_cat}}{Vector ordenado tipo caracter. Son los sufijos que las variables asociadas
+a las preguntas y ordena los resultados de acuerdo a dicho vector.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Especial-candidatoOpinion2"></a>}}
 \if{latex}{\out{\hypertarget{method-Especial-candidatoOpinion2}{}}}
 \subsection{Method \code{candidatoOpinion2()}}{
+Visualiza los resultados de preguntas con mismas posibles respuestas y aplicadas
+sobre diferentes tópicos. Usualmente este tipo de preguntas son asociadas a la opinión y/o
+el conocimiento de personajes. El conjunto de preguntas están identificas, por ejemplo, como
+conocimiento_persona1, conocimiento_persona2, etc y opinion_persona1, opinion_persona2, etc.
+Por lo general, las variables de opinion destán condicionadas por las de conocimiento. Esto
+está considerado en el procesamiento de los resultados. La vsualizacion es en forma de
+tabla usando la paquetería \link{flextable}.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Especial$candidatoOpinion2(
   patron_opinion,
@@ -96,6 +230,59 @@ Esta es la clase de Especial
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{patron_opinion}}{Valor tipo caracter. Es el patron inicial de caracteres que comparten
+los nombres de las variables que representan la opinion. En el ejemplo este parámetro seía
+"opinion".}
+
+\item{\code{aspectos}}{Vector tipo caracter que identifica a las diferentes variables a procesar. De
+acuerdo al método, el ejemplo sería c("persona1", "persona2").}
+
+\item{\code{ns_nc}}{Valor tipo caracter. Es el valor asociado a la respuesta  'No sabe o no contesta'
+en la pregunta de opinión. Ya que este valor no aporta información, se separa de los resultados.}
+
+\item{\code{regular}}{Valor tipo caracter. Es el valor asociado a la respuesta  'Regular' que
+representa una opinión neutra.}
+
+\item{\code{patron_conocimiento}}{Valor tipo caracter. Es el patron inicial de caracteres que comparten
+los nombres de las variables que representan el conocimiento En el ejemplo este parámetro seía
+"opinion".}
+
+\item{\code{filtro_conocimiento}}{Valor tipo caracter. Operación de identidad que se aplica como filtro
+entre los resultados de las preguntas asociadas al conocimiento. Por lo general el filtro
+tiene la forma filtro = "respuesta == 'Sí'". Este parámetro no afecta al cálculo de las
+estimaciones de las variables asociadas a la opinion, unicamente a las asociadas al conocimiento.}
+
+\item{\code{orden_opinion}}{Vector tipo caracter que contiene los valores posibles de las respuestas
+de preguntas asociadas a la opinión. Las columnas de la tabla se orden de acuerdo a este vector}
+
+\item{\code{etiquetas}}{Dupla ordenada tipo caracter. Nombres de las variables para mostrar en el
+resultado final.}
+
+\item{\code{colores_opinion}}{Vector tipo caracter. Color en formato \code{HEX}. Es el color con el que
+se 'rellena'cada proporción de opinión. Tantos colores como opiniones posibles.}
+
+\item{\code{colores_candidato}}{Vector que identifica los colores asociados a los valores únicos de la
+variable relacionada al candidato.}
+
+\item{\code{color_principal}}{Valor tipo caracter. Color en formato \code{HEX}. Es el color con el que
+se 'rellena'la parte principal de la tabla}
+
+\item{\code{color_conocimiento}}{Valor tipo caracter. Color en formato \code{HEX}. Es el color con el que
+se 'rellena'la columna de la tabla relacionada con los resultados de conocimiento.}
+
+\item{\code{size_text_header}}{Valor entero. Define el tamano del texto del encabezado}
+
+\item{\code{size_text_body}}{Valor entero. Define el tamano del texto del cuerpo de la tabla}
+
+\item{\code{salto}}{Valor entero. Define la longitud del texto de las filas}
+
+\item{\code{salto_respuestas}}{Valor entero. Define la longitu del texto de los encabezadps.}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Especial-candidatoPartido"></a>}}

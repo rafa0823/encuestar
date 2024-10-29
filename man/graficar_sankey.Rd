@@ -13,7 +13,8 @@ graficar_sankey(bd, variables, colores, size_text_cat, width_text = 15)
 
 \item{colores}{Argumento usado por scale_fill_manual y sclae_color_manual}
 
-\item{size_text_cat}{Parametro \link{size} de la funcion \code{\link[treemapify:geom_treemap_subgroup_border]{treemapify::geom_treemap_subgroup_border()}} que modifica el grosor de las lineas que dividen los subgrupos de un bloque}
+\item{size_text_cat}{Parametro \link{size} de la funcion \code{\link[ggsankey:geom_sankey_label]{ggsankey::geom_sankey_text()}} que determina
+el tamano del texto de las etiquetas en cada nodo del gráfico}
 
 \item{width_text}{Salto de linea que se aplica a las categorias mostradas}
 }
