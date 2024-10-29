@@ -14,112 +14,113 @@
 #' @field diccionario Diccionario (o codebook) del cuestionario de la encuesta. Heredado de la
 #'  clase `Encuesta` o se provee de forma externa.
 Opinometro <-
-  R6::R6Class(classname = "Opinometro",
-              public = list(
-                id_cuestionarioOpinometro = NULL,
-                pool = NULL,
-                variables_cuestionario = NULL,
-                bd_respuestas_cuestionario = NULL,
-                diccionario = NULL,
-                #' @description Establece conexión con la base de datos donde está alojada la
-                #'  implementación del `Opinómetro`.
-                #' @param id_cuestionarioOpinometro Valor entero. Identificador del cuestionario
-                #'  aplicado en campo generado en la plataforma `Opinómetro`.
-                #' @param pool Objeto tipo [pool] generado al conectarse a la base de datos que
-                #'  almacena las respuestas. Se recomienda utilizar la función [dbPool()] de la
-                #'  paquetería [pool] para esto.
-                #' @param diccionario [tibble()] Diccionario (o codebook) del cuestionario de la
-                #'  encuesta. Aunque la clase `Opinometro` reproduce el diccionario a partir del
-                #'  cuestionario construido en la plataforma `Opinometro`, el parametro `diccionario`
-                #'  es aquel que históricamente se ha utilizado para produccion. Es decir, aquel que
-                #'  está usualmente guardado en un archivo de excel y/o que recibe la clase `Encuesta`
-                #'  en el campo `diccionario`.
-                initialize = function(id_cuestionarioOpinometro = NA,
-                                      pool = NA,
-                                      diccionario = NA) {
-                  self$pool <- pool
-                  self$id_cuestionarioOpinometro <- id_cuestionarioOpinometro
-                  self$definir_variables()
-                  self$construir_respuestas()
-                  self$diccionario <- diccionario
-                  self$verificar_variables()
-                  self$terminar_conexion()
-                },
-                #' @description Determina las variables que están contenidas en la plataforma
-                #'  `Opinometro`a partir de los campos construidos en el cuestinoario.
-                definir_variables = function(){
-                  self$variables_cuestionario <-
-                    determinarVariables_cuestinoarioOpinometro(pool = self$pool,
-                                                               id_cuestionario = self$id_cuestionarioOpinometro)
-                },
-                #' @description Construye el [tibble()] de respuestas contenidas en la base de datos
-                #'  que tiene implementada la plataforma ``Opinometro`.
-                construir_respuestas = function(){
+  R6::R6Class(
+    classname = "Opinometro",
+    public = list(
+      id_cuestionarioOpinometro = NULL,
+      pool = NULL,
+      variables_cuestionario = NULL,
+      bd_respuestas_cuestionario = NULL,
+      diccionario = NULL,
+      #' @description Establece conexión con la base de datos donde está alojada la
+      #'  implementación del `Opinómetro`.
+      #' @param id_cuestionarioOpinometro Valor entero. Identificador del cuestionario
+      #'  aplicado en campo generado en la plataforma `Opinómetro`.
+      #' @param pool Objeto tipo [pool] generado al conectarse a la base de datos que
+      #'  almacena las respuestas. Se recomienda utilizar la función [dbPool()] de la
+      #'  paquetería [pool] para esto.
+      #' @param diccionario [tibble()] Diccionario (o codebook) del cuestionario de la
+      #'  encuesta. Aunque la clase `Opinometro` reproduce el diccionario a partir del
+      #'  cuestionario construido en la plataforma `Opinometro`, el parametro `diccionario`
+      #'  es aquel que históricamente se ha utilizado para produccion. Es decir, aquel que
+      #'  está usualmente guardado en un archivo de excel y/o que recibe la clase `Encuesta`
+      #'  en el campo `diccionario`.
+      initialize = function(id_cuestionarioOpinometro = NA,
+                            pool = NA,
+                            diccionario = NA) {
+        self$pool <- pool
+        self$id_cuestionarioOpinometro <- id_cuestionarioOpinometro
+        self$definir_variables()
+        self$construir_respuestas()
+        self$diccionario <- diccionario
+        self$verificar_variables()
+        self$terminar_conexion()
+      },
+      #' @description Determina las variables que están contenidas en la plataforma
+      #'  `Opinometro`a partir de los campos construidos en el cuestinoario.
+      definir_variables = function(){
+        self$variables_cuestionario <-
+          determinarVariables_cuestinoarioOpinometro(pool = self$pool,
+                                                     id_cuestionario = self$id_cuestionarioOpinometro)
+      },
+      #' @description Construye el [tibble()] de respuestas contenidas en la base de datos
+      #'  que tiene implementada la plataforma ``Opinometro`.
+      construir_respuestas = function(){
 
-                  bd_respuestas_opinometro_raw <-
-                    consultar_respuestas(pool = self$pool,
-                                         codigos = self$variables_cuestionario,
-                                         encuesta_id = self$id_cuestionarioOpinometro)
+        bd_respuestas_opinometro_raw <-
+          consultar_respuestas(pool = self$pool,
+                               codigos = self$variables_cuestionario,
+                               encuesta_id = self$id_cuestionarioOpinometro)
 
-                  self$bd_respuestas_cuestionario <-
-                    bd_respuestas_opinometro_raw |>
-                    rectificar_respuestasOpinometro(variables_cuestionario = self$variables_cuestionario) |>
-                    left_join(bd_respuestas_opinometro_raw |>
-                                calcular_intentosEfectivos_opinometro(),
-                              by = "SbjNum")
+        self$bd_respuestas_cuestionario <-
+          bd_respuestas_opinometro_raw |>
+          rectificar_respuestasOpinometro(variables_cuestionario = self$variables_cuestionario) |>
+          left_join(bd_respuestas_opinometro_raw |>
+                      calcular_intentosEfectivos_opinometro(),
+                    by = "SbjNum")
 
-                },
-                #' @description Notifica al usuario si hay variables faltantes o sobrantes en el [tibble]
-                #'  que contiene las respuestas.
-                verificar_variables = function(){
-                  variables_sobrantes <-
-                    self$bd_respuestas_cuestionario |>
-                    select(all_of(self$variables_cuestionario)) |>
-                    colnames() |>
-                    as_tibble() |>
-                    anti_join(self$diccionario |>
-                                pull(llaves) |>
-                                as_tibble(),
-                              by = "value")
+      },
+      #' @description Notifica al usuario si hay variables faltantes o sobrantes en el [tibble]
+      #'  que contiene las respuestas.
+      verificar_variables = function(){
+        variables_sobrantes <-
+          self$bd_respuestas_cuestionario |>
+          select(all_of(self$variables_cuestionario)) |>
+          colnames() |>
+          as_tibble() |>
+          anti_join(self$diccionario |>
+                      pull(llaves) |>
+                      as_tibble(),
+                    by = "value")
 
-                  variables_faltantes <-
-                    self$diccionario |>
-                    pull(llaves) |>
-                    as_tibble() |>
-                    anti_join(self$bd_respuestas_cuestionario |>
-                                select(all_of(self$variables_cuestionario)) |>
-                                colnames() |>
-                                as_tibble(),
-                              by = "value")
-                  if(nrow(variables_sobrantes) != 0) {
-                    print(glue::glue("Las siguientes variables están en el opinometro pero no estan en el diccionario: "))
-                    print(variables_sobrantes |>
-                            rename(variable = value))
-                  }
+        variables_faltantes <-
+          self$diccionario |>
+          pull(llaves) |>
+          as_tibble() |>
+          anti_join(self$bd_respuestas_cuestionario |>
+                      select(all_of(self$variables_cuestionario)) |>
+                      colnames() |>
+                      as_tibble(),
+                    by = "value")
+        if(nrow(variables_sobrantes) != 0) {
+          print(glue::glue("Las siguientes variables están en el opinometro pero no estan en el diccionario: "))
+          print(variables_sobrantes |>
+                  rename(variable = value))
+        }
 
-                  if(nrow(variables_faltantes) != 0) {
-                    print(glue::glue("Las siguientes variables están en el diccionario pero no existen en los registros del opinometro:"))
-                    print(variables_faltantes |>
-                            rename(variable = value))
+        if(nrow(variables_faltantes) != 0) {
+          print(glue::glue("Las siguientes variables están en el diccionario pero no existen en los registros del opinometro:"))
+          print(variables_faltantes |>
+                  rename(variable = value))
 
-                    crear_variables <-
-                      yesno::yesno2("¿Crear las variables faltantes a la base consultada?",
-                                    yes = "Y",
-                                    no = "N")
-                    if(crear_variables){
-                      for(i in variables_faltantes$value) {
-                        self$bd_respuestas_cuestionario <-
-                          self$bd_respuestas_cuestionario |>
-                          mutate(!!rlang::sym(i) := NA_character_)
-                      }
-                    }
-                  }
-                },
-                #' @description Cierra la conexion con la base de datos que contiene la impmlementación
-                #'  del `Opinometro`.
-                terminar_conexion = function(){
-                  pool::poolClose(pool = private$pool)
-                }
-              )
+          crear_variables <-
+            yesno::yesno2("¿Crear las variables faltantes a la base consultada?",
+                          yes = "Y",
+                          no = "N")
+          if(crear_variables){
+            for(i in variables_faltantes$value) {
+              self$bd_respuestas_cuestionario <-
+                self$bd_respuestas_cuestionario |>
+                mutate(!!rlang::sym(i) := NA_character_)
+            }
+          }
+        }
+      },
+      #' @description Cierra la conexion con la base de datos que contiene la impmlementación
+      #'  del `Opinometro`.
+      terminar_conexion = function(){
+        pool::poolClose(pool = private$pool)
+      }
+    )
   )
 
