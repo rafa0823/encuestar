@@ -912,7 +912,6 @@ graficar_lolipop_diferencias <- function(bd, orden_variablePrincipal, colores_va
 #' @param variable Variable secundaria
 #' @param colores_variable_secundaria Vector que contiene los codigos de colores para cada categoria de la variable secundaria
 #' @param vartype Parametro de [srvyr::survey_mean()] que reporta la variabilidad de la estimacion
-#' @param filter Valores de interes de la variable secundaria a mostrar
 #' @param linea_grosor Parametro [size] de la funcion [treemapify::geom_treemap_subgroup_border()] que modifica el grosor de las lineas que dividen los subgrupos de un bloque
 #' @param linea_color Parametro [color] de la funcion [treemapify::geom_treemap_subgroup_border()] que modifica el color de las lineas que dividen los subgrupos de un bloque
 #'
@@ -920,12 +919,7 @@ graficar_lolipop_diferencias <- function(bd, orden_variablePrincipal, colores_va
 #'
 #' @examples
 #' encuestar:::analizar_cruce(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variable_secundaria = "voto_pr_24", vartype = "cv") |> encuestar:::graficar_cruce_bloques(cruce = "sexo", variable = "voto_pr_24", colores_variable_secundaria = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F", "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6", "No recuerda" = "gray40","No contesta" = "gray60", "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405", "Anulé mi voto" = "black"), vartype = "cv", filter = NULL, linea_grosor = 2)
-graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secundaria, vartype, filter = NULL, linea_grosor = 2, linea_color = "white"){
-  if(!is.null(filter)) {
-    bd <-
-      bd |>
-      filter(!(!!rlang::sym(cruce) %in% filter))
-  }
+graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secundaria, vartype,  linea_grosor = 2, linea_color = "white"){
   g <-
     bd |>
     ggplot(aes(area = coef,

@@ -108,6 +108,21 @@ encuesta_demo$Resultados$Cruce$bloques(variable_principal = "sexo",
                                                                        "PRD" = "#F2B705",
                                                                        "Otro" = "gray30"))
 ```
+```{r ejemplo2.1, fig.width = 14, fig.height = 7.56, echo = TRUE}
+encuesta_demo$Resultados$Cruce$bloques(variable_principal = "sexo",
+                                       variable_secundaria = "identificacion_partido",
+                                       colores_variable_secundaria = c("MORENA" = "#A6032F",
+                                                                       "PRI" = "#038C33",
+                                                                       "Ninguno" = "black",
+                                                                       "PAN" = "#0339a6",
+                                                                       "Ns/Nc" = "gray60",
+                                                                       "Movimiento Ciudadano (MC)" = "#F27405",
+                                                                       "Partido Verde (PVEM)" = "#98BF5E",
+                                                                       "PT" = "#D91136",
+                                                                       "PRD" = "#F2B705",
+                                                                       "Otro" = "gray30"), 
+                                       filter_variable_secundaria = c("MORENA", "PRI"))
+```
 
 ##### Argumentos:
 
