@@ -634,6 +634,33 @@ Cruce <-
                                  linea_color = linea_color) +
           self$tema
       },
+      #' @description Calcula el cruce entre dos variables no necesariamente binarias y muestra el
+      #'  resultado usando [ggplot2::geom_line()] para cada valor de la variable secundaria.
+      #' @param variable_principal Valor tipo caracter que indica la variable principal. Las categorías
+      #'  se muestran en el eje x.
+      #' @param variable_secundaria Valor tipo caracter que indica la variable secundaria.
+      #' @param orden_variable_principal Vector tipo caracter. Contiene los valores únicos de la
+      #'  variable principal en forma ordenada.
+      #' @param valores_variable_secundaria Vector tipo caracter  que contiene los valores de interés
+      #'  de la variable secundaria.
+      #' @param colores_variable_secundaria Vector que identifica los colores asociados a los valores
+      #'  únicos de la variable secundaria. Es el argumento [values] de la función [ggplot2::scale_fill_manual()].
+      #' @param limits Dupla tipo numérica. Son los posibles valores mínimos y máximos posibles asociados
+      #'  a la pregunta que representa la variable.
+      #' @param wrap_x Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje x.
+      #'  Aplica la función [str_wrap()] de la paquetería [stringr] a las labels del eje x.
+      #' @param wrap_legend Valor tipo entero. Reduce o aumenta la longitud de las `legends` del gráfico
+      #' @param text_nudge_y Valor real. Parámetro [nudge_y] de la función [geom_text] aplicado a la
+      #'  función [ggrepel::geom_text_repel()].
+      #' @param size_text Valor entero. Determina el tamano del dentro del gráfico. Es el parámetro
+      #' [size] de la función [ggrepel::geom_text_repel()].
+      #' @param size_text_x Valor entero. Determina el tamano del dentro del eje x. Es el parámetro
+      #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.x]
+      #' @param size_text_y Valor entero. Determina el tamano del dentro del eje y. Es el parámetro
+      #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.y]
+      #' @param size_text_legend Valor entero. Determina el tamano del dentro de las legends Es el parámetro
+      #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.legend]
+      #' @param na_rm `LOGICAL`. En el cálculo de estimaciones, se omiten los valores nulos.
       lineas = function(variable_principal,
                         variable_secundaria,
                         orden_variable_principal,
@@ -687,6 +714,41 @@ Cruce <-
                 axis.text.y = element_text(size = size_text_y),
                 legend.text = element_text(size = size_text_legend))
       },
+      #' @description Calcula el cruce entre dos variables categoricas donde la primera o principal
+      #'  es binaria, filtra los valores de interés de la segunda variable y muestra las diferencias
+      #'  relativas a la primera en una gráfica tipo lolipop.
+      #' @param variable_principal Valor tipo caracter que indica la variable principal. Las categorías
+      #'  se muestran en el eje y.
+      #' @param variables_secundarias Valor tipo caracter que indica las variables secundarias.
+      #' @param filtro_variables_secundarias Valor tipo caracter. Valor en común entre las variables
+      #'  secundarias y que es de interés para mostrar resultados.
+      #' @param orden_variablePrincipal Vector tipo caracter. Contiene los valores únicos de la
+      #'  variable principal en forma ordenada.
+      #' @param colores_variable_secundaria Vector que identifica los colores asociados a los valores
+      #'  únicos de las variables secundaria. Es el argumento [values] de la función [ggplot2::scale_fill_manual()].
+      #' @param caption Valor tipo caracter. Es el [caption] del gráfico.
+      #' @param nudge_x Valor real. Parámetro [nudge_x] de la función [ggplot2::geom_text()].
+      #' @param size_geom_text Valor entero. Determina el tamano del dentro del gráfico. Es el parámetro
+      #'  [size] de la función [ggplot2::geom_text()].
+      #' @param invertir_variables `LOGICAL`. Determina si las variables principal y secundarias se
+      #'  invierten en el gráfico.
+      #' @param vartype Parametro de [srvyr::survey_mean()] que reporta la variabilidad de la estimacion
+      #' @param limits Dupla tipo numérica. Son los posibles valores mínimos y máximos posibles asociados
+      #'  a la pregunta que representa la variable.
+      #' @param wrap_y Valor tipo entero. Reduce o aumenta la longitud de las categorías en el eje y.
+      #'  Aplica la función [str_wrap()] de la paquetería [stringr] a las labels del eje y.
+      #' @param wrap_caption Valor tipo entero. Reduce o aumenta la longitud del texto mostrado en
+      #'  el caption.
+      #' @param size_text_x Valor entero. Determina el tamano del dentro del eje x. Es el parámetro
+      #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.x]
+      #' @param size_text_y Valor entero. Determina el tamano del dentro del eje y. Es el parámetro
+      #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.y]
+      #' @param size_text_caption Valor entero. Determina el tamano del dentro de las legends Es el parámetro
+      #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.caption]
+      #' @param size_text_legend Valor entero. Determina el tamano del dentro de las legends Es el parámetro
+      #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.legend]
+      #' @param ver_diferencias `LOGICAL`. Determina si se muestran las diferencias en puntos porcentuales
+      #'  dentro del gráfico.
       lolipop_diferencias = function(variable_principal,
                                      variables_secundarias,
                                      filtro_variables_secundarias,
@@ -769,7 +831,24 @@ Cruce <-
                 plot.caption = element_text(size = size_text_caption))
 
       },
-      sankey_categorica = function(variables = NULL, colores, size_text_cat = 6, width_text = 15,omitir_valores_variable1 = NULL, omitir_valores_variable2 = NULL){
+      #' @description Muestra las proporciones de individuos correspondientes a valores unicos entre
+      #'  dos variables en una gráfica tipo `sankey`
+      #' @param variables Vector tipo caracter que contiene las dos variables a visualizar.
+      #' @param colores Vector que identifica los colores asociados a los valores únicos de las variables
+      #'  Es el argumento [values] de la función [ggplot2::scale_fill_manual()] y [ggplot2::scale_color_manual()]
+      #' @param size_text_cat Parametro [size] de la funcion [ggsankey::geom_sankey_text()] que determina
+      #'  el tamano del texto de las etiquetas en cada nodo del gráfico.
+      #' @param width_text Valor tipo entero. Reduce o aumenta la longitud del texto mostrado en las etiquetas
+      #' @param omitir_valores_variable1 Vector tipo caracter. Valores únicos de la primer variable
+      #'  que se omiten de los resultados.
+      #' @param omitir_valores_variable2 Vector tipo caracter. Valores únicos de la segunda variable
+      #'  que se omiten de los resultados.
+      sankey_categorica = function(variables = NULL,
+                                   colores,
+                                   size_text_cat = 6,
+                                   width_text = 15,
+                                   omitir_valores_variable1 = NULL,
+                                   omitir_valores_variable2 = NULL){
 
         if(is.null(variables)) {
 
@@ -799,6 +878,25 @@ Cruce <-
                           width_text = width_text)
         }
       },
+      #' @description Muestra las proporciones de individuos correspondientes a valores unicos entre
+      #'  dos variables en una tabla renderizada mediante la paquetería [flextable].
+      #' @param var1 Valor tipo caracter. Es el nombre de la variable principal del cruce.
+      #' @param var2 Valor tipo caracter. Nombre de la variable secundaria del cruce.
+      #' @param filtro_var2 Vector tiopo caracter. Son los valores únicos de la segunda variable que
+      #'  se omiten de los resultados.
+      #' @param etiquetas Dupla ordenada tipo caracter. Nombres de las variables para mostrar en el
+      #'  resultado final.
+      #' @param colores_var1 Vector que identifica los colores asociados a los valores únicos de la
+      #'  primer variable.
+      #' @param colores_var2 Vector que identifica los colores asociados a los valores únicos de la
+      #'  segunda variable.
+      #' @param size_text_header Valor tipo entero. Determina el tamano del texto en el encabezado
+      #'  de la tabla.
+      #' @param size_text_body Valor tipo entero. Determina el tamano del texto en el cuerpo de la
+      #'  tabla.
+      #' @param salto Valor tipo entero. Reduce o aumenta la longitud del texto mostrado en
+      #'  el caption.
+      #' @param na_rm `LOGICAL`. En el cálculo de estimaciones, se omiten los valores nulos.
       tabla_votoCruzado = function(var1,
                                    var2,
                                    filtro_var2 = NULL,
@@ -849,7 +947,7 @@ Cruce <-
 
         return(tabla_salida)
       }
-    ))
+      ))
 
 #'Esta es la clase de Especial
 #'@export

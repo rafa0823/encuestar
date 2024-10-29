@@ -878,9 +878,15 @@ graficar_morena <- function(atr, personajes, atributos){
 #'
 #' @examples
 #' encuestar:::analizar_cruce_aspectos(diseno = encuesta_demo$muestra$diseno, variable_principal = "sexo", variables_secundarias = paste0("conoce_pm_", c("astiazaran", "delrio")), filtro_variables_secundarias = "Sí", vartype = "cv") |> dplyr::left_join(encuesta_demo$cuestionario$diccionario |> dplyr::distinct(llaves, tema), by = c("variable" = "llaves")) |> dplyr::select(!variable) |> dplyr::rename(variable_principal = sexo) |> encuestar:::graficar_lolipop_diferencias(orden_variablePrincipal = c("F", "M"), colores_variables_secundarias = c("Antonio \"Toño\" Astiazarán" = "red", "María Dolores Del Río" = "blue"), caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.8)) + encuestar::tema_morant()
-graficar_lolipop_diferencias <- function(bd, orden_variablePrincipal, colores_variables_secundarias,
-                                         nudge_x = 0.05, size_geom_text = 6,
-                                         caption = "", wrap_y = 25, wrap_caption = 25, limits = c(0, 0.75)) {
+graficar_lolipop_diferencias <- function(bd,
+                                         orden_variablePrincipal,
+                                         colores_variables_secundarias,
+                                         nudge_x = 0.05,
+                                         size_geom_text = 6,
+                                         caption = "",
+                                         wrap_y = 25,
+                                         wrap_caption = 25,
+                                         limits = c(0, 0.75)) {
   g <-
     bd |>
     ggplot(aes(x = factor(variable_principal, levels = orden_variablePrincipal),
@@ -965,7 +971,8 @@ graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secunda
 #' Graficar sankey
 #'
 #' @param bd Base de datos procesada con la función [encuestar:::analizar_sankey()]
-#' @param size_text_cat Parametro [size] de la funcion [treemapify::geom_treemap_subgroup_border()] que modifica el grosor de las lineas que dividen los subgrupos de un bloque
+#' @param size_text_cat Parametro [size] de la funcion [ggsankey::geom_sankey_text()] que determina
+#'  el tamano del texto de las etiquetas en cada nodo del gráfico
 #' @param variables Vector ordenado tipo caracter que contiene los nombres de las llaves de las cuales se va a hacer el cruce
 #' @param colores Argumento usado por scale_fill_manual y sclae_color_manual
 #' @param width_text Salto de linea que se aplica a las categorias mostradas
@@ -974,7 +981,7 @@ graficar_cruce_bloques <- function(bd, cruce, variable, colores_variable_secunda
 #'
 #' @examples
 #' graficar_sankey(bd = bd_estimacion, size_text_cat = 8)
-graficar_sankey <- function(bd, variables, colores, size_text_cat,width_text = 15){
+graficar_sankey <- function(bd, variables, colores, size_text_cat, width_text = 15){
   bd <-
     bd|>
     mutate(pos_x = ifelse(x == variables[1], as.numeric(x)- 0.1, as.numeric(x) + 0.1))
@@ -992,8 +999,8 @@ graficar_sankey <- function(bd, variables, colores, size_text_cat,width_text = 1
                                    label = stringr::str_wrap(string = node, width = width_text),
                                    color = node,
                                    hjust = ifelse(x == variables[1],1,0)),
-                               size = size_text_cat, show.legend = F
-    )  +
+                               size = size_text_cat,
+                               show.legend = F)  +
     guides(color = "none", fill = "none") +
     scale_fill_manual(values = colores) +
     scale_color_manual(values = colores) +
