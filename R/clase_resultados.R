@@ -58,14 +58,16 @@ Resultados <-
       initialize = function(encuesta, diseno, diccionario, tema = tema_morant()){
 
         self$encuesta <- encuesta
-
         self$diseno <- diseno
+
         if(!is.null(self$encuesta)){
 
+          self$diseno <- self$encuesta$muestra$diseno
           self$diccionario <- self$encuesta$cuestionario$diccionario
 
         } else {
 
+          self$diseno <- diseno
           self$diccionario <- diccionario
 
         }
@@ -90,7 +92,8 @@ Resultados <-
                                       tema = self$tema,
                                       graficadas = self$graficadas)
 
-        self$Tendencias <- Tendencias$new(encuesta = self$encuesta)
+        self$Tendencias <- Tendencias$new(encuesta = self$encuesta,
+                                          diseno = self$diseno)
 
         if(!is.null(self$encuesta)) {
 
@@ -1510,11 +1513,22 @@ Regiones <- R6::R6Class(classname = "Regiones",
 Tendencias <- R6::R6Class(classname = "Tendencias",
                           public = list(
                             encuesta = NULL,
+                            diseno = NULL,
                             bd_resultados = NULL,
-                            initialize = function(encuesta = NULL){
+                            initialize = function(encuesta = NULL, diseno = NULL){
                               self$encuesta <- encuesta
-                              self$bd_resultados <- self$encuesta$respuestas$base |>
-                                mutate(peso = weights(self$encuesta$muestra$diseno))
+
+                              self$diseno <-
+                                {
+                                  if(!is.null(encuesta)) {
+                                    self$encuesta$muestra$diseno
+                                  } else {
+                                    diseno
+                                  }
+                                }
+
+                              self$bd_resultados <- self$diseno$variables |>
+                                mutate(peso = weights(self$diseno))
                             },
                             intencion_voto = function(variable, valores_interes, colores, sin_peso = T, linea_peso = F, size_fech = 8,size_text_legend = 12){
                               bd_mediaMovil <-
