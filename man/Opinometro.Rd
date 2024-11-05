@@ -34,7 +34,6 @@ clase \code{Encuesta} o se provee de forma externa.}
 \item \href{#method-Opinometro-definir_variables}{\code{Opinometro$definir_variables()}}
 \item \href{#method-Opinometro-construir_respuestas}{\code{Opinometro$construir_respuestas()}}
 \item \href{#method-Opinometro-verificar_variables}{\code{Opinometro$verificar_variables()}}
-\item \href{#method-Opinometro-terminar_conexion}{\code{Opinometro$terminar_conexion()}}
 \item \href{#method-Opinometro-clone}{\code{Opinometro$clone()}}
 }
 }
@@ -98,17 +97,6 @@ Notifica al usuario si hay variables faltantes o sobrantes en el \link{tibble}
 que contiene las respuestas.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Opinometro$verificar_variables()}\if{html}{\out{</div>}}
-}
-
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-Opinometro-terminar_conexion"></a>}}
-\if{latex}{\out{\hypertarget{method-Opinometro-terminar_conexion}{}}}
-\subsection{Method \code{terminar_conexion()}}{
-Cierra la conexion con la base de datos que contiene la impmlementación
-del \code{Opinometro}.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Opinometro$terminar_conexion()}\if{html}{\out{</div>}}
 }
 
 }

@@ -24,7 +24,7 @@ Esta es la clase de Tendencias
 \if{latex}{\out{\hypertarget{method-Tendencias-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Tendencias$new(encuesta = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Tendencias$new(encuesta = NULL, diseno = NULL)}\if{html}{\out{</div>}}
 }
 
 }

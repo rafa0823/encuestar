@@ -20,6 +20,7 @@ Opinometro <-
       id_cuestionarioOpinometro = NULL,
       pool = NULL,
       variables_cuestionario = NULL,
+      bd_respuestas_raw = NULL,
       bd_respuestas_cuestionario = NULL,
       diccionario = NULL,
       #' @description Establece conexión con la base de datos donde está alojada la
@@ -43,31 +44,37 @@ Opinometro <-
         self$definir_variables()
         self$construir_respuestas()
         self$diccionario <- diccionario
-        self$verificar_variables()
+        if(!is.null(self$diccionario)) {
+          self$verificar_variables()
+        }
         self$terminar_conexion()
       },
       #' @description Determina las variables que están contenidas en la plataforma
       #'  `Opinometro`a partir de los campos construidos en el cuestinoario.
       definir_variables = function(){
         self$variables_cuestionario <-
-          determinarVariables_cuestinoarioOpinometro(pool = self$pool,
-                                                     id_cuestionario = self$id_cuestionarioOpinometro)
+          determinar_contenidoCuestionario(pool = self$pool,
+                                           id_cuestionario = self$id_cuestionarioOpinometro) |>
+          pull(elementsname)
       },
       #' @description Construye el [tibble()] de respuestas contenidas en la base de datos
       #'  que tiene implementada la plataforma ``Opinometro`.
       construir_respuestas = function(){
 
-        bd_respuestas_opinometro_raw <-
+        self$bd_respuestas_raw <-
           consultar_respuestas(pool = self$pool,
                                codigos = self$variables_cuestionario,
                                encuesta_id = self$id_cuestionarioOpinometro)
 
-        self$bd_respuestas_cuestionario <-
-          bd_respuestas_opinometro_raw |>
-          rectificar_respuestasOpinometro(variables_cuestionario = self$variables_cuestionario) |>
-          left_join(bd_respuestas_opinometro_raw |>
-                      calcular_intentosEfectivos_opinometro(),
-                    by = "SbjNum")
+        if(!is.null(self$diccionario)) {
+
+          self$bd_respuestas_cuestionario <-
+            self$bd_respuestas_raw |>
+            rectificar_respuestasOpinometro(variables_cuestionario = self$variables_cuestionario) |>
+            left_join(self$bd_respuestas_raw |>
+                        calcular_intentosEfectivos_opinometro(),
+                      by = "SbjNum")
+        }
 
       },
       #' @description Notifica al usuario si hay variables faltantes o sobrantes en el [tibble]
@@ -115,12 +122,11 @@ Opinometro <-
             }
           }
         }
-      },
-      #' @description Cierra la conexion con la base de datos que contiene la impmlementación
-      #'  del `Opinometro`.
-      terminar_conexion = function(){
-        pool::poolClose(pool = private$pool)
       }
+      # terminar_conexion = function(){
+      #   pool::poolClose(pool = self$pool)
+      #
+      # }
     )
   )
 

@@ -6,7 +6,7 @@
 #' @return
 #'
 #' @examples
-determinarVariables_cuestinoarioOpinometro <- function(pool, id_cuestionario){
+determinar_contenidoCuestionario <- function(pool, id_cuestionario){
   tbl(src = pool, "Encuesta") |>
     filter(Id == id_cuestionario) |>
     collect() %>%
@@ -17,8 +17,7 @@ determinarVariables_cuestinoarioOpinometro <- function(pool, id_cuestionario){
         as_tibble()|>
         tidyr::unnest(pages)|>
         as_tibble()|>
-        tidyr::unnest(elements, names_sep = '')}) |>
-    pull(elementsname)
+        tidyr::unnest(elements, names_sep = '')})
 }
 #' Title
 #'
@@ -56,7 +55,6 @@ consultar_respuestas <- function(pool, codigos, encuesta_id){
                           join_by(Id == UsuarioId)) |>
                 select(UsuarioNum = Num, Nombre, APaterno, AMaterno),
               by = "UsuarioNum") |>
-    janitor::clean_names() |>
     collect()
 }
 #' Title
@@ -71,19 +69,19 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
   bd_respuestasOpinometro |>
     mutate(intentos = stringr::str_trim(string = intentos, side = "both")) |>
     filter(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil") |>
-    filter(ubicacion_aplicada != "No aplica") |>
-    mutate(ubicacion_aplicada = dplyr::if_else(condition = ubicacion_aplicada == ",",
+    filter(UbicacionAplicada != "No aplica") |>
+    mutate(UbicacionAplicada = dplyr::if_else(condition = UbicacionAplicada == ",",
                                                true = NA_character_,
-                                               false = ubicacion_aplicada)) |>
-    tidyr::separate(col = ubicacion_aplicada,
+                                               false = UbicacionAplicada)) |>
+    tidyr::separate(col = UbicacionAplicada,
                     into = c("Latitude", "Longitude"),
                     sep = ",",
                     remove = TRUE) |>
-    transmute(SbjNum = id,
-              Date = lubridate::as_datetime(fecha_inicio, tz = "America/Mexico_City"),
-              Srvyr = paste(nombre, a_paterno, a_materno, sep = " "),
-              VStart = lubridate::as_datetime(fecha_inicio),
-              VEnd = lubridate::as_datetime(fecha_fin),
+    transmute(SbjNum = Id,
+              Date = lubridate::as_datetime(FechaInicio, tz = "America/Mexico_City"),
+              Srvyr = paste(Nombre, APaterno, AMaterno, sep = " "),
+              VStart = lubridate::as_datetime(FechaInicio),
+              VEnd = lubridate::as_datetime(FechaInicio),
               Duration = as.character(difftime(VEnd, VStart, units = "hours")),
               Latitude,
               Longitude,
@@ -101,8 +99,8 @@ rectificar_respuestasOpinometro <- function(bd_respuestasOpinometro, variables_c
 #' @examples
 calcular_intentosEfectivos_opinometro <- function(bd_respuestasOpinometro){
   bd_respuestasOpinometro |>
-    transmute(SbjNum = id,
-              Srvyr = paste(nombre, a_paterno, a_materno, sep = " "),
+    transmute(SbjNum = Id,
+              Srvyr = paste(Nombre, APaterno, AMaterno, sep = " "),
               intentos = stringr::str_trim(string = intentos, side = "both")) |>
     mutate(intento_efectivo = dplyr::case_when(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil" ~ "efectivo",
                                                .default = "no efectivo")) |>
