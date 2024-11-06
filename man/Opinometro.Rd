@@ -44,7 +44,7 @@ clase \code{Encuesta} o se provee de forma externa.}
 Establece conexión con la base de datos donde está alojada la
 implementación del \code{Opinómetro}.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Opinometro$new(id_cuestionarioOpinometro = NA, pool = NA, diccionario = NA)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Opinometro$new(id_cuestionarioOpinometro = NA, pool = NA, diccionario = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
