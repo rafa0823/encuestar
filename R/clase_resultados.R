@@ -177,19 +177,23 @@ Descriptiva <-
       barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
 
         llave_aux <- codigo
-        if(!(llave_aux %in% self$graficadas)){
-          if(llave_aux %in% self$diccionario$llaves){
-            self$graficadas <- self$graficadas %>% append(llave_aux)
-          } else {
-            stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
-          }
-        } else {
-          warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
-        }
+        # if(!(llave_aux %in% self$graficadas)){
+        #   if(llave_aux %in% self$diccionario$llaves){
+        #     self$graficadas <- self$graficadas %>% append(llave_aux)
+        #   } else {
+        #     stop(glue::glue("La llave {llave_aux} no existe en el diccionario"))
+        #   }
+        # } else {
+        #   warning(glue::glue("La llave {llave_aux} ya fue graficada con anterioridad"))
+        # }
 
-        tema <- self$diccionario |>
-          filter(llaves == rlang::ensym(codigo)) |>
-          pull(tema)
+        if(!is.null(self$diccionario)) {
+
+          tema <- self$diccionario |>
+            filter(llaves == rlang::ensym(codigo)) |>
+            pull(tema)
+
+        }
 
         if(is.null(self$diseno)) {
 
@@ -201,8 +205,14 @@ Descriptiva <-
 
         }
 
-        analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) |>
-          mutate(tema = tema) |>
+        analizar_frecuencias(diseno = diseno, pregunta = {{codigo}}) %>%
+          {
+            if(!is.null(self$diccionario)) {
+              mutate(.data = ., tema = tema)
+            } else {
+              .
+            }
+          } %>%
           mutate(respuesta = forcats::fct_lump_min(f = respuesta, min = pct_otros, w = media, other_level = "Otros"),
                  respuesta = dplyr::if_else(condition = respuesta == "Otro", true = "Otros", false = respuesta)) %>%
           group_by(respuesta) |>
