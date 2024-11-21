@@ -19,6 +19,7 @@ Opinometro <-
     public = list(
       id_cuestionarioOpinometro = NULL,
       pool = NULL,
+      contenido_cuestionario = NULL,
       variables_cuestionario = NULL,
       bd_respuestas_raw = NULL,
       bd_respuestas_cuestionario = NULL,
@@ -38,7 +39,7 @@ Opinometro <-
       #'  en el campo `diccionario`.
       initialize = function(id_cuestionarioOpinometro = NA,
                             pool = NA,
-                            diccionario = NA) {
+                            diccionario = NULL) {
         self$pool <- pool
         self$id_cuestionarioOpinometro <- id_cuestionarioOpinometro
         self$definir_variables()
@@ -47,14 +48,17 @@ Opinometro <-
         if(!is.null(self$diccionario)) {
           self$verificar_variables()
         }
-        self$terminar_conexion()
+        #self$terminar_conexion()
       },
       #' @description Determina las variables que están contenidas en la plataforma
       #'  `Opinometro`a partir de los campos construidos en el cuestinoario.
       definir_variables = function(){
-        self$variables_cuestionario <-
+        self$contenido_cuestionario <-
           determinar_contenidoCuestionario(pool = self$pool,
-                                           id_cuestionario = self$id_cuestionarioOpinometro) |>
+                                           id_cuestionario = self$id_cuestionarioOpinometro)
+
+        self$variables_cuestionario <-
+          self$contenido_cuestionario |>
           pull(elementsname)
       },
       #' @description Construye el [tibble()] de respuestas contenidas en la base de datos

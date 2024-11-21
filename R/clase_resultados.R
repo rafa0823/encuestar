@@ -119,7 +119,11 @@ Resultados <-
       #' @description Visualiza las variables que aún no han sido producidas
       #'  por la paqutería durante la producción.
       faltantes = function(){
-        gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
+        if(!is.null(self$encuesta)) {
+          gant_p_r(self$encuesta$cuestionario$diccionario %>% filter(!llaves %in% self$graficadas))
+        } else {
+          NULL
+        }
       }
     )
   )

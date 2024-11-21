@@ -1024,9 +1024,10 @@ graficar_nube_palabras = function(bd, max_size) {
     ggwordcloud::geom_text_wordcloud(area_corr = TRUE) +
     scale_size_area(max_size = max_size) +
     scale_color_identity() +
-    theme(theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
-                panel.background = element_rect(color = "transparent", fill = "transparent"),
-                legend.background = element_rect(color = "transparent", fill = "transparent")))
+    theme(text = element_text(family = "Poppins"),
+          plot.background = element_rect(color = "transparent", fill = "transparent"),
+          panel.background = element_rect(color = "transparent", fill = "transparent"),
+          legend.background = element_rect(color = "transparent", fill = "transparent"))
   return(g)
 }
 #' Title
