@@ -70,9 +70,9 @@ Respuestas <-
         self$catalogo <- catalogo
 
         # Parar si faltan variables de sistema o del cuestionario
-        self$nombres(catalogo_variables = self$catalogo,
-                     bd =  self$base,
-                     diccionario = diccionario)
+        # self$nombres(catalogo_variables = self$catalogo,
+        #              bd =  self$base,
+        #              diccionario = diccionario)
 
         # Quitar patrones a respuestas
         self$q_patron(self$base, diccionario, patron)
