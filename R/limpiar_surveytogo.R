@@ -21,7 +21,7 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 
   if(length(mantener) != 0){
     fuera <- todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))),
-                               ! (!!rlang::sym(glue::glue("{var_n}.x")) %in% mantener))
+                              ! (!!rlang::sym(glue::glue("{var_n}.x")) %in% mantener))
     fuera_sm <-  todas %>% filter(is.na(!!rlang::sym(glue::glue("{var_n}.y"))),
                                   !!rlang::sym(glue::glue("{var_n}.x")) %in% mantener)
   } else{
@@ -55,7 +55,7 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
 
   respuestas <- respuestas %>%
     mutate(!!rlang::sym(glue::glue("{var_n}")) := if_else(distinto, !!rlang::sym(nivel),
-                                                            !!rlang::sym(glue::glue("{var_n}")))) %>%
+                                                          !!rlang::sym(glue::glue("{var_n}")))) %>%
     select(-!!rlang::sym(nivel), -distinto)
 
   print(glue::glue("Se cambiaron {nuevos %>% count(distinto) %>% pull(n)} clusters ya que la entrevista no esta donde se reporto."))
@@ -127,36 +127,20 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("SbjNum","INT15","T_Q_47
 #'
 #' @examples
 
-match_dicc_base <- function(self, quitar) {
+match_dicc_base <- function(self) {
 
-  g <- tibble(bd = self$respuestas$base %>% select(-any_of(quitar)) %>% names) %>%
-    tibble::rownames_to_column() %>%
-    full_join(tibble(diccionario = self$cuestionario$diccionario %>% pull(llaves) %>% as.character() %>%
-                       {
-                         if(!is.null(self$cuestionario$documento)) {
-                           append(., self$cuestionario$documento %>%
-                                    filter(style_name == "Morant_filtros" | style_name == "Preguntas_filtros", stringr::str_detect(text,"\\{")) %>%
-                                    transmute(text = stringr::str_extract(text,"(?<=\\{).+?(?=\\})") %>% stringr::str_squish()) %>%
-                                    pull(1)
-                                  )
-                           } else {.} }
-                     ) %>%
-                tibble::rownames_to_column(), by = c("bd" = "diccionario")) %>%
-    filter(is.na(rowname.x) | is.na(rowname.y)) %>%
-    replace_na(list(rowname.y = "No esta en el diccionario",
-                    rowname.x = "No esta en la base")) %>%
-    mutate(rowname.x = if_else(stringr::str_detect(rowname.x,"No esta"), rowname.x, bd) %>%
-             forcats::fct_relevel("No esta en la base", after = Inf),
-           rowname.y = if_else(stringr::str_detect(rowname.y,"No esta"), rowname.y, bd) %>%
-             forcats::fct_relevel("No esta en el diccionario", after = Inf)) %>%
-    select(variable = bd, razon = rowname.y)
-    # ggplot() +
-    # geom_tile(aes(x = rowname.x, y =rowname.y), fill = "red") +
-    # coord_flip() +
-    # theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-    # labs(x = NULL, y = NULL)
-
-  return(g)
+  self$respuestas$base |>
+    names() |>
+    as_tibble() |>
+    anti_join(self$respuestas$catalogo |>
+                pull(variable) |>
+                as_tibble(),
+              by = "value") |>
+    rename(bd = value) |>
+    transmute(variable = bd) |>
+    filter(!variable %in% (catalogo_variables |>
+             filter(plataforma == "encuestar") |>
+             pull(variable)))
 
 }
 

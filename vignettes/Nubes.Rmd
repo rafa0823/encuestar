@@ -1,0 +1,493 @@
+---
+title: "Preguntas Abiertas"
+output:
+  html_vignette:
+    css: ./Manual-diccionario/corp-styles_B.css
+vignette: >
+  %\VignetteIndexEntry{Preguntas Abiertas}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup,message=FALSE, echo = FALSE}
+library(encuestar)
+library(dplyr)
+library(DT)
+
+```
+
+## Introducción
+
+El tratamiento de las preguntas abiertas es diferente al resto de las variables de la encuesta, dada la naturaleza y diversidad de respuestas que se obtienen con las preguntas abiertas. Dado lo anterior se requiere de un análisis de tipo cualitativo que pueda dar un sentido más general a la diversidad de respuestas presentadas. Posterior al análisis cualitativo, se puede hacer una exposición de resultados en forma de informe, o se puede hacer categorizaciones que puedan englobar la mayoría de las respuestas obtenidas, en este apartado se explicará como se hace el procesamiento de la segunda opción. Cabe destacar que no todas las preguntas abiertas pueden a ser categorizadas, por lo que queda a criterio de los analistas encontrar la mejor manera de mostrar los resultados de este tipo de preguntas.
+
+## Descripción de las preguntas abiertas
+
+En el apartado de diccionario de variables y llaves se mencionó que las preguntas de tipo abierta se clasifican en la columna **tipo_pregunta**. Se muestra en este caso las llaves que tienen este tipo de pregunta, y las llaves que procederán a tener un análisis cualitativo.
+
+```{r dicc_ejemp_1,warning=FALSE,message=FALSE,echo = FALSE}
+
+ejemp_dic_1 <- encuesta_demo$cuestionario$diccionario|>
+  select(pregunta,tipo_pregunta,llaves,tema,respuestas)|>
+  filter(grepl('Abierta',tipo_pregunta))|>
+  mutate(tema = tidyr::replace_na(tema,''))|>
+  mutate(respuestas = tidyr::replace_na(respuestas,''))
+
+
+knitr::kable(ejemp_dic_1, caption = 'Tabla 1. Llaves de preguntas abiertas en el diccionario', align = 'c')|>
+  kableExtra::row_spec(row = seq(2,4,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+
+```
+
+A continuación, se muestra un ejemplo de las respuestas abiertas que se puede encontrar en la encuesta. Cabe suelen haber preguntas abiertas que están condicionadas por una respuesta categórica anterior, por lo que pueden haber espacios en balco, o requieren clasificarse de una manera particular antes de tener un análisis a profundidad.
+
+
+```{r vars_ejemp_1,warning=FALSE,message=FALSE,echo = FALSE}
+
+ejemp_abr_1 <- encuesta_demo$muestra$diseno$variables|>
+  select("SbjNum","colonia_bien", "colonia_mal", "razon_opinion_pm_astiazaran" ,"razon_opinion_pm_delrio")|>
+  mutate(razon_opinion_pm_astiazaran = tidyr::replace_na(razon_opinion_pm_astiazaran,''))|>
+  mutate(razon_opinion_pm_delrio = tidyr::replace_na(razon_opinion_pm_delrio,''))|>
+  head()
+
+
+knitr::kable(ejemp_abr_1, caption = 'Tabla 2. Llaves de preguntas abiertas', align = 'c')|>
+  kableExtra::row_spec(row = seq(2,6,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+
+
+```
+
+Si se observa la tabla 1 y 2. Las variables con el prefijo **razón_opinion** carecen de contexto aun leyendo la pregunta, esto se debe a que la respuesta a esta pregunta proviene de una pregunta anterior. En el caso las preguntas sobre el estado de la colonia se entienden bien en su connotación al momento de leer la pregunta de la que parten. Por el momento es importante enfocarse en las preguntas correspondientes a **razón_opinion**.
+
+
+```{r dicc_ejemp_2,warning=FALSE,message=FALSE,echo = FALSE}
+
+ejemp_dic_1 <- encuesta_demo$cuestionario$diccionario|>
+  select(pregunta,tipo_pregunta,llaves,tema,respuestas)|>
+  filter(llaves %in% c("conoce_pm_astiazaran","opinion_pm_astiazaran","razon_opinion_pm_astiazaran","conoce_pm_delrio","opinion_pm_delrio" ,"razon_opinion_pm_delrio") )|>
+  mutate(tema = tidyr::replace_na(tema,''))|>
+  mutate(respuestas = tidyr::replace_na(respuestas,''))
+
+
+knitr::kable(ejemp_dic_1, caption = 'Tabla 3. Llaves de preguntas respecto a la opinion de personajes', align = 'c')|>
+  kableExtra::row_spec(row = seq(2,6,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+```
+
+Se puede observar cómo hay valores vacíos en las llaves **razon_opinion_pm_astiazaran** y **razon_opinion_pm_delrio**, ya que, para contestar esta pregunta, primero dependen de que los encuestados conozcan al personaje en cuestión, para posteriormente dar una opinión ya sea buena, neutral o mala, y finalmente dar los motivos de esa respuesta, la cual es la variable de interés. De esta manera se observa como este tipo de preguntas dependen de varías variables previas las cuales aportan contexto a este tipo de respuestas.
+
+```{r vars_ejemp_2,warning=FALSE,message=FALSE,echo = FALSE}
+
+ejemp_abr_2 <- encuesta_demo$muestra$diseno$variables|>
+  select('SbjNum',"conoce_pm_astiazaran","opinion_pm_astiazaran","razon_opinion_pm_astiazaran","conoce_pm_delrio","opinion_pm_delrio" ,"razon_opinion_pm_delrio")|>
+  mutate(razon_opinion_pm_astiazaran = tidyr::replace_na(razon_opinion_pm_astiazaran,''))|>
+  mutate(razon_opinion_pm_delrio = tidyr::replace_na(razon_opinion_pm_delrio,''))|>
+  mutate(opinion_pm_astiazaran = tidyr::replace_na(opinion_pm_astiazaran,''))|>
+  mutate(opinion_pm_delrio = tidyr::replace_na(opinion_pm_delrio,''))|>
+  head()
+
+
+DT::datatable(ejemp_abr_2,rownames= FALSE,
+              filter = "none",
+              class = 'cell-border stripe',options = list(dom = 't'))
+
+```
+
+Cabe mencionar que las preguntas abiertas que se enfocan en la opinión de algún personaje o situación se suelen dividir en repuestas positivas y negativas con base a una pregunta categórica anterior, de forma que se puedan agrupar las respuestas de mejor manera al momento de ser analizadas. Así mismo, por este tipo de situaciones hay llaves que se terminan subdividiendo en dos variables categóricas más.
+
+Tras identificar estos elementos, el analista tendrá que hacer una revisión de las preguntas correspondientes y así definir una serie de categorías *ad hoc* a los patrones o grupos que encuentre según sea el tipo de respuestas recibidas. 
+
+## Las categorías en las preguntas abiertas
+
+El análisis cualitativo de las diferentes respuestas en las preguntas abiertas permite hacer una clasificación general de las mismas, esto pueden ser diversos grupos ya sea por temática, precepción, sensación, etc. Solo el contexto de la pregunta y el análisis de las respuestas permitirá saber que tipo de clasificación será la más idónea. 
+
+Tras realizar una clasificación general de una muestra de las respuestas abiertas, el analista debe proporcionar un archivo en formato de hoja de datos, donde venga la variable (llave) de la pregunta abierta, y abajo un listado de las diversas clasificaciones o categorías que propone el analista para agrupar las respuestas de la llave correspondiente. Como se mencionó previamente, algunas variables pueden separar sus respuestas en dos grupos más amplios que en si mismo las convierte en dos o más sub-variables, de forma que se tiene que mostrar en la hoja de datos esas nuevas posibles variables.
+
+
+```{r cats_ejemp_1,warning=FALSE,message=FALSE,echo = FALSE}
+
+bd_categorias_abiertas <- readxl::read_xlsx(path = '../data-raw/categorias_abiertas_demo.xlsx')
+
+bd_categorias_abiertas_six<-bd_categorias_abiertas|>
+  head()
+
+knitr::kable(bd_categorias_abiertas_six, caption = 'Tabla 4. Categorizaciones de las preguntas abiertas', align = 'c')|>
+  kableExtra::row_spec(row = seq(2,6,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+```
+
+Obsérvese como las llaves con el prefijo **razon_opinion** han pasado a ser de una variable para cada personaje, a dos diferentes variables enfocadas en la percepción de los entrevistados, una percepción *“buena”* y una precepción *“mala”*. 
+
+Estas categorías tendrán dos funciones, la primera será ser una guía para poder clasificar las respuestas abiertas mediante un bot de IA de procesamiento de lenguaje, de manera que será necesario exportar las respuestas obtenidas, y sus respectivas categorías de manera que la IA realice el proceso de asignación de categorías. Hasta el momento la IA es capaz de asignar hasta tres categorías a una sola respuesta; por otra parte, si el bot no encuentra alguna categoría adecuada, asignará a la respuesta el término “sin categorizar”, estas respuestas no serán tomadas en cuenta para el procesamiento.
+
+En segundo lugar, las categorías propuestas serán las que serán mostradas en formato de ***Nube de palabras***, por lo que será necesario que estas categorías o clasificaciones no sean términos tan largos y que sean lo más concretas posible, para la correcta visualización de los términos en la gráfica.
+
+## Tratamiento de categorías en preguntas abiertas
+
+Dada las características de las respuestas que se suelen dar suelen tener errores, a veces por factores como la premura de la encuestas o errores de digitación en el dispositivo, esto genra que la captura de información sea poco precisa o con errores ortográficos, de manera que las respuestas que se le dan al bot tienen un formato que elimina caracteres especiales y convierte todas las palabras a minúsculas, este formatp se le llama **formato limpio**. Puesto que, las clasificaciones que entrega el bot carecen de la estructura inicial, la paquetería permite generar un glosario para cada variable, que permita comparar el **formato limpio** del bot, con el formato original.
+
+Para generar el glosario se utiliza la función *generarGlosario_preguntaAbierta*. 
+
+```{r cod_1,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+encuestar::generarGlosario_preguntaAbierta(folder = "./data-raw/", 
+                                           prefijo = "glosario_",
+                                            bd_categorias_raw = bd_categorias_abiertas,
+                                           variable = 'colonia_bien')
+
+```
+
+
+##### Descripción:
+
+La función toma la hoja de datos con las categorías propuestas para las preguntas abiertas, y entrega un archivo Excel con el formato original de las categorías, junto con dos columnas de apoyo, la columna *categoria* muestra el **formato limpio ** en el que el bot entregará las clasificaciones , por su parte la columna *categoría_corregida* entrega el formato en el que será visualizados los resultados, en caso de que se deseé realizar algún cambio en la categoría a mostrar, el cambio se puede realizar en la columna *categoría_corregida*.
+
+##### Argumentos:
+
+`folder`
+Indica la carpeta o ruta en la que se desean almacenar los glosarios, de las diferentes variables.
+
+`prefijo`
+Es el prefijo que se quiere utilizar para nombrar al archivo de Excel generado. El nombre del archivo será [prefijo]_[variable].
+
+`bd_categorias_raw`
+Es la base que contiene las categorías propuestas para las respuestas abiertas Recibe un Data Frame o tibble.
+
+`variable`
+Es la variable que contiene las categorías de clasificación.
+
+##### Ejemplo:
+```{r cod_1_1,warning=FALSE,message=FALSE,echo = FALSE, eval=TRUE}
+
+
+class_1<- readxl::read_xlsx('../data-raw/glosarios/glosario_colonia_bien.xlsx')
+
+
+
+DT::datatable(class_1|>head(),rownames= FALSE,
+              filter = "none",
+              class = 'cell-border stripe',options = list(dom = 't'))
+
+```
+
+Como se muestra en el resultado, se pueden observar tres columnas, con el formato original, el **formato limpio** y el formato con el cual serán visualizadas las respuestas. 
+
+Es importante recalcar que la función trabaja con la base que contiene las categorías, por lo que se debe de especificar la columna correspondiente en el caso de las variables que se subdividen. A continuación, un ejemplo.
+
+```{r cod_2,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+encuestar::generarGlosario_preguntaAbierta(folder = "./data-raw/", 
+                                           prefijo = "glosario_",
+                                            bd_categorias_raw = bd_categorias_abiertas,
+                                           variable = 'razon_opinion_pm_astiazaran_buena')
+
+```
+
+```{r cod_1_2,warning=FALSE,message=FALSE,echo = FALSE, eval=TRUE}
+
+
+
+class_2<- readxl::read_xlsx('../data-raw/glosarios/glosario_razon_opinion_pm_astiazaran_buena.xlsx')
+
+
+
+DT::datatable(class_2|>head(),rownames= FALSE,
+              filter = "none",
+              class = 'cell-border stripe',options = list(dom = 't'))
+
+```
+
+## Formato crudo dela respuestas abiertas categorizadas
+
+Una vez que el bot a terminado de clasificar las respuestas en la encuesta, éste entregará un archivo que permitirá cruzar la información con la base de datos de la encuesta, se recomienda agregar esta información a la base de datos andes de ejecutar la clase **Encuesta**. Aquí una muestra de los resultados que entrega el bot:
+
+```{r cod_3,warning=FALSE,message=FALSE,echo = FALSE, eval=TRUE}
+
+
+
+class_3<- readxl::read_xlsx('../data-raw/bd_demo_categorias.xlsx')|>
+  select("SbjNum","categoria_colonia_bien" ,"categoria_colonia_mal","categoria_razon_opinion_pm_astiazaran_b", "categoria_razon_opinion_pm_astiazaran_m", "categoria_razon_opinion_pm_delrio_b" ,"categoria_razon_opinion_pm_delrio_m" )|>
+  slice(100:200)
+
+
+
+DT::datatable(class_3|>head(),rownames= FALSE,
+              filter = "none",
+              class = 'cell-border stripe',options = list(dom = 't'))
+
+```
+
+
+En la base anterior podemos aprecia varias cosas. En primer lugar los nombres de las variables llevan el prefijo **_categoría**, esto para diferenciar las respuestas originales, de las ya categorizadas. También las palabras *buena* y *mala*, se acortaron por *b* y *m* respectivamente. 
+
+Se puede observar que las categorías mantienen el formato **limpio**, además se observan las respuestas que no pudieron ser categorizadas y marcadas como *sin_categoria*. Además, se observa que cuando una respuesta tiene múltiples categorizaciones, estas se separan por el símbolo ** >>>**.
+
+Con estos formatos, las respuestas abiertas ya pueden ser procesadas por el resto de las funciones la paquetería.
+
+
+## Cálculo de proporciones y corrección categorías
+
+Una vez con las respuestas ya categorizadas´, es posible hacer un análisis estadístico como cualquier otra variable categórica. Para la presentación de resultados de este tipo de variables, lo que más interesa es ordenar las repuestas de la más común a la menos repetida. Para esto se utiliza la función * calcular_proporcionesCategorias* de la paquetería.
+
+```{r prop_1,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+encuestar::calcular_proporcionesCategorias(diseno = encuesta_demo$muestra$diseno,
+                                           llave_categorias = 'categoria_colonia_bien')
+
+```
+
+##### Descripción:
+
+La función toma las respuestas categorizadas de la preguntas abiertas y entrega el análisis estadístico de cada una de las categorías presentes, así como la proporción de cada categoría en función de la cantidad de veces que ha sido mencionada. La función considera los pesos estadísticos de cada registro en la encuesta. Por último, la función separa las respuestas que tienen más de una categoría según el signo indicado para separar las categorías en un mismo registro.
+
+##### Argumentos:
+
+`diseño`
+Es el diseño estadístico generado por la muestra de la encuesta. En el se incluyen los pesos para cada individuo/registro. Recibe un objeto tipo survey.
+
+`llave_categorias`
+Corresponde a la variable que se desea analizar. Recibe un valor de tipo string.
+
+`separacion_multicategoria`
+Es el carácter que se utiliza para separar las categorías contenidas en un mismo dato o registro. Por defecto se especifica ">>>". Recibe un valor de tipo string.
+
+##### Ejemplo:
+```{r prop_2,warning=FALSE,message=FALSE,echo = FALSE, eval=TRUE}
+
+
+cat_col_bien<-encuestar::calcular_proporcionesCategorias(diseno = encuesta_demo$muestra$diseno,
+                                           llave_categorias = 'categoria_colonia_bien')
+
+
+knitr::kable(cat_col_bien|>head(), 
+             caption = 'Tabla 5. Proporción de las categorías en "colonia_bien"', align = 'c',digits = 2)|>
+  kableExtra::row_spec(row = seq(2,6,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+
+```
+
+En la tabla se observa los resultados de la función *calcular_proporcionesCategorias*. En la columna **categoría**, como su nombre lo indica, se muestra las diferentes categorías de *colonia_bien* en **formato limpio**. La columna **totales**, muestra la ponderación considerando el peso estadístico de cada registro y la cantidad de menciones de la categoría correspondiente, mientras que *pct* muestra la proporción de cada categoría respecto a las demás. Por último, *acum* es la suma acumulada de *pct*.
+
+La tabla anterior es la base para posteriormente poder graficar las diferentes categorías. Obsérvese que la tabla esta optimizada para poder utilizar diferente tipo de gráficas que permitan presentar proporciones. En este caso, como se mencionó previamente se hará uso de la ***nube de palabras***. **Para poder dar un mejor formato al momento de graficar las categorías se utiliza el glosario de la respectiva variable, haciendo un cruce entre la tabla generada y el glosario**. El resultado es el siguiente.
+
+
+```{r prop_3,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+bd_colonia_bien <- encuestar::calcular_proporcionesCategorias(diseno = encuesta_demo$muestra$diseno,
+                                           llave_categorias = 'categoria_colonia_bien')|>
+  left_join( readxl::read_excel(path = "./data-raw/glosarios/glosario_colonia_bien.xlsx")|>
+               select(categoria,categoria_corregida),
+               by = 'categoria')
+```
+
+```{r prop_4,warning=FALSE,message=FALSE,echo = FALSE, eval= TRUE}
+
+cat_col_bien <- cat_col_bien|>
+  left_join( readxl::read_excel(path = "../data-raw/glosarios/glosario_colonia_bien.xlsx")|>
+               select(categoria,categoria_corregida),
+               by = 'categoria')
+
+
+
+knitr::kable(cat_col_bien|>head(), 
+             caption = 'Tabla 6. Proporción de las categorías en "colonia_bien" con formato original', align = 'c',digits = 2)|>
+  kableExtra::row_spec(row = seq(2,6,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+
+```
+
+## Coloreado y generación de nubes de palabras
+
+Con la información de la tabla 6 se tienen las proporciones necesarias para dar formato a las categorías en la gráfica de nubes. Pero antes de se graficar, es necesaria proporcionar el formato de color para cada categoría. Por lo general se utilizan los colores para resaltar algún grupo particular, o frases en específico. Para facilitar este proceso se puede utilizar la función *asignar_coloresCategorias*.
+
+
+```{r color_1,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+bd_colonia_bien_cuanriles <- bd_colonia_bien|>
+  encuestar::asignar_coloresCategorias(criterio = 'cuantiles', 
+                                       cuantiles = 4,
+                                       colores = c('#197854' # Verde
+                                                   ,'#eb34dc' # Magenta
+                                                   ) )
+```
+
+##### Descripción:
+
+La función asigna un color a cada categoría en 3 configuraciones diferentes. La primera configuración asigna un color único para todas las categorías, la segunda aplica un degradado de dos colores especificados por un número de cuantiles también especificado. La tercera configuración asigna un color que contrasta las categorías más populares, asignando un segundo color a las que no entren en el primer grupo. Al final la función devuelve un data frame con una columna llamada color, con las asignaciones correspondientes.
+
+##### Argumentos:
+
+`bd_proporcionesCategorias`
+Es el data frame que contiene las categorías y las proporciones correspondientes. Recibe un data frame.
+
+`criterio`
+Corresponde a la configuración que se desea utilizar para la asignación de colores. 
+
+Si el valor dado es **nulo**, entonces la configuración será la asignación de un color único para todas las categorías. 
+
+Si el valor ingresado es **"cuantiles"**, se les asignarán a las categorías un degradado de colores por cuantil. 
+
+Si el valor ingresado es **“top”**, se le asignará un color a un número determinado de categorías más destacadas, el resto de categorías recibirá un segundo color. Recibe un valor de tipo string.
+
+`cuantiles`
+Corresponde al número de cuantiles en las que se desean destacar las variables. Recibe un valor de tipo entero.
+
+`top`
+Es el número de las principales categorías que se desean destacar para el criterio **top**. Recibe un valor de tipo entero.
+
+`colores`
+Indica los colores que se desean asignar a las categorías. Recibe un vector con el siguiente formato *c(  [color_1], [color_2 ] )*, los colores valores de tipo string. 
+
+En caso de que criterio sea **nulo** se tomará el primer elemento del vector de colores para colorear a todas las categorías. 
+
+Si el criterio es igual a **"cuantiles"**, color_1 corresponderá al color del primer cuantil, de ahí se irán degradando los colores de los cuantiles, hasta llegar al color_2 siendo el color del último cuantil.
+
+Si el criterio es igual a es **“top”**, color_1 será asignado a las categorías más destacadas, el resto de categorías se les asignará color_2. 
+
+##### Ejemplo:
+```{r color_2,warning=FALSE,message=FALSE,echo = FALSE, eval= TRUE}
+
+
+knitr::kable( 
+cat_col_bien|>
+  encuestar::asignar_coloresCategorias(criterio = 'cuantiles', cuantiles = 4,colores = c('#197854','#eb34dc') )|>head(),
+             caption = 'Tabla 7. Categorías de "colonia_bien" con colores asignados para el criterio "cuantiles"', align = 'c',digits = 2)|>
+  kableExtra::row_spec(row = seq(2,6,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+```
+
+En la tabla 7 se puede observar cómo aparece la columna **color**, y como para esta configuración, este va cambiando dependiendo el cuartil, igualmente la columna **cuantil** sirve de apoyo, para conocer de manera directa el cuantil correspondiente.
+
+Por último, el paso correspondiente es graficar los resultados de la tabla, en la nube de palabras. Para esto se puede ocupar la función *graficar_nube_palabras*. A continuación, se muestra su implementación.
+
+##### Descripción:
+
+La función crea una gráfica de nubes tomando como base las tablas generadas por *calcular_proporcionesCategorias* y * asignar_coloresCategorias*. También permite definir el tamaño máximo de las categorías, las cuales irán reduciendo su tamaño en función de la proporción presente en la columna **pct* de la tabla.
+
+##### Argumentos:
+
+`bd`
+Es el data frame que contiene las categorías, las proporciones correspondientes y el color asignado. Recibe un data frame.
+
+`max_size`
+Es el tamaño máximo que puede tener una categoría al momento de mostrarse en la gráfica. Recibe un valor de tipo entero.
+
+##### Ejemplo:
+
+###### Color por cuantil 
+
+```{r grf_1,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+bd_colonia_bien_cuanriles|>
+  encuestar:::graficar_nube_palabras(max_size = 50)
+```
+
+```{r grf_1_1,warning=FALSE,message=FALSE,fig.width = 14, fig.height = 7.56, echo = FALSE, eval= TRUE}
+
+cat_col_bien|>
+  encuestar::asignar_coloresCategorias(criterio = 'cuantiles', cuantiles = 4,colores = c('#197854','#eb34dc') )|>
+  encuestar:::graficar_nube_palabras(max_size = 90)
+
+
+```
+
+
+En el ejemplo se puede observar como las categorías mas destacadas tienen un tamaño más preponderante. Igualmente, como apoyo visual, los colores de la nube se van ajustando dependiendo el cuantil en el que se encuentre, siendo el verde el color asignado para las categorías que se encuentren el primer cuantil, hasta llegar al magenta para el último cuantil.
+
+ A continuación, se muestran el resto de las configuraciones.
+ 
+###### Color único 
+ 
+```{r grf_2,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+bd_colonia_bien|>
+  encuestar::asignar_coloresCategorias(criterio = NULL, 
+                                       colores = c('#197854' # Verde
+                                                   ,'#eb34dc' # Magenta
+                                                   ) )|>
+  encuestar:::graficar_nube_palabras(max_size = 90)
+```
+
+```{r grf_2_1,warning=FALSE,message=FALSE,fig.width = 14, fig.height = 7.56, echo = FALSE, eval= TRUE}
+
+cat_col_bien|>
+  encuestar::asignar_coloresCategorias(criterio = NULL,colores = c('#197854','#eb34dc') )|>
+  encuestar:::graficar_nube_palabras(max_size = 90)
+
+
+```
+
+Para este caso, *asignar_coloresCategorias* tiene como **criterio** igual a *NULL* de forma que solo se le asigna un único color a todas las categorías. Obsérvese que en el parámetro **colores** se asignó un vector con dos colores, solo tomó el primer elemento del vector, de manera que para ésta configuración, con solo indicar un valor de tipo string es suficiente.
+
+
+###### Color top 
+ 
+```{r grf_3,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+bd_colonia_bien|>
+  encuestar::asignar_coloresCategorias(criterio = 'top', 
+                                       top = 3,
+                                       colores = c('#197854' # Verde
+                                                   ,'#eb34dc' # Magenta
+                                                   ) )|>
+  encuestar:::graficar_nube_palabras(max_size = 90)
+```
+
+```{r grf_3_1,warning=FALSE,message=FALSE,fig.width = 14, fig.height = 7.56, echo = FALSE, eval= TRUE}
+
+cat_col_bien|>
+  encuestar::asignar_coloresCategorias(criterio = 'top', 
+                                       top = 3,colores = c('#197854','#eb34dc') )|>
+  encuestar:::graficar_nube_palabras(max_size = 90)
+
+
+```
+
+Para este caso, *asignar_coloresCategorias* tiene como **criterio** igual a *top* de forma que de verde se colorearán las 3 primeras categorías, y de magenta el resto. El argumento **top** es el que indica el número de categorías principales que se desean destacar.
+
+###### Color libre
+
+```{r grf_4,warning=FALSE,message=FALSE,echo = TRUE, eval=FALSE}
+
+bd_colonia_bien|>
+  mutate(color = case_when(
+  grepl('agua|Luz|jardines|basura',categoria_corregida) ~  '#197854', # Verde
+                                      .default =  '#eb34dc'  # Magenta
+                           ))|>
+  encuestar:::graficar_nube_palabras(max_size = 90)
+```
+
+```{r grf_4_1,warning=FALSE,message=FALSE,fig.width = 14, fig.height = 7.56, echo = FALSE, eval= TRUE}
+
+knitr::kable( 
+cat_col_bien|>
+    mutate(color = case_when(
+  grepl('agua|Luz|jardines|basura',categoria_corregida) ~  '#197854', # Verde
+                                      .default =  '#eb34dc'  # Magenta
+                           ))|>head(), 
+             caption = 'Tabla 8. Categorías con asignación de colores para palabras clave', align = 'c',digits = 2)|>
+  kableExtra::row_spec(row = seq(2,6,by=2) ,background = "azure") %>%    kableExtra::kable_material(c("striped", "hover"))
+
+
+```
+
+
+```{r grf_4_2,warning=FALSE,message=FALSE,fig.width = 14, fig.height = 7.56, echo = FALSE, eval= TRUE}
+
+cat_col_bien|>
+    mutate(color = case_when(
+  grepl('agua|Luz|jardines|basura',categoria_corregida) ~  '#197854', # Verde
+                                      .default =  '#eb34dc'  # Magenta
+                           ))|>
+  encuestar:::graficar_nube_palabras(max_size = 90)
+
+
+```
+
+En caso de que se no se deseé utilizar alguna de las configuraciones mencionadas, basta con agregar una columna con la asignación de colores que se considere conveniente. Para este ejemplo se colorea  de verde solo las categorías que contengan las palabras “agua”, ”Luz”, “jardines” o “basura”, y el resto de categorías solo queda coloreado de magenta. 
+
+## Conclusiones
+
+Con los métodos mostrados es posible ofrecer una forma rápida e intuitiva de identificar las frases o temáticas más importantes o recurrentes en la encuesta. Esta herramienta es visualmente atractiva y fácil de interpretar incluso para personas sin experiencia en análisis de datos, pero ***se recomienda siempre contextualizar la información que se muestra, para su correcto el entendimiento e interpretación. ***

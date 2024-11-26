@@ -1,0 +1,104 @@
+---
+title: "Clase Descriptiva"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Clase Descriptiva}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, echo = FALSE}
+library(encuestar)
+```
+
+La clase Descriptiva es capaz de generar graficas con base a una variable particular.
+
+
+#### Gráfica Barras categórica
+```{r barras categorica, echo = TRUE, warning=FALSE,fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$barras_categorica(codigo = 'voto_pm_24',
+                                                       salto = 20,
+                                                       porcentajes_fuera = T,
+                                                       desplazar_porcentajes = 0.01)
+
+```
+
+#### Gráfica Lollipops categórica
+```{r lollipops categorica, echo = TRUE, warning=FALSE, fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$lollipops_categorica(codigo = 'problema_principal',
+                                                          limite_graf = 0.4,
+                                                          width_cats = 25,
+                                                          size = 3,
+                                                          size_pct = 5)
+
+```
+
+#### Gráfica Barras aspectos
+```{r barras aspectos, echo = TRUE, warning=FALSE,fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$barras_aspectos(patron_inicial = 'conoce_pm',
+                                                     aspectos = c('astiazaran','delrio'), 
+                                                     salto = 20,
+                                                     porcentajes_fuera = T,
+                                                     desplazar_porcentajes = 0.02)
+
+```
+
+
+#### Gráfica Barras multirrespuesta
+```{r barras multirrespuesta, echo = TRUE, warning=FALSE,fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$barras_multirespuesta(patron_inicial = 'medios_com_O',
+                                                           salto = 20,
+                                                           porcentajes_fuera = T,
+                                                           desplazar_porcentajes = 0.02)
+
+```
+
+#### Gráfica Lollipops multirrespuesta
+```{r lollipops_multirrespuesta, echo = TRUE, warning=FALSE,fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$lollipops_multirespuesta(patron_inicial = 'medios_com_O', 
+                                                              limite_graf = 0.7,
+                                                              width_cats = 25,
+                                                              size = 3,
+                                                              size_pct = 5)
+
+
+```
+
+#### Gráfica Gauge numérica
+```{r gauge numerica, echo = TRUE, warning=FALSE,fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$gauge_numerica(codigo = 'si_voto_24',
+                                                    color = 'green',
+                                                    escala = c(0,10),
+                                                    size_text_pct = 25)
+
+```
+
+#### Gráfica Gauge categórica
+```{r gauge categorica, echo = TRUE, warning=FALSE,fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$gauge_categorica(codigo = 'participacion_pm_21',
+                                                      filtro = "respuesta == 'Sí'",
+                                                      color = 'green',
+                                                      escala = c(0,1),
+                                                      size_text_pct = 25
+                                                      )
+
+```
+
+#### Gráfica Intervalo numérica
+```{r intervalo numerica, echo = TRUE, warning=FALSE,fig.width = 10, fig.height = 10}
+
+encuesta_demo$Resultados$Descriptiva$intervalo_numerica(patron =  'afirmacion', 
+                                                        aspectos = c('seguridad','economia','pais','hermosillo'), 
+                                                        escala = c(0, 5), 
+                                                        point_size = 1, 
+                                                        text_point_size = 8)
+
+```
+

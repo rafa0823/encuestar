@@ -1,16 +1,17 @@
 Package: encuestar
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Title: Calculo de resultados de encuestas
+Version: 1.0.0
+Authors@R: c(
+    person(given = "Emilio", family = "Morones", email = "emorones@morant.com.mx", role = c("cre", "aut"), comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Allan", family = "Meza", email = "al.josue93@gmail.com", role = c("aut"), comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Carlos", family = "Avilez", email = "cavilez@morant.com.mx", role = c("ctb"), comment = c(ORCID = "YOUR-ORCID-ID")),
+    person(given = "Ivan", family = "Martinez", email = "imartinez@morant.com.mx", role = c("aut"), comment = c(ORCID = "YOUR-ORCID-ID")))
+Description: El ojetivo de la paquetería es producir los resultados de las estimaciones asociadas al diseño muestral generado por la paquetería muestrear.
+  También contiene contiene la aplicación de seguimiento de levantamiento de la encuesta.
+License: MIT + file LICENSE
 Depends: 
     R (>= 2.10)
 Imports: 
-    basicspace,
     beepr,
     dplyr,
     factoextra,
@@ -24,11 +25,13 @@ Imports:
     ggrepel,
     ggsankey,
     ggthemes,
+    ggwordcloud,
     glue,
     grid,
     highcharter,
     janitor,
     lemon,
+    lwgeom,
     officer,
     patchwork,
     purrr,
@@ -50,6 +53,8 @@ Imports:
     yesno
 Suggests: 
     knitr,
+    odbc,
+    pool,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: 
@@ -60,5 +65,5 @@ Remotes:
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Config/testthat/edition: 3

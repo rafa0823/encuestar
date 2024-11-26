@@ -16,6 +16,3 @@ graficar_saldoRegion(bd, ordenRegiones, salto_labelRegiones = 5)
 \description{
 Graficar saldo de opinión asociado a personajes por región o estrato
 }
-\examples{
-graficar_conocimientoRegion(bd_analizar_conocimientoRegion, ordenRegiones = c("reg_02", "reg_01, "reg_03))
-}

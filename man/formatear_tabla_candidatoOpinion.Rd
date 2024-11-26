@@ -13,7 +13,8 @@ formatear_tabla_candidatoOpinion(
   colores_candidato,
   size_text_header,
   size_text_body,
-  salto
+  salto,
+  color_conocimiento
 )
 }
 \arguments{

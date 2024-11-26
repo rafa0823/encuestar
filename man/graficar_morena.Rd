@@ -16,7 +16,3 @@ graficar_morena(atr, personajes, atributos)
 \description{
 Graficar metodología de MORENA con un geom_tile
 }
-\examples{
-graficar_morena(atr, personajes = c("era", "sasil"), atributos = c("honesto", "opinion"))
-graficar_morena(atr, personajes = c("era", "sasil", "jaac"), atributos = atributos)
-}

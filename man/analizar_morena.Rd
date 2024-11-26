@@ -2,7 +2,7 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_morena}
 \alias{analizar_morena}
-\title{Analizar metodología de MORENA}
+\title{Analizar metodología de MORENA (EN DESUSO)}
 \usage{
 analizar_morena(diseno, diccionario, personajes, atributos)
 }
@@ -16,7 +16,7 @@ analizar_morena(diseno, diccionario, personajes, atributos)
 \item{atributos}{Tibble que contiene los atributos y los puntos que obtiene el ganador de cada atributo}
 }
 \description{
-Analizar metodología de MORENA
+Analizar metodología de MORENA (EN DESUSO)
 }
 \examples{
 analizar_morena(diseno = diseno, diccionario = diccionario, personajes = c("era", "sasil"), atributos = atributos)
