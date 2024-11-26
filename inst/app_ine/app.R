@@ -7,7 +7,6 @@ library(sf)
 library(stringr)
 library(dplyr)
 library(tidyr)
-library(muestreaR)
 library(glue)
 library(ggplot2)
 library(shinyWidgets)
@@ -17,7 +16,6 @@ library(shinycssloaders)
 library(colorRamps)
 library(gt)
 library(shinyjs)
-library(encuestar)
 library(highcharter)
 library(bslib)
 library(googleway)
@@ -313,6 +311,50 @@ asignar_colores <- function(tb_respuestas, partidos = T){
                        pull())
 }
 
+analizar_frecuencias <- function(diseno, pregunta){
+  surveySummary_mean <- survey::svymean(survey::make.formula(pregunta),
+                                        design = diseno,
+                                        na.rm = TRUE)
+
+  estimacion <-
+    surveySummary_mean |>
+    tibble::as_tibble(rownames = "respuesta") %>%
+    rename(media = 2, ee = 3) %>%
+    mutate(respuesta = stringr::str_replace(pattern = rlang::expr_text(ensym(pregunta)),
+                                            replacement = "",
+                                            string = respuesta),
+           pregunta = rlang::expr_text(ensym(pregunta)),
+           respuesta = stringr::str_replace_all(respuesta, " \\(No leer\\)", "")) |>
+    left_join(surveySummary_mean |>
+                stats::confint() %>%
+                tibble::as_tibble(rownames = "respuesta") |>
+                mutate(respuesta = stringr::str_replace(pattern = rlang::expr_text(ensym(pregunta)),
+                                                        replacement = "",
+                                                        string = respuesta),
+                       pregunta = rlang::expr_text(ensym(pregunta))) |>
+                rename(inf = 2, sup = 3), by = c("respuesta", "pregunta")) |>
+    mutate(respuesta = forcats::fct_reorder(.f = respuesta,
+                                            .x = media,
+                                            .fun = max))
+  return(estimacion)
+}
+
+calcular_tasa_rechazo <- function(bd_respuestas_efectivas, por_usuario = FALSE){
+  bd_respuestas_efectivas %>%
+    {
+      if(!por_usuario) {
+        summarise(.data = .,
+                  rechazo = (sum(as.integer(intento_efectivo)) - n())/sum(as.integer(intento_efectivo)))
+      }
+      else {
+        group_by(.data = .,
+                 Srvyr) %>%
+          summarise(rechazo = (sum(as.integer(intento_efectivo)) - n())/sum(as.integer(intento_efectivo))) |>
+          arrange(desc(rechazo))
+      }
+    }
+}
+
 # Constantes ----------------------------------------------------------------------------------
 
 color_general <- "#CF6177"
@@ -460,8 +502,8 @@ ui <- bslib::page_navbar(
             bslib::card_body(
               shinycssloaders::withSpinner(highchartOutput(outputId = "tasa_rechazo_global")),
               shinycssloaders::withSpinner(plotOutput("rechazo_distribucion"))
-              )
-            ),
+            )
+          ),
           bslib::accordion_panel(
             title = "Histórico de entrevistas",
             value = "Histórico de entrevistas",
@@ -497,7 +539,7 @@ ui <- bslib::page_navbar(
             value = "Balance de entrevistas",
             shinycssloaders::withSpinner(highchartOutput("por_hacer")),
             shinycssloaders::withSpinner(plotOutput("por_hacer_cuotas"))
-            ),
+          ),
           bslib::accordion_panel(
             title = "Distribución por edad y sexo",
             value = "Distribución por edad y sexo",
@@ -575,8 +617,8 @@ ui <- bslib::page_navbar(
             bslib::card_body(
               shinycssloaders::withSpinner(highchartOutput(outputId = "tasa_rechazo_ind")),
               shinycssloaders::withSpinner(plotOutput("rechazo_distribucion_ind"))
-              )
-            ),
+            )
+          ),
           bslib::accordion_panel(
             title = "Puntaje del encuestador",
             value = "Puntaje del encuestador",
@@ -598,7 +640,7 @@ ui <- bslib::page_navbar(
               bsicons::bs_icon(name = "check-square-fill"),
               showcase_layout = "top right",
               theme = value_box_theme(bg = "green")))
-          ),
+        ),
         icon = icon("person"))),
     icon = icon("users")
   )#,
@@ -1044,10 +1086,10 @@ server <- function(input, output, session) {
         labels = list(y = 26,
                       style = list(fontSize = "22px"),
                       formatter = JS("function() { return this.value + '%'; }")
-                      )
+        )
       ) %>%
       hc_add_series(
-        data = round(encuestar:::calcular_tasa_rechazo(
+        data = round(calcular_tasa_rechazo(
           preguntas$encuesta$muestra$diseno$variables,
           por_usuario = FALSE) |>
             pull()*100, digits = 0),
@@ -1349,8 +1391,8 @@ server <- function(input, output, session) {
   output$monitoreada1 <- renderPlot({
 
     top_3 <-
-      encuestar:::analizar_frecuencias(diseno = preguntas$encuesta$muestra$diseno,
-                                       pregunta = preguntas$encuesta$vars_tendencias[1]) |>
+      analizar_frecuencias(diseno = preguntas$encuesta$muestra$diseno,
+                           pregunta = preguntas$encuesta$vars_tendencias[1]) |>
       dplyr::top_n(n = 3, wt = media)
 
     preguntas$Tendencias$intencion_voto(variable = preguntas$encuesta$vars_tendencias[1],
@@ -1708,7 +1750,7 @@ server <- function(input, output, session) {
         )
       ) %>%
       hc_add_series(
-        data = round(encuestar:::calcular_tasa_rechazo(
+        data = round(calcular_tasa_rechazo(
           preguntas$encuesta$muestra$diseno$variables,
           por_usuario = TRUE) |>
             filter(Srvyr == input$encuestador) |>
