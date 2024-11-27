@@ -107,7 +107,7 @@ para generar resultados.
   bd_categorias = NA,
   bd_correcciones = NA,
   patron = NA,
-  auditoria_telefonica = NA,
+  auditoria_telefonica = tibble(SbjNum = c(0), razon = c("A")),
   quitar_vars = c(),
   mantener = "",
   auditar = NA,

@@ -133,10 +133,11 @@ Encuesta <-
                             bd_categorias = NULL,
                             bd_correcciones = NULL,
                             patron = NA,
-                            auditoria_telefonica = NA,
+                            auditoria_telefonica = tibble(SbjNum = c(000),
+                                                          razon = c("A")),
                             quitar_vars = c(),
                             mantener = "",
-                            auditar = NA,
+                            auditar = c(""),
                             vars_tendencias = NA,
                             sin_peso = FALSE,
                             rake = TRUE,
@@ -356,7 +357,11 @@ Encuesta <-
                                size = nrow(respuestas),
                                replace = T),
                  INT15 = NA,
-                 T_Q = NA)
+                 T_Q = NA,
+                 Duration = NA,
+                 VStart = NA,
+                 VEnd = NA,
+                 intento_efectivo = NA)
 
         respuestas <- respuestas %>%
           relocate(Srvyr, Date, .before = Longitude) %>%

@@ -76,7 +76,8 @@ graficar_barras <- function(bd,
                             salto = 20,
                             porcentajes_fuera = F,
                             desplazar_porcentajes = 0,
-                            orden_respuestas = NA){
+                            orden_respuestas = NA,
+                            text_size = 8){
 
   g <-
     bd %>%
@@ -102,7 +103,7 @@ graficar_barras <- function(bd,
   if (porcentajes_fuera == T) {
     g <-
       g +
-      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
+      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes, size = text_size)
   }
   g <-
     g +
