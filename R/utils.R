@@ -17,7 +17,9 @@ obtener_ubicacionEfectiva_surveyToGo = function(bd_respuestas, id, intento_efect
            paste0("GPS_INT",
                   intento_efectivo,
                   "_",
-                  c("LA", "LO", "ALT", "BEAR", "SPEED", "DATE"))) |>
+                  c("LA", "LO"
+                    # "ALT", "BEAR", "SPEED", "DATE"
+                    ))) |>
     mutate(across(.cols = !c(SbjNum), .fns = ~ as.character(.x)),
            intento_efectivo = intento_efectivo) |>
     relocate(intento_efectivo, .after = SbjNum) |>
