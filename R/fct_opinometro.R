@@ -15,7 +15,7 @@ determinar_contenidoCuestionario <- function(pool, id_cuestionario){
         JsonData |>
         jsonlite::fromJSON() |>
         as_tibble() |>
-        tidyr::unnest(pages, names_repair = tidyr_legacy) |>
+        tidyr::unnest(cols = pages, names_repair = tidyr_legacy) |>
         as_tibble() |>
         tidyr::unnest(elements, names_sep = "")})
 }
