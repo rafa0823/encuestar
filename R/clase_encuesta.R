@@ -215,13 +215,13 @@ Encuesta <-
             respuestas |>
             left_join(geolocalizacion_efectiva, by = "SbjNum") |>
             mutate(Latitude = GPS_INT_LA,
-                   Longitude = GPS_INT_LO) |>
-            transmute(across(c(all_of(catalogo_variables |>
-                                      filter(plataforma %in% c("surveytogo", "encuestar", "cuestionario"),
-                                             segundo_nivel %in% c("sistema", "cuestionario")) |>
-                                      pull(variable)), "edad", "sexo")
-                             )
-                      )
+                   Longitude = GPS_INT_LO)
+            # transmute(across(c(all_of(catalogo_variables |>
+            #                           filter(plataforma %in% c("surveytogo", "encuestar", "cuestionario"),
+            #                                  segundo_nivel %in% c("sistema", "cuestionario")) |>
+            #                           pull(variable)), "edad", "sexo")
+            #                  )
+            #           )
 
         }
 
