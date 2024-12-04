@@ -146,7 +146,7 @@ graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats
     coord_flip() +
     scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = width_cats)) +
     scale_y_continuous(labels = scales::percent,
-                       limits = c(0,limits)) +
+                       limits = limits) +
     theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
           panel.background = element_rect(color = "transparent", fill = "transparent"),
           legend.background = element_rect(color = "transparent", fill = "transparent") )
@@ -572,7 +572,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
 #' @param size_pct Parametro [size] de la funcion [ggfittext::geom_fit_text()] que controla el tamano del texto que muestra el porcentaje dentro de las barras
 #'
 #' @return Objeto tipo [ggplot]
-graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat = 10, size_pct, size_caption_opinion,size_text_legend = 10 ,tema = encuestar::tema_morant()){
+graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat = 12, size_pct, size_caption_opinion,size_text_legend = 12, tema = encuestar::tema_morant()){
 
   if(!is.na(Regular)) {
     group_levels <- c("regular2", grupo_negativo, "regular1", grupo_positivo)
