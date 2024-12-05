@@ -129,7 +129,7 @@ graficar_barras <- function(bd,
 #' @examples
 #' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_principal") |>  dplyr::rename(pct = media) |>  encuestar:::graficar_lollipops() + encuestar::tema_morant()
 #' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_inseguridad") |> dplyr::rename(pct = media) |> encuestar:::graficar_lollipops() + encuestar::tema_morant()
-graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats = 15 , size = 3, size_pct = 6) {
+graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats = 15 , size = 2, size_pct = 6) {
   g <-
     bd |>
     ggplot(aes( if(is.null(orden)) x =  reorder(respuesta, pct) else x =  factor(respuesta, levels = orden),
@@ -479,7 +479,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 #' @param colores_partido Vector que asigna un color a cada partido de acuerdo al nombre largo (tema)
 #' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
 #'
-graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema,corte_vis = 0.0){
+graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema,corte_vis = 0.0, size_text = 6){
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
   if(tipo_conoce == "intervalos"){
@@ -532,13 +532,13 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
                   fill = respuesta)) +
     geom_text(data = bases$partido |> filter(!respuesta %in% c("Ns/Nc"), !tema %in% cliente, corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-              color = "white", fontface = "plain") +
+              color = "white", fontface = "plain", size = size_text) +
     geom_text(data = bases$partido %>% filter(tema %in% cliente, corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-              color = "white", fontface = "bold") +
+              color = "white", fontface = "bold", size = size_text) +
     geom_text(data = bases$partido %>% filter(respuesta %in% c("Ns/Nc"), corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-              color = "white", fontface = "bold") +
+              color = "white", fontface = "bold", size = size_text) +
     scale_fill_manual(values = colores_partido) +
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +

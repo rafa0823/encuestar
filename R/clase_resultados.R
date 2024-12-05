@@ -1245,7 +1245,8 @@ Especial <-
                                   cliente,
                                   colores_candidatos,
                                   colores_partido,
-                                  corte_vis = 0.0){
+                                  corte_vis = 0.0,
+                                  size_text = 6){
 
         if(is.null(self$diseno)) {
 
@@ -1273,7 +1274,8 @@ Especial <-
                                     colores_partido = colores_partido,
                                     solo_respondidos = T,
                                     tema = self$tema,
-                                    corte_vis = corte_vis)
+                                    corte_vis = corte_vis,
+                                    size_text = size_text)
       },
       candidatoSaldo = function(llave_opinion,
                                 candidatos,

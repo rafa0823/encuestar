@@ -193,6 +193,7 @@ Encuesta <-
                                                                                         "sexo"),
                                                             true = "sistema",
                                                             false = "cuestionario")))
+
         if("data.frame" %in% class(respuestas)) {
 
           intentos_efectivos <-
