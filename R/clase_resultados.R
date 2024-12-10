@@ -178,7 +178,8 @@ Descriptiva <-
       #'  o igual que `pct_otros` las agrupa, las suma y las muestra en `Otros`.
       #' @param orden_respuestas Vector tipo caracter que contiene, de manera ordenada, los valores únicos
       #'  de la variable de interés y reordena las barras de la gráfica de barras de acuerdo a ese orden.
-      barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA){
+      #'  @param text_size Valor tipo entero. Corresponde al tamaño de los porcentajes contenidos en la gráfica de barras.
+      barras_categorica = function(codigo, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0, pct_otros = 0.01, orden_respuestas = NA,text_size = 8){
 
         llave_aux <- codigo
         # if(!(llave_aux %in% self$graficadas)){
@@ -224,7 +225,8 @@ Descriptiva <-
           graficar_barras(salto = salto,
                           porcentajes_fuera = porcentajes_fuera,
                           desplazar_porcentajes = desplazar_porcentajes,
-                          orden_respuestas = orden_respuestas) +
+                          orden_respuestas = orden_respuestas,
+                          text_size =text_size ) +
           self$tema
 
       },
@@ -246,7 +248,8 @@ Descriptiva <-
       #'  o fuera de la barra. Útil para cuando hay muchas categorías.
       #' @param desplazar_porcentajes Valor real. Parámetro [nudge_y] de la función [geom_text]. Aplica
       #' sólo si `porcentajes_fuera` es `TRUE`.
-      barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = "respuesta == 'Sí'", porcentajes_fuera = F, desplazar_porcentajes = 0){
+      #' @param text_size Valor tipo entero. Corresponde al tamaño de los porcentajes contenidos en la gráfica de barras.
+      barras_aspectos = function(patron_inicial, aspectos = NULL, salto = 20, filtro = "respuesta == 'Sí'", porcentajes_fuera = F, desplazar_porcentajes = 0,text_size=8){
 
         if(is.null(filtro) | is.null(aspectos)) {
 
@@ -279,7 +282,8 @@ Descriptiva <-
             graficar_barras(salto = salto,
                             porcentajes_fuera = porcentajes_fuera,
                             desplazar_porcentajes = desplazar_porcentajes,
-                            orden_respuestas = NA) +
+                            orden_respuestas = NA,
+                            text_size=text_size) +
             self$tema
 
         }
@@ -296,7 +300,8 @@ Descriptiva <-
       #'  o fuera de la barra. Útil para cuando hay muchas categorías.
       #' @param desplazar_porcentajes Valor real. Parámetro [nudge_y] de la función [geom_text]. Aplica
       #' sólo si `porcentajes_fuera` es `TRUE`.
-      barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0){
+      #' @param text_size Valor tipo entero. Corresponde al tamaño de los porcentajes contenidos en la gráfica de barras.
+      barras_multirespuesta = function(patron_inicial, salto = 20, porcentajes_fuera = F, desplazar_porcentajes = 0,text_size=8){
 
         if(is.null(self$diseno)) {
 
@@ -312,7 +317,8 @@ Descriptiva <-
                                             patron_inicial) %>%
           graficar_barras(salto = salto,
                           porcentajes_fuera = porcentajes_fuera,
-                          desplazar_porcentajes = desplazar_porcentajes) +
+                          desplazar_porcentajes = desplazar_porcentajes,
+                          text_size=text_size) +
           self$tema
 
       },
@@ -1248,7 +1254,8 @@ Especial <-
                                   colores_candidatos,
                                   colores_partido,
                                   corte_vis = 0.0,
-                                  size_text = 6){
+                                  size_text = 6,
+                                  size_text_conocimiento = 6){
 
         if(is.null(self$diseno)) {
 
@@ -1277,7 +1284,8 @@ Especial <-
                                     solo_respondidos = T,
                                     tema = self$tema,
                                     corte_vis = corte_vis,
-                                    size_text = size_text)
+                                    size_text = size_text,
+                                    size_text_conocimiento=size_text_conocimiento)
       },
       candidatoSaldo = function(llave_opinion,
                                 candidatos,
