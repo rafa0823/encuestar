@@ -342,6 +342,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        caption_opinion = "",
                                        caption_nsnc = "Ns/Nc",
                                        caption_burbuja,
+                                       size_text_legend = 12,
                                        size_caption_opinion = 12,
                                        size_caption_nsnc = 14,
                                        size_caption_burbuja,
@@ -419,6 +420,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                           caption_opinion = caption_opinion,
                           size_text_cat = size_text_cat,
                           size_pct = size_pct,
+                          size_text_legend = size_text_legend,
                           size_caption_opinion = size_caption_opinion)
 
   if(!is.null(ns_nc)){
