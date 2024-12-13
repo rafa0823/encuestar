@@ -98,12 +98,12 @@ graficar_barras <- function(bd,
   if (porcentajes_fuera == F) {
     g <-
       g +
-      ggfittext::geom_bar_text(aes(label = scales::percent(media, accuracy = 1)), contrast = T)
+      ggfittext::geom_bar_text(aes(label = scales::percent(media, accuracy = 1)), contrast = T,size = text_size)
   }
   if (porcentajes_fuera == T) {
     g <-
       g +
-      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes, size = text_size)
+      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes,size = text_size )
   }
   g <-
     g +
@@ -480,14 +480,15 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 #' @param solo_respondidos Logical. Omite los partidos en los cuales el personaje no tiene ninguna asociación
 #' @param colores_partido Vector que asigna un color a cada partido de acuerdo al nombre largo (tema)
 #' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
+#' @param size_text_conocimiento Valor de tipo entero. Tamaño de los porcentajes en la grafica de conocimiento.
 #'
-graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema,corte_vis = 0.0, size_text = 6){
+graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema,corte_vis = 0.0, size_text = 6,size_text_conocimiento = 6){
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
   if(tipo_conoce == "intervalos"){
     a <- bases$conoce %>% ggplot(aes(tema, media, ymin = inf, ymax = sup, color = tema)) +
       geom_pointrange(show.legend = F) +
-      geom_text(aes(label = scales::percent(media,1)), vjust = 0, nudge_x = .3, show.legend = F) +
+      geom_text(aes(label = scales::percent(media,1)), vjust = 0, nudge_x = .3, show.legend = F,size = size_text_conocimiento) +
       scale_color_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
@@ -497,7 +498,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
     a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
       # geom_col(show.legend = F) +
       ggchicklet::geom_chicklet(width = .6, alpha =.5, show.legend = F)+
-      ggfittext::geom_bar_text(aes(label = scales::percent(media,1))) +
+      ggfittext::geom_bar_text(aes(label = scales::percent(media,1)),size = size_text_conocimiento) +
       scale_fill_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
