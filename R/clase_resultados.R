@@ -789,7 +789,10 @@ Cruce <-
                                      size_text_y = 16,
                                      size_text_caption = 16,
                                      size_text_legend = 16,
-                                     ver_diferencias = TRUE) {
+                                     ver_diferencias = TRUE,
+                                     traslape = F,
+                                     limite_dif_pct = 0.02,
+                                     ajuste_pos = 0.02) {
         if(is.null(self$diseno)) {
 
           diseno <- self$encuesta$muestra$diseno
@@ -843,7 +846,10 @@ Cruce <-
                                        caption = caption,
                                        wrap_y = wrap_y,
                                        wrap_caption = wrap_caption,
-                                       limits = limits) +
+                                       limits = limits,
+                                       traslape = traslape,
+                                       limite_dif_pct = limite_dif_pct,
+                                       ajuste_pos = ajuste_pos) +
           {if(ver_diferencias)  geom_text(aes(label = scales::percent(x = mean_dif , accuracy = 1.),y = mean_diff_pos, colour = 'gray' ),
                                           nudge_x = -nudge_x, size = size_geom_text, show.legend = F) }+
           self$tema +
