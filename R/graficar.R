@@ -900,7 +900,7 @@ graficar_lolipop_diferencias <- function(bd,
       mutate(#mean_diff_pos = min(mean) + (max(mean)-min(mean))/2,
         mean_dif_traslap = (max(mean)-min(mean)),
         mean_pos =  ifelse(mean_dif_traslap<=limite_dif_pct,ajuste_pos,0),
-        mean_pos =  ifelse(mean!= min(mean) & mean!= max(mean),0,ajuste_pos),
+        mean_pos =  ifelse(mean!= min(mean) & mean!= max(mean),0,mean_pos),
         mean_pos =  ifelse(mean == min(mean) ,mean_pos*(-1),mean_pos),
         mean_pos =  mean_pos + mean)|>
       ungroup()
