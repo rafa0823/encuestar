@@ -772,6 +772,14 @@ Cruce <-
       #'  [size] de la función [ggplot2::element_text()] aplicado a [axis.text.legend]
       #' @param ver_diferencias `LOGICAL`. Determina si se muestran las diferencias en puntos porcentuales
       #'  dentro del gráfico.
+      #' @param traslape Valor bopoleano. En caso de ser TRUE, realiza un factor de ajuste para los porcentajes presentados por [ggplot2::geom_text()].
+      #' Solo afecta a los valores cuya diferencia máxima y mínima se menor que el factor de tolerancia [limite_dif_pct].  Por defecto tiene valor FALSE.
+      #' @param limite_dif_pct Valor de tipo decimal. Es el factor o nivel de tolerencia para la diferencia entre dos puntos
+      #' que al graficar sus porcentajes tienen un nivel de traslape. Solo se efectua si [traslape] es TRUE. Por defecto su valor es 0.02.
+      #' @param ajuste_pos Valor de tipo decimal. Es el factor de ajuste de posición que los porcentajes
+      #' graficados tomarán en caso de traslaparse. El porcentaje menor se despalzará la izquierda, y el mayor a la derecha. Solo se efectua si [traslape] es TRUE. Por defecto su valor es 0.02.
+      #'
+      #'
       lolipop_diferencias = function(variable_principal,
                                      variables_secundarias,
                                      filtro_variables_secundarias,
@@ -789,7 +797,10 @@ Cruce <-
                                      size_text_y = 16,
                                      size_text_caption = 16,
                                      size_text_legend = 16,
-                                     ver_diferencias = TRUE) {
+                                     ver_diferencias = TRUE,
+                                     traslape = F,
+                                     limite_dif_pct = 0.02,
+                                     ajuste_pos = 0.02) {
         if(is.null(self$diseno)) {
 
           diseno <- self$encuesta$muestra$diseno
@@ -843,7 +854,10 @@ Cruce <-
                                        caption = caption,
                                        wrap_y = wrap_y,
                                        wrap_caption = wrap_caption,
-                                       limits = limits) +
+                                       limits = limits,
+                                       traslape = traslape,
+                                       limite_dif_pct = limite_dif_pct,
+                                       ajuste_pos = ajuste_pos) +
           {if(ver_diferencias)  geom_text(aes(label = scales::percent(x = mean_dif , accuracy = 1.),y = mean_diff_pos, colour = 'gray' ),
                                           nudge_x = -nudge_x, size = size_geom_text, show.legend = F) }+
           self$tema +

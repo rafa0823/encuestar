@@ -877,6 +877,9 @@ graficar_morena <- function(atr, personajes, atributos){
 #' @param wrap_y Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las categorias del eje y
 #' @param wrap_caption Valor entero usato como parametro en [stringr::str_wrap()] aplicado al [caption] del grafico
 #' @param limits Vector numerico que indica los limites en escala porcentual natural del eje y
+#' @param traslape Valor bopoleano. En caso de ser TRUE, realiza un factor de ajuste para los porcentajes presentados por [ggplot2::geom_text()]. Solo afecta a los valores cuya diferencia máxima y mínima se menor que el factor de tolerancia [limite_dif_pct].  Por defecto tiene valor FALSE.
+#' @param limite_dif_pct Valor de tipo decimal. Es el factor o nivel de tolerencia para la diferencia entre dos puntos que al graficar sus porcentajes tienen un nivel de traslape. Solo se efectua si [traslape] es TRUE. Por defecto su valor es 0.02.
+#' @param ajuste_pos Valor de tipo decimal. Es el factor de ajuste de posición que los porcentajes graficados tomarán en caso de traslaparse. El porcentaje menor se despalzará la izquierda, y el mayor a la derecha. Solo se efectua si [traslape] es TRUE. Por defecto su valor es 0.02.
 #'
 #' @return Objeto tipo [ggplot]
 #'
@@ -890,7 +893,23 @@ graficar_lolipop_diferencias <- function(bd,
                                          caption = "",
                                          wrap_y = 25,
                                          wrap_caption = 25,
-                                         limits = c(0, 0.75)) {
+                                         limits = c(0, 0.75),
+                                         traslape = F,
+                                         limite_dif_pct = 0.02,
+                                         ajuste_pos = 0.02) {
+  if(traslape){
+    bd <- bd |>
+      group_by(variable_principal)|>
+      mutate(#mean_diff_pos = min(mean) + (max(mean)-min(mean))/2,
+        mean_dif_traslap = (max(mean)-min(mean)),
+        mean_pos =  ifelse(mean_dif_traslap<=limite_dif_pct,ajuste_pos,0),
+        mean_pos =  ifelse(mean!= min(mean) & mean!= max(mean),0,mean_pos),
+        mean_pos =  ifelse(mean == min(mean) ,mean_pos*(-1),mean_pos),
+        mean_pos =  mean_pos + mean)|>
+      ungroup()
+  }
+
+
   g <-
     bd |>
     ggplot(aes(x = factor(variable_principal, levels = orden_variablePrincipal),
@@ -899,9 +918,12 @@ graficar_lolipop_diferencias <- function(bd,
                group = variable_principal)) +
     geom_line(color = "#a2d2ff", linewidth = 4.5, alpha = 0.5) +
     geom_point(size = 7) +
-    geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0)),
-              nudge_x = nudge_x,
-              size = size_geom_text) +
+    {if (traslape) geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0),y =mean_pos),
+                             nudge_x = nudge_x,
+                             size = size_geom_text)} +
+    {if(!traslape) geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0)),
+                             nudge_x = nudge_x,
+                             size = size_geom_text)} +
     coord_flip() +
     labs(color = "",
          caption = stringr::str_wrap(string = caption, width = wrap_caption)) +
