@@ -133,10 +133,11 @@ Encuesta <-
                             bd_categorias = NULL,
                             bd_correcciones = NULL,
                             patron = NA,
-                            auditoria_telefonica = NA,
+                            auditoria_telefonica = tibble(SbjNum = c(000),
+                                                          razon = c("A")),
                             quitar_vars = c(),
                             mantener = "",
-                            auditar = NA,
+                            auditar = c(""),
                             vars_tendencias = NA,
                             sin_peso = FALSE,
                             rake = TRUE,
@@ -192,6 +193,7 @@ Encuesta <-
                                                                                         "sexo"),
                                                             true = "sistema",
                                                             false = "cuestionario")))
+
         if("data.frame" %in% class(respuestas)) {
 
           intentos_efectivos <-
@@ -214,11 +216,13 @@ Encuesta <-
             respuestas |>
             left_join(geolocalizacion_efectiva, by = "SbjNum") |>
             mutate(Latitude = GPS_INT_LA,
-                   Longitude = GPS_INT_LO) |>
-            transmute(across(all_of(catalogo_variables |>
-                                      filter(plataforma %in% c("surveytogo", "encuestar", "cuestionario"),
-                                             segundo_nivel %in% c("sistema", "cuestionario")) |>
-                                      pull(variable))))
+                   Longitude = GPS_INT_LO)
+            # transmute(across(c(all_of(catalogo_variables |>
+            #                           filter(plataforma %in% c("surveytogo", "encuestar", "cuestionario"),
+            #                                  segundo_nivel %in% c("sistema", "cuestionario")) |>
+            #                           pull(variable)), "edad", "sexo")
+            #                  )
+            #           )
 
         }
 
@@ -356,7 +360,11 @@ Encuesta <-
                                size = nrow(respuestas),
                                replace = T),
                  INT15 = NA,
-                 T_Q = NA)
+                 T_Q = NA,
+                 Duration = NA,
+                 VStart = NA,
+                 VEnd = NA,
+                 intento_efectivo = NA)
 
         respuestas <- respuestas %>%
           relocate(Srvyr, Date, .before = Longitude) %>%

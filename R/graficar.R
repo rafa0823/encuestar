@@ -76,7 +76,8 @@ graficar_barras <- function(bd,
                             salto = 20,
                             porcentajes_fuera = F,
                             desplazar_porcentajes = 0,
-                            orden_respuestas = NA){
+                            orden_respuestas = NA,
+                            text_size = 8){
 
   g <-
     bd %>%
@@ -97,12 +98,12 @@ graficar_barras <- function(bd,
   if (porcentajes_fuera == F) {
     g <-
       g +
-      ggfittext::geom_bar_text(aes(label = scales::percent(media, accuracy = 1)), contrast = T)
+      ggfittext::geom_bar_text(aes(label = scales::percent(media, accuracy = 1)), contrast = T,size = text_size)
   }
   if (porcentajes_fuera == T) {
     g <-
       g +
-      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes)
+      geom_text(aes(label = scales::percent(media, accuracy = 1)), nudge_y = desplazar_porcentajes,size = text_size )
   }
   g <-
     g +
@@ -128,7 +129,7 @@ graficar_barras <- function(bd,
 #' @examples
 #' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_principal") |>  dplyr::rename(pct = media) |>  encuestar:::graficar_lollipops() + encuestar::tema_morant()
 #' encuestar:::analizar_frecuencias(diseno = encuesta_demo$muestra$diseno, pregunta = "problema_inseguridad") |> dplyr::rename(pct = media) |> encuestar:::graficar_lollipops() + encuestar::tema_morant()
-graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats = 15 , size = 3, size_pct = 6) {
+graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats = 15 , size = 2, size_pct = 6) {
   g <-
     bd |>
     ggplot(aes( if(is.null(orden)) x =  reorder(respuesta, pct) else x =  factor(respuesta, levels = orden),
@@ -145,7 +146,7 @@ graficar_lollipops <- function(bd, orden = NULL, limits = c(0., 1.0), width_cats
     coord_flip() +
     scale_x_discrete(labels = function(x) stringr::str_wrap(string = x, width = width_cats)) +
     scale_y_continuous(labels = scales::percent,
-                       limits = c(0,limits)) +
+                       limits = limits) +
     theme(plot.background = element_rect(color = "transparent", fill = "transparent"),
           panel.background = element_rect(color = "transparent", fill = "transparent"),
           legend.background = element_rect(color = "transparent", fill = "transparent") )
@@ -341,6 +342,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                                        caption_opinion = "",
                                        caption_nsnc = "Ns/Nc",
                                        caption_burbuja,
+                                       size_text_legend = 12,
                                        size_caption_opinion = 12,
                                        size_caption_nsnc = 14,
                                        size_caption_burbuja,
@@ -418,6 +420,7 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
                           caption_opinion = caption_opinion,
                           size_text_cat = size_text_cat,
                           size_pct = size_pct,
+                          size_text_legend = size_text_legend,
                           size_caption_opinion = size_caption_opinion)
 
   if(!is.null(ns_nc)){
@@ -477,14 +480,15 @@ graficar_candidato_opinion <- function(bd, ns_nc, regular,
 #' @param solo_respondidos Logical. Omite los partidos en los cuales el personaje no tiene ninguna asociación
 #' @param colores_partido Vector que asigna un color a cada partido de acuerdo al nombre largo (tema)
 #' @param tema Tema de la gráfica asociado a la paquetería 'encuestar'
+#' @param size_text_conocimiento Valor de tipo entero. Tamaño de los porcentajes en la grafica de conocimiento.
 #'
-graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema,corte_vis = 0.0){
+graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candidato, solo_respondidos = T, colores_partido, tema,corte_vis = 0.0, size_text = 6,size_text_conocimiento = 6){
   bases$conoce <- bases$conoce %>%
     mutate(tema = forcats::fct_reorder(tema, media, min))
   if(tipo_conoce == "intervalos"){
     a <- bases$conoce %>% ggplot(aes(tema, media, ymin = inf, ymax = sup, color = tema)) +
       geom_pointrange(show.legend = F) +
-      geom_text(aes(label = scales::percent(media,1)), vjust = 0, nudge_x = .3, show.legend = F) +
+      geom_text(aes(label = scales::percent(media,1)), vjust = 0, nudge_x = .3, show.legend = F,size = size_text_conocimiento) +
       scale_color_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
@@ -494,7 +498,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
     a <- bases$conoce %>% ggplot(aes(x = tema, y = media, fill = tema)) +
       # geom_col(show.legend = F) +
       ggchicklet::geom_chicklet(width = .6, alpha =.5, show.legend = F)+
-      ggfittext::geom_bar_text(aes(label = scales::percent(media,1))) +
+      ggfittext::geom_bar_text(aes(label = scales::percent(media,1)),size = size_text_conocimiento) +
       scale_fill_manual(values = colores_candidato) +
       labs(title = "Conocimiento", y = NULL,x = NULL ) +
       coord_flip() +
@@ -531,13 +535,13 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
                   fill = respuesta)) +
     geom_text(data = bases$partido |> filter(!respuesta %in% c("Ns/Nc"), !tema %in% cliente, corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-              color = "white", fontface = "plain") +
+              color = "white", fontface = "plain", size = size_text) +
     geom_text(data = bases$partido %>% filter(tema %in% cliente, corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-              color = "white", fontface = "bold") +
+              color = "white", fontface = "bold", size = size_text) +
     geom_text(data = bases$partido %>% filter(respuesta %in% c("Ns/Nc"), corte_vis < media ),
               aes(x = label, y = as.numeric(tema), label = scales::percent(media,accuracy = 1)),
-              color = "white", fontface = "bold") +
+              color = "white", fontface = "bold", size = size_text) +
     scale_fill_manual(values = colores_partido) +
     scale_x_continuous(labels = scales::percent_format(accuracy = 1))+
     # geom_text(aes(x = 0, y = as.numeric(tema), label = tema), hjust = 0) +
@@ -571,7 +575,7 @@ graficar_candidatoPartido <- function(bases, cliente, tipo_conoce, colores_candi
 #' @param size_pct Parametro [size] de la funcion [ggfittext::geom_fit_text()] que controla el tamano del texto que muestra el porcentaje dentro de las barras
 #'
 #' @return Objeto tipo [ggplot]
-graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat = 10, size_pct, size_caption_opinion,size_text_legend = 10 ,tema = encuestar::tema_morant()){
+graficar_barras_saldo <- function(bd, orden, grupo_positivo, grupo_negativo, Regular, colores, salto_respuestas, salto_tema, caption_opinion, size_text_cat = 12, size_pct, size_caption_opinion,size_text_legend = 12, tema = encuestar::tema_morant()){
 
   if(!is.na(Regular)) {
     group_levels <- c("regular2", grupo_negativo, "regular1", grupo_positivo)
@@ -873,6 +877,9 @@ graficar_morena <- function(atr, personajes, atributos){
 #' @param wrap_y Valor entero usato como parametro en [stringr::str_wrap()] aplicado a todos las categorias del eje y
 #' @param wrap_caption Valor entero usato como parametro en [stringr::str_wrap()] aplicado al [caption] del grafico
 #' @param limits Vector numerico que indica los limites en escala porcentual natural del eje y
+#' @param traslape Valor bopoleano. En caso de ser TRUE, realiza un factor de ajuste para los porcentajes presentados por [ggplot2::geom_text()]. Solo afecta a los valores cuya diferencia máxima y mínima se menor que el factor de tolerancia [limite_dif_pct].  Por defecto tiene valor FALSE.
+#' @param limite_dif_pct Valor de tipo decimal. Es el factor o nivel de tolerencia para la diferencia entre dos puntos que al graficar sus porcentajes tienen un nivel de traslape. Solo se efectua si [traslape] es TRUE. Por defecto su valor es 0.02.
+#' @param ajuste_pos Valor de tipo decimal. Es el factor de ajuste de posición que los porcentajes graficados tomarán en caso de traslaparse. El porcentaje menor se despalzará la izquierda, y el mayor a la derecha. Solo se efectua si [traslape] es TRUE. Por defecto su valor es 0.02.
 #'
 #' @return Objeto tipo [ggplot]
 #'
@@ -886,7 +893,23 @@ graficar_lolipop_diferencias <- function(bd,
                                          caption = "",
                                          wrap_y = 25,
                                          wrap_caption = 25,
-                                         limits = c(0, 0.75)) {
+                                         limits = c(0, 0.75),
+                                         traslape = F,
+                                         limite_dif_pct = 0.02,
+                                         ajuste_pos = 0.02) {
+  if(traslape){
+    bd <- bd |>
+      group_by(variable_principal)|>
+      mutate(#mean_diff_pos = min(mean) + (max(mean)-min(mean))/2,
+        mean_dif_traslap = (max(mean)-min(mean)),
+        mean_pos =  ifelse(mean_dif_traslap<=limite_dif_pct,ajuste_pos,0),
+        mean_pos =  ifelse(mean!= min(mean) & mean!= max(mean),0,mean_pos),
+        mean_pos =  ifelse(mean == min(mean) ,mean_pos*(-1),mean_pos),
+        mean_pos =  mean_pos + mean)|>
+      ungroup()
+  }
+
+
   g <-
     bd |>
     ggplot(aes(x = factor(variable_principal, levels = orden_variablePrincipal),
@@ -895,9 +918,12 @@ graficar_lolipop_diferencias <- function(bd,
                group = variable_principal)) +
     geom_line(color = "#a2d2ff", linewidth = 4.5, alpha = 0.5) +
     geom_point(size = 7) +
-    geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0)),
-              nudge_x = nudge_x,
-              size = size_geom_text) +
+    {if (traslape) geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0),y =mean_pos),
+                             nudge_x = nudge_x,
+                             size = size_geom_text)} +
+    {if(!traslape) geom_text(aes(label = scales::percent(x = mean, accuracy = 1.0)),
+                             nudge_x = nudge_x,
+                             size = size_geom_text)} +
     coord_flip() +
     labs(color = "",
          caption = stringr::str_wrap(string = caption, width = wrap_caption)) +

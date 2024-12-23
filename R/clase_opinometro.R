@@ -42,17 +42,17 @@ Opinometro <-
                             diccionario = NULL) {
         self$pool <- pool
         self$id_cuestionarioOpinometro <- id_cuestionarioOpinometro
-        self$definir_variables()
-        self$construir_respuestas()
         self$diccionario <- diccionario
-        if(!is.null(self$diccionario)) {
-          self$verificar_variables()
-        }
-        #self$terminar_conexion()
+        self$definir_contenido()
+        self$construir_respuestas()
+        # if(!is.null(self$diccionario)) {
+        #   self$verificar_variables()
+        # }
+        # self$terminar_conexion()
       },
       #' @description Determina las variables que están contenidas en la plataforma
       #'  `Opinometro`a partir de los campos construidos en el cuestinoario.
-      definir_variables = function(){
+      definir_contenido = function(){
         self$contenido_cuestionario <-
           determinar_contenidoCuestionario(pool = self$pool,
                                            id_cuestionario = self$id_cuestionarioOpinometro)
@@ -66,11 +66,63 @@ Opinometro <-
       construir_respuestas = function(){
 
         self$bd_respuestas_raw <-
-          consultar_respuestas(pool = self$pool,
-                               codigos = self$variables_cuestionario,
-                               encuesta_id = self$id_cuestionarioOpinometro)
+          consultar_respuestas_existentes(pool = self$pool,
+                                          id_cuestionario = self$id_cuestionarioOpinometro)
 
+        # Se asume que si es encuesta, existe un diccinoario
         if(!is.null(self$diccionario)) {
+
+          variables_sobrantes <-
+            self$bd_respuestas_raw |>
+            colnames() |>
+            as_tibble() |>
+            filter(!value %in% c("Id",
+                                "EncuestaId",
+                                "FechaInicio",
+                                "FechaFin",
+                                "FechaCreada",
+                                "UbicacionAplicada",
+                                "UsuarioNum",
+                                "Nombre",
+                                "APaterno",
+                                "AMaterno")
+                     ) |>
+            anti_join(self$diccionario |>
+                        pull(llaves) |>
+                        as_tibble(),
+                      by = "value")
+
+          variables_faltantes <-
+            self$diccionario |>
+            pull(llaves) |>
+            as_tibble() |>
+            anti_join(self$bd_respuestas_raw |>
+                        colnames() |>
+                        as_tibble(),
+                      by = "value")
+
+          if(nrow(variables_sobrantes) != 0) {
+            print(glue::glue("Las siguientes variables están en el opinometro pero no estan en el diccionario: "))
+            print(variables_sobrantes |>
+                    rename(variable = value))
+          }
+
+          if(nrow(variables_faltantes) != 0) {
+            print(glue::glue("Las siguientes variables están en el diccionario pero no existen en los registros del opinometro:"))
+            print(variables_faltantes |>
+                    rename(variable = value))
+
+            crear_variables <-
+              yesno::yesno2("Se van a crear las variables faltantes a la base consultada. Presione 'Y' para continuar",
+                            yes = "Y")
+            if(crear_variables){
+              for(i in variables_faltantes$value) {
+                self$bd_respuestas_cuestionario <-
+                  self$bd_respuestas_raw |>
+                  mutate(!!rlang::sym(i) := NA_character_)
+              }
+            }
+          }
 
           self$bd_respuestas_cuestionario <-
             self$bd_respuestas_raw |>
@@ -84,6 +136,7 @@ Opinometro <-
       #' @description Notifica al usuario si hay variables faltantes o sobrantes en el [tibble]
       #'  que contiene las respuestas.
       verificar_variables = function(){
+
         variables_sobrantes <-
           self$bd_respuestas_cuestionario |>
           select(all_of(self$variables_cuestionario)) |>
@@ -103,6 +156,7 @@ Opinometro <-
                       colnames() |>
                       as_tibble(),
                     by = "value")
+
         if(nrow(variables_sobrantes) != 0) {
           print(glue::glue("Las siguientes variables están en el opinometro pero no estan en el diccionario: "))
           print(variables_sobrantes |>
