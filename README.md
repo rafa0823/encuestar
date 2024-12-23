@@ -6,47 +6,35 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of encuestar is to …
+El ojetivo de la paquetería es producir los resultados de las
+estimaciones asociadas al diseño muestral generado por la paquetería
+muestrear. También contiene contiene la aplicación de seguimiento de
+levantamiento de la encuesta.
 
-## Installation
+## Instalación
 
-You can install the development version of encuestar from
-[GitHub](https://github.com/) with:
+Sírvase de instalar la versión de producción desde
+[GitHub](https://github.com/) con:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("morant-consultores/encuestar")
+devtools::install_github(repo = "https://github.com/morant-consultores/encuestar.git", ref = "master", build_vignettes =  TRUE)
 ```
 
-## Example
+## Ejemplo
 
-This is a basic example which shows you how to solve a common problem:
+Estimación de intención de voto hacia candidatos
 
 ``` r
 library(encuestar)
-## basic example code
+
+encuesta_demo$Resultados$Descriptiva$barras_categorica(codigo = 'voto_pr_24',
+                                                       salto = 30) +
+  ggplot2::scale_fill_manual(values = c("Claudia Sheinbaum por MORENA-PT-Partido Verde" = "#A6032F",
+                                        "Xóchitl Gálvez por PAN-PRI-PRD" = "#0339a6",
+                                        "No recuerda" = "gray40",
+                                        "No contesta" = "gray60",
+                                        "Jorge Álvarez Máynez por Movimiento Ciudadano" = "#F27405",
+                                        "Anulé mi voto" = "black"))
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+<img src="man/figures/README-ejemplocanonico-1.png" width="100%" />

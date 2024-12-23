@@ -2,19 +2,23 @@
 % Please edit documentation in R/procesar_surveytogo.R
 \name{analizar_sankey}
 \alias{analizar_sankey}
-\title{Analizar sankey}
+\title{Calcular datos necesarios para la funcion \code{\link[=graficar_sankey]{graficar_sankey()}}}
 \usage{
 analizar_sankey(diseno, variables, filtro_var1, filtro_var2)
 }
 \arguments{
 \item{diseno}{Diseno muestral que contiene los pesos por individuo y las variables relacionadas.}
 
-\item{variables}{Vector que contiene las llaves de las cuales se va a hacer el cruce}
+\item{variables}{Vector tipo caracter que contiene los nombres de las variables de las cuales
+se va a hacer el cruce}
+
+\item{filtro_var1}{Valores de interes de la primer variable presente en el vector}
+
+\item{filtro_var2}{Valores de interes de la primer variable presente en el vector}
+}
+\value{
+\code{\link[=tibble]{tibble()}} con las estimaciones de frecuencia para cada valor unico entre las variables
 }
 \description{
-Analizar sankey
-}
-\examples{
-analizar_sankey(diseno = as_survey_design(diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
-analizar_frecuencias(diseno = as_survey_design(encuesta$muestra$diseno), var_1 = sexo, var_2 = conocimento_sheinbaum)
+Calcular datos necesarios para la funcion \code{\link[=graficar_sankey]{graficar_sankey()}}
 }

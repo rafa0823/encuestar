@@ -4,16 +4,19 @@
 \alias{graficar_sankey}
 \title{Graficar sankey}
 \usage{
-graficar_sankey(bd, variables, colores, size_text_cat)
+graficar_sankey(bd, variables, colores, size_text_cat, width_text = 15)
 }
 \arguments{
-\item{bd}{Base de datos procesada con la función analizar_sankey}
+\item{bd}{Base de datos procesada con la función \code{\link[encuestar:::analizar_sankey]{encuestar::::analizar_sankey()}}}
 
-\item{variables}{Vector que contiene las llaves de las cuales se va a hacer el cruce}
+\item{variables}{Vector ordenado tipo caracter que contiene los nombres de las llaves de las cuales se va a hacer el cruce}
 
 \item{colores}{Argumento usado por scale_fill_manual y sclae_color_manual}
 
-\item{size_text_cat}{Tamaño del texto mostrado en cada nodo el sankey}
+\item{size_text_cat}{Parametro \link{size} de la funcion \code{\link[ggsankey:geom_sankey_label]{ggsankey::geom_sankey_text()}} que determina
+el tamano del texto de las etiquetas en cada nodo del gráfico}
+
+\item{width_text}{Salto de linea que se aplica a las categorias mostradas}
 }
 \description{
 Graficar sankey

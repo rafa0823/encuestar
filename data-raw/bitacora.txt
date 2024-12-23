@@ -1,0 +1,26 @@
+23 de Diciembre de 2024.
+
+La paquetería encuestar se encuentra en un estado de desarrollo óptimo. En la carpeta data-raw se encuentran 
+scritps que son ejemplos del cómo comenzar el procesamiento de una encuesta. 
+
+Dentro de las principales fuentes de error que impidan que se genere la clase están:
+
+1. Con la intención de estandarizar tanto la base de datos de surveytogo como la del opinometro existe un punto
+	del procesamiento en el cual se determina si existen o no variables consideradas necesarias para el 
+	correcto funcionamiento. Es una especie de candado basado en el catálogo de variables que estaba siendo
+	definido y consolidado. 
+2. El catalogo de variables contiene la clasificación de variables que entran en juego durante el procesamiento
+	de la encuesta. Por ejemplo, el identificador único de cada entrevistas es una variable fundamental
+	para las cuatro entidades que están presentes en el procesamiento: SurveyToGo, Opinómetro, encuestar y 
+	la app de monitoreo del levantamiento de la encuesta. En contraste, la variable de generación (Millenials,
+	Boomers, etc) tiene protagonismo únicamente en la producción de resultados (cruces, principalmente) por 
+	lo que si dicha variable no está presente durante el cálculo de pesos no se detiene el calculo y tampoco	se detiene la generación de la clase "encuesta". Sin embargo, esa variable es necesaria para entregar el	proyecto. Con esta óptica distinguimos entre variables suficientes y necesarias. Las suficientes son
+	el conjunto de variables mínimas requeridas para poder generar la clase encuesta y publicar la aplicación.
+	Las variables necesarias son aquellas que, además de las suficientes, son usadas para la producción de
+	resultados. Dentro del conjunto de variables necesarias que no son las suficientes se encuentran las
+	contenidas en el cuestionario. El cuestionario a su vez se divide en filtros y bloques. Los bloques
+	componen la encuesta, etc.
+3. Verificar la variable seccion = cluster en la base de datos de respuestas. Esta variable es critica.
+4. Las bases de datos que son insumos auxiliares (base de eliminadas, quitar variables, mantener)  requieren cierto formato. Los
+	argumentos por defecto ya otorgan valores nulos con ese formato pero si no funciona es posible definir los valores necesarios
+	para la ejecución.
