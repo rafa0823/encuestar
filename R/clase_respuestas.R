@@ -110,6 +110,12 @@ Respuestas <-
         # Eliminar entrevistas cuyo cluster no pertenece a la muestra
         self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
 
+
+        # Eliminar entrevistas que no son efectivas
+        self$retirar_no_efectivas(self$base)
+
+
+
         # Corregir cluster equivocado
         self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
 
@@ -524,6 +530,21 @@ Respuestas <-
             inner_join(muestra$muestra$poblacion$marco_muestral %>%
                          distinct(across(all_of(var_reg)), region), by = var_reg)
         }
+      },
+      #' @description Elimina las filas que no son efectivas
+      #' @param respuestas Contiene la base de respuestas
+      retirar_no_efectivas = function(respuestas){
+
+        self$base <- respuestas %>%
+         filter(TipoRegistro == "Efectivo")
+
+        self$eliminadas <- self$eliminadas %>% bind_rows(
+          respuestas %>%
+            filter(TipoRegistro == "Efectivo") %>%
+            mutate(razon = "No efectivas")
+        )
+        print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que no son efectivas"))
+
       }
     )
   )

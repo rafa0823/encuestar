@@ -232,7 +232,10 @@ Encuesta <-
                                        pool = self$pool,
                                        diccionario = self$cuestionario$diccionario)
 
-          respuestas <- opinometro$bd_respuestas_cuestionario
+          respuestas <- opinometro$bd_respuestas_cuestionario |>
+            filter(!is.na(Latitude)) |>
+            filter(!is.na(Longitude))
+
 
         }
 

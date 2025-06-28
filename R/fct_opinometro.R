@@ -7,17 +7,21 @@
 #'
 #' @examples
 determinar_contenidoCuestionario <- function(pool, id_cuestionario){
-  tbl(src = pool, "Encuesta") |>
-    filter(Id == id_cuestionario) |>
+  tbl(src = pool, "Encuesta") %>%
+    filter(Id == 254) %>%
     collect() %>%
-    purrr::pmap_df(function(JsonData, Descripcion, ...){
-      aux <-
-        JsonData |>
-        jsonlite::fromJSON() |>
-        as_tibble() |>
-        tidyr::unnest(cols = pages, names_repair = tidyr_legacy) |>
-        as_tibble() |>
-        tidyr::unnest(elements, names_sep = "")})
+    mutate(
+      pages = map(JsonData,
+                  ~ fromJSON(.x, simplifyDataFrame = FALSE)$pages)
+    ) %>%
+    select(-JsonData) %>%
+    unnest_longer(col = pages, values_to = "page") %>%
+    unnest_wider(col = page) %>%
+    # 1) Despliega la lista de elementos en filas
+    unnest_longer(col = elements) %>%
+    # 2) Descompón cada elemento (que es a su vez una lista) en columnas,
+    #    usando names_sep si quieres prefijar los nombres
+    unnest_wider(col = elements, names_sep = "")
 }
 #' Title
 #'
@@ -69,6 +73,7 @@ consultar_respuestas_existentes <- function(pool, id_cuestionario){
                             FechaCreada,
                             UbicacionAplicada,
                             UsuarioNum,
+                            TipoRegistro,
                             Resultado, ...){
 
       list_respuestas <- list()
@@ -80,6 +85,7 @@ consultar_respuestas_existentes <- function(pool, id_cuestionario){
       list_respuestas$FechaCreada = FechaCreada
       list_respuestas$UbicacionAplicada = UbicacionAplicada
       list_respuestas$UsuarioNum = UsuarioNum
+      list_respuestas$TipoRegistro = TipoRegistro
 
       list_respuestas <-
         list_respuestas |>
@@ -118,29 +124,40 @@ consultar_respuestas_existentes <- function(pool, id_cuestionario){
 #' @return
 #'
 #' @examples
-rectificar_respuestasOpinometro <- function(bd_respuestas_raw, variables_cuestionario){
+rectificar_respuestasOpinometro <- function(bd_respuestas_raw, variables_cuestionario, var_ubicacion = "gps" ){
+
+
   bd_respuestas_raw |>
+    mutate(gps_aux = !!rlang::sym(var_ubicacion) ) |>
     # mutate(intentos = stringr::str_trim(string = intentos, side = "both")) |>
     # filter(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil") |>
-    filter(UbicacionAplicada != "No aplica") |>
-    mutate(UbicacionAplicada = dplyr::if_else(condition = UbicacionAplicada == ",",
-                                               true = NA_character_,
-                                               false = UbicacionAplicada)) |>
-    tidyr::separate(col = UbicacionAplicada,
+    filter(gps_aux != "No aplica") |>
+    filter(!is.na(gps_aux)) |>
+    # mutate(UbicacionAplicada = dplyr::if_else(condition = UbicacionAplicada == ",",
+    #                                            true = NA_character_,
+    #                                            false = UbicacionAplicada)) |>
+    tidyr::separate(col = gps_aux,
                     into = c("Latitude", "Longitude"),
                     sep = ",",
                     remove = TRUE) |>
     transmute(SbjNum = Id,
-              Date = lubridate::as_datetime(FechaInicio, tz = "America/Mexico_City"),
+              Date = lubridate::as_datetime(FechaInicio),
               Srvyr = paste(Nombre, APaterno, AMaterno, sep = " "),
-              VStart = lubridate::as_datetime(FechaInicio, tz = "America/Mexico_City"),
-              VEnd = lubridate::as_datetime(FechaFin, tz = "America/Mexico_City"),
+              Srvyr_Nombre = Nombre,
+              Srvyr_APaterno = APaterno,
+              Srvyr_AMaterno = AMaterno,
+              FechaInicio =FechaInicio,
+              VStart = lubridate::as_datetime(FechaInicio),
+              VEnd = lubridate::as_datetime(FechaFin),
               Duration = as.character(difftime(VEnd, VStart, units = "hours")),
+              TipoRegistro,
               Latitude,
               Longitude,
               across(all_of(variables_cuestionario)),
+              #intentos = TipoRegistro_aux,
               corte = update(Sys.time(), minute = floor(lubridate::minute(Sys.time())/15)*15, second = 0, tz = "America/Mexico_City"),
-              SECCION = as.character(as.numeric(cluster))) |>
+              SECCION = as.character(as.numeric(cluster))
+              ) |>
     filter(Date <= corte)
 }
 #' Title
@@ -154,8 +171,8 @@ calcular_intentosEfectivos_opinometro <- function(bd_respuestasOpinometro){
   bd_respuestasOpinometro |>
     transmute(SbjNum = Id,
               Srvyr = paste(Nombre, APaterno, AMaterno, sep = " "),
-              intentos = stringr::str_trim(string = intentos, side = "both")) |>
-    mutate(intento_efectivo = dplyr::case_when(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil" ~ "efectivo",
+              intentos = stringr::str_trim(string = TipoRegistro, side = "both")) |>
+    mutate(intento_efectivo = dplyr::case_when(intentos == "Efectivo" ~ "efectivo",
                                                .default = "no efectivo")) |>
     mutate(flag = cumsum(intento_efectivo == "efectivo")) %>%
     group_by(flag) %>%
