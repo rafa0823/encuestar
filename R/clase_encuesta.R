@@ -74,6 +74,7 @@ Encuesta <-
       mantener_falta_coordenadas = NULL,
       tipo_encuesta = NULL,
       shp_completo = NULL,
+      Opinometro = NULL,
       Resultados = NULL,
       Auditoria = NULL,
       #' @description Se reciben los insumos de respuestas, auditoria y otros parámetros asociados
@@ -157,10 +158,18 @@ Encuesta <-
         self$opinometro_id <- opinometro_id
         self$pool <- pool
         self$bd_categorias <- bd_categorias
+
+
         # Valorar si no es mejor un active binding
         un <- muestra$niveles %>% filter(nivel == muestra$ultimo_nivel)
         nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
         var_n <- un %>% pull(variable)
+
+        # Se comprueba el metodo de obtencion de datos
+        if(("data.frame" %in% class(respuestas)) & !is.na(self$opinometro_id)   ){
+          print("No se puede cargar la base del Opinometro y una base externa, verifique el método de obtención de bases")
+          stop()
+        }
 
         # Valorar active binding
         self$cuestionario <- Cuestionario$new(documento = cuestionario, patron)
@@ -193,6 +202,7 @@ Encuesta <-
                                                                                         "sexo"),
                                                             true = "sistema",
                                                             false = "cuestionario")))
+
 
         if("data.frame" %in% class(respuestas)) {
 
@@ -232,9 +242,9 @@ Encuesta <-
                                        pool = self$pool,
                                        diccionario = self$cuestionario$diccionario)
 
-          respuestas <- opinometro$bd_respuestas_cuestionario |>
-            filter(!is.na(Latitude)) |>
-            filter(!is.na(Longitude))
+          respuestas <- opinometro$bd_respuestas_cuestionario
+
+        #  self$Opinometro <- opinometro
 
 
         }
@@ -280,7 +290,8 @@ Encuesta <-
                                     rake = self$rake)
 
         print(glue::glue("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
-        print(glue::glue("La base de eliiminadas contiene ", as.character(nrow(self$auditoria_telefonica)), " filas"))
+        print(glue::glue("La base de eliiminadas contiene ", as.character(nrow(self$respuestas$eliminadas)), " filas"))
+        if(!is.null(self$respuestas$no_efectivas)  ){ print(glue::glue("La base de no efectivas contiene ", as.character(nrow(self$respuestas$no_efectivas)), " filas"))}
         print(glue::glue("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
 
         #Preguntas

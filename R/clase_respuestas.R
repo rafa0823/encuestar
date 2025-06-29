@@ -23,6 +23,7 @@ Respuestas <-
     inherit = Encuesta,
     public = list(
       eliminadas = NULL,
+      no_efectivas = NULL,
       cluster_corregido = NULL,
       base = NULL,
       catalogo = NULL,
@@ -110,11 +111,15 @@ Respuestas <-
         # Eliminar entrevistas cuyo cluster no pertenece a la muestra
         self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
 
+        # Se pregunta si existe la pregunta de resouestas no efectivas
+        if( TRUE %in% (names(self$base) %in% c("TipoRegistro"))  ){
 
         # Eliminar entrevistas que no son efectivas
         self$retirar_no_efectivas(self$base)
 
-
+        }else{
+          print("No se existe la variable/columna 'TipoRegistro' para identificar entrevistas efectivas")
+        }
 
         # Corregir cluster equivocado
         self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
@@ -396,9 +401,9 @@ Respuestas <-
 
         if("Longitude" %in% names(self$base) & "Latitude" %in% names(self$base)){
           n <- nrow(self$base)
-          self$base <- self$base %>% filter(!is.na(Longitude) | !is.na(Latitude))
+          self$base <- self$base %>% filter(!is.na(as.numeric(Longitude)) & !is.na(as.numeric(Latitude)))
           self$eliminadas <- self$eliminadas %>% bind_rows(
-            self$base %>% filter(is.na(Longitude) | is.na(Latitude)) %>% mutate(razon = "Sin coordenadas")
+            self$base %>% filter(!(!is.na(as.numeric(Longitude)) & !is.na(as.numeric(Latitude)))) %>% mutate(razon = "Sin coordenadas")
           )
           print(
             glue::glue("Se eliminaron {n-nrow(self$base)} encuestas por falta de coordenadas")
@@ -535,16 +540,23 @@ Respuestas <-
       #' @param respuestas Contiene la base de respuestas
       retirar_no_efectivas = function(respuestas){
 
+
+
+        if(TRUE %in% ((distinct(respuestas,TipoRegistro) |> pull(TipoRegistro)) %in% c("Efectivo"))){
+
         self$base <- respuestas %>%
          filter(TipoRegistro == "Efectivo")
 
-        self$eliminadas <- self$eliminadas %>% bind_rows(
+        self$no_efectivas <-
           respuestas %>%
-            filter(TipoRegistro == "Efectivo") %>%
+            filter(TipoRegistro != "Efectivo") %>%
             mutate(razon = "No efectivas")
-        )
+
         print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que no son efectivas"))
 
+        } else{
+          print("Se necesita que la variable/columna 'TipoRegistro' tenga como mínimo el valor 'Efectivo' para identificar entrevistas efectivas")
+        }
       }
     )
   )

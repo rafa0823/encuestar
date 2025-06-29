@@ -12,7 +12,7 @@ determinar_contenidoCuestionario <- function(pool, id_cuestionario){
     collect() %>%
     mutate(
       pages = map(JsonData,
-                  ~ fromJSON(.x, simplifyDataFrame = FALSE)$pages)
+                  ~ jsonlite::fromJSON(.x, simplifyDataFrame = FALSE)$pages)
     ) %>%
     select(-JsonData) %>%
     unnest_longer(col = pages, values_to = "page") %>%
