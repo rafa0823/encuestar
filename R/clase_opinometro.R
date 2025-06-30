@@ -85,7 +85,8 @@ Opinometro <-
                                 "UsuarioNum",
                                 "Nombre",
                                 "APaterno",
-                                "AMaterno")
+                                "AMaterno",
+                                "TipoRegistro")
                      ) |>
             anti_join(self$diccionario |>
                         pull(llaves) |>
@@ -124,9 +125,37 @@ Opinometro <-
             }
           }
 
+          var_faltantes_opin  <-
+            self$variables_cuestionario |>
+            as_tibble()|>
+            anti_join(self$bd_respuestas_raw |>
+                        colnames() |>
+                        as_tibble() |>
+                        filter(!value %in% c("Id",
+                                             "EncuestaId",
+                                             "FechaInicio",
+                                             "FechaFin",
+                                             "FechaCreada",
+                                             "UbicacionAplicada",
+                                             "UsuarioNum",
+                                             "Nombre",
+                                             "APaterno",
+                                             "AMaterno",
+                                             "TipoRegistro")
+                        ),
+                      by = "value")
+
+          if(nrow(var_faltantes_opin) != 0) {
+            print(glue::glue("Las siguientes variables están en el registro del opinometro pero no estan en la base del opinómetro: "))
+            print(var_faltantes_opin |>
+                    rename(variable = value))
+          }
+
+          variables_opinometro_efect <- self$variables_cuestionario[!self$variables_cuestionario %in% pull(var_faltantes_opin)]
+
           self$bd_respuestas_cuestionario <-
             self$bd_respuestas_raw |>
-            rectificar_respuestasOpinometro(variables_cuestionario = self$variables_cuestionario) |>
+            rectificar_respuestasOpinometro(variables_cuestionario = variables_opinometro_efect) |>
             left_join(self$bd_respuestas_raw |>
                         calcular_intentosEfectivos_opinometro(),
                       by = "SbjNum")
