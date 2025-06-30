@@ -157,8 +157,7 @@ rectificar_respuestasOpinometro <- function(bd_respuestas_raw, variables_cuestio
               #intentos = TipoRegistro_aux,
               corte = update(Sys.time(), minute = floor(lubridate::minute(Sys.time())/15)*15, second = 0, tz = "America/Mexico_City"),
               SECCION = as.character(as.numeric(cluster))
-              ) |>
-    filter(Date <= corte)
+              )# |>  filter(Date <= corte)
 }
 #' Title
 #'
