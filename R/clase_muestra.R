@@ -61,13 +61,15 @@ Muestra <-
         respuesta_fpc <- respuestas %>%
           count(!!rlang::sym(var_n)) %>%
           left_join(pob, by= var_n) %>%
-          mutate(fpc_0=n/poblacion) %>%
-          select(!!rlang::sym(var_n), fpc_0)
+          mutate(fpc_individual=n/poblacion) %>%
+          select(!!rlang::sym(var_n), fpc_individual)
 
         muestra <- self$base %>%
           mutate(data = map(data,~.x %>% distinct(across(contains("fpc"))))) %>%
           tidyr::unnest(data) %>%
-          select(-fpc_0) %>%
+          select(-fpc_0) %>% # realmente no es un nivel del diseño,
+                             # en campo las manzanas fungen como punto de partida para iniciar
+                             # el levantamiento de la sección
           mutate(!!rlang::sym(var_n) := as.character(!!rlang::sym(nivel))) %>%
           inner_join(respuesta_fpc, by= var_n)
 

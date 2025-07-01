@@ -265,7 +265,8 @@ Encuesta <-
                                                 shp = shp)
         }
 
-        self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_0 = SbjNum),
+        # Respuestas$debug("initialize")
+        self$respuestas <- Respuestas$new(base = respuestas %>% mutate(cluster_individual = SbjNum),
                                           encuesta = self,
                                           catalogo = catalogo_variables,
                                           mantener_falta_coordenadas = self$mantener_falta_coordenadas,

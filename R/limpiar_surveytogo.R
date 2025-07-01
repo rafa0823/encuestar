@@ -47,9 +47,9 @@ corregir_cluster <- function(respuestas, shp, mantener, nivel, var_n) {
     bind_rows(fuera) %>%
     as_tibble() %>%
     filter(distinto) %>%
-    select(cluster_0, !!rlang::sym(nivel), distinto)
+    select(cluster_individual, !!rlang::sym(nivel), distinto)
 
-  respuestas <- left_join(respuestas, nuevos, by="cluster_0")
+  respuestas <- left_join(respuestas, nuevos, by="cluster_individual")
 
   respuestas$distinto[is.na(respuestas$distinto)] <- F
 
