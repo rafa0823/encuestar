@@ -49,3 +49,23 @@ comparar_disenos <-  function(disenos,
 
 
 }
+
+fusionar_disenos <- function(disenos){
+
+  diseno <- disenos[[1]]$clone()
+
+  diseno$muestra$SECCION <-
+    disenos |>
+    map_df(~{
+      .x$muestra$SECCION
+    })
+
+
+  diseno$muestra$MZA <-
+    disenos |>
+    map_df(~{
+      .x$muestra$MZA
+    })
+
+  return(diseno)
+}
