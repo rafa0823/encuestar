@@ -159,7 +159,7 @@ Opinometro_proc <-
 
           self$bd_respuestas_cuestionario <-
             self$bd_respuestas_raw |>
-            rectificar_respuestasOpinometro(variables_cuestionario = variables_opinometro_efect) |>
+            rectificar_respuestasOpinometro(variables_cuestionario = variables_opinometro_efect,elim_na_ub = F) |>
             left_join(self$bd_respuestas_raw |>
                         calcular_intentosEfectivos_opinometro(),
                       by = "SbjNum")
