@@ -116,7 +116,7 @@ consultar_respuestas_existentes <- function(pool, id_cuestionario){
     relocate(APaterno, .after = Nombre) |>
     relocate(AMaterno, .after = APaterno)
 }
-#' Title
+#' rectificar_respuestasOpinometro
 #'
 #' @param bd_respuestasOpinometro
 #' @param variables_cuestionario
@@ -124,15 +124,15 @@ consultar_respuestas_existentes <- function(pool, id_cuestionario){
 #' @return
 #'
 #' @examples
-rectificar_respuestasOpinometro <- function(bd_respuestas_raw, variables_cuestionario, var_ubicacion = "gps" ){
+rectificar_respuestasOpinometro <- function(bd_respuestas_raw, variables_cuestionario, var_ubicacion = "gps",elim_na_ub = T ){
 
 
-  bd_respuestas_raw |>
-    mutate(gps_aux = !!rlang::sym(var_ubicacion) ) |>
+  bd_respuestas_raw  %>%
+    mutate(gps_aux = !!rlang::sym(var_ubicacion) )  %>%
     # mutate(intentos = stringr::str_trim(string = intentos, side = "both")) |>
     # filter(intentos == "Abrieron la puerta, aceptaron la entrevista y cumple el perfil") |>
-    filter(gps_aux != "No aplica") |>
-    filter(!is.na(gps_aux)) |>
+    {if(elim_na_ub) filter(.,gps_aux != "No aplica") else .} %>%
+    {if(elim_na_ub) filter(.,!is.na(gps_aux)) else . }  %>%
     # mutate(UbicacionAplicada = dplyr::if_else(condition = UbicacionAplicada == ",",
     #                                            true = NA_character_,
     #                                            false = UbicacionAplicada)) |>
