@@ -172,7 +172,8 @@ Preproceso <-
                                                             true = "sistema",
                                                             false = "cuestionario")))
 
-        snapshot_id <- glue::glue("snapshot_id_ejmp_{self$opinometro_id}")
+        snapshot_id <- glue::glue("snapshot_id_{self$opinometro_id}")
+        cluster_corregido_id <- glue::glue("cluster_corregido_id_{self$opinometro_id}")
 
 
         # eliminadas auditoria --------------------------
@@ -191,6 +192,10 @@ Preproceso <-
             anti_join(bd_snapshot,
                       by = c("Id"="SbjNum") )
         }
+
+
+        # Se termina el procesos si bd_respuestas está vacía
+        if(nrow(bd_respuestas)>0){
 
 
 
@@ -232,6 +237,15 @@ Preproceso <-
 
         # Se agregan los datos procesados al snapshot
         DBI::dbAppendTable(pool, snapshot_id, self$Respuestas_proc$base)
+
+        # # Se carga los datos de la base de cambio de cluster
+        if(nrow(self$Respuestas_proc$cluster_corregido)>0){
+          DBI::dbAppendTable(pool,cluster_corregido_id ,self$Respuestas_proc$cluster_corregido )
+        }
+
+        }else{
+          print("No hay nuevos registros que procesar")
+        }
 
 
         # Se actualiza la variable de Elimiadas
