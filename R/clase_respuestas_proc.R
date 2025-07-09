@@ -30,7 +30,8 @@ Respuestas_proc <-
       n = NULL,
       m = NULL,
       sin_coordenadas = NULL,
-      mantener_falta_coordenadas = NULL,
+      fuera_de_muestra = NULL,
+      eliminadas_por_regla = NULL,
       #' @description Se reciben los diferentes insumos relacionados a la encuesta para estandarizar
       #'  las respuestas que formarán parte del diseÑo muestral.
       #' @param base [tibble()] que contiene la base de datos de respuestas de las personas entrevistadas.
@@ -84,8 +85,16 @@ Respuestas_proc <-
         # Advertir si hay opciones de respuestas que tienen count = 0
         #self$respuestas_sin_seleccion(bd = self$base, diccionario)
 
+        if(nrow(self$base)>0){
         # Limpiar las que no pasan auditoria telefonica
         self$retirar_auditoria_telefonica()
+        }
+
+
+        # Eliminar entrevistas que se eliminan por regla
+        if(nrow(self$base)>0){
+        self$retirar_regla_eliminada()
+        }
 
         # Corregir respuestas registradas mal por los encuestadores
         # if(!is.null(bd_correcciones)) {
@@ -99,7 +108,9 @@ Respuestas_proc <-
         # Mantener respuestas que no tienen coordenadas
         #if(mantener_falta_coordenadas){
 
+        if(nrow(self$base)>0){
         self$coordenadas_faltantes()
+        }
 
         #} else {
 
@@ -109,26 +120,34 @@ Respuestas_proc <-
         #}
 
         # Eliminar entrevistas cuyo cluster no pertenece a la muestra
-        #self$eliminar_fuera_muestra(self$base, muestra, nivel, var_n)
+        if(nrow(self$base)>0){
+        self$retirar_fuera_muestra(self$base, muestra, nivel, var_n)
+        }
 
         # Se pregunta si existe la pregunta de resouestas no efectivas
         #if( TRUE %in% (names(self$base) %in% c("TipoRegistro"))  ){
 
         # Eliminar entrevistas que no son efectivas
+        if(nrow(self$base)>0){
         self$retirar_no_efectivas(self$base)
+        }
+
 
         #}else{
         #  print("No se existe la variable/columna 'TipoRegistro' para identificar entrevistas efectivas")
         #}
 
         # Corregir cluster equivocado
+        if(nrow(self$base)>0){
         self$correccion_cluster(self$base, shp, mantener, nivel, var_n)
+
 
         # Calcular distancia de la entrevista al cluster correcto
         self$calcular_distancia(base = self$base,
                                 encuesta = Preproceso,
                                 muestra = muestra_completa,
                                 var_n = var_n, nivel = nivel)
+        }
 
         # Limpiar las que no tienen variables de diseno
         # self$eliminar_faltantes_diseno() # no entiendo por qué
@@ -139,6 +158,10 @@ Respuestas_proc <-
           self$no_efectivas
         ) %>% bind_rows(
           self$eliminadas
+        )%>% bind_rows(
+          self$fuera_de_muestra
+        )%>% bind_rows(
+          self$eliminadas_por_regla
         )
 
         #}
@@ -427,19 +450,20 @@ Respuestas_proc <-
       #' @param nivel Valor tipo entero que indica el número de etapas de muestro
       #' @param var_n var_n Valor tipo caracter que indica el nombre de la variable asociado al último
       #'  nivel de la etapa de muestreo.
-      eliminar_fuera_muestra = function(respuestas, muestra, nivel, var_n){
+      retirar_fuera_muestra = function(respuestas, muestra, nivel, var_n){
 
         self$base <- respuestas %>%
           semi_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
                     by = set_names(nivel,var_n))
 
-        self$eliminadas <- self$eliminadas %>% bind_rows(
+        self$fuera_de_muestra <-
           respuestas %>%
             anti_join(muestra %>% mutate(!!rlang::sym(nivel) := as.character(!!rlang::sym(nivel))),
                       by = set_names(nivel,var_n)) %>%
+          mutate(eliminada_proceso = 1) %>%
             mutate(razon = "Cluster no existente")
-        )
-        print(glue::glue("Se eliminaron {nrow(respuestas) - nrow(self$base)} entrevistas ya que el cluster no pertenece a la muestra"))
+
+        print(glue::glue("Se eliminaron {nrow(self$fuera_de_muestra)} entrevistas ya que el cluster no pertenece a la muestra"))
       },
       #' @description Calcula la distancia (en metros) entre la geolocalización donde se lvantó la
       #'  entrevista y el cluster más cercano que encuentre.
@@ -522,12 +546,19 @@ Respuestas_proc <-
                          distinct(across(all_of(var_reg)), region), by = var_reg)
         }
       },
-      #' @description Determina las entrevistas con variables de geolocalización no válidas
+      #' @description Retira las entrevistas que son eliminadas por auditoria
       retirar_auditoria_telefonica = function(){
         self$eliminadas <- self$base %>% filter(eliminada_auditoria == 1) %>%
           mutate(razon = "Auditoria")
 
         self$base <- self$base %>% filter(eliminada_auditoria != 1)
+      },
+      #' @description Retira las entrevistas que son eliminadas por regla
+      retirar_regla_eliminada = function(){
+        self$eliminadas_por_regla <- self$base %>% filter(eliminada_regla == 1) %>%
+          mutate(razon = "Regla")
+
+        self$base <- self$base %>% filter(eliminada_regla != 1)
       },
       #' @description Elimina las filas que no son efectivas
       #' @param respuestas Contiene la base de respuestas
@@ -552,5 +583,6 @@ Respuestas_proc <-
           print("Se necesita que la variable/columna 'TipoRegistro' tenga como mínimo el valor 'Efectivo' para identificar entrevistas efectivas")
         }
       }
+
     )
   )

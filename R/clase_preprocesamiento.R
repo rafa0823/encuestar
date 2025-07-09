@@ -113,6 +113,7 @@ Preproceso <-
                             patron = NA,
                             auditoria_telefonica = tibble(SbjNum = c(000),
                                                           razon = c("A")),
+                            bd_eliminadas_reglas = NULL,
                             quitar_vars = c(),
                             mantener = "",
                            # mantener_falta_coordenadas = FALSE,
@@ -183,7 +184,23 @@ Preproceso <-
         # vector de ids eliminadas auditoria --------------------------
         vec_elim <- self$obtener_ids_auditoria_telefonica(bd_respuestas)
 
+        if(!is.null(bd_eliminadas_reglas)){
+        if(nrow(bd_eliminadas_reglas)>0){
+
+
+        # lista de ids_con reglas -----------------------
+          lista_elim_reglas <-   self$eliminar_por_regla_list(bd_respuestas,bd_eliminadas_reglas)
+
+          # vector de ids eliminadas por regla --------------------------
+          vec_elim_reglas<- unique(c(lista_elim_reglas$vec_elim_fech,lista_elim_reglas$vec_elim_usr,lista_elim_reglas$vec_elim_usr_fech))
+
         # eliminar por regla ---------------------------------
+        }} else{
+          vec_elim_reglas <- c(000)
+        }
+
+        bd_respuestas <- self$eliminar_por_reglas(bd_respuestas,vec_elim_reglas)
+
 
 
         # Se quedan solo las respuestas no presntes en el snapshot
@@ -192,6 +209,14 @@ Preproceso <-
             anti_join(bd_snapshot,
                       by = c("Id"="SbjNum") )
         }
+
+         # contorol_bd <- bd_respuestas |>
+         #   filter(eliminada_regla==1) |>
+         #   filter(eliminada_auditoria==1) |>
+         #   nrow()
+        # if(contorol_bd >= nrow(bd_respuestas)){
+        #   print("Las bases de eliminadas contienen Ids mayores a la base de procesamiento")
+        # } else{
 
 
         # Se termina el procesos si bd_respuestas está vacía
@@ -227,9 +252,9 @@ Preproceso <-
 
         # TEMPORAL EN LO QUE SE AGREGA EL PROCEDIMIENTO DE ELIMANCION POR REGLA
         # -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-        self$Respuestas_proc$base <-
-          self$Respuestas_proc$base |>
-          mutate(eliminada_regla = 0)
+        # self$Respuestas_proc$base <-
+        #   self$Respuestas_proc$base |>
+        #   mutate(eliminada_regla = 0)
         # -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
 
@@ -239,13 +264,15 @@ Preproceso <-
         DBI::dbAppendTable(pool, snapshot_id, self$Respuestas_proc$base)
 
         # # Se carga los datos de la base de cambio de cluster
-        if(nrow(self$Respuestas_proc$cluster_corregido)>0){
+        if(!is.null(self$Respuestas_proc$cluster_corregido)){
           DBI::dbAppendTable(pool,cluster_corregido_id ,self$Respuestas_proc$cluster_corregido )
         }
 
         }else{
           print("No hay nuevos registros que procesar")
         }
+
+        #}
 
 
         # Se actualiza la variable de Elimiadas
@@ -270,24 +297,24 @@ Preproceso <-
 
 
         # Se actualiza la variable de Elimiadas por regla
-        # if (length(vec_elim_regla)>0) {
-        # vec_elim_regla_str <- paste(vec_elim_regla, collapse = ", ")
-        #
-        #   DBI::dbExecute(pool,glue::glue("
-        #                                UPDATE {snapshot_id}
-        #                                SET eliminada_regla =
-        #                                CASE
-        #                                 WHEN SbjNum IN {vec_elim_regla_str} THEN 1
-        #                                 ELSE 0
-        #                                END;
-        #                                ")   )
-        # }else {
-        #   DBI::dbExecute(pool,glue::glue("
-        #                                UPDATE {snapshot_id}
-        #                                SET eliminada_regla = 0;
-        #                                ")   )
-        # }
-        #
+        if (length(vec_elim_reglas)>0 ) {
+        vec_elim_regla_str <- paste(vec_elim_reglas, collapse = ", ")
+
+          DBI::dbExecute(pool,glue::glue("
+                                       UPDATE {snapshot_id}
+                                       SET eliminada_regla =
+                                       CASE
+                                        WHEN SbjNum IN ({vec_elim_regla_str}) THEN 1
+                                        ELSE 0
+                                       END;
+                                       ")   )
+        }else {
+          DBI::dbExecute(pool,glue::glue("
+                                       UPDATE {snapshot_id}
+                                       SET eliminada_regla = 0;
+                                       ")   )
+        }
+
 
 
 
@@ -366,7 +393,111 @@ Preproceso <-
 
           return(vec_elim_sal)
 
-      }
+      },
+   #' @description Genera la lista de los Id que por regla serán eliminadas
+   #' @param base Contiene la base de respuestas
+   #' @param bd_eliminadas_reglas Contiene la base de reglas de eliminacion
+   eliminar_por_regla_list = function(base,bd_eliminadas_reglas){
+
+     bd_eliminadas_reglas <-
+       bd_eliminadas_reglas |>
+       mutate(razon =  case_when(
+         is.na(encuestador) & !is.na(fecha_inicio) & !is.na(fecha_fin) ~ "Eliminado por fecha",
+         !is.na(encuestador) & is.na(fecha_inicio) & is.na(fecha_fin) ~ "Eliminado por usuario",
+         !is.na(encuestador) & !is.na(fecha_inicio) & !is.na(fecha_fin) ~ "Eliminado por usuario y fecha",
+         .default = NA
+       )  )
+
+     vec_elim_fech <- c()
+     vec_elim_usr <- c()
+     vec_elim_usr_fech <- c()
+
+     # Filtro por fecha
+     n_fecha <- bd_eliminadas_reglas |>
+       filter(razon == "Eliminado por fecha") |>
+       nrow()
+
+     bd_regla_fech <- bd_eliminadas_reglas |>
+       filter(razon == "Eliminado por fecha") |>
+       select(fecha_inicio,fecha_fin) # |>
+     #  mutate(
+     #    fecha_inicio = lubridate::ymd_hm(fecha_inicio),
+     #    fecha_fin    = lubridate::ymd_hm(fecha_fin)
+     #  )
+
+     for(fech in seq_len(n_fecha)){
+
+       vec_elim_fech_aux <-  base |>
+         filter(bd_regla_fech$fecha_inicio[fech] <= FechaInicio &  bd_regla_fech$fecha_fin[fech] >= FechaInicio ) |>
+         pull(Id)
+
+       vec_elim_fech <- c(vec_elim_fech, vec_elim_fech_aux)
+
+     }
+
+     # Filtro por usuario
+     usuarios_elim <- bd_eliminadas_reglas |>
+       filter(razon == "Eliminado por usuario") |>
+       pull(encuestador)
+
+
+     vec_elim_usr <- base |>
+       mutate(nombre_usr = paste(Nombre, APaterno, AMaterno, sep = " ")) |>
+       filter(nombre_usr %in%  usuarios_elim) |>
+       pull(Id)
+
+     # Filtro por usuario y fecha
+     n_fecha_usr <- bd_eliminadas_reglas |>
+       filter(razon == "Eliminado por usuario y fecha") |>
+       nrow()
+
+     bd_regla_fech_usr <- bd_eliminadas_reglas |>
+       filter(razon == "Eliminado por usuario y fecha") |>
+       select(fecha_inicio,fecha_fin,encuestador) # |>
+     #  mutate(
+     #    fecha_inicio = lubridate::ymd_hm(fecha_inicio),
+     #    fecha_fin    = lubridate::ymd_hm(fecha_fin)
+     #  )
+
+     for(fech_usr in seq_len(n_fecha_usr)){
+
+       vec_elim_fech_aux <-  base |>
+         mutate(nombre_usr = paste(Nombre, APaterno, AMaterno, sep = " ")) |>
+         filter(nombre_usr %in%  bd_regla_fech_usr$encuestador[fech_usr]) |>
+         filter(bd_regla_fech_usr$fecha_inicio[fech] <= FechaInicio &  bd_regla_fech_usr$fecha_fin[fech] >= FechaInicio ) |>
+         pull(Id)
+
+       vec_elim_usr_fech <- c(vec_elim_usr_fech, vec_elim_fech_aux)
+
+     }
+
+     # Empaquetamos ambos resultados en una lista
+     return(list(
+       vec_elim_fech     = vec_elim_fech,
+       vec_elim_usr = vec_elim_usr,
+       vec_elim_usr_fech = vec_elim_usr_fech
+     ))
+   },
+   #' @description Descarta las entrevistas que, de acuerdo al vector de ,
+   #'  deben ser descartadas.
+   #' @param auditoria_telefonica [tibble()] que contiene las entrevistas que, de acuerdo a
+   #'  auditoría, se van a eliminar del registro.
+   eliminar_por_reglas = function(base,vector_reglas){
+
+     if(length(vector_reglas)>0){
+       #self$eliminadas <- base %>% inner_join(auditoria_telefonica, by = "SbjNum")
+
+       base <- base %>%
+         #select(SbjNum) |>
+         mutate(eliminada_regla = ifelse(Id %in% vector_reglas ,1,0))
+       # anti_join(auditoria_telefonica, by="SbjNum")
+     }
+     else {
+       print(" No hay reglas de eliminacion que considerar")
+     }
+     return(base)
+
+   }
     ),
     private = list()
   )
