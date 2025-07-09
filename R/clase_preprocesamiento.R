@@ -438,12 +438,13 @@ Preproceso <-
      # Filtro por usuario
      usuarios_elim <- bd_eliminadas_reglas |>
        filter(razon == "Eliminado por usuario") |>
-       pull(encuestador)
+       pull(UsuarioNum)#pull(encuestador)
 
 
      vec_elim_usr <- base |>
        mutate(nombre_usr = paste(Nombre, APaterno, AMaterno, sep = " ")) |>
-       filter(nombre_usr %in%  usuarios_elim) |>
+       #filter(nombre_usr %in%  usuarios_elim) |>
+       filter(as.numeric(UsuarioNum) %in%  as.numeric(usuarios_elim)) |>
        pull(Id)
 
      # Filtro por usuario y fecha
@@ -453,7 +454,7 @@ Preproceso <-
 
      bd_regla_fech_usr <- bd_eliminadas_reglas |>
        filter(razon == "Eliminado por usuario y fecha") |>
-       select(fecha_inicio,fecha_fin,encuestador) # |>
+       select(fecha_inicio,fecha_fin,encuestador,UsuarioNum) # |>
      #  mutate(
      #    fecha_inicio = lubridate::ymd_hm(fecha_inicio),
      #    fecha_fin    = lubridate::ymd_hm(fecha_fin)
@@ -463,8 +464,9 @@ Preproceso <-
 
        vec_elim_fech_aux <-  base |>
          mutate(nombre_usr = paste(Nombre, APaterno, AMaterno, sep = " ")) |>
-         filter(nombre_usr %in%  bd_regla_fech_usr$encuestador[fech_usr]) |>
-         filter(bd_regla_fech_usr$fecha_inicio[fech] <= FechaInicio &  bd_regla_fech_usr$fecha_fin[fech] >= FechaInicio ) |>
+         #filter(nombre_usr %in%  bd_regla_fech_usr$encuestador[fech_usr]) |>
+         filter(as.numeric(UsuarioNum)  %in%  as.numeric(bd_regla_fech_usr$UsuarioNum[fech_usr])) |>
+         filter(bd_regla_fech_usr$fecha_inicio[fech_usr] <= FechaInicio &  bd_regla_fech_usr$fecha_fin[fech_usr] >= FechaInicio ) |>
          pull(Id)
 
        vec_elim_usr_fech <- c(vec_elim_usr_fech, vec_elim_fech_aux)
