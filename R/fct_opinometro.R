@@ -143,6 +143,7 @@ rectificar_respuestasOpinometro <- function(bd_respuestas_raw, variables_cuestio
     transmute(SbjNum = Id,
               Date = lubridate::as_datetime(FechaInicio),
               Srvyr = paste(Nombre, APaterno, AMaterno, sep = " "),
+              UsuarioNum = UsuarioNum,
               Srvyr_Nombre = Nombre,
               Srvyr_APaterno = APaterno,
               Srvyr_AMaterno = AMaterno,
