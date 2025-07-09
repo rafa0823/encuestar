@@ -39,7 +39,9 @@ Respuestas_svy <-
       eliminadas = NULL,
       sin_coordenadas = NULL,
       no_efectivas = NULL,
-      eliminadas_regla = NULL,
+      eliminadas_por_regla = NULL,
+      fuera_de_muestra = NULL,
+
       #' @description Toma los datos de la base procesada y los va separando para su lectura.
       #' @param bd_respuestas Base de datos que carga los datos previamente procesados
       initialize = function(bd_respuestas){
@@ -50,11 +52,20 @@ Respuestas_svy <-
         #Se separan las eliminadas por auditoria
         self$obtener_eliminadas_auditorias()
 
+        #Se separan las eliminadas por auditoria
+        self$obtener_eliminadas_regla()
+
         #Se separan las eliminadas por no ser efectivas
         self$obtener_eliminadas_no_efectivas()
 
         #Se separan las eliminadas por no tener coordenadas
         self$obtener_eliminadas_sin_coordenadas()
+
+        #Se separan las eliminadas por no tener coordenadas
+        self$obtener_fuera_muestra()
+
+        #Se separan las eliminadas por no tener coordenadas
+        self$obtener_fuera_otros()
 
       },
       #' @description Visualiza las variables que aún no han sido producidas
@@ -63,6 +74,10 @@ Respuestas_svy <-
         self$eliminadas <- self$base |> filter(eliminada_auditoria == 1)
         self$base <- self$base |> filter(eliminada_auditoria == 0)
       },
+      obtener_eliminadas_regla = function(){
+        self$eliminadas_por_regla <- self$base |> filter(eliminada_regla == 1)
+        self$base <- self$base |> filter(eliminada_regla == 0)
+      },
       obtener_eliminadas_no_efectivas = function(){
         self$no_efectivas <- self$base |> filter(eliminada_proceso == 1 & razon == "No efectivas")
         self$base <- self$base |> filter(!(eliminada_proceso == 1 & razon == "No efectivas") )
@@ -70,6 +85,17 @@ Respuestas_svy <-
       obtener_eliminadas_sin_coordenadas = function(){
         self$sin_coordenadas <- self$base |> filter(eliminada_proceso == 1 & razon == "Falta de coordenadas")
         self$base <- self$base |> filter(!(eliminada_proceso == 1 & razon == "Falta de coordenadas") )
+      },
+      obtener_fuera_muestra = function(){
+        self$fuera_de_muestra <- self$base |> filter(eliminada_proceso == 1 & razon == "Cluster no existente")
+        self$base <- self$base |> filter(!(eliminada_proceso == 1 & razon == "Cluster no existente") )
+      },
+      obtener_fuera_otros = function(){
+        #self$fuera_de_muestra <- self$base |> filter(eliminada_proceso == 1 & razon == "Cluster no existente")
+        self$base <- self$base |>
+          filter(!(eliminada_proceso == 1 ) ) |>
+          filter(!(eliminada_regla == 1 ) ) |>
+          filter(!(eliminada_auditoria == 1 ) )
       },
       #' @description Agrega las variables relacionadas al diseno muestral
       #' @param muestra Contiene el diseño muestral completo de la encuesta.
