@@ -207,7 +207,7 @@ Survey_analisis <-
 
         if(!is.na(opinometro_id)) {
 
-          snapshot_id <- glue::glue("snapshot_id_ejmp_{self$opinometro_id}")
+          snapshot_id <- glue::glue("snapshot_id_{self$opinometro_id}")
 
           bd_respuestas <- dplyr::tbl(pool,snapshot_id) |>
             as_tibble()

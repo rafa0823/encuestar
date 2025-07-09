@@ -402,9 +402,9 @@ Preproceso <-
      bd_eliminadas_reglas <-
        bd_eliminadas_reglas |>
        mutate(razon =  case_when(
-         is.na(encuestador) & !is.na(fecha_inicio) & !is.na(fecha_fin) ~ "Eliminado por fecha",
-         !is.na(encuestador) & is.na(fecha_inicio) & is.na(fecha_fin) ~ "Eliminado por usuario",
-         !is.na(encuestador) & !is.na(fecha_inicio) & !is.na(fecha_fin) ~ "Eliminado por usuario y fecha",
+         is.na(UsuarioNum) & !is.na(fecha_inicio) & !is.na(fecha_fin) ~ "Eliminado por fecha",
+         !is.na(UsuarioNum) & is.na(fecha_inicio) & is.na(fecha_fin) ~ "Eliminado por usuario",
+         !is.na(UsuarioNum) & !is.na(fecha_inicio) & !is.na(fecha_fin) ~ "Eliminado por usuario y fecha",
          .default = NA
        )  )
 
