@@ -63,9 +63,6 @@ Preproceso <-
       tipo_encuesta = NULL,
       shp_completo = NULL,
       Respuestas_proc = NULL,
-     # Opinometro = NULL,
-    #  Resultados = NULL,
-   #   Auditoria = NULL,
       #' @description Se reciben los insumos de respuestas, auditoria y otros parámetros asociados
       #'  al levantamiento de la encuesta para construir el diseño muestral y las clases posteriores
       #'  para generar resultados.
@@ -135,11 +132,6 @@ Preproceso <-
         nivel <- un %>% unite(nivel, tipo, nivel) %>% pull(nivel)
         var_n <- un %>% pull(variable)
 
-        # # Se comprueba el metodo de obtencion de datos
-        # if(("data.frame" %in% class(bd_respuestas)) & !is.na(self$opinometro_id)   ){
-        #   print("No se puede cargar la base del Opinometro y una base externa, verifique el método de obtención de bases")
-        #   stop()
-        # }
 
         # Valorar active binding
         self$cuestionario <- Cuestionario$new(documento = cuestionario, patron)
@@ -210,14 +202,6 @@ Preproceso <-
                       by = c("Id"="SbjNum") )
         }
 
-         # contorol_bd <- bd_respuestas |>
-         #   filter(eliminada_regla==1) |>
-         #   filter(eliminada_auditoria==1) |>
-         #   nrow()
-        # if(contorol_bd >= nrow(bd_respuestas)){
-        #   print("Las bases de eliminadas contienen Ids mayores a la base de procesamiento")
-        # } else{
-
 
         # Se termina el procesos si bd_respuestas está vacía
         if(nrow(bd_respuestas)>0){
@@ -247,17 +231,6 @@ Preproceso <-
                                           patron = patron,
                                           nivel = nivel,
                                           var_n = var_n)
-
-
-
-        # TEMPORAL EN LO QUE SE AGREGA EL PROCEDIMIENTO DE ELIMANCION POR REGLA
-        # -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-        # self$Respuestas_proc$base <-
-        #   self$Respuestas_proc$base |>
-        #   mutate(eliminada_regla = 0)
-        # -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-
-
 
 
         # Se agregan los datos procesados al snapshot
@@ -314,47 +287,6 @@ Preproceso <-
                                        SET eliminada_regla = 0;
                                        ")   )
         }
-
-
-
-
-
-        # # Muestra (recalcula fpc)
-        # self$muestra <- Muestra$new(muestra = muestra,
-        #                             respuestas = self$respuestas$base,
-        #                             nivel = nivel,
-        #                             var_n = var_n)
-        #
-        #         # Informacion muestral
-        #         self$respuestas$vars_diseno(muestra = self$muestra, var_n = var_n, tipo_encuesta = self$tipo_encuesta)
-        #         # Diseno
-        #         self$muestra$extraer_diseno(respuestas = self$respuestas$base,
-        #                                     marco_muestral = self$muestra$muestra$poblacion$marco_muestral,
-        #                                     tipo_encuesta = self$tipo_encuesta,
-        #                                     sin_peso = self$sin_peso,
-        #                                     rake = self$rake)
-        #
-        #         print(glue::glue("La base de campo contiene ", as.character(nrow(respuestas)), " filas"))
-        #         print(glue::glue("La base de eliiminadas contiene ", as.character(nrow(self$respuestas$eliminadas)), " filas"))
-        #         if(!is.null(self$respuestas$no_efectivas)  ){ print(glue::glue("La base de no efectivas contiene ", as.character(nrow(self$respuestas$no_efectivas)), " filas"))}
-        #         print(glue::glue("La base de entrevistas efectivas contiene ", as.character(nrow(self$muestra$diseno$variables)), " filas"))
-        #
-        #         #Preguntas
-        #         self$Resultados <- Resultados$new(encuesta = self, diseno = NULL, diccionario = NULL, tema = tema_morant())
-        #
-        #         # Shiny app de auditoria
-        #         self$Auditoria <- Auditoria$new(encuesta = self, tipo_encuesta = self$tipo_encuesta)
-        #         file.copy(overwrite = FALSE,
-        #                   from = system.file("constantes_y_funciones/constantes.R",
-        #                                      package = "encuestar",
-        #                                      mustWork = TRUE),
-        #                   to = "R")
-        #         file.copy(overwrite = FALSE,
-        #                   from = system.file("constantes_y_funciones/funciones.R",
-        #                                      package = "encuestar",
-        #                                      mustWork = TRUE),
-        #                   to = "R")
-        #         source(file = paste0(getwd(), "/R/constantes.R"))
         #beepr::beep()
 
       },
@@ -394,7 +326,7 @@ Preproceso <-
           return(vec_elim_sal)
 
       },
-   #' @description Genera la lista de los Id que por regla serán eliminadas
+   #' @description Genera la lista de los Id/SbjNum que por regla serán eliminadas
    #' @param base Contiene la base de respuestas
    #' @param bd_eliminadas_reglas Contiene la base de reglas de eliminacion
    eliminar_por_regla_list = function(base,bd_eliminadas_reglas){
@@ -480,19 +412,16 @@ Preproceso <-
        vec_elim_usr_fech = vec_elim_usr_fech
      ))
    },
-   #' @description Descarta las entrevistas que, de acuerdo al vector de ,
+   #' @description Descarta las entrevistas que, de acuerdo al vector de eliminadas por regla,
    #'  deben ser descartadas.
-   #' @param auditoria_telefonica [tibble()] que contiene las entrevistas que, de acuerdo a
-   #'  auditoría, se van a eliminar del registro.
+   #' @param base [tibble()] que contiene las entrevistas
+   #' @param vector_reglas que contiene las Id(s) o SbjNum(s) que se eliminanran por  regla
    eliminar_por_reglas = function(base,vector_reglas){
 
      if(length(vector_reglas)>0){
-       #self$eliminadas <- base %>% inner_join(auditoria_telefonica, by = "SbjNum")
 
        base <- base %>%
-         #select(SbjNum) |>
          mutate(eliminada_regla = ifelse(Id %in% vector_reglas ,1,0))
-       # anti_join(auditoria_telefonica, by="SbjNum")
      }
      else {
        print(" No hay reglas de eliminacion que considerar")
