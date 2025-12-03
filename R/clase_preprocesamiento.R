@@ -61,6 +61,7 @@ Preproceso <-
       tipo_encuesta = NULL,
       patron = NULL,
       mantener = NULL,
+      Respuestas_proc = NULL,
       # CAMPOS INTERMEDIOS (Resultados de métodos)
       bd_respuestas_preparadas = NULL,
       nuevos_registros_snapshot = NULL,
@@ -247,7 +248,7 @@ Preproceso <-
         var_n <- un |> pull(variable)
 
         # 3. Aplicar transformaciones complejas de variables
-        respuestas_proc_obj <- Respuestas_proc$new(
+        self$Respuestas_proc <- Respuestas_proc$new(
           base = opinometro$bd_respuestas_cuestionario |>
             mutate(cluster_0 = SbjNum),
           Preproceso = self,
@@ -259,12 +260,13 @@ Preproceso <-
 
         # --- ASIGNACIÓN FINAL ---
         # El campo 'base' de Respuestas_proc contiene el producto final y enriquecido.
-        self$nuevos_registros_snapshot <- respuestas_proc_obj$base |>
+        self$nuevos_registros_snapshot <- self$Respuestas_proc$base |>
           rename(INT = intento_efectivo) |>
-          select(-contains(c("Pregunta")))
+          select(-contains(c("Pregunta"))) |>
+          mutate(distancia = as.character(distancia))
 
         # El campo 'cluster_corregido' contiene el registro de cambios geográficos.
-        self$nuevos_registros_cluster <- respuestas_proc_obj$cluster_corregido
+        self$nuevos_registros_cluster <- self$Respuestas_proc$cluster_corregido
       },
       actualizar_bd = function() {
         message("Iniciando la persistencia de cambios en la base de datos...")
@@ -499,7 +501,7 @@ Preproceso <-
       #' tabla snapshot correspondiente.
       agregar_nuevos_registros = function() {
         # Obtener los nuevos registros del objeto hijo
-        nuevos_registros <- self$Respuestas_proc$base
+        nuevos_registros <- self$nuevos_registros_snapshot
 
         if (is.null(nuevos_registros) || nrow(nuevos_registros) == 0) {
           message("- No hay nuevos registros para agregar.")
@@ -507,7 +509,7 @@ Preproceso <-
         }
 
         # Nombre de la tabla snapshot
-        nombre_snapshot <- glue::glue("snapshot_id_{self$id_opinometro}")
+        nombre_snapshot <- glue::glue("snapshot_id_{self$opinometro_id}")
 
         tryCatch(
           {
@@ -527,7 +529,7 @@ Preproceso <-
             # 3. Anexar el tibble modificado a la base de datos.
             DBI::dbAppendTable(
               self$pool,
-              DBI::Id(table = nombre_snapshot),
+              nombre_snapshot,
               registros_para_subir
             ) # <-- Se usa el tibble con la nueva columna
 
@@ -554,7 +556,7 @@ Preproceso <-
         eliminadas_auditoria <- self$Respuestas_proc$eliminadas$SbjNum
         eliminadas_reglas <- self$Respuestas_proc$eliminadas_por_regla$SbjNum
 
-        nombre_snapshot <- glue::glue("snapshot_id_{self$id_opinometro}")
+        nombre_snapshot <- glue::glue("snapshot_id_{self$opinometro_id}")
         filas_afectadas_total <- 0
 
         # --- Actualizar eliminadas por auditoría ---
@@ -605,7 +607,7 @@ Preproceso <-
         }
 
         # Nombres de tabla snapshot y tabla temporal
-        nombre_snapshot <- glue::glue("snapshot_id_{self$id_opinometro}")
+        nombre_snapshot <- glue::glue("snapshot_id_{self$opinometro_id}")
         nombre_temp <- "#cluster_corregido_temp"
 
         tryCatch(
