@@ -166,8 +166,8 @@ Preproceso <-
 
         bd_geo <- self$bd_respuestas %>%
           {
-            if ("gps_" %in% names(.)) {
-              filter(., !is.na(intentos_puerta_1)) |>
+            if (sum(grepl("gps_", names(.))) > 0) {
+              filter(., !is.na(INT1)) |>
                 select(Id, contains("gps_")) |>
                 tidyr::pivot_longer(cols = -Id, values_to = "gps") |>
                 filter(!is.na(gps), gps != "") |>
@@ -182,7 +182,9 @@ Preproceso <-
           select(Id, gps)
 
         self$bd_respuestas_preparadas <- self$bd_respuestas |>
-          select(-contains(c("gps", "intentos_", "introduccion", "aux_"))) |>
+          select(
+            -contains(c("gps", "intentos_", "introduccion", "aux_", "INT"))
+          ) |>
           left_join(bd_geo, by = "Id") |>
           mutate(
             TipoRegistro = if_else(
