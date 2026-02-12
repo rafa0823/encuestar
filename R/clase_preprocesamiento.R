@@ -68,6 +68,8 @@ Preproceso <-
       nuevos_registros_cluster = NULL,
       # CAMPO FINAL (Resultado principal)
       diseño_muestral = NULL,
+      sbj_eliminadas_auditoria = NULL,
+      sbj_eliminadas_regla = NULL,
       #' @description Se reciben los insumos de respuestas, auditoria y otros parámetros asociados
       #'  al levantamiento de la encuesta para construir el diseño muestral y las clases posteriores
       #'  para generar resultados.
@@ -204,27 +206,63 @@ Preproceso <-
       #' para ser añadidas al snapshot.
       procesar_nuevas_entradas = function() {
         # --- VALIDACIÓN INICIAL ---
-        # El input ahora es bd_respuestas_preparadas, no bd_respuestas
         if (is.null(self$bd_respuestas_preparadas)) {
           stop("Primero debes ejecutar $preparar_respuestas().")
         }
 
-        # El resto de la lógica permanece igual, pero usa la base preparada
-        respuestas_a_procesar <- self$bd_respuestas_preparadas
+        # --- Reset de vectores (evita arrastre entre corridas) ---
+        self$sbj_eliminadas_auditoria <- numeric()
+        self$sbj_eliminadas_regla <- numeric()
 
-        # --- Filtrar respuestas que ya están en el snapshot ---
-        if (nrow(self$snapshot_original) > 0) {
-          respuestas_a_procesar <- respuestas_a_procesar |>
-            anti_join(self$snapshot_original, by = c("Id" = "SbjNum"))
+        # ============================================================
+        # 1) Definir universos: TODO vs NUEVO
+        # ============================================================
+        respuestas_todas <- self$bd_respuestas_preparadas
+
+        respuestas_nuevas <- respuestas_todas
+        if (
+          !is.null(self$snapshot_original) && nrow(self$snapshot_original) > 0
+        ) {
+          respuestas_nuevas <- respuestas_nuevas |>
+            dplyr::anti_join(self$snapshot_original, by = c("Id" = "SbjNum"))
         }
 
-        if (nrow(respuestas_a_procesar) == 0) {
-          message("No hay nuevos registros que procesar.")
+        # ============================================================
+        # 2) Detectar eliminaciones GLOBALMENTE (sin anti_join)
+        #    Esto permite afectar registros ya existentes en snapshot.
+        # ============================================================
+        marcadas_todas <- private$marcar_eliminadas_auditoria(respuestas_todas)
+        marcadas_todas <- private$marcar_eliminadas_por_regla(marcadas_todas)
+
+        self$sbj_eliminadas_auditoria <- marcadas_todas |>
+          dplyr::filter(eliminada_auditoria == 1) |>
+          dplyr::pull(Id) |>
+          unique()
+
+        self$sbj_eliminadas_regla <- marcadas_todas |>
+          dplyr::filter(eliminada_regla == 1) |>
+          dplyr::pull(Id) |>
+          unique()
+
+        # ============================================================
+        # 3) Si no hay nuevos registros, no procesar pesado,
+        #    pero sí permitir que actualizar_bd() haga UPDATE de eliminadas
+        # ============================================================
+        if (nrow(respuestas_nuevas) == 0) {
+          message(
+            "No hay nuevos registros que procesar (pero sí se sincronizarán eliminaciones)."
+          )
+          self$nuevos_registros_snapshot <- NULL
+          self$nuevos_registros_cluster <- NULL
+          self$Respuestas_proc <- NULL
           return(invisible(self))
         }
 
+        # ============================================================
+        # 4) Procesar SOLO NUEVOS (flujo original preservado)
+        # ============================================================
         respuestas_con_marcas <- private$marcar_eliminadas_auditoria(
-          respuestas_a_procesar
+          respuestas_nuevas
         )
         respuestas_con_marcas <- private$marcar_eliminadas_por_regla(
           respuestas_con_marcas
@@ -234,7 +272,7 @@ Preproceso <-
           "Se procesarán {nrow(respuestas_con_marcas)} nuevos registros."
         ))
 
-        # 2. Instanciar las clases de procesamiento
+        # 4.1) Instanciar Opinómetro y traer cuestionario
         opinometro <- Opinometro_proc$new(
           bd_respuestas = respuestas_con_marcas,
           id_cuestionarioOpinometro = self$opinometro_id,
@@ -242,17 +280,20 @@ Preproceso <-
           diccionario = self$cuestionario$diccionario
         )
 
+        # 4.2) Variables de nivel muestral
         un <- self$muestra_diseno$niveles %>%
-          filter(nivel == self$muestra_diseno$ultimo_nivel)
-        nivel <- un |>
-          unite(nivel, tipo, nivel) |>
-          pull(nivel)
-        var_n <- un |> pull(variable)
+          dplyr::filter(nivel == self$muestra_diseno$ultimo_nivel)
 
-        # 3. Aplicar transformaciones complejas de variables
+        nivel <- un |>
+          tidyr::unite(nivel, tipo, nivel) |>
+          dplyr::pull(nivel)
+
+        var_n <- un |> dplyr::pull(variable)
+
+        # 4.3) Aplicar transformaciones complejas
         self$Respuestas_proc <- Respuestas_proc$new(
           base = opinometro$bd_respuestas_cuestionario |>
-            mutate(cluster_0 = SbjNum),
+            dplyr::mutate(cluster_0 = SbjNum),
           Preproceso = self,
           catalogo = self$catalogo,
           muestra_completa = self$muestra_diseno,
@@ -260,15 +301,17 @@ Preproceso <-
           var_n = var_n
         )
 
-        # --- ASIGNACIÓN FINAL ---
-        # El campo 'base' de Respuestas_proc contiene el producto final y enriquecido.
+        # ============================================================
+        # 5) ASIGNACIÓN FINAL (append + correcciones)
+        # ============================================================
         self$nuevos_registros_snapshot <- self$Respuestas_proc$base |>
-          rename(INT = intento_efectivo) |>
-          select(-contains(c("Pregunta"))) |>
-          mutate(distancia = as.character(distancia))
+          dplyr::rename(INT = intento_efectivo) |>
+          dplyr::select(-dplyr::contains("Pregunta")) |>
+          dplyr::mutate(distancia = as.character(distancia))
 
-        # El campo 'cluster_corregido' contiene el registro de cambios geográficos.
         self$nuevos_registros_cluster <- self$Respuestas_proc$cluster_corregido
+
+        invisible(self)
       },
       actualizar_bd = function() {
         message("Iniciando la persistencia de cambios en la base de datos...")
@@ -555,8 +598,11 @@ Preproceso <-
       #' en el proceso de limpieza.
       marcar_registros_eliminados = function() {
         # Extraer SbjNum de entrevistas eliminadas (por auditoría y reglas)
-        eliminadas_auditoria <- self$Respuestas_proc$eliminadas$SbjNum
-        eliminadas_reglas <- self$Respuestas_proc$eliminadas_por_regla$SbjNum
+        eliminadas_auditoria <- self$sbj_eliminadas_auditoria
+        eliminadas_reglas <- self$sbj_eliminadas_regla
+
+        eliminadas_auditoria <- eliminadas_auditoria %||% numeric()
+        eliminadas_reglas <- eliminadas_reglas %||% numeric()
 
         nombre_snapshot <- glue::glue("snapshot_id_{self$opinometro_id}")
         filas_afectadas_total <- 0
